@@ -40,15 +40,13 @@ export class EmailVerificationUseCase extends AuthBaseUseCase<VerifyEmailDto, Se
   }
 
   async execute ({ token, password }: VerifyEmailDto): Promise<SessionResponseDto> {
-    const publicKey = this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
-    const issuer = this.configService.get<string>('JWT_ISSUER');
+    const issuer = this.issuer;
 
-    const tokenPayload = jwt.verify(token, publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as EmailVerificationTokenPayload;
+    const tokenPayload = jwt.verify(token, this.publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as EmailVerificationTokenPayload;
     if (tokenPayload.purpose !== 'email_verification') throw new UnauthorizedException('Invalid token purpose');
 
-    const user = await this.authRepository.findByEmail(tokenPayload.email);
-    if (!user || user.deletedAt) throw new UnauthorizedException('User not found');
-    if (user.isEmailVerified) throw new UnauthorizedException('Email already verified');
+    const user = await this.authRepository.findByEmailAny(tokenPayload.email);
+    if (!user) throw new UnauthorizedException('User not found');
 
     const passwordHash = await this.passwordHelper.hash(password);
     const updatedUser = await this.authRepository.update(user.id, { isEmailVerified: true, passwordHash });

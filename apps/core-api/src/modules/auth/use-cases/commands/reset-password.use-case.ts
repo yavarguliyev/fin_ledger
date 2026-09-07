@@ -36,10 +36,9 @@ export class ResetPasswordUseCase extends AuthBaseUseCase<ResetPasswordDto, Rese
   }
 
   async execute (dto: ResetPasswordDto): Promise<ResetPasswordResponseDto> {
-    const publicKey = this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
-    const issuer = this.configService.get<string>('JWT_ISSUER');
+    const issuer = this.issuer;
 
-    const tokenPayload = jwt.verify(dto.token, publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as PasswordResetTokenPayload;
+    const tokenPayload = jwt.verify(dto.token, this.publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as PasswordResetTokenPayload;
     if (tokenPayload.purpose !== 'password_reset') throw new UnauthorizedException('Invalid token purpose');
 
     const user = await this.authRepository.findByEmail(tokenPayload.email);

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EmailProviderService, KafkaMessageRecord, SendEmailDto } from '@common/libs';
+import { MailerService, KafkaMessageRecord, SendEmailDto } from '@common/libs';
 
 @Injectable()
 export abstract class EmailBaseHandler<T extends SendEmailDto> {
@@ -7,13 +7,13 @@ export abstract class EmailBaseHandler<T extends SendEmailDto> {
 
   constructor (
     loggerContext: string,
-    protected readonly emailService: EmailProviderService
+    protected readonly mailerService: MailerService
   ) {
     this.logger = new Logger(loggerContext);
   }
 
   protected handle ({ value }: KafkaMessageRecord<T>): void {
     this.logger.log(`[Email Handler]: Received email event`);
-    this.emailService.sendEmail(value);
+    this.mailerService.sendEmail(value);
   }
 }

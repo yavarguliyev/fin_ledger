@@ -1,4 +1,5 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   EmailTemplateType,
   EXTRACT_ID_KEY,
@@ -11,13 +12,17 @@ import {
   SendEmailDto,
   SessionService
 } from '@common/libs';
-import { ConfigService } from '@nestjs/config';
+
 import { AuthRepository } from '../../repositories/auth.repository';
 import { LedgerService } from '../../../ledger/ledger.service';
 import { WalletService } from '../../../wallet/wallet.service';
 
 @Injectable()
 export abstract class AuthBaseUseCase<TInput, TOutput> {
+  protected readonly privateKey: string;
+  protected readonly publicKey: string;
+  protected readonly issuer: string;
+  protected readonly frontendUrl: string;
   protected readonly [KAFKA_SERVICE]: KafkaService;
 
   constructor (
@@ -32,6 +37,10 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
     @Inject(KAFKA_SERVICE) kafkaService: KafkaService
   ) {
     this[KAFKA_SERVICE] = kafkaService;
+    this.privateKey = this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
+    this.publicKey = this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
+    this.issuer = this.configService.get<string>('JWT_ISSUER')!;
+    this.frontendUrl = this.configService.get<string>('FRONTEND_URL')!;
   }
 
   protected abstract execute(input: TInput): Promise<TOutput>;

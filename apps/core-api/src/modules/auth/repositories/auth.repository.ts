@@ -46,7 +46,7 @@ export class AuthRepository extends BaseRepository<AuthDto> {
     return this.findOne({ email, isEmailVerified: true, deletedAt: null }, adapter);
   }
 
-  async findByEmailForSignUp (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
+  async findByEmailAny (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
     return this.findOne({ email }, adapter);
   }
 

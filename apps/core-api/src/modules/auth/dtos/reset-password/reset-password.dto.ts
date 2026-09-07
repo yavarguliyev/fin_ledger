@@ -19,5 +19,5 @@ export type ResetPasswordResponseDto = {
 export type PasswordResetTokenPayload = {
   userId: string;
   email: string;
-  purpose: string;
+  purpose: 'password_reset';
 };

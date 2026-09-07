@@ -8,7 +8,7 @@
     { "path": "./packages/rabbitmq" },
     { "path": "./packages/kafka" },
     { "path": "./packages/env" },
-    { "path": "./packages/email-provider" },
+    { "path": "./packages/mailer" },
     { "path": "./packages/database" },
     { "path": "./packages/common" },
     { "path": "./apps/core-api" }

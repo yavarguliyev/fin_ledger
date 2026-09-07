@@ -40,5 +40,5 @@ export type EmailVerificationTokenPayload = {
   email: string;
   displayName: string;
   role: string;
-  purpose: string;
+  purpose: 'email_verification';
 };

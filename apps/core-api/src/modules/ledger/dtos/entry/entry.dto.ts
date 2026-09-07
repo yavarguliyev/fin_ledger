@@ -5,9 +5,7 @@ export const EntrySchema = z.object({
   accountId: z.string({ message: 'Account ID must be a string' }).min(1, { message: 'Account ID is required' }),
 
   entryType: z
-    .enum(Object.values(WalletTransactionType) as [string, ...string[]], {
-      message: 'Entry type must be DEBIT or CREDIT'
-    })
+    .enum(Object.values(WalletTransactionType) as [string, ...string[]], { message: 'Entry type must be DEBIT or CREDIT' })
     .transform(val => val as WalletTransactionType),
 
   amountMinor: z

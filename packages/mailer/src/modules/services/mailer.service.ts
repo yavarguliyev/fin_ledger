@@ -5,7 +5,7 @@ import { ClientIds } from '@common/shared-libs';
 import { SendEmailDto } from '../dtos/send-email.dto';
 
 @Injectable()
-export class EmailProviderService {
+export class MailerService {
   private readonly logger: Logger;
   private readonly clientId: ClientIds;
   private readonly from: string;
@@ -15,7 +15,7 @@ export class EmailProviderService {
     clientId?: ClientIds
   ) {
     this.clientId = clientId || ClientIds.DEAFULT;
-    this.logger = new Logger(`${EmailProviderService.name}:${this.clientId}`);
+    this.logger = new Logger(`${MailerService.name}:${this.clientId}`);
     this.from = this.configService.get<string>('EMAIL_FROM')!;
   }
 

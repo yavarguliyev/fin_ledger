@@ -39,7 +39,7 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, AuthRespon
   }
 
   async execute (dto: RegisterDto): Promise<AuthResponseDto> {
-    const existingUser = await this.authRepository.findByEmailForSignUp(dto.email);
+    const existingUser = await this.authRepository.findByEmailAny(dto.email);
     if (existingUser) throw new ConflictException('Email already exists');
 
     const passwordHash = await this.passwordHelper.hash(dto.password);

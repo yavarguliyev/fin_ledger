@@ -40,13 +40,9 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<string, ForgotPasswor
     const user = await this.authRepository.findByEmail(email);
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    const privateKey = this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
-    const issuer = this.configService.get<string>('JWT_ISSUER');
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
-
     const tokenPayload = { userId: user.id, email: user.email, purpose: 'password_reset' };
-    const token = jwt.sign(tokenPayload, privateKey, { algorithm: 'RS256', expiresIn: '15m', ...(issuer && { issuer }) });
-    const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
+    const token = jwt.sign(tokenPayload, this.privateKey, { algorithm: 'RS256', expiresIn: '15m', ...(this.issuer && { issuer: this.issuer }) });
+    const resetUrl = `${this.frontendUrl}/auth/reset-password?token=${token}`;
 
     await emitKafkaPasswordReset({
       subject: 'Reset Your Password',
