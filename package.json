@@ -56,8 +56,5 @@
   },
   "engines": {
     "node": ">=22"
-  },
-  "overrides": {
-    "rxjs": "7.8.1"
   }
 }
