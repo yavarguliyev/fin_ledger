@@ -1,0 +1,40 @@
+<div class="space-y-6">
+  <app-page-header 
+    title="Ledger" 
+    subtitle="Double-entry accounting view" 
+  />
+
+      @if (account() && isUser()) {
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5">
+            <p class="text-xs text-ink-500 dark:text-ink-400">Account ID</p>
+            <p class="font-mono text-sm text-ink-900 dark:text-white mt-1 truncate">{{ account()!.id }}</p>
+          </div>
+          <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5">
+            <p class="text-xs text-ink-500 dark:text-ink-400">Account Type</p>
+            <p class="text-sm font-semibold text-ink-900 dark:text-white mt-1">{{ account()!.accountType }}</p>
+          </div>
+          <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5">
+            <p class="text-xs text-ink-500 dark:text-ink-400">Balance</p>
+            <p class="text-lg font-bold text-ink-900 dark:text-white mt-1">{{ account()!.balanceMinor | currencyFormat: account()!.currency }}</p>
+          </div>
+        </div>
+      }
+
+      <app-data-table 
+        [config]="tableConfig()" 
+        [data]="entries()" 
+        [loading]="loading()"
+      />
+
+      <!-- Server-side pagination (attached to DataTable card) -->
+      <div class="-mt-px">
+        <div class="bg-white dark:bg-night-surface rounded-b-xl border border-t-0 border-ink-200 dark:border-night-border">
+          <app-pagination 
+            [config]="paginationConfig()" 
+            (pageChange)="onPageChange($event)"
+            (pageSizeChange)="onPageSizeChange($event)"
+          />
+        </div>
+      </div>
+    </div>

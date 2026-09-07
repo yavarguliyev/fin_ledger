@@ -1,0 +1,35 @@
+{
+  "name": "@core/client",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --configuration=production",
+    "dev": "ng serve --host 0.0.0.0 --port 4200",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "ng test",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit",
+    "clean": "rm -rf dist .angular node_modules/.cache"
+  },
+  "dependencies": {
+    "@angular/animations": "21.1.0",
+    "@angular/common": "^21.1.0",
+    "@angular/compiler": "^21.1.0",
+    "@angular/core": "^21.1.0",
+    "@angular/forms": "^21.1.0",
+    "@angular/platform-browser": "^21.1.0",
+    "@angular/router": "^21.1.0",
+    "rxjs": "^7.8.1",
+    "tslib": "^2.5.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.1.0",
+    "@angular/cli": "^21.1.0",
+    "@angular/compiler-cli": "^21.1.0",
+    "autoprefixer": "^10.5.4",
+    "postcss": "^8.5.24",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3"
+  }
+}

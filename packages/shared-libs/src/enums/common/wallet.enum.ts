@@ -1,0 +1,26 @@
+export enum WalletStatus {
+  ACTIVE = 'ACTIVE',
+  CLOSED = 'CLOSED',
+  SUSPENDED = 'SUSPENDED'
+}
+
+export enum WalletTransactionStatus {
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  REVERSED = 'REVERSED'
+}
+
+export enum WalletTransactionType {
+  BET = 'BET',
+  CONVERSION_IN = 'CONVERSION_IN',
+  CONVERSION_OUT = 'CONVERSION_OUT',
+  DEPOSIT = 'DEPOSIT',
+  CREDIT = 'CREDIT',
+  DEBIT = 'DEBIT',
+  WITHDRAWAL = 'WITHDRAWAL',
+  RELEASE = 'RELEASE',
+  RESERVE = 'RESERVE',
+  WINNING = 'WINNING',
+  NONE = 'NONE'
+}

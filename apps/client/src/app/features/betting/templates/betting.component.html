@@ -1,0 +1,134 @@
+<div class="space-y-6">
+  <app-page-header 
+    title="Betting" 
+    [subtitle]="'Available: ' + (availableBalance() | currencyFormat: currency())" 
+  />
+
+  <div class="grid lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-4">
+      <h2 class="font-semibold text-ink-900 dark:text-white">Available Events</h2>
+      @for (event of visibleEvents(); track event.id) {
+        <div
+          class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-4 flex items-center justify-between hover:shadow-card transition-shadow"
+        >
+          <div>
+            <p class="font-medium text-ink-900 dark:text-white">{{ event.label }}</p>
+            <span
+              class="text-xs font-medium px-2 py-0.5 rounded-full"
+              [class]="event.status === 'LIVE' ? 'bg-danger/10 text-danger animate-pulseRing' : 'bg-ink-100 text-ink-500'"
+              >{{ event.status }}</span
+            >
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm font-semibold text-primary">{{ event.odds.toFixed(2) }}x</span>
+            <button
+              (click)="selectEvent(event)"
+              class="px-3 py-1.5 rounded-lg text-sm font-medium border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+            >
+              Select
+            </button>
+          </div>
+        </div>
+      }
+
+      <app-show-more [config]="showMoreConfig()" (loadMore)="loadMoreEvents()" />
+    </div>
+
+    <div class="lg:sticky lg:top-20 h-fit">
+      <form [formGroup]="form" class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5 space-y-4">
+        <h2 class="font-semibold text-ink-900 dark:text-white">Bet Slip</h2>
+        @if (selectedEvent()) {
+          <div class="rounded-lg bg-primary/5 border border-primary/20 p-3">
+            <p class="text-sm font-medium text-ink-900 dark:text-white">{{ selectedEvent()!.label }}</p>
+            <p class="text-xs text-ink-500 dark:text-ink-400">Odds: {{ selectedEvent()!.odds.toFixed(2) }}x</p>
+          </div>
+        } @else {
+          <p class="text-sm text-ink-500 dark:text-ink-400">Select an event to place a bet.</p>
+        }
+
+        <div>
+          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Stake ({{ currency() }})</label>
+          <input
+            type="number"
+            formControlName="stake"
+            min="1"
+            step="0.01"
+            class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="0.00"
+            [disabled]="!selectedEvent()"
+          />
+          @if (form.controls.stake.invalid && form.controls.stake.touched) {
+            <p class="text-xs text-danger mt-1">Minimum stake is $1.00</p>
+          }
+        </div>
+
+        <div class="rounded-lg bg-ink-50 dark:bg-night-bg p-3 space-y-1.5 text-sm">
+          <div class="flex justify-between">
+            <span class="text-ink-500 dark:text-ink-400">Stake</span
+            ><span class="font-medium text-ink-900 dark:text-white">{{ stakeMinor() | currencyFormat: currency() }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-ink-500 dark:text-ink-400">Potential win</span
+            ><span class="font-semibold text-success">{{ potentialWin() | currencyFormat: currency() }}</span>
+          </div>
+        </div>
+
+        <button
+          (click)="placeBet()"
+          [disabled]="!canPlaceBet()"
+          class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          @if (loading()) {
+            <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+          }
+          Place Bet
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border">
+    <div class="px-5 py-4 border-b border-ink-200 dark:border-night-border">
+      <h2 class="font-semibold text-ink-900 dark:text-white">Bet History</h2>
+    </div>
+    <div class="divide-y divide-ink-100 dark:divide-night-border">
+      @for (tx of bets(); track tx.id) {
+        <div class="flex items-center gap-4 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold shrink-0 bg-primary/10 text-primary">🎯</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ tx.reference || 'Bet placed' }}</p>
+            <div class="flex items-center gap-2 mt-1">
+              @if (tx.createdAt) {
+                <span class="text-xs text-ink-500 dark:text-ink-400">{{ tx.createdAt | relativeTime }}</span>
+              }
+              <span
+                class="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                [ngClass]="{
+                  'bg-success/10 text-success': tx.status === 'COMPLETED',
+                  'bg-warning/10 text-warning': tx.status === 'PENDING',
+                  'bg-danger/10 text-danger': tx.status === 'FAILED',
+                  'bg-ink-100 text-ink-500': tx.status === 'CANCELLED'
+                }"
+                >{{ tx.status }}</span
+              >
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <p class="text-base font-bold text-danger">{{ (tx.amountMinor < 0 ? -tx.amountMinor : tx.amountMinor) | currencyFormat: tx.currency }}</p>
+            <p class="text-xs text-ink-400 dark:text-ink-500 mt-0.5">Stake</p>
+          </div>
+        </div>
+      } @empty {
+        <div class="px-5 py-12 text-center">
+          <div class="w-16 h-16 rounded-full bg-ink-100 dark:bg-night-bg mx-auto mb-3 flex items-center justify-center text-3xl">🎯</div>
+          <p class="text-sm font-medium text-ink-900 dark:text-white">No bets yet</p>
+          <p class="text-xs text-ink-500 dark:text-ink-400 mt-1">Place your first bet on an available event</p>
+        </div>
+      }
+    </div>
+
+    @if (bets().length > 0) {
+      <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
+    }
+  </div>
+</div>

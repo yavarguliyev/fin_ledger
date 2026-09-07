@@ -1,0 +1,232 @@
+services:
+  # =======================================================
+  # 1. REDIS STACK (Master-Replica)
+  # =======================================================
+  redis-master:
+    image: redis:7.2-alpine
+    container_name: ddd_redis_master
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis-replica:
+    image: redis:7.2-alpine
+    container_name: ddd_redis_replica
+    command: redis-server --replicaof redis-master 6379 --appendonly yes --masterauth ${REDIS_PASSWORD} --requirepass ${REDIS_PASSWORD}
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # =======================================================
+  # 2. DATABASES
+  # =======================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: ddd_postgres_db
+    ports:
+      - "${DB_PORT:-54320}:5432"
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_DB=${DB_DATABASE:-distributed_db}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-password}
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =======================================================
+  # 3. RABBITMQ CORE BROKER (Single Node Stability)
+  # =======================================================
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: ddd_rabbitmq
+    hostname: rabbitmq-1
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file: .env
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+    volumes:
+      - rabbitmq_node_data:/var/lib/rabbitmq
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # =======================================================
+  # 4. KAFKA CLUSTER
+  # =======================================================
+  kafka:
+      image: apache/kafka:3.7.0
+      container_name: ddd_kafka
+      ports:
+        - "${KAFKA_BROKER_PORT:-9092}:9092"
+      environment:
+        KAFKA_NODE_ID: 1
+        KAFKA_PROCESS_ROLES: "broker,controller"
+        KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+        KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+        KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://${KAFKA_ADVERTISED_HOST:-127.0.0.1}:${KAFKA_BROKER_PORT:-9092}"
+        KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+        KAFKA_LOG_DIRS: "/var/lib/kafka/data"
+        KAFKA_AUTO_CREATE_TOPICS_ENABLE: "${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-true}"
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+        CLUSTER_ID: ${KAFKA_CLUSTER_ID}
+      networks:
+        - ddd_mesh
+      healthcheck:
+        test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+        interval: 10s
+        timeout: 10s
+        retries: 5
+        start_period: 30s
+
+  # =======================================================
+  # 5. MINIO
+  # =======================================================
+  minio:
+    image: minio/minio:latest
+    container_name: dd_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # =======================================================
+  # 6. CLICKHOUSE (Analytics Database)
+  # =======================================================
+  clickhouse:
+    image: clickhouse/clickhouse-server:24-alpine
+    container_name: ddd_clickhouse
+    ports:
+      - "8123:8123"
+      - "9002:9000"
+    environment:
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-analytics}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_pass}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # =======================================================
+  # 7. PROMETHEUS (Metrics Collection)
+  # =======================================================
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: ddd_prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - clickhouse
+
+  # =======================================================
+  # 8. GRAFANA (Visualization & Dashboards)
+  # =======================================================
+  grafana:
+    image: grafana/grafana:11.3.1
+    container_name: ddd_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SERVER_ROOT_URL: http://localhost:3001
+      GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - ddd_mesh
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - prometheus
+      - clickhouse
+
+networks:
+  ddd_mesh:
+    driver: bridge
+
+volumes:
+  redis_master_data:
+  rabbitmq_node_data:
+  kafka_data:
+  postgres_data:
+  minio_data:
+  clickhouse_data:
+  clickhouse_logs:
+  prometheus_data:
+  grafana_data:

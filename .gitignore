@@ -1,0 +1,16 @@
+node_modules/
+dist/
+packages/**/src/**/*.js
+packages/**/src/**/*.d.ts
+packages/**/src/**/*.map
+apps/**/src/**/*.js
+apps/**/src/**/*.d.ts
+apps/**/src/**/*.map
+.angular/
+.turbo/
+coverage/
+*.log
+.env
+.env.local
+.DS_Store
+keys/

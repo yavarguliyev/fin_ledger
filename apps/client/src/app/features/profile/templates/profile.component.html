@@ -1,0 +1,214 @@
+<div class="space-y-6 max-w-3xl">
+  <app-page-header title="Profile & Settings" />
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
+    <h2 class="font-semibold text-ink-900 dark:text-white mb-4">Profile Information</h2>
+    <div class="flex items-center gap-4 mb-5">
+      @if (imageService.getMainImageUrl()) {
+        <img [src]="imageService.getMainImageUrl()" alt="Profile" class="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
+      } @else {
+        <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold">{{ initial() }}</div>
+      }
+      <div>
+        <p class="font-semibold text-ink-900 dark:text-white">{{ userName() }}</p>
+        <p class="text-sm text-ink-500 dark:text-ink-400">{{ maskedEmail() }}</p>
+        <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">{{ role() }}</span>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-2">Profile Images</label>
+      <div class="flex items-center gap-3">
+        <label class="cursor-pointer px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors text-sm flex items-center gap-2">
+          @if (imageService.isUploading()) {
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Uploading...</span>
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            <span>Upload Images</span>
+          }
+          <input 
+            type="file" 
+            (change)="onFileSelected($event)" 
+            accept="image/*" 
+            multiple 
+            class="hidden"
+            [disabled]="imageService.isUploading()"
+          />
+        </label>
+        @if (imageService.hasImages()) {
+          <button
+            type="button"
+            (click)="deleteAllImages()"
+            class="px-4 py-2 rounded-lg border border-danger text-danger font-semibold hover:bg-danger hover:text-white transition-colors text-sm"
+          >
+            Delete All
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (imageService.hasImages()) {
+      <div class="mb-5">
+        <h3 class="text-sm font-medium text-ink-700 dark:text-ink-200 mb-3">Image Gallery</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          @for (image of visibleImages(); track image.index) {
+            <div class="relative group">
+              <img 
+                [src]="image.url" 
+                [alt]="'Profile image ' + (image.index + 1)"
+                (error)="onImageError($event)"
+                class="w-full aspect-square object-cover rounded-lg border-2 transition-all bg-ink-100 dark:bg-night-border"
+                [class.border-primary]="image.index === imageService.profileImageIndex()"
+                [class.border-ink-200]="image.index !== imageService.profileImageIndex()"
+                [class.dark:border-night-border]="image.index !== imageService.profileImageIndex()"
+              />
+              @if (image.index === imageService.profileImageIndex()) {
+                <div class="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                  </svg>
+                  <span>Main</span>
+                </div>
+              }
+              <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+                @if (image.index !== imageService.profileImageIndex()) {
+                  <button
+                    type="button"
+                    (click)="imageService.setMainImage(image.index)"
+                    class="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-dark transition-colors"
+                  >
+                    Set as Main
+                  </button>
+                }
+                <button
+                  type="button"
+                  (click)="imageService.deleteImage(image.index)"
+                  class="px-3 py-1.5 bg-danger text-white text-xs font-semibold rounded-lg hover:bg-danger-dark transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+        <div class="mt-4">
+          <app-show-more [config]="showMoreConfig()" (loadMore)="loadMoreImages()" />
+        </div>
+      </div>
+    }
+
+    <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Email (read-only)</label>
+        <input
+          [value]="email()"
+          disabled
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-200 dark:border-night-border bg-ink-50 dark:bg-night-bg text-ink-500 dark:text-ink-400"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Display name</label>
+        <input
+          formControlName="displayName"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+      @if (isUser()) {
+        <div>
+          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Currency</label>
+          <div class="relative">
+            <select
+              formControlName="currency"
+              class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 appearance-none pr-10"
+            >
+              @for (curr of supportedCurrencies; track curr) {
+                <option [value]="curr">{{ curr }}</option>
+              }
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-ink-500 dark:text-ink-400">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      }
+
+      <button 
+        type="submit" 
+        [disabled]="isSaveDisabled()"
+        class="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold transition-colors flex items-center gap-2"
+        [class.opacity-50]="isSaveDisabled()"
+        [class.cursor-not-allowed]="isSaveDisabled()"
+        [class.hover:bg-primary-dark]="!isSaveDisabled()"
+      >
+        @if (isSaving()) {
+          <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Saving...</span>
+        } @else {
+          <span>Save changes</span>
+        }
+      </button>
+    </form>
+  </div>
+
+  @if (canManagePayments()) {
+    <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
+      <app-payment-methods />
+    </div>
+  }
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
+    <h2 class="font-semibold text-ink-900 dark:text-white mb-4">Preferences</h2>
+    <div class="flex items-center justify-between py-3">
+      <div>
+        <p class="text-sm font-medium text-ink-900 dark:text-white">Dark mode</p>
+        <p class="text-xs text-ink-500 dark:text-ink-400">Toggle between light and dark theme</p>
+      </div>
+      <button
+        type="button"
+        (click)="toggleTheme()"
+        role="switch"
+        [attr.aria-checked]="isDark()"
+        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+        [class.bg-primary]="isDark()"
+        [class.bg-ink-300]="!isDark()"
+        [class.dark:bg-ink-600]="!isDark()"
+      >
+        <span
+          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+          [class.translate-x-5]="isDark()"
+          [class.translate-x-0]="!isDark()"
+        ></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
+    <h2 class="font-semibold text-ink-900 dark:text-white mb-4">Security</h2>
+    <div class="space-y-3">
+      <div class="flex items-center justify-between py-2">
+        <div>
+          <p class="text-sm font-medium text-ink-900 dark:text-white">Two-factor authentication</p>
+          <p class="text-xs text-ink-500 dark:text-ink-400">Add an extra layer of security</p>
+        </div>
+        <span class="text-xs font-medium px-2 py-1 rounded-full bg-warning/10 text-warning">Not enabled</span>
+      </div>
+      <div class="flex items-center justify-between py-2 border-t border-ink-100 dark:border-night-border">
+        <div>
+          <p class="text-sm font-medium text-ink-900 dark:text-white">Member since</p>
+        </div>
+        <span class="text-sm text-ink-500 dark:text-ink-400">{{ memberSince() }}</span>
+      </div>
+    </div>
+  </div>
+</div>

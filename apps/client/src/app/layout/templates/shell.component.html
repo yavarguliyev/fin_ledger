@@ -1,0 +1,102 @@
+<div class="flex min-h-screen">
+  <aside class="hidden md:flex w-64 flex-col bg-white dark:bg-night-surface border-r border-ink-200 dark:border-night-border">
+    <a routerLink="/dashboard" class="px-6 py-5 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+      <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold">W</div>
+      <span class="font-semibold text-ink-900 dark:text-white">WalletPay</span>
+    </a>
+    <nav class="flex-1 px-3 py-2 space-y-1">
+      @for (item of navItems(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="bg-primary/10 text-primary dark:text-primary-light"
+          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+        >
+          <span class="text-base" [innerHTML]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+    <div class="p-3 border-t border-ink-200 dark:border-night-border">
+      <button
+        (click)="toggleTheme()"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+      >
+        <span class="text-base">{{ isDark() ? '☀️' : '🌙' }}</span>
+        {{ isDark() ? 'Light mode' : 'Dark mode' }}
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="sticky top-0 z-30 bg-white/80 dark:bg-night-surface/80 backdrop-blur border-b border-ink-200 dark:border-night-border">
+      <div class="flex items-center justify-between px-4 sm:px-6 h-16">
+        <div class="flex items-center gap-3">
+          <a routerLink="/dashboard" class="md:hidden font-semibold text-ink-900 dark:text-white cursor-pointer hover:opacity-80 transition-opacity">WalletPay</a>
+        </div>
+        <div class="flex items-center gap-3">
+          <a
+            routerLink="/notifications"
+            class="relative p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+            aria-label="Notifications"
+          >
+            <span class="text-xl">🔔</span>
+            @if (unread() > 0) {
+              <span
+                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center"
+                >{{ unread() }}</span
+              >
+            }
+          </a>
+          <div class="flex items-center gap-2">
+            @if (getProfileImageUrl()) {
+              <img
+                [src]="getProfileImageUrl()"
+                alt="Profile"
+                (click)="openProfileImage()"
+                class="w-8 h-8 rounded-full object-cover border border-primary/20 cursor-pointer hover:opacity-80 transition-opacity"
+                title="Open image in new window"
+              />
+            } @else {
+              <div
+                (click)="openProfileImage()"
+                class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm cursor-pointer hover:opacity-80 transition-opacity"
+              >
+                {{ initial() }}
+              </div>
+            }
+            <div class="hidden sm:block text-sm">
+              <div class="font-medium text-ink-900 dark:text-white leading-tight">{{ userName() }}</div>
+              <div class="text-xs text-ink-500 dark:text-ink-400">{{ roleLabel() }}</div>
+            </div>
+          </div>
+          <button
+            (click)="logout()"
+            class="p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-night-border transition-colors text-ink-600 dark:text-ink-300"
+            aria-label="Logout"
+          >
+            <span class="text-base">⏻</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto pb-20 md:pb-6">
+      <router-outlet />
+    </main>
+
+    <nav
+      class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-night-surface border-t border-ink-200 dark:border-night-border flex justify-around py-2"
+    >
+      @for (item of mobileNav(); track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="text-primary"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-500 dark:text-ink-400 text-xs"
+        >
+          <span class="text-lg" [innerHTML]="item.icon"></span>
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+  </div>
+</div>

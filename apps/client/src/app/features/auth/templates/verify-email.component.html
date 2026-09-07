@@ -1,0 +1,24 @@
+<div class="min-h-screen flex items-center justify-center bg-surface">
+  <div class="max-w-md w-full space-y-8 p-8 bg-surface-card rounded-2xl shadow-sm border border-border">
+    <!-- Loading State -->
+    @if (loading()) {
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <p class="mt-4 text-base text-text-secondary">Redirecting...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error()) {
+      <div class="text-center">
+        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
+          <svg class="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </div>
+        <h2 class="mt-6 text-2xl font-bold text-text-primary">Invalid Link</h2>
+        <p class="mt-2 text-sm text-red-600">{{ error() }}</p>
+      </div>
+    }
+  </div>
+</div>

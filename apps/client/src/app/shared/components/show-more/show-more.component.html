@@ -1,0 +1,9 @@
+@if (hasMore()) {
+  <button
+    (click)="onLoadMore()"
+    class="w-full py-3 rounded-lg border-2 border-dashed border-ink-200 dark:border-night-border text-sm font-medium text-ink-600 dark:text-ink-300 hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors flex items-center justify-center gap-2"
+  >
+    <span>Show more</span>
+    <span class="text-xs text-ink-400 dark:text-ink-500">({{ shownCount() }} of {{ config().totalItems }})</span>
+  </button>
+}

@@ -1,0 +1,224 @@
+<div class="max-w-xl mx-auto space-y-6">
+  <app-page-header 
+    title="Deposit Funds" 
+    subtitle="Add money to your wallet" 
+  />
+
+  <div class="flex items-center gap-2">
+    @for (s of formService.steps; track s.idx) {
+      <div class="flex-1 flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors"
+          [class]="formService.step() >= s.idx ? 'bg-primary text-white' : 'bg-ink-200 dark:bg-night-border text-ink-500'"
+        >
+          {{ s.idx }}
+        </div>
+        <span class="text-xs font-medium hidden sm:inline" [class]="formService.step() >= s.idx ? 'text-ink-900 dark:text-white' : 'text-ink-400'">{{
+          s.label
+        }}</span>
+        @if (s.idx < 3) {
+          <div class="flex-1 h-0.5" [class]="formService.step() > s.idx ? 'bg-primary' : 'bg-ink-200 dark:bg-night-border'"></div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (formService.step() === 1) {
+    <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Amount ({{ currency() }})</label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 font-medium">{{ currency() }}</span>
+          <input
+            type="number"
+            [formControl]="amountControl"
+            class="w-full pl-16 pr-4 py-3 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-lg font-semibold text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+            placeholder="0.00"
+          />
+        </div>
+        @if (amountControl.invalid && amountControl.touched) {
+          <p class="mt-1.5 text-xs text-danger">Amount must be between 1 and 10,000 {{ currency() }}</p>
+        }
+      </div>
+      <div class="flex flex-wrap gap-2">
+        @for (q of formService.quickAmounts; track q) {
+          <button
+            type="button"
+            (click)="setAmount(q)"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 hover:bg-primary/10 hover:border-primary transition-colors"
+          >
+            {{ q | currencyFormat: currency() }}
+          </button>
+        }
+      </div>
+      <button
+        (click)="next()"
+        [disabled]="amountControl.invalid"
+        class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+      >
+        Continue
+      </button>
+    </div>
+  }
+
+  @if (formService.step() === 2) {
+    <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200">Select Payment Method</label>
+          <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1">
+            + Manage methods
+          </a>
+        </div>
+
+        @if (formService.loadingMethods()) {
+          <div class="py-6 flex justify-center text-ink-400">
+            <span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+          </div>
+        } @else if (formService.verifiedMethods().length === 0) {
+          <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-4 text-center space-y-2">
+            <p class="text-sm font-medium text-ink-800 dark:text-ink-100">No verified payment methods found</p>
+            <p class="text-xs text-ink-500 dark:text-ink-400">Add and verify your bank account or debit card in your profile to deposit funds.</p>
+            <a
+              routerLink="/profile"
+              class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors mt-1"
+            >
+              Add Payment Method →
+            </a>
+          </div>
+        } @else {
+          <div class="space-y-2.5">
+            @for (m of formService.verifiedMethods(); track m.id) {
+              <div
+                (click)="formService.selectMethod(m.id)"
+                [class.border-primary]="formService.selectedMethodId() === m.id"
+                [class.bg-primary/5]="formService.selectedMethodId() === m.id"
+                [class.dark:bg-primary/10]="formService.selectedMethodId() === m.id"
+                [class.border-ink-200]="formService.selectedMethodId() !== m.id"
+                [class.dark:border-night-border]="formService.selectedMethodId() !== m.id"
+                class="cursor-pointer border rounded-xl p-3.5 flex items-center justify-between transition-all hover:border-primary/60"
+              >
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-ink-200">
+                    @if (m.type === 'BANK_ACCOUNT') {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    }
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-ink-900 dark:text-white">
+                      {{ m.bankName || (m.type === 'BANK_ACCOUNT' ? 'Bank Account' : 'Debit Card') }}
+                      <span class="text-ink-400 font-normal ml-1">{{ m.maskedAccount }}</span>
+                    </p>
+                    <p class="text-xs text-ink-500 dark:text-ink-400">{{ m.accountHolder }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    Verified
+                  </span>
+                  <div
+                    [class.bg-primary]="formService.selectedMethodId() === m.id"
+                    [class.border-primary]="formService.selectedMethodId() === m.id"
+                    class="w-5 h-5 rounded-full border-2 border-ink-300 flex items-center justify-center transition-colors"
+                  >
+                    @if (formService.selectedMethodId() === m.id) {
+                      <div class="w-2 h-2 bg-white rounded-full"></div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <label class="flex items-start gap-2 text-sm text-ink-600 dark:text-ink-300 cursor-pointer pt-1">
+        <input type="checkbox" [formControl]="termsControl" class="mt-0.5 rounded border-ink-300 text-primary focus:ring-primary/40" />
+        <span>I authorize this deposit from my selected payment method.</span>
+      </label>
+
+      <div class="flex gap-2">
+        <button
+          (click)="formService.step.set(1)"
+          class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+        >
+          Back
+        </button>
+        <button
+          (click)="next()"
+          [disabled]="!formService.selectedMethodId() || !termsControl.value"
+          class="flex-1 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+        >
+          Continue
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (formService.step() === 3) {
+    <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
+      @if (!success()) {
+        <div class="space-y-4">
+          <h3 class="font-medium text-ink-900 dark:text-white">Confirm your deposit</h3>
+          <div class="rounded-lg bg-ink-50 dark:bg-night-bg p-4 space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-ink-500 dark:text-ink-400">Amount</span>
+              <span class="font-semibold text-ink-900 dark:text-white">{{ amountMinor() | currencyFormat: currency() }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-ink-500 dark:text-ink-400">Payment Method</span>
+              <span class="text-ink-700 dark:text-ink-200 font-medium">{{ formService.getSourceLabel() }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-ink-500 dark:text-ink-400">Fee</span>
+              <span class="text-success">{{ 0 | currencyFormat: currency() }}</span>
+            </div>
+            <div class="flex justify-between border-t border-ink-200 dark:border-night-border pt-2">
+              <span class="font-medium text-ink-900 dark:text-white">Total</span>
+              <span class="font-bold text-ink-900 dark:text-white">{{ amountMinor() | currencyFormat: currency() }}</span>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="formService.step.set(2)"
+              class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+            >
+              Back
+            </button>
+            <button
+              (click)="confirm()"
+              [disabled]="loading()"
+              class="flex-1 py-2.5 rounded-lg bg-success text-white font-semibold hover:bg-success-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              @if (loading()) {
+                <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              }
+              {{ loading() ? 'Processing…' : 'Confirm Deposit' }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="text-center py-6 animate-scaleIn">
+          <svg viewBox="0 0 52 52" class="w-16 h-16 mx-auto mb-4">
+            <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" stroke-width="2" />
+            <path fill="none" stroke="#10B981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="animate-drawCheck" />
+          </svg>
+          <h3 class="text-lg font-bold text-ink-900 dark:text-white">Deposit Successful!</h3>
+          <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ amountMinor() | currencyFormat: currency() }} added to your wallet</p>
+          <button
+            (click)="router.navigate(['/wallet'])"
+            class="mt-6 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
+          >
+            Back to Wallet
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,49 @@
+<div class="fixed top-[4.5rem] right-2 z-[60] space-y-2 w-96 max-w-[calc(100vw-1rem)]">
+  @if (confirmToast()) {
+    <div class="toast-warning-solid flex flex-col gap-3 p-4 rounded-xl shadow-lift animate-slideIn border-l-4">
+      <div class="flex items-center gap-3">
+        <span class="text-lg text-warning">⚠️</span>
+        <p class="flex-1 text-sm font-medium">{{ confirmToast()!.message }}</p>
+      </div>
+      <div class="flex gap-2 justify-end border-t border-white/30 pt-3">
+        <button
+          (click)="handleCancel()"
+          class="px-4 py-2 rounded-lg text-sm font-semibold bg-white/20 text-white hover:bg-white/30 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="handleConfirm()"
+          class="px-4 py-2 rounded-lg text-sm font-semibold bg-danger text-white hover:bg-danger-dark transition-colors"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  }
+
+  @for (t of toasts(); track t.id) {
+    <div
+      class="flex items-center gap-3 p-4 rounded-xl shadow-lift animate-slideIn border-l-4 font-medium"
+      [class.toast-success-solid]="t.type === 'success'"
+      [class.toast-error-solid]="t.type === 'error'"
+      [class.toast-warning-solid]="t.type === 'warning'"
+      [class.toast-info-solid]="t.type === 'info'"
+    >
+      <span
+        class="text-lg"
+        [class.text-white]="t.type === 'success' || t.type === 'error'"
+        [class.text-white]="t.type === 'success' || t.type === 'error' || t.type === 'warning' || t.type === 'info'"
+        >{{ icon(t.type) }}</span
+      >
+      <p class="flex-1 text-sm">{{ t.message }}</p>
+      <button
+        (click)="dismiss(t.id)"
+        class="rounded-md px-1 text-current opacity-50 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-current/30"
+        aria-label="Dismiss notification"
+      >
+        ✕
+      </button>
+    </div>
+  }
+</div>

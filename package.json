@@ -1,0 +1,63 @@
+{
+  "name": "realtime-wallet-payments",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": ["packages/*", "apps/core-api", "apps/client"],
+  "scripts": {
+    "clean:node_modules": "rm -rf node_modules packages/*/node_modules apps/*/node_modules apps/client/.angular apps/client/node_modules/.cache && npm cache clean --force",
+    "install": "npm install",
+    "install:clean": "npm run clean:node_modules && npm install",
+    "generate:keys": "bash scripts/generate-rsa-keys.sh",
+    "build": "turbo run build",
+    "clean": "node scripts/clean-artifacts.mjs",
+    "clean:all": "npm run clean && npm run clean:node_modules",
+    "dev": "node scripts/start-all.mjs",
+    "dev:api": "bash scripts/dev.sh api",
+    "dev:client": "npm run dev -w apps/client",
+    "build:api": "turbo run build --filter=@core/api",
+    "build:client": "turbo run build --filter=@core/client",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "lint:fix": "eslint \"**/src/**/*.ts\" --fix",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,json,mjs,js}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,mjs,js}\"",
+    "migrate:up": "node-pg-migrate up --migrations-dir apps/core-api/migrations",
+    "migrate:down": "node-pg-migrate down --migrations-dir apps/core-api/migrations",
+    "migrate:create": "node-pg-migrate create --migrations-dir apps/core-api/migrations",
+    "infra:up:dev": "bash infrastructure/dev/start.sh",
+    "infra:down:dev": "bash infrastructure/dev/stop.sh",
+    "infra:restart:dev": "bash infrastructure/dev/restart.sh",
+    "infra:rm:dev": "bash infrastructure/dev/remove.sh",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "uuid": "^14.0.2",
+    "bcryptjs": "^3.0.3",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.18.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "jest": "^30.4.2",
+    "jsonwebtoken": "^9.0.3",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "wait-on": "^8.0.1",
+    "@eslint/js": "^9.18.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "rxjs": "7.8.1"
+  }
+}

@@ -1,0 +1,10 @@
+<div class="min-h-screen transition-colors" [class.bg-ink-50]="isAuthenticated()" [class.dark:bg-night-bg]="isAuthenticated()">
+  @if (isAuthenticated()) {
+    <app-shell>
+      <router-outlet />
+    </app-shell>
+  } @else {
+    <router-outlet />
+  }
+  <app-toast-host />
+</div>

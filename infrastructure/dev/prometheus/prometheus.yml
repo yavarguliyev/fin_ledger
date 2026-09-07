@@ -1,0 +1,70 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'ddd-dev'
+    environment: 'development'
+
+# Alertmanager configuration (optional)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # ClickHouse metrics
+  - job_name: 'clickhouse'
+    static_configs:
+      - targets: ['clickhouse:8123']
+        labels:
+          service: 'clickhouse'
+    metrics_path: '/metrics'
+
+  # Node.js API metrics (when you add prometheus client)
+  - job_name: 'nestjs-api'
+    static_configs:
+      - targets: ['host.docker.internal:3000']
+        labels:
+          service: 'core-api'
+    metrics_path: '/metrics'
+
+  # Redis exporter (optional - requires redis_exporter)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         service: 'redis'
+
+  # PostgreSQL exporter (optional - requires postgres_exporter)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgres'
+
+  # RabbitMQ metrics (built-in)
+  # - job_name: 'rabbitmq'
+  #   static_configs:
+  #     - targets: ['rabbitmq:15692']
+  #       labels:
+  #         service: 'rabbitmq'
+
+  # Kafka JMX exporter (optional - requires jmx_exporter)
+  # - job_name: 'kafka'
+  #   static_configs:
+  #     - targets: ['kafka:7071']
+  #       labels:
+  #         service: 'kafka'

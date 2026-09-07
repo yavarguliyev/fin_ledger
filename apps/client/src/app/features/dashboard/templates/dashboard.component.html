@@ -1,0 +1,74 @@
+<div class="space-y-6">
+  <app-page-header 
+    title="Dashboard" 
+    [subtitle]="'Welcome back, ' + userName() + '.'" 
+  />
+
+  @if (loading()) {
+    <div class="h-40 rounded-2xl skeleton"></div>
+  } @else if (wallet() && isUser()) {
+    <div class="rounded-2xl bg-gradient-to-br from-primary to-primary-dark p-6 sm:p-8 text-white shadow-glow">
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <p class="text-white/80 text-sm font-medium">Available Balance</p>
+          <p class="text-4xl sm:text-5xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+          <p class="text-white/70 text-sm mt-2">Reserved: {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+        </div>
+        <div class="flex gap-2">
+          <a
+            routerLink="/wallet/deposit"
+            class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
+            >Deposit</a
+          >
+          <a
+            routerLink="/wallet/withdraw"
+            class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
+            >Withdraw</a
+          >
+          <a routerLink="/betting" class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
+            >Bet</a
+          >
+        </div>
+      </div>
+    </div>
+  }
+
+  <app-stats-card [stats]="stats()" [columns]="4" />
+
+  <app-data-table 
+    [config]="tableConfig()" 
+    [data]="recentTx()" 
+    [loading]="loading()"
+    [customCellTemplate]="typeCellTemplate() ?? null"
+    [customMobileTemplate]="mobileTxTemplate() ?? null"
+  />
+
+  <!-- Custom cell template for transaction type -->
+  <ng-template #typeCell let-row="row" let-column="column">
+    <div class="flex items-center gap-2">
+      <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
+        {{ typeIcon(row.type) }}
+      </span>
+      <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+    </div>
+  </ng-template>
+
+  <!-- Custom mobile template -->
+  <ng-template #mobileTx let-row="row">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
+          {{ typeIcon(row.type) }}
+        </span>
+        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+      </div>
+      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger' : 'text-success'">
+        {{ row.amountMinor | currencyFormat: row.currency }}
+      </span>
+    </div>
+    <div class="flex items-center justify-between mt-1">
+      <span class="text-xs text-ink-500 dark:text-ink-400">{{ row.createdAt | relativeTime }}</span>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,98 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-ink-900 dark:text-white">{{ isUser() ? 'My Wallet' : 'Transaction History' }}</h1>
+    <button
+      (click)="refresh()"
+      class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+      [disabled]="loading()"
+    >
+      <span [class.animate-spin]="loading()">↻</span> Refresh
+    </button>
+  </div>
+
+  @if (loading() && !wallet()) {
+    <div class="h-48 rounded-2xl skeleton"></div>
+  } @else if (wallet() && isUser()) {
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="sm:col-span-2 rounded-2xl bg-gradient-to-br from-success to-success-dark p-6 text-white shadow-card">
+        <p class="text-white/80 text-sm">Available Balance</p>
+        <p class="text-4xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+        <p class="text-white/70 text-xs mt-3">Last updated {{ lastUpdated() }}</p>
+      </div>
+      <div class="rounded-2xl bg-warning/10 border border-warning/30 p-6">
+        <p class="text-warning-dark dark:text-warning text-sm font-medium">Reserved</p>
+        <p class="text-3xl font-bold text-warning-dark dark:text-warning mt-1">{{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+        <p class="text-xs text-ink-500 dark:text-ink-400 mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a
+        routerLink="/wallet/deposit"
+        class="px-4 py-2.5 rounded-lg bg-success text-white font-semibold text-sm hover:bg-success-dark active:scale-95 transition-all"
+        >Deposit</a
+      >
+      <a
+        routerLink="/wallet/withdraw"
+        class="px-4 py-2.5 rounded-lg bg-danger text-white font-semibold text-sm hover:bg-danger-dark active:scale-95 transition-all"
+        >Withdraw</a
+      >
+      <a
+        routerLink="/betting"
+        class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark active:scale-95 transition-all"
+        >Place Bet</a
+      >
+    </div>
+  }
+
+  <app-data-table 
+    [config]="tableConfig()" 
+    [data]="filteredTx()" 
+    [loading]="loading()"
+    [selectedFilter]="activeFilter()"
+    [customCellTemplate]="typeCellTemplate() ?? null"
+    [customMobileTemplate]="mobileTxTemplate() ?? null"
+    (filterChange)="onFilterChange($event)"
+    (exportClick)="onExportClick()"
+  />
+
+  <!-- Server-side pagination (attached to DataTable card) -->
+  <div class="-mt-px">
+    <div class="bg-white dark:bg-night-surface rounded-b-xl border border-t-0 border-ink-200 dark:border-night-border">
+      <app-pagination 
+        [config]="paginationConfig()" 
+        (pageChange)="onPageChange($event)" 
+        (pageSizeChange)="onPageSizeChange($event)" 
+      />
+    </div>
+  </div>
+
+  <!-- Custom cell template for transaction type -->
+  <ng-template #typeCell let-row="row" let-column="column">
+    <div class="flex items-center gap-2">
+      <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
+        {{ typeIcon(row.type) }}
+      </span>
+      <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+    </div>
+  </ng-template>
+
+  <!-- Custom mobile template -->
+  <ng-template #mobileTx let-row="row">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
+          {{ typeIcon(row.type) }}
+        </span>
+        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+      </div>
+      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger' : 'text-success'">
+        {{ row.amountMinor | currencyFormat: row.currency }}
+      </span>
+    </div>
+    <div class="flex items-center justify-between mt-1">
+      <span class="text-xs text-ink-500 dark:text-ink-400">{{ row.createdAt | relativeTime }}</span>
+      <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+    </div>
+  </ng-template>
+</div>

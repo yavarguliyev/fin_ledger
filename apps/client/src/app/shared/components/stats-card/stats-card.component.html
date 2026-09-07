@@ -1,0 +1,22 @@
+<div class="mt-6 grid grid-cols-2 gap-4" [ngClass]="{
+  'lg:grid-cols-2': columns() === 2,
+  'lg:grid-cols-3': columns() === 3,
+  'lg:grid-cols-4': columns() === 4
+}">
+  @for (stat of stats(); track stat.label) {
+    <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5 hover:shadow-card transition-shadow overflow-hidden">
+      @if (stat.trend) {
+        <div class="flex items-center justify-between">
+          <span class="text-2xl">{{ stat.icon }}</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="stat.toneClass ?? ''">
+            {{ stat.trend }}
+          </span>
+        </div>
+      } @else {
+        <span class="text-2xl">{{ stat.icon }}</span>
+      }
+      <p class="text-2xl font-bold text-ink-900 dark:text-white mt-3 truncate">{{ stat.value }}</p>
+      <p class="text-xs text-ink-500 dark:text-ink-400 mt-0.5">{{ stat.label }}</p>
+    </div>
+  }
+</div>

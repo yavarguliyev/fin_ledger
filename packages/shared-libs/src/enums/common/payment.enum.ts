@@ -1,0 +1,25 @@
+export enum PaymentMethodStatus {
+  PENDING_VERIFICATION = 'PENDING_VERIFICATION',
+  REJECTED = 'REJECTED',
+  REMOVED = 'REMOVED',
+  VERIFIED = 'VERIFIED'
+}
+
+export enum PaymentMethodType {
+  BANK_ACCOUNT = 'BANK_ACCOUNT',
+  DEBIT_CARD = 'DEBIT_CARD'
+}
+
+export enum PaymentStatus {
+  COMPLETED = 'COMPLETED',
+  COMPENSATED = 'COMPENSATED',
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING'
+}
+
+export enum PaymentType {
+  GET = 'GET',
+  DEPOSIT = 'DEPOSIT',
+  WITHDRAWAL = 'WITHDRAWAL'
+}

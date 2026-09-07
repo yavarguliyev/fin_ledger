@@ -1,0 +1,46 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-ink-900 dark:text-white">Notifications</h1>
+      <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ unread() }} unread</p>
+    </div>
+    <button 
+      (click)="markAll()" 
+      [disabled]="unread() === 0"
+      class="px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+      [class]="unread() === 0 ? 'text-ink-400 dark:text-ink-600 border border-ink-200 dark:border-night-border cursor-not-allowed' : 'text-primary border border-primary/30 hover:bg-primary/10'">
+      Mark all read
+    </button>
+  </div>
+
+  <div class="flex gap-2">
+    @for (f of filters; track f) {
+      <button (click)="setFilter(f)" class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        [class]="activeFilter() === f ? 'bg-primary text-white' : 'bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 border border-ink-200 dark:border-night-border hover:bg-ink-100 dark:hover:bg-night-border'">
+        {{ f }}
+      </button>
+    }
+  </div>
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border divide-y divide-ink-100 dark:divide-night-border">
+    @for (n of paginatedNotifications(); track n.id) {
+      <div class="flex items-start gap-3 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors" [class.opacity-60]="n.status === 'READ'">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm" [class]="typeClass(n.type)">
+          {{ typeIcon(n.type) }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-ink-900 dark:text-white">{{ n.title }}</p>
+          <p class="text-sm text-ink-500 dark:text-ink-400">{{ n.content }}</p>
+          <p class="text-xs text-ink-400 dark:text-ink-500 mt-1">{{ n.createdAt | relativeTime }}</p>
+        </div>
+        @if (n.status !== 'READ') {
+          <button (click)="markOne(n)" class="text-xs text-primary hover:text-primary-dark font-medium">Mark read</button>
+        }
+      </div>
+    } @empty {
+      <p class="px-5 py-8 text-center text-sm text-ink-500 dark:text-ink-400">No notifications</p>
+    }
+  </div>
+
+  <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
+</div>

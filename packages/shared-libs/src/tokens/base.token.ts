@@ -1,0 +1,15 @@
+export const CACHE_PROVIDER = Symbol('CACHE_PROVIDER');
+
+export const DATABASE_CONFIG = Symbol('DATABASE_CONFIG');
+
+export const KAFKA_SERVICE = Symbol('KAFKA_SERVICE');
+export const KAFKA_CLIENT_ID = Symbol('KAFKA_CLIENT_ID');
+export const KAFKA_PUBLISH_METADATA = Symbol('KAFKA_PUBLISH_METADATA');
+export const KAFKA_SUBSCRIBER_METADATA = Symbol('KAFKA_SUBSCRIBER_METADATA');
+
+export const EMAIL_SERVICE = Symbol('EMAIL_SERVICE');
+
+export const RABBITMQ_SERVICE = Symbol('RABBITMQ_SERVICE');
+export const REDIS_CACHE_PROVIDER = Symbol('REDIS_CACHE_PROVIDER');
+
+export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');

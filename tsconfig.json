@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/shared-libs" },
+    { "path": "./packages/storage" },
+    { "path": "./packages/session" },
+    { "path": "./packages/redis" },
+    { "path": "./packages/rabbitmq" },
+    { "path": "./packages/kafka" },
+    { "path": "./packages/env" },
+    { "path": "./packages/email-provider" },
+    { "path": "./packages/database" },
+    { "path": "./packages/common" },
+    { "path": "./apps/core-api" }
+  ]
+}

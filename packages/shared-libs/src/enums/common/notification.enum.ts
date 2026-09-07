@@ -1,0 +1,16 @@
+export enum NotificationStatus {
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  READ = 'READ',
+  UNREAD = 'UNREAD',
+  SENT = 'SENT'
+}
+
+export enum NotificationType {
+  PAYMENT_COMPLETED = 'PAYMENT_COMPLETED',
+  PAYMENT_FAILED = 'PAYMENT_FAILED',
+  SYSTEM = 'SYSTEM',
+  INFO = 'INFO',
+  WALLET_CREDITED = 'WALLET_CREDITED',
+  WALLET_DEBITED = 'WALLET_DEBITED'
+}

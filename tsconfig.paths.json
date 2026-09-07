@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@common/shared-libs": ["packages/shared-libs/src/index.ts"],
+      "@common/shared-libs/*": ["packages/shared-libs/src/*"],
+      "@common/storage": ["packages/storage/src/index.ts"],
+      "@common/storage/*": ["packages/storage/src/*"],
+      "@common/session": ["packages/session/src/index.ts"],
+      "@common/session/*": ["packages/session/src/*"],
+      "@common/redis": ["packages/redis/src/index.ts"],
+      "@common/redis/*": ["packages/redis/src/*"],
+      "@common/rabbitmq": ["packages/rabbitmq/src/index.ts"],
+      "@common/rabbitmq/*": ["packages/rabbitmq/src/*"],
+      "@common/kafka": ["packages/kafka/src/index.ts"],
+      "@common/kafka/*": ["packages/kafka/src/*"],
+      "@common/env": ["packages/env/src/index.ts"],
+      "@common/env/*": ["packages/env/src/*"],
+      "@common/email-provider": ["packages/email-provider/src/index.ts"],
+      "@common/email-provider/*": ["packages/email-provider/src/*"],
+      "@common/database": ["packages/database/src/index.ts"],
+      "@common/database/*": ["packages/database/src/*"],
+      "@common/common": ["packages/common/src/index.ts"],
+      "@common/common/*": ["packages/common/src/*"]
+    }
+  }
+}

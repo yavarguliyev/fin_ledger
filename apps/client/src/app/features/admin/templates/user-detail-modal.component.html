@@ -1,0 +1,36 @@
+@if (user()) {
+  <div class="space-y-6">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="space-y-1">
+        <p class="text-xs font-semibold text-ink-500 dark:text-ink-400">Full Name</p>
+        <p class="text-sm font-medium text-ink-900 dark:text-white">{{ user()!.name }}</p>
+      </div>
+      
+      <div class="space-y-1">
+        <p class="text-xs font-semibold text-ink-500 dark:text-ink-400">Email Address</p>
+        <p class="text-sm font-medium text-ink-900 dark:text-white">{{ user()!.email }}</p>
+      </div>
+      
+      <div class="space-y-1">
+        <p class="text-xs font-semibold text-ink-500 dark:text-ink-400">Role</p>
+        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary capitalize">
+          {{ user()!.role }}
+        </span>
+      </div>
+      
+      <div class="space-y-1">
+        <p class="text-xs font-semibold text-ink-500 dark:text-ink-400">Balance</p>
+        <p class="text-sm font-bold text-ink-900 dark:text-white">
+          {{ formatCurrency(user()!.balance, user()!.currency) }}
+        </p>
+      </div>
+      
+      <div class="space-y-1 col-span-2">
+        <p class="text-xs font-semibold text-ink-500 dark:text-ink-400">Wallet ID</p>
+        <p class="text-xs font-mono text-ink-600 dark:text-ink-300 break-all">
+          {{ user()!.walletId || 'N/A' }}
+        </p>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,184 @@
+<div class="mt-6 bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-ink-200 dark:border-night-border">
+    <h2 class="font-semibold text-ink-900 dark:text-white">{{ config().title }}</h2>
+
+    <div class="flex flex-wrap gap-2">
+      @if (config().showCreateButton) {
+        <button
+          (click)="createClick.emit()"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-dark transition-colors"
+        >
+          Create
+        </button>
+      }
+
+      @if (config().headerAction) {
+        @if (config().headerAction!.link) {
+          <a
+            [routerLink]="config().headerAction!.link"
+            class="text-sm text-primary hover:text-primary-dark transition-colors"
+          >
+            {{ config().headerAction!.label }}
+          </a>
+        } @else if (config().headerAction!.callback) {
+          <button
+            (click)="config().headerAction!.callback!()"
+            class="text-sm text-primary hover:text-primary-dark transition-colors"
+          >
+            {{ config().headerAction!.label }}
+          </button>
+        }
+      }
+
+      @if (config().showFilters && config().filterOptions) {
+        <select
+          [value]="selectedFilter()"
+          (change)="onFilterChange($event)"
+          class="px-3 py-1.5 rounded-lg text-sm border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-700 dark:text-ink-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+        >
+          @for (option of config().filterOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      }
+
+      @if (config().showExport) {
+        <button
+          (click)="onExportClick()"
+          class="px-3 py-1.5 rounded-lg text-sm font-medium text-primary border border-primary/30 hover:bg-primary/10 transition-colors"
+        >
+          {{ config().exportLabel || 'Export CSV' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm hidden md:table min-w-[800px]">
+      <thead class="bg-ink-50 dark:bg-night-bg text-ink-500 dark:text-ink-400 text-xs uppercase">
+        <tr>
+          @for (col of visibleColumns(); track col.key) {
+            <th class="px-5 py-3 font-medium" [ngClass]="getAlignmentClass(col)">{{ col.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-ink-100 dark:divide-night-border">
+        @if (loading()) {
+          <tr>
+            <td [attr.colspan]="visibleColumns().length" class="px-5 py-8 text-center">
+              <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
+            </td>
+          </tr>
+        } @else {
+          @for (row of paginatedData(); track row) {
+            <tr class="hover:bg-ink-50 dark:hover:bg-night-bg transition-colors" (click)="onRowClick(row)">
+              @for (col of visibleColumns(); track col.key) {
+                <td class="px-5 py-3" [ngClass]="getAlignmentClass(col)">
+                  @if (col.type === 'actions') {
+                    <div class="flex justify-center">
+                      <app-action-icons
+                        [config]="getActionConfig(col)"
+                        (viewClick)="onActionView(col, row)"
+                        (updateClick)="onActionUpdate(col, row)"
+                        (deleteClick)="onActionDelete(col, row)"
+                      />
+                    </div>
+                  } @else if (col.type === 'toggle') {
+                    <div class="flex justify-center">
+                      <app-toggle
+                        [checked]="getToggleChecked(col, row)"
+                        (toggleChange)="onToggleChange(col, row, $event)"
+                      />
+                    </div>
+                  } @else if (col.type === 'badge') {
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass(getCellValue(row, col), row, col)">
+                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    </span>
+                  } @else if (col.type === 'currency') {
+                    <span [ngClass]="col.badgeClass ? getBadgeClass(getCellValue(row, col), row, col) : 'font-semibold text-ink-900 dark:text-white'">
+                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    </span>
+                  } @else if (col.type === 'date') {
+                    <span class="text-ink-500 dark:text-ink-400 text-xs">{{ formatCellValue(getCellValue(row, col), row, col) }}</span>
+                  } @else if (col.type === 'custom') {
+                    <ng-container *ngTemplateOutlet="customCellTemplate()!; context: { row: row, column: col }"></ng-container>
+                  } @else {
+                    <span [ngClass]="[
+                      col.type === 'number' ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-600 dark:text-ink-300',
+                      col.cellClass || ''
+                    ]">
+                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    </span>
+                  }
+                </td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="visibleColumns().length" class="px-5 py-8 text-center text-ink-500 dark:text-ink-400">
+                {{ config().emptyMessage || 'No data available' }}
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+
+    <div class="md:hidden divide-y divide-ink-100 dark:divide-night-border">
+      @if (loading()) {
+        <div class="px-4 py-8 text-center">
+          <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
+        </div>
+      } @else {
+        @for (row of paginatedData(); track row) {
+          <div class="px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors" (click)="onRowClick(row)">
+            @if (customMobileTemplate()) {
+              <ng-container *ngTemplateOutlet="customMobileTemplate()!; context: { row: row }"></ng-container>
+            } @else {
+              @for (col of mobileColumns(); track col.key) {
+                <div class="flex justify-between items-center" [class.mt-2]="!$first">
+                  <span class="text-xs text-ink-500 dark:text-ink-400">{{ col.label }}</span>
+                  @if (col.type === 'actions') {
+                    <app-action-icons
+                      [config]="getActionConfig(col)"
+                      (viewClick)="onActionView(col, row)"
+                      (updateClick)="onActionUpdate(col, row)"
+                      (deleteClick)="onActionDelete(col, row)"
+                    />
+                  } @else if (col.type === 'toggle') {
+                    <app-toggle
+                      [checked]="getToggleChecked(col, row)"
+                      (toggleChange)="onToggleChange(col, row, $event)"
+                    />
+                  } @else if (col.type === 'badge') {
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass(getCellValue(row, col), row, col)">
+                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    </span>
+                  } @else if (col.type === 'currency') {
+                    <span [ngClass]="col.badgeClass ? getBadgeClass(getCellValue(row, col), row, col) : 'font-semibold text-ink-900 dark:text-white'">
+                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    </span>
+                  } @else {
+                    <span class="text-ink-900 dark:text-white">{{ formatCellValue(getCellValue(row, col), row, col) }}</span>
+                  }
+                </div>
+              }
+            }
+          </div>
+        } @empty {
+          <p class="px-4 py-8 text-center text-sm text-ink-500 dark:text-ink-400">
+            {{ config().emptyMessage || 'No data available' }}
+          </p>
+        }
+      }
+    </div>
+  </div>
+
+  @if (paginationConfig()) {
+    <app-pagination 
+      [config]="paginationConfig()!" 
+      (pageChange)="onPageChangeHandler($event)" 
+      (pageSizeChange)="onPageSizeChangeHandler($event)" 
+    />
+  }
+</div>
