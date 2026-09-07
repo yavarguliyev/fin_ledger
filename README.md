@@ -213,7 +213,7 @@ sequenceDiagram
 # 💻 Technologies
 
 - **Monorepo Management**: NPM Workspaces & Turborepo (`turbo`)
-- **Backend Framework**: NestJS 12, Node.js (v20+), TypeScript 5.7+
+- **Backend Framework**: NestJS 12, Node.js (v22+), TypeScript 5.7+
 - **Validation**: Zod & `nestjs-zod`
 - **Frontend**: Angular 21 (Standalone Components), RxJS, Tailwind CSS
 - **Primary Database**: PostgreSQL 16 (via `node-pg-migrate` & native client pool)
@@ -232,7 +232,7 @@ sequenceDiagram
 
 ## 1. Prerequisites
 
-- **Node.js**: v20.x or higher
+- **Node.js**: v22.x or higher
 - **npm**: v10.x or higher
 - **Docker & Docker Compose**: For local infrastructure services
 - **OpenSSL**: For generating RSA key pairs

@@ -55,7 +55,7 @@
     "@types/node": "^24.1.0"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "overrides": {
     "rxjs": "7.8.1"
