@@ -242,6 +242,8 @@ sequenceDiagram
 ```bash
 # Clone the repository and install all workspace dependencies
 npm install
+# or
+npm run install:all
 ```
 
 ## 3. Generate RSA Key Pairs for JWT

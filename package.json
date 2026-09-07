@@ -5,8 +5,9 @@
   "packageManager": "npm@10.9.2",
   "workspaces": ["packages/*", "apps/core-api", "apps/client"],
   "scripts": {
+    "install:all": "npm install",
+    "install:deps": "npm install",
     "clean:node_modules": "rm -rf node_modules packages/*/node_modules apps/*/node_modules apps/client/.angular apps/client/node_modules/.cache && npm cache clean --force",
-    "install": "npm install",
     "install:clean": "npm run clean:node_modules && npm install",
     "generate:keys": "bash scripts/generate-rsa-keys.sh",
     "build": "turbo run build",
