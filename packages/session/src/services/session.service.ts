@@ -7,7 +7,7 @@ import { CacheProvider } from '@common/redis';
 import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
 import { AUTH_CONSTANTS } from '../constants/auth.constant';
-import { parseExpiryToSeconds } from '../utils/session.util';
+import { parseExpiryToSeconds } from '../helpers/session.helper';
 import { JwtPayload, SessionData } from '../interfaces/session.interface';
 
 @Injectable()

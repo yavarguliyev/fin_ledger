@@ -13,12 +13,12 @@ export * from './errors/infrastructure.error';
 
 export * from './filters/unified-exception.filter';
 
+export * from './helpers/error-response.helper';
+export * from './helpers/format-amount.helper';
+export * from './helpers/swagger.helper';
+
 export * from './interfaces/base.interface';
 
 export * from './tokens/base.token';
 
 export * from './types/base.type';
-
-export * from './utils/error-response.util';
-export * from './utils/format-amount.util';
-export * from './utils/swagger.util';

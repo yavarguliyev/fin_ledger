@@ -1,7 +1,7 @@
 import { AsyncMethod, UnknownRecord } from '@common/shared-libs';
 
 import { CacheEvictOptions } from '../interfaces/redis.interface';
-import { resolveProvider, tryEvictCache, buildCacheKey } from '../utils/cache.util';
+import { resolveProvider, tryEvictCache, buildCacheKey } from '../helpers/cache.helper';
 
 export const CacheEvict = (options: CacheEvictOptions): MethodDecorator => {
   return (_target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {

@@ -28,6 +28,10 @@ export const ORDER_DIRECTIONS = ['ASC', 'DESC'] as const;
 
 export const RABBITMQ_KEYS = ['wallet.events', 'wallet.events.dlx', 'wallet.analytics', 5000, 50] as const;
 
+export const WORKFLOW_NAMES = ['PaymentDepositOrchestratorWorkflow'];
+
+export const WORKFLOW_STEPS = ['CreatePaymentRecord', 'CreditWallet', 'EmitPaymentEvent', 'ReserveFunds', 'ValidatePaymentMethod'];
+
 export const MODULES_KEYS = [
   'Admin',
   'Auth',

@@ -1,7 +1,7 @@
 import { AsyncMethod } from '@common/shared-libs';
 
 import { CacheableOptions } from '../interfaces/redis.interface';
-import { resolveProvider, buildCacheKey, tryGetCached, tryCacheResult } from '../utils/cache.util';
+import { resolveProvider, buildCacheKey, tryGetCached, tryCacheResult } from '../helpers/cache.helper';
 
 export const Cacheable = (options: CacheableOptions): MethodDecorator => {
   return (_target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {

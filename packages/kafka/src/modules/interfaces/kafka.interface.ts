@@ -58,7 +58,6 @@ export interface BaseKafkaMessageRecord {
     }>;
   };
 }
-
 export interface KafkaPublishRecord {
   readonly topic: string;
   readonly key?: string;

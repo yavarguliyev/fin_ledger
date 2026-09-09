@@ -69,7 +69,7 @@
 
 # 🏗 Architecture Overview
 
-The system implements a **Domain-Driven Design (DDD) Modular Monolith** combined with an **Event-Driven & Outbox** architecture.
+The system implements a **Domain-Driven Design (DDD) Modular Monolith** combined with an **Event-Driven & Outbox** architecture, augmented by an **Orchestration-based Saga / Workflow Pattern** for resilient multi-step financial transactions with automatic compensating rollbacks.
 
 ```mermaid
 graph TD
@@ -140,6 +140,50 @@ sequenceDiagram
 
 ---
 
+### Multi-Step Saga Workflow (Orchestration with Compensating Transactions)
+
+For multi-step financial flows (such as deposits and withdrawals), the system uses an **Orchestration-based Saga Pattern** (`WorkflowOrchestratorService`) to execute sequential business operations with automatic reverse-compensation rollbacks upon step failure:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 User / App
+    participant Orch as 🎯 Deposit Orchestrator
+    participant Step1 as 1️⃣ Validate Method
+    participant Step2 as 2️⃣ Reserve Funds
+    participant Step3 as 3️⃣ Create Record
+    participant Step4 as 4️⃣ Credit Wallet
+    participant Step5 as 5️⃣ Emit Event (Kafka)
+
+    User->>Orch: execute(DepositWorkflowInput)
+    Orch->>Step1: 1. execute(context) -> Verify payment method
+    Orch->>Step2: 2. execute(context) -> Reserve funds
+    Orch->>Step3: 3. execute(context) -> Create PENDING record
+    
+    alt Step Failure (e.g., Step 4 Fails)
+        Orch-xStep4: execute(context) -> Credit fails!
+        Note over Orch: Automatic Reverse Compensation Triggered
+        Orch->>Step3: compensate(context) -> Mark COMPENSATED
+        Orch->>Step2: compensate(context) -> Release reserved funds
+        Orch->>Step1: compensate(context) -> No-op (read-only)
+        Orch-->>User: ❌ Reversal Finished & Error Returned
+    else Happy Path (All Steps Pass)
+        Orch->>Step4: 4. execute(context) -> Credit wallet
+        Orch->>Step5: 5. execute(context) -> Emit payment.completed
+        Orch-->>User: ✅ Payment Completed & Event Published
+    end
+```
+
+| Saga Step | Forward Action (`execute`) | Compensating Action (`compensate`) |
+| :--- | :--- | :--- |
+| **1. Validate Method** | Verifies payment method status is `VERIFIED` | No-op (read-only validation) |
+| **2. Reserve Funds** | Isolates balance via `walletService.reserveFunds` | Releases balance via `walletService.releaseFunds` |
+| **3. Create Record** | Inserts payment entry in `PENDING` state | Updates status to `COMPENSATED` |
+| **4. Credit Wallet** | Credits wallet with reference `deposit: <id>` | Debits wallet with reference `reversal:deposit: <id>` |
+| **5. Emit Event** | Publishes `payment.completed` event to Kafka | Publishes `payment.failed` event to Kafka |
+
+---
+
 ### How the System Layers Work Together
 
 1. **🚪 The Front Door (Request Layer)**
@@ -197,6 +241,12 @@ sequenceDiagram
 
 ## 9. Migration Strategy Pattern
 - Decouples database schema evolution from application deployments via versioned migration scripts.
+
+## 10. Saga / Workflow Orchestration Pattern (Compensating Transactions)
+- Implements an orchestration-based SAGA pattern via `WorkflowOrchestratorService` to coordinate multi-step, cross-bounded-context transactions.
+- Steps implement the generic `WorkflowStep<TContext>` contract with forward execution (`execute`) and undo semantics (`compensate`).
+- Automatically drives reverse compensating rollbacks upon step failure, guaranteeing eventual consistency across domain boundaries without requiring distributed 2PC (two-phase commit) locks.
+- Decorated with `@WorkflowStepMeta()` for automatic step discovery, telemetry, and structured workflow logging.
 
 ---
 

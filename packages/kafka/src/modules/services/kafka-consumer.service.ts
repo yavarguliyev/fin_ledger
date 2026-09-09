@@ -13,7 +13,7 @@ import {
   createKafkaConfig,
   createConsumerConfig,
   subscribeToTopics
-} from '../utils/kafka-consumer.util';
+} from '../helpers/kafka-consumer.helper';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -50,19 +50,14 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     const providers = this.discoveryService.getProviders();
 
     for (const wrapper of providers) {
-      if (isValidInstance(wrapper)) {
-        this.registerSubscribersFromInstance(wrapper.instance as object);
-      }
+      if (isValidInstance(wrapper)) this.registerSubscribersFromInstance(wrapper.instance as object);
     }
   }
 
   private registerSubscribersFromInstance (instance: object): void {
     const metadata = Reflect.getMetadata(KAFKA_SUBSCRIBER_METADATA, instance.constructor) as KafkaSubscriberMetadataRecord[] | undefined;
     if (!metadata) return;
-
-    for (const { methodName, options } of metadata) {
-      this.registerSingleSubscriber({ instance, methodName, options });
-    }
+    for (const { methodName, options } of metadata) this.registerSingleSubscriber({ instance, methodName, options });
   }
 
   private async subscribeToTopics (): Promise<void> {
@@ -91,8 +86,8 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     const topic = typeof options.topic === 'string' ? options.topic : options.topic.source;
     const boundHandler = handler.bind(instance) as MessageHandler<KafkaMessageRecord>;
     const existingHandlers = this.subscribers.get(topic) || [];
-    this.subscribers.set(topic, [...existingHandlers, boundHandler]);
 
+    this.subscribers.set(topic, [...existingHandlers, boundHandler]);
     this.logger.log(`Registered: ${instance.constructor.name}.${String(methodName)} -> ${topic}`);
   }
 
@@ -112,12 +107,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     await this.subscribeToTopics();
 
     try {
-      await this.consumer.run({
-        eachMessage: async (payload: EachMessagePayload): Promise<void> => {
-          await this.handleMessage(payload);
-        }
-      });
-
+      await this.consumer.run({ eachMessage: async (payload: EachMessagePayload): Promise<void> => await this.handleMessage(payload) });
       this.logger.log(`Kafka consumer initialized for ${this.clientId} with group: ${groupId}`);
     } catch (error) {
       this.logger.warn(`Kafka consumer group initialization warning: ${errorResponse(error).message}`);

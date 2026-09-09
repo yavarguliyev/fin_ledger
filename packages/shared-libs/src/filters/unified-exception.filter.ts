@@ -1,7 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
 
-import { errorResponse } from '../utils/error-response.util';
+import { errorResponse } from '../helpers/error-response.helper';
 import { ApplicationError } from '../errors/application.error';
 import { DomainError } from '../errors/domain.error';
 import { InfrastructureError } from '../errors/infrastructure.error';

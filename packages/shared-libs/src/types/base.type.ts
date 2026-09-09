@@ -12,8 +12,11 @@ import {
   RABBITMQ_KEYS,
   STORAGE_STRATEGIES,
   TOKEN_TYPES,
-  WALLET_STATUS
+  WALLET_STATUS,
+  WORKFLOW_NAMES,
+  WORKFLOW_STEPS
 } from '../constants/shared.constant';
+import { WorkflowStepStatus } from '../enums/common/events.enum';
 
 export type UnknownRecord = Record<string, unknown>;
 export type EntityId = string | number;
@@ -43,3 +46,8 @@ export type CacheTTL = (typeof CACHE_TTLS)[number];
 export type UserWalletStatus = (typeof WALLET_STATUS)[number];
 export type RabbitmqRegistry = Record<string, { key: (typeof RABBITMQ_KEYS)[number] }>;
 export type ModuleRegistry = Record<string, { key: (typeof MODULES_KEYS)[number] }>;
+
+export type WorkflowNames = (typeof WORKFLOW_NAMES)[number];
+export type WorkflowSteps = (typeof WORKFLOW_STEPS)[number];
+export type WorkflowContext = Record<string, unknown>;
+export type WorkflowExecutionRecord = { readonly stepName: string; readonly status: WorkflowStepStatus };

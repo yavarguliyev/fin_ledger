@@ -8,3 +8,9 @@ export enum DomainEventType {
   WALLET_DEBITED = 'wallet.debited',
   NONE = 'none'
 }
+
+export enum WorkflowStepStatus {
+  COMPLETED = 'completed',
+  COMPENSATED = 'compensated',
+  FAILED = 'failed'
+}
