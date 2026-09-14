@@ -28,6 +28,8 @@ export class ValidatePaymentMethodStep implements WorkflowStep<DepositContextDto
 
     const method = await this.paymentMethodRepository.findById(paymentMethodId);
     if (!method || method.status !== PaymentMethodStatus.VERIFIED) throw new BadRequestException('Payment method is not verified');
+
+    context.provider = method.provider;
   }
 
   async compensate (): Promise<void> {

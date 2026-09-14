@@ -4,7 +4,7 @@ import { Observable, tap, catchError } from 'rxjs';
 
 import { AppNotification } from '../models/notification.model';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {

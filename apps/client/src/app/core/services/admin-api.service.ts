@@ -13,7 +13,7 @@ import {
 } from '../models/admin.model';
 import { DeleteUserResponse } from '../models/admin.model';
 import { WalletStatus } from '../models/base.mode';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 import { environment } from '../../../environments/environment';
 
 @Injectable({

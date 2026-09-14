@@ -12,7 +12,7 @@ export const STORAGE_STRATEGIES = ['s3', 'local'] as const;
 
 export const ACTION_EVENTS = ['completed', 'failed', 'credited', 'debited'] as const;
 
-export const AGGREGATE_TYPES = ['User', 'Wallet', 'Payment', 'None'] as const;
+export const AGGREGATE_TYPES = ['User', 'Wallet', 'Payment', 'PaymentMethod', 'None'] as const;
 
 export const TOKEN_TYPES = ['Bearer'] as const;
 
@@ -44,7 +44,8 @@ export const MODULES_KEYS = [
   'Users',
   'Wallets',
   'Wallet Transactions',
-  'Metrics'
+  'Metrics',
+  'Webhooks'
 ] as const;
 
 export const CACHE_KEYS = [

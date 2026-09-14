@@ -10,10 +10,10 @@ import {
   createMaxLengthValidator,
   createPatternValidator,
   createRequiredTrueValidator
-} from '../../core/utils/validators.util';
+} from '../../core/helpers/validators.helper';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { matchPassword } from '../../core/utils/password.util';
+import { matchPassword } from '../../core/helpers/password.helper';
 
 @Component({
   selector: 'app-register',

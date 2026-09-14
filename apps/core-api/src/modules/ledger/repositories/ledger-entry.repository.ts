@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { v7 as uuid } from 'uuid';
 import { BaseRepository, PostgresService, DatabaseAdapter, WalletTransactionType } from '@common/libs';
 
 import { LedgerEntryDto } from '../dtos/entry/ledger-entry.dto';
@@ -35,7 +35,7 @@ export class LedgerEntryRepository extends BaseRepository<LedgerEntryResponseDto
       if (total.debit !== total.credit) throw new BadRequestException('Ledger entries are not balanced');
     }
 
-    const transactionId = randomUUID();
+    const transactionId = uuid();
     const created: LedgerEntryResponseDto[] = [];
 
     for (let index = 0; index < entries.length; index++) {

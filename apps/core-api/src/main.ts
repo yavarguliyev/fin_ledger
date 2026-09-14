@@ -15,7 +15,7 @@ async function bootstrap (): Promise<void> {
   } = ENVIRONMENT_CONSTANTS;
 
   const logger = new Logger(BOOTSTRAP_CONTEXT);
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
 
   const environemnt = configService.get<number>('NODE_ENV') ?? NODE_ENV;

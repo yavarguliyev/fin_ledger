@@ -1,6 +1,6 @@
 import { TableColumn } from '../../core/models/data-table.model';
 import { AdminUser } from '../../core/models/admin.model';
-import { formatCurrency, formatCurrencyCompact as formatCompact } from '../../core/utils/currency.util';
+import { formatCurrency, formatCurrencyCompact as formatCompact } from '../../core/helpers/currency.helper';
 
 const createActionsColumn = (onView: (userId: string) => void, onDelete: (userId: string) => void, showDelete: boolean): TableColumn<AdminUser> => ({
   key: 'actions',

@@ -4,7 +4,7 @@ import { Observable, tap, catchError } from 'rxjs';
 
 import { Payment, PaymentRequest } from '../models/wallet.model';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 import { WalletService } from './wallet.service';
 
 @Injectable({ providedIn: 'root' })
@@ -28,8 +28,6 @@ export class PaymentService {
   }
 
   getPayment (paymentId: string): Observable<Payment> {
-    return this.http.get<Payment>(`${this.apiUrl}/payments/${paymentId}`).pipe(
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
-    );
+    return this.http.get<Payment>(`${this.apiUrl}/payments/${paymentId}`).pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
   }
 }

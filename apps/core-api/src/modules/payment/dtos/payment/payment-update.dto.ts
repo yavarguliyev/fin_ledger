@@ -5,6 +5,10 @@ export const PaymentUpdateSchema = z.object({
 
   status: z.string({ message: 'Status must be a string' }).optional(),
 
+  provider: z.string({ message: 'Provider must be a string' }).optional(),
+
+  providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).optional(),
+
   failureReason: z.string({ message: 'Failure reason must be a string' }).optional(),
 
   metadata: z.record(z.string(), z.unknown(), { message: 'Metadata must be an object' }).optional()

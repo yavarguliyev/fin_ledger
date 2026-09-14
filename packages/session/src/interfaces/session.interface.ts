@@ -24,3 +24,7 @@ export interface ExpressReqFields extends SessionData {
 export interface RequestContext extends Request {
   user: SessionData;
 }
+
+export interface RawBodyRequest extends Request {
+  rawBody?: Buffer;
+}

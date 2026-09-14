@@ -15,6 +15,8 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
       ledgerAccountId: 'ledger_account_id',
       paymentMethodId: 'payment_method_id',
       amountMinor: 'amount_minor',
+      provider: 'provider',
+      providerChargeId: 'provider_charge_id',
       transactionId: 'transaction_id',
       metadata: 'metadata',
       failureReason: 'failure_reason',
@@ -35,6 +37,8 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
       'amountMinor',
       'currency',
       'status',
+      'provider',
+      'providerChargeId',
       'transactionId',
       'metadata',
       'failureReason',
@@ -45,6 +49,10 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
 
   async findByIdempotencyKey (idempotencyKey: string, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
     return this.findOne({ idempotency_key: idempotencyKey }, adapter);
+  }
+
+  async findByProviderChargeId (provider: string, providerChargeId: string, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
+    return this.findOne({ provider, provider_charge_id: providerChargeId }, adapter);
   }
 
   async createPayment (dto: InternalPaymentRecordDto, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {

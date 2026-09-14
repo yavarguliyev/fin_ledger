@@ -7,6 +7,8 @@ import { OutboxPublisherService, RabbitmqModule } from '@common/rabbitmq';
 import { RedisModule } from '@common/redis';
 import { PasswordHandler } from '@common/session';
 import { UnifiedExceptionFilter, ClientIds, DatabaseType } from '@common/shared-libs';
+import { PaymentProviderModule } from '@common/payment-provider';
+import { SmsModule } from '@common/sms';
 
 @Module({
   providers: [{ provide: APP_FILTER, useClass: UnifiedExceptionFilter }]
@@ -38,10 +40,22 @@ export class InfrastructureModule {
         DatabaseModule.forRootAsync(databaseOptions),
         RedisModule.forRoot(clientId),
         RabbitmqModule.forRoot(clientId),
-        KafkaModule.forRoot(clientId)
+        KafkaModule.forRoot(clientId),
+        PaymentProviderModule.forRoot(),
+        SmsModule.forRoot(clientId)
       ],
       providers: [PasswordHandler, OutboxRepository, OutboxPublisherService],
-      exports: [PasswordHandler, DatabaseModule, RedisModule, RabbitmqModule, KafkaModule, OutboxRepository, OutboxPublisherService]
+      exports: [
+        PasswordHandler,
+        DatabaseModule,
+        RedisModule,
+        RabbitmqModule,
+        KafkaModule,
+        PaymentProviderModule,
+        SmsModule,
+        OutboxRepository,
+        OutboxPublisherService
+      ]
     };
   }
 }

@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { PaymentMethod } from '../../../core/models/payment-method.model';
 import { PaymentRequest } from '../../../core/models/wallet.model';
-import { uuid } from '../../../core/utils/uuid.util';
+import { uuid } from '../../../core/helpers/uuid.helper';
 
 @Injectable()
 export class DepositFormService {

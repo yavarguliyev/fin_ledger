@@ -5,7 +5,7 @@ import { Observable, tap, catchError } from 'rxjs';
 import { Wallet, Transaction, BetRequest, WalletTransactionSummary } from '../models/wallet.model';
 import { PaginatedResponse } from '../models/base.mode';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {

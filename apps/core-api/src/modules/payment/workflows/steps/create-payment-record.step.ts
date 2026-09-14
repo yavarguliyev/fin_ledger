@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PaymentStatus, PaymentType, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
+import { PaymentProvider, PaymentStatus, PaymentType, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
@@ -19,6 +19,8 @@ export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> 
       return;
     }
 
+    const provider = (context.provider as PaymentProvider) ?? PaymentProvider.LOCAL;
+
     const record = await this.paymentRepository.createPayment({
       idempotencyKey: context.dto.idempotencyKey,
       paymentMethodId: context.dto.paymentMethodId,
@@ -28,6 +30,7 @@ export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> 
       userId: context.userId,
       type: PaymentType.DEPOSIT,
       status: PaymentStatus.PENDING,
+      provider,
       walletId: context.walletId ?? '',
       ledgerAccountId: context.ledgerAccountId ?? ''
     });

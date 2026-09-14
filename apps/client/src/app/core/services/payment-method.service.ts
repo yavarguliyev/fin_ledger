@@ -4,7 +4,7 @@ import { Observable, catchError } from 'rxjs';
 
 import { CreatePaymentMethodRequest, PaymentMethod } from '../models/payment-method.model';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 import { PaymentMethodStatus } from '../models/base.mode';
 
 @Injectable({ providedIn: 'root' })

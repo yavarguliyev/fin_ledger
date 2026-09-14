@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { createRequiredValidator, createEmailValidator, createMinLengthValidator } from '../../core/utils/validators.util';
+import { createRequiredValidator, createEmailValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
 
 @Component({
   selector: 'app-login',

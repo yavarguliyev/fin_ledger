@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PaymentMethodStatus, PostgresService } from '@common/libs';
+import { PaymentMethodStatus, PaymentProviderRegistry, PostgresService } from '@common/libs';
 
 import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
@@ -10,7 +10,8 @@ import { VerifyPaymentMethodDto } from '../../dtos/request/verify-payment-method
 export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<VerifyPaymentMethodDto, PaymentMethodDto> {
   constructor (
     protected override readonly postgresService: PostgresService,
-    protected override readonly paymentMethodRepository: PaymentMethodRepository
+    protected override readonly paymentMethodRepository: PaymentMethodRepository,
+    private readonly providerRegistry: PaymentProviderRegistry
   ) {
     super(postgresService, paymentMethodRepository);
   }
@@ -27,7 +28,14 @@ export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<VerifyP
       throw new BadRequestException(`Cannot verify payment method in ${method.status} status`);
     }
 
-    const updated = await this.paymentMethodRepository.updateStatus(id, PaymentMethodStatus.VERIFIED);
+    let targetStatus = PaymentMethodStatus.VERIFIED;
+    if (method.providerMethodId && method.provider) {
+      const provider = this.providerRegistry.get(method.provider);
+      const verifyResult = await provider.verifyPaymentMethod(method.providerMethodId);
+      targetStatus = verifyResult.status;
+    }
+
+    const updated = await this.paymentMethodRepository.updateStatus(id, targetStatus);
     if (!updated) throw new InternalServerErrorException('Failed to verify payment method');
 
     return updated;

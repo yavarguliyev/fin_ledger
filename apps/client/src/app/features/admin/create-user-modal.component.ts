@@ -2,7 +2,7 @@ import { Component, output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
-import { createRequiredValidator, createEmailValidator, createMinLengthValidator } from '../../core/utils/validators.util';
+import { createRequiredValidator, createEmailValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
 
 @Component({
   selector: 'app-create-user-modal',

@@ -11,8 +11,8 @@ import { DataTableComponent } from '../../shared/components/data-table/data-tabl
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
 import { PaginationConfig } from '../../core/models/base.mode';
-import { DateUtil } from '../../core/utils/date.util';
-import { typeIcon, typeClass, formatType, statusClass } from '../../core/utils/transaction.util';
+import { DateUtil } from '../../core/helpers/date.helper';
+import { typeIcon, typeClass, formatType, statusClass } from '../../core/helpers/transaction.helper';
 import { getWalletTableColumns, exportTransactionsToCsv, getTransactionFilterOptions } from './wallet.util';
 
 @Component({

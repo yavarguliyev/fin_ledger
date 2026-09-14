@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PaymentMethodStatus, PaymentMethodType } from '@common/libs';
+import { CardBrand, DigitalWalletType, PaymentMethodStatus, PaymentMethodType, PaymentProvider } from '@common/libs';
 
 export const PaymentMethodSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
@@ -13,6 +13,22 @@ export const PaymentMethodSchema = z.object({
   maskedAccount: z.string({ message: 'Masked account must be a string' }),
 
   bankName: z.string({ message: 'Bank name must be a string' }).optional().nullable(),
+
+  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).default(PaymentProvider.LOCAL),
+
+  providerMethodId: z.string({ message: 'Provider method ID must be a string' }).optional().nullable(),
+
+  cardBrand: z.enum(CardBrand, { message: 'Invalid card brand' }).optional().nullable(),
+
+  walletType: z.enum(DigitalWalletType, { message: 'Invalid digital wallet type' }).optional().nullable(),
+
+  expiryMonth: z.number({ message: 'Expiry month must be a number' }).optional().nullable(),
+
+  expiryYear: z.number({ message: 'Expiry year must be a number' }).optional().nullable(),
+
+  cvv: z.string({ message: 'CVV must be a string' }).optional().nullable(),
+
+  failureReason: z.string({ message: 'Failure reason must be a string' }).optional().nullable(),
 
   status: z.enum(PaymentMethodStatus, { message: 'Invalid payment method status' }),
 

@@ -57,7 +57,11 @@ export const EnvironmentVariablesSchema = z.object({
   RABBITMQ_URL: z.string({ message: 'RABBITMQ_URL must be a string' }).optional(),
   KAFKA_HOST: z.string({ message: 'KAFKA_HOST must be a string' }).default('localhost:9092'),
   KAFKA_BROKERS: z.string({ message: 'KAFKA_BROKERS must be a string' }).default('localhost:9092'),
-  FX_RATE_API_URL: z.string({ message: 'FX_RATE_API_URL must be a string' }).optional()
+  FX_RATE_API_URL: z.string({ message: 'FX_RATE_API_URL must be a string' }).optional(),
+
+  PAYMENT_PROVIDER: z.string({ message: 'PAYMENT_PROVIDER must be a string' }).optional().default('local'),
+  STRIPE_SECRET_KEY: z.string({ message: 'STRIPE_SECRET_KEY must be a string' }).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET must be a string' }).optional()
 });
 
 export type EnvironmentVariables = z.infer<typeof EnvironmentVariablesSchema>;

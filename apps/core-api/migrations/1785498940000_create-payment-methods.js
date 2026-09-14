@@ -8,7 +8,7 @@ export const shorthands = {
 };
 
 export const up = pgm => {
-  pgm.createType('payment_method_type', ['BANK_ACCOUNT', 'DEBIT_CARD']);
+  pgm.createType('payment_method_type', ['BANK_ACCOUNT', 'CREDIT_CARD', 'DEBIT_CARD', 'APPLE_PAY', 'GOOGLE_PAY']);
   pgm.createType('payment_method_status', ['PENDING_VERIFICATION', 'VERIFIED', 'REJECTED', 'REMOVED']);
 
   pgm.createTable('payment_methods', {
@@ -23,6 +23,14 @@ export const up = pgm => {
     account_holder: 'varchar_100',
     masked_account: { type: 'varchar(20)', notNull: true },
     bank_name: { type: 'varchar(100)' },
+    provider: { type: 'varchar(50)', notNull: true, default: 'local' },
+    provider_method_id: { type: 'varchar(255)' },
+    card_brand: { type: 'varchar(50)' },
+    wallet_type: { type: 'varchar(50)' },
+    expiry_month: { type: 'smallint' },
+    expiry_year: { type: 'smallint' },
+    cvv: { type: 'varchar(4)' },
+    failure_reason: { type: 'text' },
     status: { type: 'payment_method_status', notNull: true, default: 'PENDING_VERIFICATION' },
     is_default: { type: 'boolean', notNull: true, default: false },
     metadata: { type: 'jsonb' },
@@ -32,6 +40,10 @@ export const up = pgm => {
 
   pgm.createIndex('payment_methods', 'user_id', {
     name: 'idx_payment_methods_user_id'
+  });
+
+  pgm.createIndex('payment_methods', ['provider', 'provider_method_id'], {
+    name: 'idx_payment_methods_provider_method'
   });
 
   pgm.createIndex('payment_methods', ['user_id', 'status'], {

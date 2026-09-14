@@ -24,10 +24,12 @@
     "@common/env": "1.0.0",
     "@common/kafka": "1.0.0",
     "@common/mailer": "1.0.0",
+    "@common/payment-provider": "1.0.0",
     "@common/rabbitmq": "1.0.0",
     "@common/redis": "1.0.0",
     "@common/session": "1.0.0",
     "@common/shared-libs": "1.0.0",
+    "@common/sms": "1.0.0",
     "@common/storage": "1.0.0"
   },
   "devDependencies": {

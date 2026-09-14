@@ -12,9 +12,9 @@ import { ShowMoreComponent } from '../../shared/components/show-more/show-more.c
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethodsComponent } from './payment-methods/payment-methods.component';
 import { ShowMoreConfig } from '../../core/models/base.mode';
-import { maskEmail } from '../../core/utils/mask-email.util';
-import { DateUtil } from '../../core/utils/date.util';
-import { createRequiredValidator, createMinLengthValidator } from '../../core/utils/validators.util';
+import { maskEmail } from '../../core/helpers/mask-email.helper';
+import { DateUtil } from '../../core/helpers/date.helper';
+import { createRequiredValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
 import { watchFormChanges, handleProfileSave } from './helpers/profile-form.helper';
 import { loadWalletData, handleProfileUpdateSuccess } from './helpers/profile-data.helper';
 

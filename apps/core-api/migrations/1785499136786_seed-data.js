@@ -186,7 +186,8 @@ export const up = pgm => {
       ------------------------------------------------------------------
       FOR i IN 4..30 LOOP
         INSERT INTO payment_methods (
-          user_id, type, account_holder, masked_account, bank_name, status, is_default
+          user_id, type, account_holder, masked_account, bank_name, status, is_default,
+          provider, provider_method_id, card_brand
         )
         VALUES (
           v_user_ids[i],
@@ -195,7 +196,10 @@ export const up = pgm => {
           CASE WHEN i % 2 = 0 THEN '****' || (1000 + i) ELSE '****' || (4000 + i) END,
           bank_names[i],
           'VERIFIED'::payment_method_status,
-          true
+          true,
+          'local',
+          'pm_seed_' || i,
+          CASE WHEN i % 2 = 0 THEN 'unknown' ELSE 'visa' END
         )
         RETURNING id INTO v_method_id;
         v_method_ids := array_append(v_method_ids, v_method_id);
@@ -257,7 +261,7 @@ export const up = pgm => {
         INSERT INTO payments (
           idempotency_key, user_id, wallet_id, ledger_account_id, payment_method_id,
           type, amount_minor, currency, status,
-          transaction_id, metadata, created_at
+          transaction_id, provider, provider_charge_id, metadata, created_at
         )
         VALUES (
           'idem-' || i || '-' || uuid_generate_v7()::text,
@@ -270,6 +274,8 @@ export const up = pgm => {
           'USD',
           payment_statuses[i]::payment_status,
           'pay-txn-' || i,
+          'local',
+          'ch_seed_' || i,
           jsonb_build_object('source', 'seed', 'index', i),
           CURRENT_TIMESTAMP - ((i * 3) || ' hours')::interval
         );

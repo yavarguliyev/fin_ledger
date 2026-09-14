@@ -1,6 +1,6 @@
 import { Pipe } from '@angular/core';
 
-import { DateUtil } from '../../core/utils/date.util';
+import { DateUtil } from '../../core/helpers/date.helper';
 
 @Pipe({ name: 'relativeTime', standalone: true })
 export class RelativeTimePipe {

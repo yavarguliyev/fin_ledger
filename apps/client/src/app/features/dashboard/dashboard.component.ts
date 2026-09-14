@@ -13,7 +13,7 @@ import { StatsCardComponent } from '../../shared/components/stats-card/stats-car
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
 import { getDashboardTableColumns, typeIcon, typeClass, formatType, statusClass } from './dashboard.util';
-import { formatCurrency } from '../../core/utils/currency.util';
+import { formatCurrency } from '../../core/helpers/currency.helper';
 
 @Component({
   selector: 'app-dashboard',

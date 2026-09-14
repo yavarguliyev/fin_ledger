@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { createRequiredValidator, createMinLengthValidator } from '../../core/utils/validators.util';
+import { createRequiredValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
 import { HttpError } from '../../core/models/base.mode';
 
 @Component({

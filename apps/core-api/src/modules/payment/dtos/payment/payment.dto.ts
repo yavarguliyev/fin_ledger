@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PaymentStatus, PaymentType } from '@common/libs';
+import { PaymentProvider, PaymentStatus, PaymentType } from '@common/libs';
 
 export const PaymentSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
@@ -21,6 +21,10 @@ export const PaymentSchema = z.object({
   currency: z.string({ message: 'Currency must be a string' }),
 
   status: z.enum(PaymentStatus, { message: 'Payment status must be a valid payment status' }),
+
+  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).default(PaymentProvider.LOCAL).optional(),
+
+  providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).nullable().optional(),
 
   transactionId: z.string({ message: 'Transaction ID must be a string' }).nullable().optional(),
 

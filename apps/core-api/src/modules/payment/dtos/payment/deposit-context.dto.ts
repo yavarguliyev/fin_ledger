@@ -14,6 +14,10 @@ export const DepositContextSchema = z.object({
 
   paymentId: z.string({ message: 'Payment ID must be a string' }).optional(),
 
+  provider: z.string({ message: 'Provider must be a string' }).optional(),
+
+  providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).optional(),
+
   payment: z.custom<PaymentDto>().optional()
 });
 

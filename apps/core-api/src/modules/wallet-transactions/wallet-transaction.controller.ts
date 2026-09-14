@@ -1,6 +1,6 @@
 import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, ParamsAndQuery, SessionGuard, RequestContext, UserRoles } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, ParamsQueryAndHeaders, SessionGuard, RequestContext, UserRoles } from '@common/libs';
 
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 import { WalletTransactionRecordDto } from './dtos/transaction/wallet-transaction-record.dto';
@@ -15,12 +15,18 @@ export class WalletTransactionController {
   constructor (private readonly walletTransactionService: WalletTransactionService) {}
 
   @Get(':walletId/transactions')
-  async findWalletTransactions (@Req() req: RequestContext, @ParamsAndQuery() query: WalletPaginatedRequestDto): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
+  async findWalletTransactions (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders() query: WalletPaginatedRequestDto
+  ): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
     return this.walletTransactionService.getWalletTransactions(query, req.user.role as UserRoles);
   }
 
   @Get(':walletId/bets')
-  async findWalletBets (@Req() req: RequestContext, @ParamsAndQuery() query: WalletPaginatedRequestDto): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
+  async findWalletBets (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders() query: WalletPaginatedRequestDto
+  ): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
     return this.walletTransactionService.getWalletBets(query, req.user.role as UserRoles);
   }
 

@@ -2,7 +2,7 @@ import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { AdminUser } from '../../core/models/admin.model';
-import { formatCurrency } from '../../core/utils/currency.util';
+import { formatCurrency } from '../../core/helpers/currency.helper';
 
 @Component({
   selector: 'app-user-detail-modal',

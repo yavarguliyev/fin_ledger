@@ -7,7 +7,7 @@ import { Wallet } from '../models/wallet.model';
 import { WalletStatus } from '../models/base.mode';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {

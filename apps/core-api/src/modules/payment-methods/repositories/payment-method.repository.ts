@@ -11,6 +11,14 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethodDto> {
       accountHolder: 'account_holder',
       maskedAccount: 'masked_account',
       bankName: 'bank_name',
+      provider: 'provider',
+      providerMethodId: 'provider_method_id',
+      cardBrand: 'card_brand',
+      walletType: 'wallet_type',
+      expiryMonth: 'expiry_month',
+      expiryYear: 'expiry_year',
+      cvv: 'cvv',
+      failureReason: 'failure_reason',
       isDefault: 'is_default',
       createdAt: 'created_at',
       updatedAt: 'updated_at'
@@ -25,6 +33,14 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethodDto> {
       'accountHolder',
       'maskedAccount',
       'bankName',
+      'provider',
+      'providerMethodId',
+      'cardBrand',
+      'walletType',
+      'expiryMonth',
+      'expiryYear',
+      'cvv',
+      'failureReason',
       'status',
       'isDefault',
       'metadata',
@@ -48,6 +64,10 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethodDto> {
 
   async findByIdAndUserId (id: string, userId: string, adapter?: DatabaseAdapter): Promise<PaymentMethodDto | null> {
     return this.findOne({ id, user_id: userId }, adapter);
+  }
+
+  async findByProviderMethodId (provider: string, providerMethodId: string, adapter?: DatabaseAdapter): Promise<PaymentMethodDto | null> {
+    return this.findOne({ provider, provider_method_id: providerMethodId }, adapter);
   }
 
   async createPaymentMethod (data: Partial<PaymentMethodDto>, adapter?: DatabaseAdapter): Promise<PaymentMethodDto | null> {

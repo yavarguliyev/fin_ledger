@@ -13,7 +13,7 @@ import { PaginationConfig } from '../../core/models/base.mode';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { ShowMoreConfig } from '../../core/models/base.mode';
 import { GameEvent } from '../../core/models/wallet.model';
-import { createRequiredValidator, createMinValidator } from '../../core/utils/validators.util';
+import { createRequiredValidator, createMinValidator } from '../../core/helpers/validators.helper';
 
 @Component({
   selector: 'app-betting',
@@ -124,7 +124,6 @@ export class BettingComponent implements OnInit {
       next: () => {
         const walletId = this.auth.currentUser()?.walletId;
         if (walletId) this.loadBets(walletId);
-
         this.toast.success('Bet placed!');
         this.form.reset();
         this.selectedEvent.set(null);

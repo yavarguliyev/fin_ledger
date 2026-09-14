@@ -12,8 +12,8 @@ import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethod } from '../../core/models/payment-method.model';
-import { uuid } from '../../core/utils/uuid.util';
-import { createRequiredValidator, createMinValidator, createMaxValidator, createRequiredTrueValidator } from '../../core/utils/validators.util';
+import { uuid } from '../../core/helpers/uuid.helper';
+import { createRequiredValidator, createMinValidator, createMaxValidator, createRequiredTrueValidator } from '../../core/helpers/validators.helper';
 
 @Component({
   selector: 'app-withdraw',

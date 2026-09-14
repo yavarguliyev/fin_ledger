@@ -33,6 +33,6 @@ import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step'
     EmitPaymentEventStep,
     DepositOrchestratorWorkflow
   ],
-  exports: [PaymentService, DepositOrchestratorWorkflow]
+  exports: [PaymentService, PaymentRepository, DepositOrchestratorWorkflow]
 })
 export class PaymentModule {}

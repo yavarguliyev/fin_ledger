@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PaymentStatus, PaymentType } from '@common/libs';
+import { PaymentProvider, PaymentStatus, PaymentType } from '@common/libs';
 
 export const InternalPaymentRecordSchema = z.object({
   idempotencyKey: z.string({ message: 'Idempotency key must be a string' }),
@@ -19,6 +19,10 @@ export const InternalPaymentRecordSchema = z.object({
   type: z.enum(PaymentType, { message: 'Payment type must be a valid payment type' }),
 
   status: z.enum(PaymentStatus, { message: 'Payment status must be a valid payment status' }),
+
+  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).optional(),
+
+  providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).optional(),
 
   transactionId: z.string({ message: 'Transaction ID must be a string' }).optional(),
 

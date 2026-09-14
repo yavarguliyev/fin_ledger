@@ -1,7 +1,7 @@
 import { TableColumn, FilterOption } from '../../core/models/data-table.model';
 import { Transaction } from '../../core/models/wallet.model';
-import { formatType, statusClass } from '../../core/utils/transaction.util';
-import { formatCurrency } from '../../core/utils/currency.util';
+import { formatType, statusClass } from '../../core/helpers/transaction.helper';
+import { formatCurrency } from '../../core/helpers/currency.helper';
 
 export const getWalletTableColumns = (): TableColumn<Transaction>[] => {
   return [

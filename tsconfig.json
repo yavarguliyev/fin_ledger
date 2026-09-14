@@ -9,6 +9,7 @@
     { "path": "./packages/kafka" },
     { "path": "./packages/env" },
     { "path": "./packages/mailer" },
+    { "path": "./packages/payment-provider" },
     { "path": "./packages/database" },
     { "path": "./packages/common" },
     { "path": "./apps/core-api" }

@@ -21,6 +21,10 @@
       "@common/mailer/*": ["packages/mailer/src/*"],
       "@common/database": ["packages/database/src/index.ts"],
       "@common/database/*": ["packages/database/src/*"],
+      "@common/payment-provider": ["packages/payment-provider/src/index.ts"],
+      "@common/payment-provider/*": ["packages/payment-provider/src/*"],
+      "@common/sms": ["packages/sms/src/index.ts"],
+      "@common/sms/*": ["packages/sms/src/*"],
       "@common/common": ["packages/common/src/index.ts"],
       "@common/common/*": ["packages/common/src/*"]
     }

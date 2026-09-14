@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 
-import { uuid } from '../utils/uuid.util';
+import { uuid } from '../helpers/uuid.helper';
 import { Toast, ConfirmToast } from '../models/style.model';
 import { ToastType } from '../models/base.mode';
 

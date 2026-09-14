@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { randomUUID } from 'crypto';
+import { v7 as uuid } from 'uuid';
 import * as jwt from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 import { CacheProvider } from '@common/redis';
@@ -13,12 +13,12 @@ import { JwtPayload, SessionData } from '../interfaces/session.interface';
 @Injectable()
 export class SessionService {
   constructor (
-    @Inject(REDIS_CACHE_PROVIDER) private readonly redis: CacheProvider,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @Inject(REDIS_CACHE_PROVIDER) private readonly redis: CacheProvider
   ) {}
 
   async createSession (data: SessionData): Promise<string> {
-    const jti = randomUUID();
+    const jti = uuid();
     const expiresInConfig = this.configService.get<string>('JWT_EXPIRES_IN')!;
     const isNumeric = /^\d+$/.test(expiresInConfig);
     const expiresIn = isNumeric ? parseInt(expiresInConfig, 10) : (expiresInConfig as StringValue);

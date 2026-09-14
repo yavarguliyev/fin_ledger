@@ -9,6 +9,8 @@
   "references": [
     { "path": "../database" },
     { "path": "../mailer" },
+    { "path": "../payment-provider" },
+    { "path": "../sms" },
     { "path": "../env" },
     { "path": "../kafka" },
     { "path": "../rabbitmq" },

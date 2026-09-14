@@ -184,6 +184,40 @@ sequenceDiagram
 
 ---
 
+### Payment Method Lifecycle & Card Verification Flow
+
+Payment methods (Credit/Debit cards, bank accounts, digital wallets) undergo real-time client validation, provider tokenization, and asynchronous webhook verification:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as 👤 User / App
+    participant Client as 📱 Angular Client
+    participant CoreAPI as 🧠 Core API
+    participant Provider as 💳 Payment Provider (Stripe / Local)
+    participant DB as 💾 PostgreSQL (payment_methods)
+    participant Webhook as 🪝 Webhook Ingestion
+
+    User->>Client: 1. Input Card Number, Expiry (MM/YY), CVV, Holder
+    Note over Client: Real-time Luhn verification, auto-splitting & brand detection
+    User->>Client: 2. Click "Save & Verify"
+    Client->>CoreAPI: 3. POST /api/v1/payment-methods
+    CoreAPI->>Provider: 4. createPaymentMethod(details)
+    Provider->>Provider: 5. Verify Luhn, Expiry, CVV & Tokenize (pm_xxx)
+    Provider-->>CoreAPI: 6. Return ProviderMethodResultDto (status, brand, last4)
+    CoreAPI->>DB: 7. INSERT INTO payment_methods (status=VERIFIED, token)
+    CoreAPI-->>Client: 8. Return saved payment method
+    Client-->>User: 9. Card saved with Verified badge & form reset
+
+    opt Asynchronous Provider Webhook Event
+        Provider->>Webhook: POST /api/v1/webhooks/:provider (e.g. payment_method.verified)
+        Webhook->>DB: Check idempotency (findByProviderAndEventId)
+        Webhook->>DB: Update payment_methods status
+    end
+```
+
+---
+
 ### How the System Layers Work Together
 
 1. **🚪 The Front Door (Request Layer)**
@@ -543,13 +577,15 @@ GRAFANA_ADMIN_PASSWORD=admin
 ├── packages/                      # Shared Monorepo Packages (NPM Workspaces)
 │   ├── common/                    # Shared NestJS exports and infrastructure wiring
 │   ├── database/                  # PostgreSQL pool and transactional query helpers
-│   ├── email-provider/            # Transactional email adapter
 │   ├── env/                       # Zod-validated environment schema
 │   ├── kafka/                     # Kafka producer and consumer adapters
+│   ├── mailer/                    # Transactional email adapter (NodeMailer / SMTP)
+│   ├── payment-provider/          # Pluggable payment adapters (Stripe, Local) & card validation
 │   ├── rabbitmq/                  # RabbitMQ queue publisher and consumer
 │   ├── redis/                     # Redis caching and key-value client
 │   ├── session/                   # RSA JWT authentication, SessionGuard, and RolesGuard
 │   ├── shared-libs/               # Shared DTOs, custom decorators, error filters, and types
+│   ├── sms/                       # Transactional SMS provider adapter
 │   └── storage/                   # Flexible S3/MinIO object storage provider
 ├── infrastructure/
 │   ├── dev/                       # Local Docker Compose setup, Grafana, Prometheus
@@ -618,6 +654,9 @@ Start the backend and navigate to:
 | **Payments** | `POST` | `/api/v1/payments/deposit` | Initiate deposit transaction |
 | **Payments** | `POST` | `/api/v1/payments/withdraw` | Request fund withdrawal |
 | **Payment Methods** | `GET` | `/api/v1/payment-methods` | List user payment methods |
+| **Payment Methods** | `POST` | `/api/v1/payment-methods` | Add and tokenize payment method |
+| **Payment Methods** | `DELETE` | `/api/v1/payment-methods/:id` | Remove saved payment method |
+| **Webhooks** | `POST` | `/api/v1/webhooks/:provider` | Ingest and process provider webhook event |
 | **Notifications** | `GET` | `/api/v1/notifications/stream` | **Server-Sent Events (SSE)** real-time stream |
 | **Metrics** | `GET` | `/api/metrics` | Prometheus metrics scraping endpoint |
 

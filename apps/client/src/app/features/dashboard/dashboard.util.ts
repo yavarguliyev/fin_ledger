@@ -1,7 +1,7 @@
 import { TableColumn } from '../../core/models/data-table.model';
 import { Transaction } from '../../core/models/wallet.model';
-import { typeIcon, typeClass, formatType, statusClass } from '../../core/utils/transaction.util';
-import { formatCurrency } from '../../core/utils/currency.util';
+import { typeIcon, typeClass, formatType, statusClass } from '../../core/helpers/transaction.helper';
+import { formatCurrency } from '../../core/helpers/currency.helper';
 
 export const getDashboardTableColumns = (currency: string): TableColumn<Transaction>[] => {
   return [

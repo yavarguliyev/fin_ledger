@@ -18,6 +18,7 @@ export interface Environment {
     WALLET_TRANSACTION: 'wallet-transactions';
     USER: 'users';
     UPLOAD: 'uploads';
+    WEBHOOK: 'webhooks';
   };
   VERSION: {
     V1: '1';

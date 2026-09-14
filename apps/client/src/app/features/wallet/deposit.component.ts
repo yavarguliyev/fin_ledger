@@ -10,7 +10,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { DepositFormService } from './services/deposit-form.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { createMaxValidator, createMinValidator, createRequiredValidator } from '../../core/utils/validators.util';
+import { createMaxValidator, createMinValidator, createRequiredValidator } from '../../core/helpers/validators.helper';
 
 @Component({
   selector: 'app-deposit',

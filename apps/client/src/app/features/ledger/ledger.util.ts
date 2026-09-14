@@ -1,6 +1,6 @@
 import { TableColumn } from '../../core/models/data-table.model';
 import { LedgerEntry } from '../../core/models/ledger.model';
-import { formatCurrency } from '../../core/utils/currency.util';
+import { formatCurrency } from '../../core/helpers/currency.helper';
 
 export const getLedgerTableColumns = (): TableColumn<LedgerEntry>[] => {
   return [

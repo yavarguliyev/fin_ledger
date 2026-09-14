@@ -7,7 +7,7 @@ import { AuthResponse, AuthUser, LoginRequest, RegisterDto, SessionData, UpdateP
 import { ThemeService } from './theme.service';
 import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../utils/http-error.util';
+import { handleHttpError } from '../helpers/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

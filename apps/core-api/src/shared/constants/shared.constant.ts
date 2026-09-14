@@ -12,5 +12,6 @@ export const SHARED_CONSTANTS = {
   USER: { key: 'Users' },
   WALLET: { key: 'Wallets' },
   WALLET_TRANSACTION: { key: 'Wallet Transactions' },
-  METRICS: { key: 'Metrics' }
+  METRICS: { key: 'Metrics' },
+  WEBHOOK: { key: 'Webhooks' }
 } satisfies ModuleRegistry;

@@ -12,6 +12,7 @@ import { WalletModule } from './wallet/wallet.module';
 import { UserModule } from './user/user.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { AdminModule } from './admin/admin.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { AdminModule } from './admin/admin.module';
     PaymentModule,
     PaymentMethodModule,
     WalletModule,
-    UserModule
+    UserModule,
+    WebhookModule
   ]
 })
 export class CoreModule {}

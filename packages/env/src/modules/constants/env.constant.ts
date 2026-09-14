@@ -19,7 +19,8 @@ export const ENVIRONMENT_CONSTANTS: Environment = {
     WALLET: 'wallets',
     WALLET_TRANSACTION: 'wallet-transactions',
     USER: 'users',
-    UPLOAD: 'uploads'
+    UPLOAD: 'uploads',
+    WEBHOOK: 'webhooks'
   },
   VERSION: {
     V1: '1'
