@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { Logger, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientIds, ENVIRONMENT_CONSTANTS, setupSwagger } from '@common/libs';
+import { BaseHelper, ClientIds, ENVIRONMENT_CONSTANTS } from '@common/libs';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import { AppModule } from './app.module';
@@ -26,7 +26,10 @@ async function bootstrap (): Promise<void> {
   app.enableCors({ origin: ORIGIN, credentials: CREDENTIALS });
   app.useGlobalPipes(new ZodValidationPipe());
 
-  if (environemnt === NODE_ENV) setupSwagger(app, { title: TITLE, description: DESCRIPTION, version: VERSION, path: 'api-docs' });
+  if (environemnt === NODE_ENV) {
+    const options = { title: TITLE, description: DESCRIPTION, version: VERSION, path: 'api-docs' };
+    BaseHelper.setupSwagger({ app, options });
+  }
 
   await app.listen(port, host, () => logger.log(`🚀 ${ClientIds.API_GATEWAY} started on http://${host}:${port}`));
 }

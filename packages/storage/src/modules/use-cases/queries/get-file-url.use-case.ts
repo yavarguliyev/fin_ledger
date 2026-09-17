@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StorageType } from '@common/shared-libs';
 
-import { BaseStrategy } from '../../strategies/base/base.strategy';
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import {
   FileUrlResponse,
@@ -16,8 +15,8 @@ import {
 export class GetFileUrlUseCase extends StorageBaseUseCase<FileUrlResponse, FileUrlsResponse> {
   protected readonly storageType: StorageType = StorageType.GET;
 
-  constructor (protected override readonly storageStrategy: BaseStrategy) {
-    super(storageStrategy);
+  constructor () {
+    super();
   }
 
   async execute (key: string, expiresIn = 3600): Promise<FileUrlResponse> {
@@ -27,20 +26,6 @@ export class GetFileUrlUseCase extends StorageBaseUseCase<FileUrlResponse, FileU
         const url = await this.getUrl(k, exp);
         return { url, expiresIn: exp };
       },
-      expiresIn
-    );
-  }
-
-  protected async executeByKey (key: string, indexes?: number[], expiresIn = 3600): Promise<FileUrlsResponse> {
-    return this.executeMultiFile(
-      key,
-      indexes,
-      async (filePath, exp) => ({ filePath, url: await this.getUrl(filePath, exp) }),
-      (files: string[], results: unknown[], idxs: number[] | undefined) => ({
-        key,
-        files: this.getFileUrlResults({ results, files, indexes: idxs }),
-        expiresIn
-      }),
       expiresIn
     );
   }
@@ -59,6 +44,20 @@ export class GetFileUrlUseCase extends StorageBaseUseCase<FileUrlResponse, FileU
   private getFileIndex (params: UrlFileIndexRequest): number | undefined {
     const { files, result, indexes, index } = params;
     return indexes ? indexes[index] : files.indexOf(result.filePath);
+  }
+
+  private async executeByKey (key: string, indexes?: number[], expiresIn = 3600): Promise<FileUrlsResponse> {
+    return this.executeMultiFile(
+      key,
+      indexes,
+      async (filePath, exp) => ({ filePath, url: await this.getUrl(filePath, exp) }),
+      (files: string[], results: unknown[], idxs: number[] | undefined) => ({
+        key,
+        files: this.getFileUrlResults({ results, files, indexes: idxs }),
+        expiresIn
+      }),
+      expiresIn
+    );
   }
 
   private getFileUrlResults (params: UrlRequest): FileUrlResults[] {

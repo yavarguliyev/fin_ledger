@@ -6,7 +6,6 @@ export * from './guards/roles.guard';
 export * from './guards/session.guard';
 
 export * from './helpers/session.helper';
-export * from './helpers/password.helper';
 
 export * from './interfaces/session.interface';
 

@@ -22,7 +22,7 @@ export const PaymentSchema = z.object({
 
   status: z.enum(PaymentStatus, { message: 'Payment status must be a valid payment status' }),
 
-  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).default(PaymentProvider.LOCAL).optional(),
+  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).optional(),
 
   providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).nullable().optional(),
 

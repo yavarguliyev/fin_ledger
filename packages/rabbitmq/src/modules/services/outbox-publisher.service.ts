@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { OutboxRepository } from '@common/database';
-import { DomainEventType, errorResponse, RABBITMQ_SERVICE, UnknownRecord } from '@common/shared-libs';
+import { BaseHelper, DomainEventType, RABBITMQ_SERVICE, UnknownRecord } from '@common/shared-libs';
 
 import { RabbitmqService } from './rabbitmq.service';
 import { RabbitmqPublishOptions } from '../interfaces/queue.interface';
@@ -40,7 +40,7 @@ export class OutboxPublisherService implements OnModuleInit, OnModuleDestroy {
       await this.rabbitmqService.publish(payload, options);
       await this.outboxRepository.markPublished(eventId);
     } catch (error) {
-      this.logger.warn(`Outbox publish failed for ${eventId}: ${errorResponse(error).message}`);
+      this.logger.warn(`Outbox publish failed for ${eventId}: ${BaseHelper.errorResponse({ error }).message}`);
       await this.outboxRepository.markFailed(eventId);
     }
   }

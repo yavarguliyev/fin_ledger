@@ -15,10 +15,12 @@ export enum PaymentMethodType {
 
 export enum PaymentStatus {
   COMPLETED = 'COMPLETED',
+  CREATED = 'CREATED',
   COMPENSATED = 'COMPENSATED',
   FAILED = 'FAILED',
   PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING'
+  PROCESSING = 'PROCESSING',
+  REFUNDED = 'REFUNDED'
 }
 
 export enum PaymentType {
@@ -54,7 +56,6 @@ export enum WithdrawalReviewStatus {
 }
 
 export enum PaymentProvider {
-  LOCAL = 'local',
   STRIPE = 'stripe',
   PAYPAL = 'paypal',
   ADYEN = 'adyen'

@@ -1,33 +1,25 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryService } from '@nestjs/core';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
-import { ClientIds, errorResponse, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler, UnknownRecord } from '@common/shared-libs';
+import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler, UnknownRecord } from '@common/shared-libs';
 
 import { KafkaMessageRecord, KafkaSubscriberMetadataRecord, RegisterSingleSubscriberRecord } from '../interfaces/kafka.interface';
-import {
-  resolveBrokers,
-  isValidInstance,
-  ensureKafkaTopicsExist,
-  buildKafkaMessage,
-  createKafkaConfig,
-  createConsumerConfig,
-  subscribeToTopics
-} from '../helpers/kafka-consumer.helper';
+import { KafkaHelper } from '../helpers/kafka.helper';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger: Logger;
-  private readonly clientId: ClientIds;
   private readonly subscribers: Map<string, MessageHandler<KafkaMessageRecord>[]> = new Map();
+  private readonly logger: Logger;
   private consumer: Consumer | null = null;
 
   constructor (
+    @Inject(KAFKA_CLIENT_ID)
+    private readonly clientId: ClientIds,
     private readonly configService: ConfigService,
-    private readonly discoveryService: DiscoveryService,
-    @Optional() @Inject(KAFKA_CLIENT_ID) clientId?: ClientIds
+    private readonly discoveryService: DiscoveryService
   ) {
-    this.clientId = clientId || ClientIds.DEAFULT;
+    this.clientId = clientId;
     this.logger = new Logger(`${KafkaConsumerService.name}:${this.clientId}`);
   }
 
@@ -50,7 +42,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     const providers = this.discoveryService.getProviders();
 
     for (const wrapper of providers) {
-      if (isValidInstance(wrapper)) this.registerSubscribersFromInstance(wrapper.instance as object);
+      if (KafkaHelper.isValidInstance(wrapper)) this.registerSubscribersFromInstance(wrapper.instance as object);
     }
   }
 
@@ -62,7 +54,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
 
   private async subscribeToTopics (): Promise<void> {
     if (!this.consumer) return;
-    await subscribeToTopics(this.consumer, Array.from(this.subscribers.keys()));
+    await KafkaHelper.subscribeToTopics({ consumer: this.consumer, topics: Array.from(this.subscribers.keys()) });
   }
 
   private async handleMessage ({ topic, partition, message }: EachMessagePayload): Promise<void> {
@@ -71,10 +63,10 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
 
     try {
       for (const handler of handlers) {
-        await handler(buildKafkaMessage({ topic, partition, message }));
+        await handler(KafkaHelper.buildKafkaMessage({ topic, partition, message }));
       }
     } catch (error) {
-      this.logger.error(`Failed to handle message from topic ${topic}: ${errorResponse(error).message}`);
+      this.logger.error(`Failed to handle message from topic ${topic}: ${BaseHelper.errorResponse({ error }).message}`);
     }
   }
 
@@ -92,25 +84,25 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async initializeConsumer (): Promise<void> {
-    const brokers = resolveBrokers(
-      this.configService.get<string>('KAFKA_BROKERS'),
-      this.configService.get<string>('KAFKA_BROKER_HOST'),
-      this.configService.get<number>('KAFKA_BROKER_PORT')
-    );
+    const brokers = KafkaHelper.resolveBrokers({
+      brokers: this.configService.get<string>('KAFKA_BROKERS'),
+      host: this.configService.get<string>('KAFKA_BROKER_HOST'),
+      port: this.configService.get<number>('KAFKA_BROKER_PORT')
+    });
 
     const groupId = this.configService.get<string>('KAFKA_CONSUMER_GROUP_ID') || `${this.clientId}-consumer-group`;
-    const kafka = new Kafka(createKafkaConfig(this.clientId, brokers));
-    this.consumer = kafka.consumer(createConsumerConfig(groupId));
+    const kafka = new Kafka(KafkaHelper.createKafkaConfig({ clientId: this.clientId, brokers }));
+    this.consumer = kafka.consumer(KafkaHelper.createConsumerConfig({ groupId }));
 
     await this.consumer.connect();
-    await ensureKafkaTopicsExist(kafka, Array.from(this.subscribers.keys()), this.logger);
+    await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: Array.from(this.subscribers.keys()), logger: this.logger });
     await this.subscribeToTopics();
 
     try {
       await this.consumer.run({ eachMessage: async (payload: EachMessagePayload): Promise<void> => await this.handleMessage(payload) });
       this.logger.log(`Kafka consumer initialized for ${this.clientId} with group: ${groupId}`);
     } catch (error) {
-      this.logger.warn(`Kafka consumer group initialization warning: ${errorResponse(error).message}`);
+      this.logger.warn(`Kafka consumer group initialization warning: ${BaseHelper.errorResponse({ error }).message}`);
     }
   }
 }

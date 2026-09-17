@@ -1,4 +1,4 @@
-import { Password, Email, DisplayName, Roles, Id, UserId, UserRole, WalletId, Message, Success, Currency } from './base.mode';
+import { Password, Email, DisplayName, Roles, Id, UserId, UserRole, WalletId, Message, Success, Currency } from './base.model';
 
 export interface StoredUser extends AuthUser, Password {}
 export interface LoginRequest extends Email, Password {}

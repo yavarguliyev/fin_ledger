@@ -1,20 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { WalletDto, UpdateWalletStatusInput } from '../../../dtos/wallet/wallet.dto';
+import { WalletTransactionType, DomainEventType, AggregateType, BettingType } from '@common/libs';
 import { WalletBaseUseCase } from '../../base/wallet-base.use-case';
-import {
-  WalletTransactionType,
-  DomainEventType,
-  AggregateType,
-  BettingType,
-  KAFKA_SERVICE,
-  KafkaService,
-  OutboxRepository,
-  PostgresService
-} from '@common/libs';
-import { LedgerService } from '../../../../ledger/ledger.service';
-import { WalletTransactionRepository } from '../../../../wallet-transactions/repositories/wallet-transaction.repository';
-import { WalletRepository } from '../../../repositories/wallet.repository';
 
 @Injectable()
 export class UpdateWalletStatusUseCase extends WalletBaseUseCase<UpdateWalletStatusInput, WalletDto> {
@@ -25,22 +13,15 @@ export class UpdateWalletStatusUseCase extends WalletBaseUseCase<UpdateWalletSta
   protected readonly balanceWalletTransactionType = WalletTransactionType.NONE;
   protected readonly requiredToCheckAmountMinor: boolean = false;
 
-  constructor (
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService,
-    protected override readonly postgresService: PostgresService,
-    protected override readonly outboxRepository: OutboxRepository,
-    protected override readonly ledgerService: LedgerService,
-    protected override readonly walletRepository: WalletRepository,
-    protected override readonly walletTransactionRepository: WalletTransactionRepository
-  ) {
-    super(kafkaService, postgresService, outboxRepository, ledgerService, walletRepository, walletTransactionRepository);
+  constructor () {
+    super();
   }
 
   async execute ({ walletId, status }: UpdateWalletStatusInput): Promise<WalletDto> {
     const wallet = await this.walletRepository.findById(walletId);
     if (!wallet) throw new NotFoundException(`Wallet with ID ${walletId} not found`);
 
-    const updatedWallet = await this.walletRepository.update(walletId, { status: status });
+    const updatedWallet = await this.walletRepository.update(walletId, { status });
     if (!updatedWallet) throw new NotFoundException('Failed to update wallet status');
 
     return updatedWallet;

@@ -17,7 +17,7 @@ export const up = pgm => {
       i                   integer;
       roles               text[] := ARRAY['global admin','admin','moderator','user','user','user','user','user','user','user',
                                           'user','user','user','user','user','user','user','user','user','user',
-                                          'user','user','user','user','user','user','user','user','user','user'];
+                                          'user','user','user','user','user','user','user','user','user','user','user','user'];
       display_names       text[] := ARRAY[
         'Global Admin','Admin User','Moderator','Alice Johnson','Bob Smith',
         'Charlie Brown','Diana Prince','Ethan Hunt','Fiona Green','George Wilson',
@@ -33,7 +33,7 @@ export const up = pgm => {
         'user11@example.com','user12@example.com','user13@example.com','user14@example.com','user15@example.com',
         'user16@example.com','user17@example.com','user18@example.com','user19@example.com','user20@example.com',
         'user21@example.com','user22@example.com','user23@example.com','user24@example.com','user25@example.com',
-        'user26@example.com','user27@example.com'
+        'user26@example.com','user27@example.com','user28@example.com','user29@example.com'
       ];
       bank_names          text[] := ARRAY[
         'Chase Bank','Bank of America','Wells Fargo','Citibank','Capital One',
@@ -41,7 +41,7 @@ export const up = pgm => {
         'Chase Bank','Bank of America','Wells Fargo','Citibank','Capital One',
         'Barclays','HSBC','PNC Bank','TD Bank','US Bank',
         'Chase Bank','Bank of America','Wells Fargo','Citibank','Capital One',
-        'Barclays','HSBC','PNC Bank','TD Bank','US Bank'
+        'Barclays','HSBC','PNC Bank','TD Bank','US Bank','Citibank','Deutsche Bank'
       ];
       pw_hash             text := '$2b$12$o88GdKR9GH6o/SPnqStlW.tqhNntaR.6bYBFech76PgWlvkMnqk2G';
       game_labels         text[] := ARRAY[
@@ -68,31 +68,31 @@ export const up = pgm => {
                                           'DEPOSIT','WITHDRAWAL','DEPOSIT','DEPOSIT','WITHDRAWAL',
                                           'DEPOSIT','DEPOSIT','DEPOSIT','WITHDRAWAL','DEPOSIT',
                                           'DEPOSIT','WITHDRAWAL','DEPOSIT','DEPOSIT','WITHDRAWAL',
-                                          'DEPOSIT','DEPOSIT','DEPOSIT','WITHDRAWAL','DEPOSIT'];
+                                          'DEPOSIT','DEPOSIT'];
       payment_statuses    text[] := ARRAY['COMPLETED','COMPLETED','COMPLETED','PENDING','FAILED',
                                           'COMPLETED','COMPLETED','PENDING','COMPLETED','COMPLETED',
                                           'COMPLETED','FAILED','COMPLETED','COMPLETED','PENDING',
                                           'COMPLETED','COMPLETED','COMPLETED','PENDING','COMPLETED',
                                           'COMPLETED','COMPLETED','FAILED','COMPLETED','COMPLETED',
-                                          'COMPLETED','COMPLETED','PENDING','COMPLETED','COMPLETED'];
+                                          'COMPLETED','COMPLETED','PENDING'];
       notif_types         text[] := ARRAY['PAYMENT','BET','SYSTEM','PAYMENT','WINNING',
                                           'SYSTEM','BET','PAYMENT','WINNING','SYSTEM',
                                           'PAYMENT','BET','SYSTEM','PAYMENT','WINNING',
                                           'SYSTEM','BET','PAYMENT','WINNING','SYSTEM',
                                           'PAYMENT','BET','SYSTEM','PAYMENT','WINNING',
-                                          'SYSTEM','BET','PAYMENT','WINNING','SYSTEM'];
+                                          'SYSTEM','BET','PAYMENT'];
       notif_statuses      text[] := ARRAY['READ','SENT','PENDING','READ','SENT',
                                           'FAILED','READ','SENT','PENDING','READ',
                                           'SENT','READ','PENDING','SENT','READ',
                                           'FAILED','SENT','READ','PENDING','SENT',
                                           'READ','SENT','PENDING','READ','SENT',
-                                          'FAILED','READ','SENT','PENDING','READ'];
+                                          'FAILED','READ','SENT'];
       outbox_statuses     text[] := ARRAY['PUBLISHED','PUBLISHED','PENDING','FAILED','PUBLISHED',
                                           'PUBLISHED','PENDING','PUBLISHED','FAILED','PUBLISHED',
                                           'PUBLISHED','PENDING','PUBLISHED','PUBLISHED','FAILED',
                                           'PUBLISHED','PENDING','PUBLISHED','PUBLISHED','PENDING',
                                           'PUBLISHED','FAILED','PUBLISHED','PENDING','PUBLISHED',
-                                          'PUBLISHED','PENDING','PUBLISHED','FAILED','PUBLISHED'];
+                                          'PUBLISHED','PENDING','PUBLISHED'];
       wt_types            text[] := ARRAY['DEPOSIT','BET','WINNING','WITHDRAWAL','DEPOSIT',
                                           'BET','WINNING','DEPOSIT','WITHDRAWAL','BET',
                                           'DEPOSIT','WINNING','BET','DEPOSIT','WITHDRAWAL',
@@ -104,7 +104,7 @@ export const up = pgm => {
                                           'COMPLETED','COMPLETED','PENDING','COMPLETED','COMPLETED',
                                           'COMPLETED','FAILED','COMPLETED','COMPLETED','PENDING',
                                           'COMPLETED','COMPLETED','COMPLETED','COMPLETED','FAILED',
-                                          'COMPLETED','COMPLETED','PENDING','COMPLETED','COMPLETED'];
+                                          'COMPLETED','COMPLETED','PENDING','COMPLETED'];
     BEGIN
       ------------------------------------------------------------------
       -- 1. USERS (30)
@@ -127,9 +127,9 @@ export const up = pgm => {
       END LOOP;
 
       ------------------------------------------------------------------
-      -- 2. LEDGER_ACCOUNTS (30) + back-fill users.ledger_account_id
+      -- 2. LEDGER_ACCOUNTS (27 - only for 'user' role, skip admins)
       ------------------------------------------------------------------
-      FOR i IN 1..30 LOOP
+      FOR i IN 4..30 LOOP
         INSERT INTO ledger_accounts (user_id, account_type, currency, balance_minor)
         VALUES (
           v_user_ids[i],
@@ -146,15 +146,10 @@ export const up = pgm => {
       END LOOP;
 
       ------------------------------------------------------------------
-      -- 3. WALLETS (30) + back-fill users.wallet_id
+      -- 3. WALLETS (27 - only for 'user' role, skip admins)
       ------------------------------------------------------------------
-      FOR i IN 1..30 LOOP
-        -- Admin roles (first 3 users) get 0 balance, regular users get random balance
-        IF i <= 3 THEN
-          v_available_balance := 0;
-        ELSE
-          v_available_balance := (50000 + (random() * 450000))::bigint;
-        END IF;
+      FOR i IN 4..30 LOOP
+        v_available_balance := (50000 + (random() * 450000))::bigint;
 
         INSERT INTO wallets (
           user_id, ledger_account_id, currency,
@@ -162,7 +157,7 @@ export const up = pgm => {
         )
         VALUES (
           v_user_ids[i],
-          v_ledger_ids[i],
+          v_ledger_ids[i - 3],
           'USD',
           v_available_balance,
           0,
@@ -174,7 +169,7 @@ export const up = pgm => {
 
         UPDATE ledger_accounts
         SET balance_minor = v_available_balance
-        WHERE id = v_ledger_ids[i];
+        WHERE id = v_ledger_ids[i - 3];
 
         UPDATE users
         SET wallet_id = v_wallet_id
@@ -194,7 +189,7 @@ export const up = pgm => {
           CASE WHEN i % 2 = 0 THEN 'BANK_ACCOUNT'::payment_method_type ELSE 'DEBIT_CARD'::payment_method_type END,
           display_names[i],
           CASE WHEN i % 2 = 0 THEN '****' || (1000 + i) ELSE '****' || (4000 + i) END,
-          bank_names[i],
+          bank_names[i - 3],
           'VERIFIED'::payment_method_status,
           true,
           'local',
@@ -206,9 +201,9 @@ export const up = pgm => {
       END LOOP;
 
       ------------------------------------------------------------------
-      -- 5. LEDGER_ENTRIES (30)
+      -- 5. LEDGER_ENTRIES (27 - only for 'user' role, skip admins)
       ------------------------------------------------------------------
-      FOR i IN 1..30 LOOP
+      FOR i IN 4..30 LOOP
         v_txn_id := uuid_generate_v7();
         INSERT INTO ledger_entries (
           transaction_id, account_id, entry_type, amount_minor,
@@ -216,7 +211,7 @@ export const up = pgm => {
         )
         VALUES (
           v_txn_id,
-          v_ledger_ids[i],
+          v_ledger_ids[i - 3],
           CASE WHEN i % 2 = 0 THEN 'DEBIT'::entry_type ELSE 'CREDIT'::entry_type END,
           (1000 + (random() * 49000))::bigint,
           'USD',
@@ -242,14 +237,14 @@ export const up = pgm => {
           reference, transaction_id, ledger_entry_id, created_at
         )
         VALUES (
-          v_wallet_ids[i],
-          wt_types[i],
+          v_wallet_ids[i - 3],
+          wt_types[i - 3],
           (1000 + (random() * 49000))::bigint,
           'USD',
-          wt_statuses[i],
-          wt_types[i] || '-' || i,
+          wt_statuses[i - 3],
+          wt_types[i - 3] || '-' || i,
           'TXN-' || uuid_generate_v7()::text,
-          v_entry_ids[i],
+          v_entry_ids[i - 3],
           CURRENT_TIMESTAMP - ((i * 2) || ' hours')::interval
         );
       END LOOP;
@@ -266,13 +261,13 @@ export const up = pgm => {
         VALUES (
           'idem-' || i || '-' || uuid_generate_v7()::text,
           v_user_ids[i],
-          v_wallet_ids[i],
-          v_ledger_ids[i],
-          v_method_ids[i],
-          payment_types[i],
+          v_wallet_ids[i - 3],
+          v_ledger_ids[i - 3],
+          v_method_ids[i - 3],
+          payment_types[i - 3],
           (5000 + (random() * 95000))::bigint,
           'USD',
-          payment_statuses[i]::payment_status,
+          payment_statuses[i - 3]::payment_status,
           'pay-txn-' || i,
           'local',
           'ch_seed_' || i,
@@ -282,24 +277,24 @@ export const up = pgm => {
       END LOOP;
 
       ------------------------------------------------------------------
-      -- 8. NOTIFICATIONS (30 - all users including admins can have notifications)
+      -- 8. NOTIFICATIONS (27 - only for 'user' role, skip admins)
       ------------------------------------------------------------------
-      FOR i IN 1..30 LOOP
+      FOR i IN 4..30 LOOP
         INSERT INTO notifications (user_id, type, title, content, status, created_at)
         VALUES (
           v_user_ids[i],
-          notif_types[i],
-          notif_types[i] || ' notification #' || i,
-          'This is a seeded notification of type ' || notif_types[i] || ' for user ' || i,
-          notif_statuses[i]::notification_status,
+          notif_types[i - 3],
+          notif_types[i - 3] || ' notification #' || i,
+          'This is a seeded notification of type ' || notif_types[i - 3] || ' for user ' || i,
+          notif_statuses[i - 3]::notification_status,
           CURRENT_TIMESTAMP - ((i) || ' hours')::interval
         );
       END LOOP;
 
       ------------------------------------------------------------------
-      -- 9. OUTBOX_EVENTS (30 - all users)
+      -- 9. OUTBOX_EVENTS (27 - only for 'user' role, skip admins)
       ------------------------------------------------------------------
-      FOR i IN 1..30 LOOP
+      FOR i IN 4..30 LOOP
         INSERT INTO outbox_events (
           aggregate_type, aggregate_id, event_type, payload, status, created_at, published_at
         )
@@ -308,9 +303,9 @@ export const up = pgm => {
           v_user_ids[i],
           CASE WHEN i % 3 = 0 THEN 'PaymentCompleted' WHEN i % 3 = 1 THEN 'BalanceUpdated' ELSE 'UserRegistered' END,
           jsonb_build_object('userId', v_user_ids[i], 'index', i, 'seed', true),
-          outbox_statuses[i]::outbox_status,
+          outbox_statuses[i - 3]::outbox_status,
           CURRENT_TIMESTAMP - ((i) || ' hours')::interval,
-          CASE WHEN outbox_statuses[i] = 'PUBLISHED'
+          CASE WHEN outbox_statuses[i - 3] = 'PUBLISHED'
                THEN CURRENT_TIMESTAMP - ((i - 1) || ' hours')::interval
                ELSE NULL END
         );

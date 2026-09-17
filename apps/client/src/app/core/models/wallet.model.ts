@@ -15,7 +15,7 @@ import {
   UserId,
   WalletId,
   WalletStatus
-} from './base.mode';
+} from './base.model';
 
 export interface BetRequest extends AmountMinor, Currency, Reference, TransactionId {}
 

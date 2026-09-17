@@ -1,27 +1,21 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { v7 as uuid } from 'uuid';
-import { KAFKA_SERVICE, KafkaService, PasswordHandler, SessionService, StorageService } from '@common/libs';
+import { SessionHelper } from '@common/libs';
 
 import { UserCreateDto, UserCreateResponse } from '../../dtos/user/user-create.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
 import { UserRepository } from '../../repositories/user.repository';
-import { emitKafkaUserEmailVerification } from '../../../email/helpers/user/emit-kafka-email-event.helper';
-import { ConvertWalletCurrencyUseCase } from '../../../wallet-currency-conversion/use-cases/commands/convert-wallet-currency.use-case';
+import { EmailHelper } from '../../../email/helpers/email.helper';
 
 @Injectable()
 export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateResponse> {
   constructor (
-    protected override readonly storageService: StorageService,
-    protected override readonly userRepository: UserRepository,
-    protected override readonly sessionService: SessionService,
-    protected override readonly configService: ConfigService,
-    protected override readonly convertWalletCurrencyUseCase: ConvertWalletCurrencyUseCase,
-    protected override readonly passwordHelper: PasswordHandler,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
+    private readonly userRepository: UserRepository,
+    private readonly configService: ConfigService
   ) {
-    super(storageService, userRepository, sessionService, configService, convertWalletCurrencyUseCase, passwordHelper, kafkaService);
+    super();
   }
 
   async execute (dto: UserCreateDto): Promise<UserCreateResponse> {
@@ -29,7 +23,7 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
     if (existingUser) throw new ConflictException('Email already exists');
 
     const temporaryPassword = uuid();
-    const passwordHash = await this.passwordHelper.hash(temporaryPassword);
+    const passwordHash = await SessionHelper.hash({ password: temporaryPassword });
 
     const { email, displayName, role } = dto;
 
@@ -44,7 +38,7 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
     const token = jwt.sign(tokenPayload, privateKey, { algorithm: 'RS256', expiresIn: '24h', ...(issuer && { issuer }) });
     const verificationUrl = `${frontendUrl}/auth/verify-email?token=${token}`;
 
-    await emitKafkaUserEmailVerification({
+    await EmailHelper.emitKafkaUserEmailVerification({
       subject: 'Verify Your Email - Complete Registration',
       purpose: 'Email Verification',
       title: `Welcome ${user.displayName}!`,

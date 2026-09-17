@@ -1,4 +1,4 @@
-import { CreatedAt, Id, NotificationType, UpdatedAt, UserId } from './base.mode';
+import { CreatedAt, Id, NotificationType, UpdatedAt, UserId } from './base.model';
 
 export interface AppNotification extends Id, UserId, CreatedAt, UpdatedAt {
   title: string;

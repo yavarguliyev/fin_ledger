@@ -1,16 +1,16 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, NotFoundException } from '@nestjs/common';
 import { DatabaseAdapter, PostgresService } from '@common/libs';
 
 import { WalletRepository } from '../../repositories/wallet.repository';
 import { WalletDto, WalletInput } from '../../dtos/wallet/wallet.dto';
 import { CalculateNewBalancesDto } from '../../dtos/balance/calculate-new-balances.dto';
 
-@Injectable()
 export abstract class FundsBaseUseCase<TInput, TOutput> {
-  constructor (
-    protected readonly postgresService: PostgresService,
-    protected readonly walletRepository: WalletRepository
-  ) {}
+  @Inject(PostgresService)
+  protected readonly postgresService!: PostgresService;
+
+  @Inject(WalletRepository)
+  protected readonly walletRepository!: WalletRepository;
 
   protected abstract calculateNewBalances(wallet: WalletDto, amountMinor: number): CalculateNewBalancesDto;
   protected abstract execute(input: TInput): Promise<TOutput>;

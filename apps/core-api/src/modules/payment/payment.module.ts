@@ -12,8 +12,8 @@ import { AuthModule } from '../auth/auth.module';
 import { PaymentMethodModule } from '../payment-methods/payment-method.module';
 import { DepositOrchestratorWorkflow } from './workflows/deposit-orchestrator.workflow';
 import { ValidatePaymentMethodStep } from './workflows/steps/validate-payment-method.step';
-import { ReserveFundsStep } from './workflows/steps/reserve-funds.step';
 import { CreatePaymentRecordStep } from './workflows/steps/create-payment-record.step';
+import { ChargePaymentStep } from './workflows/steps/charge-payment.step';
 import { CreditWalletStep } from './workflows/steps/credit-wallet.step';
 import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step';
 
@@ -27,8 +27,8 @@ import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step'
     RequestWithdrawalUseCase,
     GetPaymentUseCase,
     ValidatePaymentMethodStep,
-    ReserveFundsStep,
     CreatePaymentRecordStep,
+    ChargePaymentStep,
     CreditWalletStep,
     EmitPaymentEventStep,
     DepositOrchestratorWorkflow

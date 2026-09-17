@@ -1,25 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DomainEventType, PaymentStatus, OutboxRepository, PostgresService, PaymentProviderRegistry } from '@common/libs';
+import { DomainEventType, PaymentStatus, OutboxRepository } from '@common/libs';
 
 import { PaymentRepository } from '../../../payment/repositories/payment.repository';
 import { HandlePaymentChargeEventInput } from '../../dtos/request/handle-webhook.dto';
 import { WebhookBaseUseCase } from '../base/webhook-base.use-case';
-import { WebhookEventRepository } from '../../repositories/webhook-event.repository';
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
 
 @Injectable()
 export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePaymentChargeEventInput, void> {
   private readonly logger = new Logger(HandlePaymentChargeEventUseCase.name);
 
   constructor (
-    protected override readonly paymentRepository: PaymentRepository,
-    protected override readonly outboxRepository: OutboxRepository,
-    protected override readonly postgresService: PostgresService,
-    protected override readonly webhookEventRepository: WebhookEventRepository,
-    protected override readonly providerRegistry: PaymentProviderRegistry,
-    protected override readonly paymentMethodRepository: PaymentMethodRepository
+    private readonly paymentRepository: PaymentRepository,
+    private readonly outboxRepository: OutboxRepository
   ) {
-    super(paymentRepository, outboxRepository, postgresService, webhookEventRepository, providerRegistry, paymentMethodRepository);
+    super();
   }
 
   async execute ({ provider, payload, status }: HandlePaymentChargeEventInput): Promise<void> {

@@ -5,7 +5,6 @@ import { DatabaseConfig, DatabaseModule, OutboxRepository } from '@common/databa
 import { KafkaModule } from '@common/kafka';
 import { OutboxPublisherService, RabbitmqModule } from '@common/rabbitmq';
 import { RedisModule } from '@common/redis';
-import { PasswordHandler } from '@common/session';
 import { UnifiedExceptionFilter, ClientIds, DatabaseType } from '@common/shared-libs';
 import { PaymentProviderModule } from '@common/payment-provider';
 import { SmsModule } from '@common/sms';
@@ -14,7 +13,7 @@ import { SmsModule } from '@common/sms';
   providers: [{ provide: APP_FILTER, useClass: UnifiedExceptionFilter }]
 })
 export class InfrastructureModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot (clientId: ClientIds): DynamicModule {
     const dbConfigFactory = (configService: ConfigService): DatabaseConfig => ({
       host: configService.get<string>('DB_HOST', 'localhost'),
       port: configService.get<number>('DB_PORT', 5432) ?? 5432,
@@ -44,18 +43,8 @@ export class InfrastructureModule {
         PaymentProviderModule.forRoot(),
         SmsModule.forRoot(clientId)
       ],
-      providers: [PasswordHandler, OutboxRepository, OutboxPublisherService],
-      exports: [
-        PasswordHandler,
-        DatabaseModule,
-        RedisModule,
-        RabbitmqModule,
-        KafkaModule,
-        PaymentProviderModule,
-        SmsModule,
-        OutboxRepository,
-        OutboxPublisherService
-      ]
+      providers: [OutboxRepository, OutboxPublisherService],
+      exports: [DatabaseModule, RedisModule, RabbitmqModule, KafkaModule, PaymentProviderModule, SmsModule, OutboxRepository, OutboxPublisherService]
     };
   }
 }

@@ -1,6 +1,15 @@
 import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, ParamsQueryAndHeaders, SessionGuard, RequestContext, UserRoles } from '@common/libs';
+import {
+  ENVIRONMENT_CONSTANTS,
+  PaginatedResponseDto,
+  ParamsQueryAndHeaders,
+  SessionGuard,
+  RequestContext,
+  UserRoles,
+  RolesGuard,
+  Roles
+} from '@common/libs';
 
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 import { WalletTransactionRecordDto } from './dtos/transaction/wallet-transaction-record.dto';
@@ -9,7 +18,8 @@ import { WalletTransactionService } from './wallet-transaction.service';
 import { WalletPaginatedRequestDto } from './dtos/common/wallet-transaction-paginated-request.dto';
 
 @ApiTags(SHARED_CONSTANTS.WALLET_TRANSACTION.key)
-@UseGuards(SessionGuard)
+@UseGuards(SessionGuard, RolesGuard)
+@Roles(UserRoles.USER, UserRoles.MODERATOR, UserRoles.ADMIN, UserRoles.GLOBAL_ADMIN)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.WALLET_TRANSACTION, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
 export class WalletTransactionController {
   constructor (private readonly walletTransactionService: WalletTransactionService) {}

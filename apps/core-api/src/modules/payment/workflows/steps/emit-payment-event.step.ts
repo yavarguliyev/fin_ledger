@@ -7,9 +7,9 @@ import {
   PaymentType,
   WorkflowStep,
   WorkflowStepMeta,
-  WorkflowSteps
+  WorkflowSteps,
+  KafkaService
 } from '@common/libs';
-import { KafkaService } from '@common/kafka';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';

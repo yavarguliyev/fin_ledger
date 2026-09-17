@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { v7 as uuid } from 'uuid';
 import { StorageType } from '@common/shared-libs';
 
-import { BaseStrategy } from '../../strategies/base/base.strategy';
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import { UploadFileResponse, UploadFilesRequest } from '../../interfaces/storage.interface';
 
@@ -10,8 +9,8 @@ import { UploadFileResponse, UploadFilesRequest } from '../../interfaces/storage
 export class UploadFileUseCase extends StorageBaseUseCase {
   protected readonly storageType: StorageType = StorageType.UPLOAD;
 
-  constructor (protected override readonly storageStrategy: BaseStrategy) {
-    super(storageStrategy);
+  constructor () {
+    super();
   }
 
   async execute (dto: UploadFilesRequest): Promise<UploadFileResponse> {

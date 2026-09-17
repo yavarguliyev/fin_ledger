@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject } from '@nestjs/common';
 import {
   AggregateType,
   AnalyticsEventTopic,
@@ -19,10 +19,9 @@ import { PlaceBetInput } from '../../dtos/betting/place-bet.dto';
 import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/analytics-event.dto';
 import { WalletDto } from '../../dtos/wallet/wallet.dto';
 import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
-import { emitKafkaWalletAnalytics } from '../../../analytics/helpers/wallet/emit-kafka-wallet-analytics.helper';
-import { processWalletTransaction } from '../../helpers/transactions/process-wallet-transaction.helper';
+import { AnalyticsHelper } from '../../../analytics/helpers/analytics.helper';
+import { WalletHelper } from '../../helpers/wallet.helper';
 
-@Injectable()
 export abstract class WalletBaseUseCase<TInput, TOutput> {
   protected abstract readonly currentWalletTransactionType: WalletTransactionType;
   protected abstract readonly currentDomainEventType: DomainEventType;
@@ -31,18 +30,23 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
   protected abstract readonly balanceWalletTransactionType: WalletTransactionType;
   protected abstract readonly requiredToCheckAmountMinor: boolean;
 
-  protected readonly [KAFKA_SERVICE]: KafkaService;
+  @Inject(PostgresService)
+  protected readonly postgresService!: PostgresService;
 
-  constructor (
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService,
-    protected readonly postgresService: PostgresService,
-    protected readonly outboxRepository: OutboxRepository,
-    protected readonly ledgerService: LedgerService,
-    protected readonly walletRepository: WalletRepository,
-    protected readonly walletTransactionRepository: WalletTransactionRepository
-  ) {
-    this[KAFKA_SERVICE] = kafkaService;
-  }
+  @Inject(WalletRepository)
+  protected readonly walletRepository!: WalletRepository;
+
+  @Inject(OutboxRepository)
+  protected readonly outboxRepository!: OutboxRepository;
+
+  @Inject(LedgerService)
+  protected readonly ledgerService!: LedgerService;
+
+  @Inject(WalletTransactionRepository)
+  protected readonly walletTransactionRepository!: WalletTransactionRepository;
+
+  @Inject(KAFKA_SERVICE)
+  protected readonly [KAFKA_SERVICE]!: KafkaService;
 
   protected abstract execute(input: TInput): Promise<TOutput>;
 
@@ -75,13 +79,15 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
     };
 
     if (adapter) {
-      const result = await processWalletTransaction({ adapter, ...input });
+      const result = await WalletHelper.processWalletTransaction({ adapter, ...input });
       return result.wallet;
     }
 
-    const result = await this.postgresService.getWriteConnection().transaction(tx => processWalletTransaction({ ...input, adapter: tx }));
+    const result = await this.postgresService
+      .getWriteConnection()
+      .transaction(tx => WalletHelper.processWalletTransaction({ ...input, adapter: tx }));
 
-    void emitKafkaWalletAnalytics({
+    void AnalyticsHelper.emitKafkaWalletAnalytics({
       ...result.eventPayload,
       eventType: this.currentDomainEventType,
       publishWalletCredited: payload => this.publishWalletCredited(payload),

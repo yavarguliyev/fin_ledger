@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { CardBrand, DigitalWalletType, PaymentMethodType, PaymentProvider, validateLuhn } from '@common/libs';
+import { BaseHelper, CardBrand, DigitalWalletType, PaymentMethodType, PaymentProvider } from '@common/libs';
 
 export const CreatePaymentMethodSchema = z
   .object({
@@ -27,7 +27,10 @@ export const CreatePaymentMethodSchema = z
 
     expiryYear: z.number().int().min(2024).max(2099).optional(),
 
-    cvv: z.string().regex(/^\d{3,4}$/, { message: 'CVV must be 3 or 4 digits' }).optional(),
+    cvv: z
+      .string()
+      .regex(/^\d{3,4}$/, { message: 'CVV must be 3 or 4 digits' })
+      .optional(),
 
     isDefault: z.boolean().optional()
   })
@@ -36,7 +39,7 @@ export const CreatePaymentMethodSchema = z
       if (data.type === PaymentMethodType.CREDIT_CARD || data.type === PaymentMethodType.DEBIT_CARD) {
         const sanitized = data.accountNumber.replace(/[\s-]/g, '');
         if (/^\d{13,19}$/.test(sanitized)) {
-          return validateLuhn(sanitized);
+          return BaseHelper.validateLuhn({ cardNumber: sanitized });
         }
       }
 

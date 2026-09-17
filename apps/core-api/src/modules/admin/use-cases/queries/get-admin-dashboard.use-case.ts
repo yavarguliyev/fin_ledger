@@ -8,10 +8,10 @@ import { WalletTransactionRepository } from '../../../wallet-transactions/reposi
 @Injectable()
 export class GetAdminDashboardUseCase extends AdminBaseUseCase<void, AdminDashboardDto> {
   constructor (
-    protected override readonly userRepository: UserRepository,
-    protected override readonly walletTransactionRepository: WalletTransactionRepository
+    private readonly userRepository: UserRepository,
+    private readonly walletTransactionRepository: WalletTransactionRepository
   ) {
-    super(userRepository, walletTransactionRepository);
+    super();
   }
 
   async execute (): Promise<AdminDashboardDto> {

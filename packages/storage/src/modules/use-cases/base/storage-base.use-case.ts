@@ -1,13 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 import { StorageType } from '@common/shared-libs';
 
 import { BaseStrategy } from '../../strategies/base/base.strategy';
 
-@Injectable()
 export abstract class StorageBaseUseCase<TSingleResult = unknown, TMultiResult = unknown> {
   protected abstract readonly storageType: StorageType;
 
-  constructor (protected readonly storageStrategy: BaseStrategy) {}
+  protected readonly storageStrategy!: BaseStrategy;
 
   protected async checkExists (key: string): Promise<boolean> {
     return this.storageStrategy.exists(key);

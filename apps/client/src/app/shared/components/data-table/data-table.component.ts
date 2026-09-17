@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { ToggleComponent } from '../toggle/toggle.component';
 import { ActionIconsComponent } from '../action-icons/action-icons';
-import { PaginationConfig } from '../../../core/models/base.mode';
+import { PaginationConfig } from '../../../core/models/base.model';
 import { ActionIconsConfig, DataTableConfig, TableColumn } from '../../../core/models/data-table.model';
 import { getCellValue, formatCellValue, getBadgeClass, getAlignmentClass, getToggleChecked, getActionConfig } from './data-table.util';
 

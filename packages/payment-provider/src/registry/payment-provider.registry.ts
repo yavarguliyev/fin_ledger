@@ -21,9 +21,8 @@ export class PaymentProviderRegistry {
     this.logger.log(`Registered payment provider: ${provider.providerName}`);
   }
 
-  get (providerName?: string): IPaymentProvider {
-    const key = providerName && providerName.trim().length > 0 ? (providerName.trim() as PaymentProvider) : PaymentProvider.LOCAL;
-    const provider = this.providers.get(key) ?? this.providers.get(PaymentProvider.LOCAL);
+  get (providerName: PaymentProvider): IPaymentProvider {
+    const provider = this.providers.get(providerName);
     if (!provider) throw new NotFoundException(`Payment provider not found: ${providerName ?? ''}`);
     return provider;
   }

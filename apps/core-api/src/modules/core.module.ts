@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { KafkaModule, ClientIds } from '@common/libs';
 
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuthModule } from './auth/auth.module';
@@ -16,6 +17,7 @@ import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
+    KafkaModule.forRoot(ClientIds.API_GATEWAY),
     AdminModule,
     AnalyticsModule,
     EmailModule,

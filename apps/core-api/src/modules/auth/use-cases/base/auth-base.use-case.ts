@@ -1,46 +1,31 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  EmailTemplateType,
-  EXTRACT_ID_KEY,
-  KAFKA_SERVICE,
-  KafkaPublish,
-  KafkaService,
-  OutboxRepository,
-  PasswordHandler,
-  PostgresService,
-  SendEmailDto,
-  SessionService
-} from '@common/libs';
+import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, SessionService } from '@common/libs';
 
-import { AuthRepository } from '../../repositories/auth.repository';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletService } from '../../../wallet/wallet.service';
-
-@Injectable()
 export abstract class AuthBaseUseCase<TInput, TOutput> {
-  protected readonly privateKey: string;
-  protected readonly publicKey: string;
-  protected readonly issuer: string;
-  protected readonly frontendUrl: string;
-  protected readonly [KAFKA_SERVICE]: KafkaService;
+  @Inject(ConfigService)
+  protected readonly configService!: ConfigService;
 
-  constructor (
-    protected readonly postgresService: PostgresService,
-    protected readonly authRepository: AuthRepository,
-    protected readonly sessionService: SessionService,
-    protected readonly passwordHelper: PasswordHandler,
-    protected readonly configService: ConfigService,
-    protected readonly ledgerService: LedgerService,
-    protected readonly walletService: WalletService,
-    protected readonly outboxRepository: OutboxRepository,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
-  ) {
-    this[KAFKA_SERVICE] = kafkaService;
-    this.privateKey = this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
-    this.publicKey = this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
-    this.issuer = this.configService.get<string>('JWT_ISSUER')!;
-    this.frontendUrl = this.configService.get<string>('FRONTEND_URL')!;
+  @Inject(SessionService)
+  protected readonly sessionService!: SessionService;
+
+  @Inject(KAFKA_SERVICE)
+  protected readonly [KAFKA_SERVICE]!: KafkaService;
+
+  protected get privateKey (): string {
+    return this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
+  }
+
+  protected get publicKey (): string {
+    return this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
+  }
+
+  protected get issuer (): string {
+    return this.configService.get<string>('JWT_ISSUER')!;
+  }
+
+  protected get frontendUrl (): string {
+    return this.configService.get<string>('FRONTEND_URL')!;
   }
 
   protected abstract execute(input: TInput): Promise<TOutput>;

@@ -30,7 +30,7 @@ export const RABBITMQ_KEYS = ['wallet.events', 'wallet.events.dlx', 'wallet.anal
 
 export const WORKFLOW_NAMES = ['PaymentDepositOrchestratorWorkflow'];
 
-export const WORKFLOW_STEPS = ['CreatePaymentRecord', 'CreditWallet', 'EmitPaymentEvent', 'ReserveFunds', 'ValidatePaymentMethod'];
+export const WORKFLOW_STEPS = ['CreatePaymentRecord', 'CreditWallet', 'EmitPaymentEvent', 'ReserveFunds', 'ValidatePaymentMethod', 'ChargePayment'];
 
 export const MODULES_KEYS = [
   'Admin',

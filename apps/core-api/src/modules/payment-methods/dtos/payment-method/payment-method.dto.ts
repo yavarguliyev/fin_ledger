@@ -14,7 +14,7 @@ export const PaymentMethodSchema = z.object({
 
   bankName: z.string({ message: 'Bank name must be a string' }).optional().nullable(),
 
-  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }).default(PaymentProvider.LOCAL),
+  provider: z.enum(PaymentProvider, { message: 'Invalid payment provider' }),
 
   providerMethodId: z.string({ message: 'Provider method ID must be a string' }).optional().nullable(),
 

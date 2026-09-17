@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { WorkflowNames, WorkflowOrchestratorService, WorkflowStep } from '@common/libs';
 
 import { ValidatePaymentMethodStep } from './steps/validate-payment-method.step';
-import { ReserveFundsStep } from './steps/reserve-funds.step';
 import { CreatePaymentRecordStep } from './steps/create-payment-record.step';
+import { ChargePaymentStep } from './steps/charge-payment.step';
 import { CreditWalletStep } from './steps/credit-wallet.step';
 import { EmitPaymentEventStep } from './steps/emit-payment-event.step';
 import { DepositContextDto, DepositWorkflowInput } from '../dtos/payment/deposit-context.dto';
@@ -14,8 +14,8 @@ export class DepositOrchestratorWorkflow extends WorkflowOrchestratorService<Dep
 
   constructor (
     private readonly validatePaymentMethodStep: ValidatePaymentMethodStep,
-    private readonly reserveFundsStep: ReserveFundsStep,
     private readonly createPaymentRecordStep: CreatePaymentRecordStep,
+    private readonly chargePaymentStep: ChargePaymentStep,
     private readonly creditWalletStep: CreditWalletStep,
     private readonly emitPaymentEventStep: EmitPaymentEventStep
   ) {
@@ -27,6 +27,12 @@ export class DepositOrchestratorWorkflow extends WorkflowOrchestratorService<Dep
   }
 
   protected getSteps (): WorkflowStep<DepositContextDto>[] {
-    return [this.validatePaymentMethodStep, this.reserveFundsStep, this.createPaymentRecordStep, this.creditWalletStep, this.emitPaymentEventStep];
+    return [
+      this.validatePaymentMethodStep,
+      this.createPaymentRecordStep,
+      this.chargePaymentStep,
+      this.creditWalletStep,
+      this.emitPaymentEventStep
+    ];
   }
 }

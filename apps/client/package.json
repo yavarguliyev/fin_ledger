@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build --configuration=production",
-    "dev": "ng serve --host 0.0.0.0 --port 4200",
+    "start": "node scripts/load-env.js && ng serve",
+    "build": "node scripts/load-env.js && ng build --configuration=production",
+    "dev": "node scripts/load-env.js && ng serve --host 0.0.0.0 --port 4200",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "ng test",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",

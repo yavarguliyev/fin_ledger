@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { AggregateType, NotificationType, KafkaMessageRecord, ActionEvent } from '@common/libs';
 
 import { BaseAnalyticsEventDto } from '../../dtos/base-analytics-event.dto';
 
-@Injectable()
 export abstract class AnalyticsBaseHandler<T extends BaseAnalyticsEventDto> {
   protected abstract readonly eventType: NotificationType;
   protected abstract readonly action: ActionEvent;

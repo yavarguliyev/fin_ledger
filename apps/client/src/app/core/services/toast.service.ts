@@ -2,7 +2,7 @@ import { Injectable, signal, computed } from '@angular/core';
 
 import { uuid } from '../helpers/uuid.helper';
 import { Toast, ConfirmToast } from '../models/style.model';
-import { ToastType } from '../models/base.mode';
+import { ToastType } from '../models/base.model';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {

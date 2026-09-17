@@ -7,8 +7,8 @@ import { GameBaseHandlerUseCase } from '../base/game-base-handler.use-case';
 
 @Injectable()
 export class GetGameEventsUseCase extends GameBaseHandlerUseCase<GameEventStatus, GameEventDto[]> {
-  constructor (protected override readonly gameEventRepository: GameEventRepository) {
-    super(gameEventRepository);
+  constructor (private readonly gameEventRepository: GameEventRepository) {
+    super();
   }
 
   async execute (status?: GameEventStatus): Promise<GameEventDto[]> {

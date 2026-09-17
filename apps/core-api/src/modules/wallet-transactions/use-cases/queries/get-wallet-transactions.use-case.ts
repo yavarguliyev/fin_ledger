@@ -11,8 +11,8 @@ export class GetWalletTransactionsUseCase extends WalletTransactionsBaseUseCase<
   WalletPaginatedReques,
   PaginatedResponseDto<WalletTransactionRecordDto>
 > {
-  constructor (protected override readonly walletTransactionRepository: WalletTransactionRepository) {
-    super(walletTransactionRepository);
+  constructor (private readonly walletTransactionRepository: WalletTransactionRepository) {
+    super();
   }
 
   async execute ({ query, type, role }: WalletPaginatedReques): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {

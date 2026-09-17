@@ -5,7 +5,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { AppNotification } from '../../core/models/notification.model';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { PaginationConfig } from '../../core/models/base.mode';
+import { PaginationConfig } from '../../core/models/base.model';
 
 @Component({
   selector: 'app-notifications',

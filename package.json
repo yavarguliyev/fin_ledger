@@ -34,7 +34,11 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "uuid": "^14.0.2",
+    "@eslint/js": "^9.18.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.1.0",
     "bcryptjs": "^3.0.3",
     "concurrently": "^9.1.2",
     "eslint": "^9.18.0",
@@ -48,12 +52,8 @@
     "turbo": "^2.3.3",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
-    "wait-on": "^8.0.1",
-    "@eslint/js": "^9.18.0",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.1.0"
+    "uuid": "^14.0.2",
+    "wait-on": "^8.0.1"
   },
   "engines": {
     "node": ">=22"

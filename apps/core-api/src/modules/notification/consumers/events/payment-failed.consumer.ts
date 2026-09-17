@@ -1,8 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { DomainEventType, formatAmount, NotificationType, RABBITMQ_SERVICE, RabbitmqService } from '@common/libs';
+import { Injectable } from '@nestjs/common';
+import { BaseHelper, DomainEventType, NotificationType } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
-import { NotificationService } from '../../notification.service';
 import { PaymentEventPayloadDto } from '../../dtos/payment/payment-event-payload.dto';
 
 @Injectable()
@@ -11,12 +10,8 @@ export class PaymentFailedConsumer extends NotificationBaseConsumer<PaymentEvent
   protected readonly eventType = DomainEventType.PAYMENT_FAILED;
   protected readonly notificationType = NotificationType.PAYMENT_FAILED;
 
-  constructor (
-    @Inject(RABBITMQ_SERVICE)
-    protected override readonly rabbitmqService: RabbitmqService,
-    protected override readonly notificationService: NotificationService
-  ) {
-    super(rabbitmqService, notificationService, PaymentFailedConsumer.name);
+  constructor () {
+    super(PaymentFailedConsumer.name);
   }
 
   protected getUserId (payload: PaymentEventPayloadDto): string {
@@ -24,6 +19,6 @@ export class PaymentFailedConsumer extends NotificationBaseConsumer<PaymentEvent
   }
 
   protected getContent ({ amountMinor, currency, failureReason }: PaymentEventPayloadDto): string {
-    return `Your payment of ${formatAmount(amountMinor, currency)} failed: ${failureReason || 'Declined'}`;
+    return `Your payment of ${BaseHelper.formatAmount({ amountMinor, currency })} failed: ${failureReason || 'Declined'}`;
   }
 }

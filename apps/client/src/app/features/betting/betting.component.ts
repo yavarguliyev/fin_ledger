@@ -9,9 +9,9 @@ import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaginationConfig } from '../../core/models/base.mode';
+import { PaginationConfig } from '../../core/models/base.model';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
-import { ShowMoreConfig } from '../../core/models/base.mode';
+import { ShowMoreConfig } from '../../core/models/base.model';
 import { GameEvent } from '../../core/models/wallet.model';
 import { createRequiredValidator, createMinValidator } from '../../core/helpers/validators.helper';
 

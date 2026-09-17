@@ -8,7 +8,7 @@ import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { UserDetailModalComponent } from './user-detail-modal.component';
 import { CreateUserModalComponent } from './create-user-modal.component';
 import { DataTableConfig } from '../../core/models/data-table.model';
-import { StatCard, PaginationConfig, HttpError } from '../../core/models/base.mode';
+import { StatCard, PaginationConfig, HttpError } from '../../core/models/base.model';
 import { AdminUser, CreateUserResponse, DashboardStats, UserData } from '../../core/models/admin.model';
 import { AdminApiService } from '../../core/services/admin-api.service';
 import { AuthService } from '../../core/services/auth.service';

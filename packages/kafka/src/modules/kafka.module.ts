@@ -7,7 +7,7 @@ import { KafkaConsumerService } from './services/kafka-consumer.service';
 
 @Module({})
 export class KafkaModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot (clientId: ClientIds): DynamicModule {
     return {
       module: KafkaModule,
       imports: [DiscoveryModule],

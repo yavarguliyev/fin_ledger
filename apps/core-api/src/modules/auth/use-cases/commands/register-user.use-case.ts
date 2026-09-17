@@ -1,6 +1,5 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PostgresService, OutboxRepository, SessionService, PasswordHandler, KAFKA_SERVICE, KafkaService } from '@common/libs';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { PostgresService, OutboxRepository, SessionHelper } from '@common/libs';
 
 import { AuthRepository } from '../../repositories/auth.repository';
 import { RegisterDto } from '../../dtos/register/register.dto';
@@ -9,43 +8,28 @@ import { WalletService } from '../../../wallet/wallet.service';
 import { AuthResponseDto } from '../../dtos/auth/auth-response.dto';
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { SessionUserDto } from '../../dtos/auth/session-user.dto';
-import { createSessionResponse } from '../../helpers/session-response.helper';
-import { createUserWalletAndLedger } from '../../helpers/create-user-wallet-and-ledger.helper';
+import { AuthHelper } from '../../helpers/auth.helper';
 
 @Injectable()
 export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, AuthResponseDto> {
   constructor (
-    protected override readonly postgresService: PostgresService,
-    protected override readonly authRepository: AuthRepository,
-    protected override readonly sessionService: SessionService,
-    protected override readonly passwordHelper: PasswordHandler,
-    protected override readonly configService: ConfigService,
-    protected override readonly ledgerService: LedgerService,
-    protected override readonly walletService: WalletService,
-    protected override readonly outboxRepository: OutboxRepository,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
+    private readonly postgresService: PostgresService,
+    private readonly authRepository: AuthRepository,
+    private readonly ledgerService: LedgerService,
+    private readonly walletService: WalletService,
+    private readonly outboxRepository: OutboxRepository
   ) {
-    super(
-      postgresService,
-      authRepository,
-      sessionService,
-      passwordHelper,
-      configService,
-      ledgerService,
-      walletService,
-      outboxRepository,
-      kafkaService
-    );
+    super();
   }
 
   async execute (dto: RegisterDto): Promise<AuthResponseDto> {
     const existingUser = await this.authRepository.findByEmailAny(dto.email);
     if (existingUser) throw new ConflictException('Email already exists');
 
-    const passwordHash = await this.passwordHelper.hash(dto.password);
+    const passwordHash = await SessionHelper.hash({ password: dto.password });
 
     const { user, walletId, ledgerAccountId } = await this.postgresService.getWriteConnection().transaction(async tx => {
-      return createUserWalletAndLedger({
+      return AuthHelper.createUserWalletAndLedger({
         dto,
         passwordHash,
         tx,
@@ -56,7 +40,7 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, AuthRespon
       });
     });
 
-    return createSessionResponse({
+    return AuthHelper.createSessionResponse({
       dto: user as SessionUserDto,
       walletId,
       ledgerAccountId,

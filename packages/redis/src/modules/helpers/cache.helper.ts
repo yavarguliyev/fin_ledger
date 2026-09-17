@@ -2,43 +2,55 @@ import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
 import { CacheProvider } from '../interfaces/redis.interface';
 import { GetCachedKey } from '../interfaces/redis.interface';
+import { BuildCacheKeyParams, ResolveProviderParams, TryCacheResultParams, TryEvictCacheParams, TryGetCachedParams } from '../dtos/cache.dto';
 
-export const buildCacheKey = (prefix: string, method: string, args: unknown[]): string => {
-  const serializedArgs = args
-    .map(arg => {
-      if (arg && typeof arg === 'object' && 'user' in arg && arg.user && typeof arg.user === 'object' && 'userId' in arg.user) {
-        return `user:${(arg.user as { userId: string }).userId}`;
-      }
+export class CacheHelper {
+  public static async tryCacheResult<T> ({ provider, key, value, ttl }: TryCacheResultParams<T>): Promise<void> {
+    await provider.set(key, value, ttl);
+  }
 
-      if (arg === null || arg === undefined) return String(arg);
-      if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') return String(arg);
+  public static resolveProvider ({ target }: ResolveProviderParams): CacheProvider | null {
+    return (target[REDIS_CACHE_PROVIDER] as CacheProvider | undefined) ?? null;
+  }
 
-      try {
-        return JSON.stringify(arg);
-      } catch {
-        return `[${typeof arg}]`;
-      }
-    })
-    .join(':');
+  public static async tryGetCached<T> ({ provider, cacheKey }: TryGetCachedParams): Promise<GetCachedKey<T>> {
+    const cached = await provider.get<T>(cacheKey);
+    if (cached !== null) return { hit: true, value: cached };
+    return { hit: false, value: null };
+  }
 
-  return `${prefix}:${method}:${serializedArgs}`;
-};
+  public static async tryEvictCache ({ provider, keyPrefix, isPattern }: TryEvictCacheParams): Promise<void> {
+    if (isPattern) {
+      await provider.invalidatePattern(keyPrefix.endsWith('*') ? keyPrefix : `${keyPrefix}:*`);
+      return;
+    }
 
-export const tryGetCached = async <T>(provider: CacheProvider, cacheKey: string): Promise<GetCachedKey<T>> => {
-  const cached = await provider.get<T>(cacheKey);
-  if (cached !== null) return { hit: true, value: cached };
-  return { hit: false, value: null };
-};
+    await provider.delete(keyPrefix);
+  }
 
-export const tryCacheResult = async <T>(provider: CacheProvider, key: string, value: T, ttl?: number): Promise<void> => {
-  await provider.set(key, value, ttl);
-};
+  public static buildCacheKey ({ prefix, method, args }: BuildCacheKeyParams): string {
+    const serializedArgs = args
+      .map(arg => {
+        if (arg && typeof arg === 'object' && 'user' in arg && arg.user && typeof arg.user === 'object' && 'userId' in arg.user) {
+          return `user:${(arg.user as { userId: string }).userId}`;
+        }
 
-export const tryEvictCache = async (provider: CacheProvider, keyPrefix: string, isPattern: boolean): Promise<void> => {
-  if (isPattern) await provider.invalidatePattern(keyPrefix.endsWith('*') ? keyPrefix : `${keyPrefix}:*`);
-  else await provider.delete(keyPrefix);
-};
+        if (arg === null || arg === undefined) {
+          return String(arg);
+        }
 
-export const resolveProvider = (target: Record<string | symbol, unknown>): CacheProvider | null => {
-  return (target[REDIS_CACHE_PROVIDER] as CacheProvider | undefined) ?? null;
-};
+        if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') {
+          return String(arg);
+        }
+
+        try {
+          return JSON.stringify(arg);
+        } catch {
+          return `[${typeof arg}]`;
+        }
+      })
+      .join(':');
+
+    return `${prefix}:${method}:${serializedArgs}`;
+  }
+}

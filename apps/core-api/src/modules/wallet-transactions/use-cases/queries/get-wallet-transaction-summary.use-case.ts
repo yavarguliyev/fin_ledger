@@ -7,8 +7,8 @@ import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.
 
 @Injectable()
 export class GetWalletTransactionSummaryUseCase extends WalletTransactionsBaseUseCase<string, WalletTransactionSummaryDto> {
-  constructor (protected override readonly walletTransactionRepository: WalletTransactionRepository) {
-    super(walletTransactionRepository);
+  constructor (private readonly walletTransactionRepository: WalletTransactionRepository) {
+    super();
   }
 
   async execute (walletId: string, role?: UserRoles): Promise<WalletTransactionSummaryDto> {

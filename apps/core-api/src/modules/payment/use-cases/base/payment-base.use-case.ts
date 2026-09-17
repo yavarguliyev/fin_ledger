@@ -1,14 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
 import {
   AnalyticsEventTopic,
   EXTRACT_ID_KEY,
-  getSessionUser,
   KAFKA_SERVICE,
   KafkaPublish,
   KafkaService,
   OutboxRepository,
+  PaymentProviderRegistry,
+  PaymentStatus,
   PaymentType,
-  PostgresService
+  PostgresService,
+  SessionHelper
 } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
@@ -18,27 +20,34 @@ import { RequestPayment, RequestPaymentDto } from '../../dtos/request/request-pa
 import { WalletSummaryDto } from '../../../wallet/dtos/wallet/wallet-summary.dto';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
 import { PaymentAnalyticsEventPayloadDto } from '../../dtos/analytics/payment-analytics-event.dto';
-import { emitKafkaPaymentAnalytics } from '../../../analytics/helpers/payment/emit-kafka-payment-analytics.helper';
-import { processPaymentTransaction } from '../../helpers/processing/process-payment-transaction.helper';
+import { PaymentHelper } from '../../helpers/payment.helper';
+import { CreatePaymentRecordDto, DispatchPaymentOperationDto } from '../../dtos/payment-helper.dto';
 
-@Injectable()
-export abstract class PaymentBaseUseCase<TInput, TOutput> {
+export abstract class PaymentBaseUseCase<TInput extends RequestPayment, TOutput extends PaymentDto> {
   protected abstract readonly paymentType: PaymentType;
-  protected readonly [KAFKA_SERVICE]: KafkaService;
 
-  constructor (
-    protected readonly postgresService: PostgresService,
-    protected readonly walletService: WalletService,
-    protected readonly paymentRepository: PaymentRepository,
-    protected readonly paymentMethodRepository: PaymentMethodRepository,
-    protected readonly outboxRepository: OutboxRepository,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
-  ) {
-    this[KAFKA_SERVICE] = kafkaService;
-  }
+  @Inject(PostgresService)
+  protected readonly postgresService!: PostgresService;
+
+  @Inject(WalletService)
+  protected readonly walletService!: WalletService;
+
+  @Inject(PaymentRepository)
+  protected readonly paymentRepository!: PaymentRepository;
+
+  @Inject(PaymentMethodRepository)
+  protected readonly paymentMethodRepository!: PaymentMethodRepository;
+
+  @Inject(OutboxRepository)
+  protected readonly outboxRepository!: OutboxRepository;
+
+  @Inject(PaymentProviderRegistry)
+  protected readonly providerRegistry!: PaymentProviderRegistry;
+
+  @Inject(KAFKA_SERVICE)
+  protected readonly [KAFKA_SERVICE]!: KafkaService;
 
   protected abstract validateWallet(wallet: WalletSummaryDto, dto: RequestPaymentDto): void;
-  protected abstract execute(input: TInput): Promise<TOutput>;
 
   @KafkaPublish({ topic: AnalyticsEventTopic.PAYMENT_COMPLETED, key: (result: unknown) => EXTRACT_ID_KEY(result, 'paymentId') })
   protected async publishPaymentCompleted (eventPayload: PaymentAnalyticsEventPayloadDto): Promise<PaymentAnalyticsEventPayloadDto> {
@@ -50,35 +59,62 @@ export abstract class PaymentBaseUseCase<TInput, TOutput> {
     return Promise.resolve(eventPayload);
   }
 
-  protected async processPayment ({ context, dto }: RequestPayment): Promise<PaymentDto> {
-    const { userId } = getSessionUser(context);
+  async execute (input: TInput): Promise<TOutput> {
+    const { context, dto } = input;
+    const { userId } = SessionHelper.getSessionUser({ context });
 
     const existing = await this.paymentRepository.findByIdempotencyKey(dto.idempotencyKey);
-    if (existing) return existing;
+    if (existing) return existing as TOutput;
 
-    const result = await this.postgresService.getWriteConnection().transaction(tx =>
-      processPaymentTransaction({
-        userId,
-        dto,
-        tx,
-        paymentType: this.paymentType,
-        paymentRepository: this.paymentRepository,
-        paymentMethodRepository: this.paymentMethodRepository,
-        walletService: this.walletService,
-        outboxRepository: this.outboxRepository,
-        validateWallet: this.validateWallet.bind(this)
-      })
-    );
+    const userWallet = await this.walletService.getWalletByUserId(userId);
+    if (!userWallet) throw new BadRequestException('User wallet not found');
+    this.validateWallet(userWallet, dto);
 
-    const { eventPayload: payload, isCompleted, updated } = result;
+    const method = await PaymentHelper.validateAndGetPaymentMethod({
+      userId,
+      paymentMethodId: dto.paymentMethodId,
+      paymentMethodRepository: this.paymentMethodRepository
+    });
 
-    void emitKafkaPaymentAnalytics({
-      ...payload,
-      isCompleted,
+    const payment = await this.createPaymentRecord({ userId, wallet: userWallet, dto, provider: method.provider });
+    const updated = await this.dispatchPaymentOperation({ payment, dto, userWallet, method });
+
+    await PaymentHelper.publishPaymentEvents({
+      payment,
+      walletId: userWallet.id,
+      userId,
+      dto,
+      updated,
+      paymentType: this.paymentType,
+      outboxRepository: this.outboxRepository,
       publishPaymentCompleted: payload => this.publishPaymentCompleted(payload),
       publishPaymentFailed: payload => this.publishPaymentFailed(payload)
     });
 
-    return updated;
+    return updated as TOutput;
+  }
+
+  private async createPaymentRecord ({ userId, wallet, dto, provider }: CreatePaymentRecordDto): Promise<PaymentDto> {
+    const payment = await this.paymentRepository.createPayment({
+      ...dto,
+      userId,
+      walletId: wallet.id,
+      ledgerAccountId: wallet.ledgerAccountId!,
+      type: this.paymentType,
+      status: PaymentStatus.PENDING,
+      provider
+    });
+
+    if (!payment) throw new InternalServerErrorException('Failed to create payment record');
+    return payment;
+  }
+
+  private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentDto> {
+    const provider = this.providerRegistry.get(method.provider);
+    const options = { payment, dto, userWallet, method, provider, walletService: this.walletService, paymentRepository: this.paymentRepository };
+
+    return this.paymentType === PaymentType.DEPOSIT
+      ? PaymentHelper.executeDepositOperation(options)
+      : PaymentHelper.executeWithdrawalOperation(options);
   }
 }

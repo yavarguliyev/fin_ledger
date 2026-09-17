@@ -24,12 +24,16 @@ export class ValidatePaymentMethodStep implements WorkflowStep<DepositContextDto
     context.walletId = userWallet.id;
     context.ledgerAccountId = userWallet.ledgerAccountId ?? '';
 
-    if (!paymentMethodId) return;
+    if (!paymentMethodId) throw new BadRequestException('Payment method is required for deposit');
 
-    const method = await this.paymentMethodRepository.findById(paymentMethodId);
-    if (!method || method.status !== PaymentMethodStatus.VERIFIED) throw new BadRequestException('Payment method is not verified');
+    const method = await this.paymentMethodRepository.findByIdAndUserId(paymentMethodId, context.userId);
+
+    if (!method) throw new BadRequestException('Payment method not found or does not belong to user');
+    if (method.status !== PaymentMethodStatus.VERIFIED) throw new BadRequestException('Payment method is not verified');
+    if (!method.providerMethodId) throw new BadRequestException('Payment method token is missing');
 
     context.provider = method.provider;
+    context.providerMethodId = method.providerMethodId;
   }
 
   async compensate (): Promise<void> {

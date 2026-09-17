@@ -12,7 +12,7 @@ import {
   UserWithWallet
 } from '../models/admin.model';
 import { DeleteUserResponse } from '../models/admin.model';
-import { WalletStatus } from '../models/base.mode';
+import { WalletStatus } from '../models/base.model';
 import { handleHttpError } from '../helpers/http-error.helper';
 import { environment } from '../../../environments/environment';
 

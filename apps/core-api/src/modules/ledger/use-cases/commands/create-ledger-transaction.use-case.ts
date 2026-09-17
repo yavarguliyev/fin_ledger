@@ -6,7 +6,7 @@ import { LedgerAccountRepository } from '../../repositories/ledger-account.repos
 import { LedgerEntry } from '../../dtos/entry/ledger-entry.dto';
 import { LedgerEntryResponseDto } from '../../dtos/entry/ledger-entry-response.dto';
 import { LedgerBaseUseCase } from '../base/base-ledger.use-case';
-import { executeInTx } from '../../helpers/create-ledger-transaction.helper';
+import { LedgerHelper } from '../../helpers/ledger.helper';
 
 @Injectable()
 export class CreateLedgerTransactionUseCase extends LedgerBaseUseCase<LedgerEntry, LedgerEntryResponseDto[]> {
@@ -19,9 +19,9 @@ export class CreateLedgerTransactionUseCase extends LedgerBaseUseCase<LedgerEntr
   }
 
   async execute ({ entries, adapter }: LedgerEntry): Promise<LedgerEntryResponseDto[]> {
-    if (adapter) return executeInTx({ entries, entryRepository: this.entryRepository, accountRepository: this.accountRepository, tx: adapter });
+    if (adapter) return LedgerHelper.executeInTx({ entries, entryRepository: this.entryRepository, accountRepository: this.accountRepository, tx: adapter });
     return this.postgresService
       .getWriteConnection()
-      .transaction(tx => executeInTx({ entries, entryRepository: this.entryRepository, accountRepository: this.accountRepository, tx }));
+      .transaction(tx => LedgerHelper.executeInTx({ entries, entryRepository: this.entryRepository, accountRepository: this.accountRepository, tx }));
   }
 }

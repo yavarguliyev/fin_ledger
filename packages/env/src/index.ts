@@ -1,6 +1,6 @@
 export * from './modules/constants/env.constant';
 
-export * from './modules/helpers/validation.helper';
+export * from './modules/helpers/env.helper';
 
 export * from './modules/schemas/env.schema';
 

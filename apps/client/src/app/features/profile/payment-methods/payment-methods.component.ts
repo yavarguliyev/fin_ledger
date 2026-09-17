@@ -22,7 +22,12 @@ export class PaymentMethodsComponent implements OnInit {
   readonly showAddModal = signal(false);
 
   ngOnInit (): void {
+    this.checkSessionReturn();
     this.loadMethods();
+  }
+
+  getTypeLabel (method: PaymentMethod): string {
+    return getPaymentMethodLabel(method);
   }
 
   openAddModal (): void {
@@ -36,10 +41,6 @@ export class PaymentMethodsComponent implements OnInit {
   onMethodAdded (): void {
     this.showAddModal.set(false);
     this.loadMethods();
-  }
-
-  getTypeLabel (method: PaymentMethod): string {
-    return getPaymentMethodLabel(method);
   }
 
   loadMethods (): void {
@@ -71,5 +72,25 @@ export class PaymentMethodsComponent implements OnInit {
       },
       error: (err: Error) => this.toast.error(err.message || 'Failed to remove')
     });
+  }
+
+  private checkSessionReturn (): void {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    const status = params.get('status');
+
+    if (sessionId && status === 'success') {
+      this.paymentMethodService.confirmSetupSession('stripe', sessionId).subscribe({
+        next: () => {
+          this.toast.success('Payment method verified and linked successfully with Stripe!');
+          this.loadMethods();
+          window.history.replaceState({}, document.title, window.location.pathname);
+        },
+        error: (err: Error) => {
+          this.toast.error(err.message || 'Failed to verify session with provider');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
+    }
   }
 }

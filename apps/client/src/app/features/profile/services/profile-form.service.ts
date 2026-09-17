@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 
 import { WalletService } from '../../../core/services/wallet.service';
-import { ShowMoreConfig } from '../../../core/models/base.mode';
+import { ShowMoreConfig } from '../../../core/models/base.model';
 import { FormState, VisibleImages } from '../../../core/models/auth.model';
 
 @Injectable()

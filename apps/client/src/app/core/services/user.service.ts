@@ -4,7 +4,7 @@ import { Observable, catchError, tap } from 'rxjs';
 
 import { UpdateProfileRequest, UpdateProfileResponse, DeleteResponse, UploadRequest, GetImageUrl } from '../models/auth.model';
 import { Wallet } from '../models/wallet.model';
-import { WalletStatus } from '../models/base.mode';
+import { WalletStatus } from '../models/base.model';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { handleHttpError } from '../helpers/http-error.helper';

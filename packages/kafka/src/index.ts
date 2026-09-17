@@ -2,8 +2,7 @@ export * from './modules/decorators/kafka-publish.decorator';
 export * from './modules/decorators/kafka-subscribe.decorator';
 export * from './modules/decorators/workflow-step.decorator';
 
-export * from './modules/helpers/kafka-consumer.helper';
-export * from './modules/helpers/run-compensations-params.helper';
+export * from './modules/helpers/kafka.helper';
 
 export * from './modules/interfaces/kafka.interface';
 export * from './modules/interfaces/workflow.interface';

@@ -1,12 +1,12 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { Response } from 'express';
 
-import { errorResponse } from '../helpers/error-response.helper';
 import { ApplicationError } from '../errors/application.error';
 import { DomainError } from '../errors/domain.error';
 import { InfrastructureError } from '../errors/infrastructure.error';
 import { CatchExceptionRecord, LogExceptionRecord, MapExceptionRecord } from '../interfaces/base.interface';
 import { JWT_ERROR_NAMES } from '../constants/shared.constant';
+import { BaseHelper } from '../helpers/base.helper';
 
 @Catch()
 export class UnifiedExceptionFilter implements ExceptionFilter {
@@ -37,7 +37,7 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
   }
 
   private logException (exception: unknown, correlationId: string, request: LogExceptionRecord): void {
-    const error = errorResponse(exception);
+    const error = BaseHelper.errorResponse({ error: exception });
     const method = request.method || 'UNKNOWN';
     const url = request.url || 'unknown';
     const exceptionType = exception?.constructor?.name || 'UnknownError';
@@ -57,18 +57,16 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const responsePayload = exception.getResponse();
 
+      const payload = typeof responsePayload === 'object' && responsePayload !== null ? responsePayload : undefined;
+
       const message =
         typeof responsePayload === 'string'
           ? responsePayload
-          : typeof responsePayload === 'object' &&
-              responsePayload !== null &&
-              'message' in responsePayload &&
-              typeof responsePayload.message === 'string'
-            ? responsePayload.message
+          : payload && 'message' in payload && typeof payload.message === 'string'
+            ? payload.message
             : 'Request failed';
 
-      const details =
-        typeof responsePayload === 'object' && responsePayload !== null && 'errors' in responsePayload ? responsePayload.errors : undefined;
+      const details = payload && 'errors' in payload ? payload.errors : undefined;
 
       return {
         success: false,
@@ -97,6 +95,10 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
       };
     }
 
-    return { success: false, error: { code: 'INTERNAL_ERROR', message: errorResponse(exception).message, retryable: true }, correlationId };
+    return {
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: BaseHelper.errorResponse({ error: exception }).message, retryable: true },
+      correlationId
+    };
   }
 }

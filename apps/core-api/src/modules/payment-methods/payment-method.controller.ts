@@ -1,9 +1,19 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaymentMethodStatus, RequestContext, SessionGuard, RolesGuard, Roles, UserRoles } from '@common/libs';
+import {
+  ENVIRONMENT_CONSTANTS,
+  PaymentMethodStatus,
+  RequestContext,
+  SessionGuard,
+  RolesGuard,
+  Roles,
+  UserRoles,
+  ParamsQueryAndHeaders,
+  SetupSessionResultDto
+} from '@common/libs';
 
 import { PaymentMethodService } from './payment-method.service';
-import { CreatePaymentMethodDto } from './dtos/request/create-payment-method.dto';
+import { ConfirmSetupSessionDto, CreateSetupSessionDto } from './dtos/request/setup-session.dto';
 import { PaymentMethodDto } from './dtos/payment-method/payment-method.dto';
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 
@@ -14,10 +24,16 @@ import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 export class PaymentMethodController {
   constructor (private readonly paymentMethodService: PaymentMethodService) {}
 
-  @Post()
+  @Post(':provider/session')
   @Roles(UserRoles.USER)
-  async createPaymentMethod (@Req() req: RequestContext, @Body() dto: CreatePaymentMethodDto): Promise<PaymentMethodDto> {
-    return this.paymentMethodService.createPaymentMethod(req.user.userId, dto);
+  async createSetupSession (@Req() req: RequestContext, @ParamsQueryAndHeaders() dto: CreateSetupSessionDto): Promise<SetupSessionResultDto> {
+    return this.paymentMethodService.createSetupSession({ ...dto, req });
+  }
+
+  @Post(':provider/confirm')
+  @Roles(UserRoles.USER)
+  async confirmSetupSession (@Req() req: RequestContext, @ParamsQueryAndHeaders() dto: ConfirmSetupSessionDto): Promise<PaymentMethodDto> {
+    return this.paymentMethodService.confirmSetupSession({ ...dto, req });
   }
 
   @Get()

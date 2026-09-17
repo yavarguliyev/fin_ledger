@@ -3,7 +3,7 @@ import { Signal } from '@angular/core';
 import { AdminUser, DashboardStats } from '../../core/models/admin.model';
 import { AdminApiService } from '../../core/services/admin-api.service';
 import { ToastService } from '../../core/services/toast.service';
-import { HttpError, UserRole } from '../../core/models/base.mode';
+import { HttpError, UserRole } from '../../core/models/base.model';
 
 export class AdminHandlers {
   constructor (

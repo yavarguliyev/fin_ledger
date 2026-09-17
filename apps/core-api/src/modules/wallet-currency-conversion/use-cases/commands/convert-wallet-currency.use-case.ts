@@ -2,13 +2,11 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CacheEvict } from '@common/libs';
 
 import { ConvertParamsDto } from '../../dtos/wallet/convert-params.dto';
-import { convertMinorAmount } from '../../helpers/conversion/money-conversion.helper';
-import { convertWalletTransactions } from '../../helpers/transactions/convert-wallet-transactions.helper';
-import { WalletDto } from '../../../wallet/dtos/wallet/wallet.dto';
-import { WalletCurrencyBaseUseCase, WalletCurrencyInputWithIds } from '../base/wallet-currency-base.use-case';
-import { updateWalletAndLedger } from '../../helpers/wallet/update-wallet-and-ledger.helper';
-import { recordConversion } from '../../helpers/records/record-conversion.helper';
-import { persistFxRate } from '../../../fx-rate/helpers/persist-fx-rate.helper';
+import { WalletCurrencyInputWithIds, WalletDto } from '../../../wallet/dtos/wallet/wallet.dto';
+import { WalletCurrencyBaseUseCase } from '../base/wallet-currency-base.use-case';
+import { FxRateHelper } from '../../../fx-rate/helpers/fx-rate.helper';
+import { WalletConversionHelper } from '../../helpers/wallet-conversion.helper';
+import { WalletConversionTransactionHelper } from '../../helpers/wallet-conversion-transaction.helper';
 
 @Injectable()
 export class ConvertWalletCurrencyUseCase extends WalletCurrencyBaseUseCase<WalletCurrencyInputWithIds, WalletDto> {
@@ -20,15 +18,22 @@ export class ConvertWalletCurrencyUseCase extends WalletCurrencyBaseUseCase<Wall
   protected async applyConversion ({ userId, targetCurrency, quote, tx, walletId, ledgerAccountId }: ConvertParamsDto): Promise<WalletDto> {
     if (!walletId) throw new InternalServerErrorException('Wallet ID is required for conversion');
 
-    const source = await this.getSource(walletId, ledgerAccountId, targetCurrency, quote, tx);
+    const source = await this.getSource({ walletId, ledgerAccountId, targetCurrency, quote, tx });
     if (source.wallet.currency === targetCurrency) return source.wallet;
 
-    const targetAmountMinor = convertMinorAmount(source.amountMinor, quote.rate);
-    const fxRate = await persistFxRate({ quote, tx, fxRateRepository: this.fxRateRepository });
+    const targetAmountMinor = WalletConversionHelper.convertMinorAmount(source.amountMinor, quote.rate);
+    const fxRate = await FxRateHelper.persistFxRate({ quote, tx, fxRateRepository: this.fxRateRepository });
     const rate = quote.rate;
 
-    await convertWalletTransactions({ walletId, rate, targetCurrency, tx, walletTransactionRepository: this.walletTransactionRepository });
-    await recordConversion({
+    await WalletConversionTransactionHelper.convertWalletTransactions({
+      walletId,
+      rate,
+      targetCurrency,
+      tx,
+      walletTransactionRepository: this.walletTransactionRepository
+    });
+
+    await WalletConversionHelper.recordConversion({
       source,
       targetAmountMinor,
       targetCurrency,
@@ -41,7 +46,7 @@ export class ConvertWalletCurrencyUseCase extends WalletCurrencyBaseUseCase<Wall
       walletCurrencyConversionRepository: this.walletCurrencyConversionRepository
     });
 
-    return updateWalletAndLedger({
+    return WalletConversionHelper.updateWalletAndLedger({
       source,
       targetCurrency,
       targetAmountMinor,

@@ -1,39 +1,15 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { KAFKA_SERVICE, KafkaService, OutboxRepository, PasswordHandler, PostgresService, SessionService } from '@common/libs';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { ForgotPasswordResponse } from '../../dtos/auth/forgot-password-response.dto';
 import { AuthRepository } from '../../repositories/auth.repository';
-import { emitKafkaPasswordReset } from '../../../email/helpers/user/emit-kafka-password-reset.helper';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletService } from '../../../wallet/wallet.service';
+import { EmailHelper } from '../../../email/helpers/email.helper';
 
 @Injectable()
 export class ForgotPasswordUseCase extends AuthBaseUseCase<string, ForgotPasswordResponse> {
-  constructor (
-    protected override readonly postgresService: PostgresService,
-    protected override readonly authRepository: AuthRepository,
-    protected override readonly sessionService: SessionService,
-    protected override readonly passwordHelper: PasswordHandler,
-    protected override readonly configService: ConfigService,
-    protected override readonly ledgerService: LedgerService,
-    protected override readonly walletService: WalletService,
-    protected override readonly outboxRepository: OutboxRepository,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
-  ) {
-    super(
-      postgresService,
-      authRepository,
-      sessionService,
-      passwordHelper,
-      configService,
-      ledgerService,
-      walletService,
-      outboxRepository,
-      kafkaService
-    );
+  constructor (private readonly authRepository: AuthRepository) {
+    super();
   }
 
   async execute (email: string): Promise<ForgotPasswordResponse> {
@@ -44,7 +20,7 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<string, ForgotPasswor
     const token = jwt.sign(tokenPayload, this.privateKey, { algorithm: 'RS256', expiresIn: '15m', ...(this.issuer && { issuer: this.issuer }) });
     const resetUrl = `${this.frontendUrl}/auth/reset-password?token=${token}`;
 
-    await emitKafkaPasswordReset({
+    await EmailHelper.emitKafkaPasswordReset({
       subject: 'Reset Your Password',
       purpose: 'Password Reset',
       title: 'Password Reset Request',

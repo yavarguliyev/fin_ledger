@@ -1,4 +1,4 @@
-import { CardBrand } from '../models/base.mode';
+import { CardBrand } from '../models/base.model';
 import { sanitize, VISA_PATTERN, MC_PATTERN, AMEX_PATTERN, DISCOVER_PATTERN } from './card-validation.helper';
 
 export const detectCardBrand = (cardNumber: string): CardBrand => {

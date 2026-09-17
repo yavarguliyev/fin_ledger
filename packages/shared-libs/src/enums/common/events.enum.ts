@@ -16,3 +16,7 @@ export enum WorkflowStepStatus {
   COMPENSATED = 'compensated',
   FAILED = 'failed'
 }
+
+export enum WebhookStatus {
+  PROCESSED = 'PROCESSED'
+}

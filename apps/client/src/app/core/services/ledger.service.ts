@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
 import { LedgerAccount, LedgerEntry } from '../models/ledger.model';
-import { PaginatedResponse } from '../models/base.mode';
+import { PaginatedResponse } from '../models/base.model';
 import { environment } from '../../../environments/environment';
 import { handleHttpError } from '../helpers/http-error.helper';
 

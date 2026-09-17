@@ -1,4 +1,4 @@
-import { Id, Message, ToastType } from './base.mode';
+import { Id, Message, ToastType } from './base.model';
 
 export interface Toast extends Id, Message {
   type: ToastType;

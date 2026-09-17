@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PaymentMethodStatus, PaymentProviderRegistry, PostgresService } from '@common/libs';
+import { PaymentMethodStatus, PaymentProviderRegistry } from '@common/libs';
 
 import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
@@ -9,11 +9,10 @@ import { VerifyPaymentMethodDto } from '../../dtos/request/verify-payment-method
 @Injectable()
 export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<VerifyPaymentMethodDto, PaymentMethodDto> {
   constructor (
-    protected override readonly postgresService: PostgresService,
-    protected override readonly paymentMethodRepository: PaymentMethodRepository,
+    private readonly paymentMethodRepository: PaymentMethodRepository,
     private readonly providerRegistry: PaymentProviderRegistry
   ) {
-    super(postgresService, paymentMethodRepository);
+    super();
   }
 
   async execute ({ id, userId }: VerifyPaymentMethodDto): Promise<PaymentMethodDto> {

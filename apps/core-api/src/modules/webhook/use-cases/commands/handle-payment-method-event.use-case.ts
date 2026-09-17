@@ -1,9 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DomainEventType, PaymentMethodStatus, OutboxRepository, PostgresService, PaymentProviderRegistry } from '@common/libs';
+import { DomainEventType, PaymentMethodStatus, OutboxRepository } from '@common/libs';
 
-import { PaymentRepository } from '../../../payment/repositories/payment.repository';
 import { HandlePaymentMethodEventInput } from '../../dtos/request/handle-webhook.dto';
-import { WebhookEventRepository } from '../../repositories/webhook-event.repository';
 import { WebhookBaseUseCase } from '../base/webhook-base.use-case';
 import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
 
@@ -12,14 +10,10 @@ export class HandlePaymentMethodEventUseCase extends WebhookBaseUseCase<HandlePa
   private readonly logger = new Logger(HandlePaymentMethodEventUseCase.name);
 
   constructor (
-    protected override readonly paymentRepository: PaymentRepository,
-    protected override readonly outboxRepository: OutboxRepository,
-    protected override readonly postgresService: PostgresService,
-    protected override readonly webhookEventRepository: WebhookEventRepository,
-    protected override readonly providerRegistry: PaymentProviderRegistry,
-    protected override readonly paymentMethodRepository: PaymentMethodRepository
+    private readonly outboxRepository: OutboxRepository,
+    private readonly paymentMethodRepository: PaymentMethodRepository
   ) {
-    super(paymentRepository, outboxRepository, postgresService, webhookEventRepository, providerRegistry, paymentMethodRepository);
+    super();
   }
 
   async execute ({ provider, payload, status }: HandlePaymentMethodEventInput): Promise<void> {
@@ -36,13 +30,10 @@ export class HandlePaymentMethodEventUseCase extends WebhookBaseUseCase<HandlePa
     }
 
     await this.paymentMethodRepository.updateStatus(method.id, status);
-
-    const eventType = status === PaymentMethodStatus.VERIFIED ? DomainEventType.PAYMENT_METHOD_VERIFIED : DomainEventType.PAYMENT_METHOD_REJECTED;
-
     await this.outboxRepository.createEvent({
       aggregateType: 'PaymentMethod',
       aggregateId: method.id,
-      eventType,
+      eventType: status === PaymentMethodStatus.VERIFIED ? DomainEventType.PAYMENT_METHOD_VERIFIED : DomainEventType.PAYMENT_METHOD_REJECTED,
       payload: {
         paymentMethodId: method.id,
         userId: method.userId,

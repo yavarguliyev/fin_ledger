@@ -1,23 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   DomainEventType,
-  PostgresService,
-  OutboxRepository,
   BettingType,
   AggregateType,
   WalletTransactionType,
-  KAFKA_SERVICE,
-  KafkaService,
   NotificationType,
   NotificationStatus,
   WIN_CHANCE,
   WIN_PAYOUT_MULTIPLIER
 } from '@common/libs';
 
-import { WalletRepository } from '../../../repositories/wallet.repository';
-import { LedgerService } from '../../../../ledger/ledger.service';
 import { WalletBaseUseCase } from '../../base/wallet-base.use-case';
-import { WalletTransactionRepository } from '../../../../wallet-transactions/repositories/wallet-transaction.repository';
 import { SettleWinningsUseCase } from './settle-winnings.use-case';
 import { PlaceBetInput } from '../../../dtos/betting/place-bet.dto';
 import { WalletDto } from '../../../dtos/wallet/wallet.dto';
@@ -33,16 +26,10 @@ export class PlaceBetUseCase extends WalletBaseUseCase<PlaceBetInput, WalletDto>
   protected readonly requiredToCheckAmountMinor: boolean = true;
 
   constructor (
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService,
-    protected override readonly postgresService: PostgresService,
-    protected override readonly outboxRepository: OutboxRepository,
-    protected override readonly ledgerService: LedgerService,
-    protected override readonly walletRepository: WalletRepository,
-    protected override readonly walletTransactionRepository: WalletTransactionRepository,
     private readonly settleWinningsUseCase: SettleWinningsUseCase,
     private readonly notificationService: NotificationService
   ) {
-    super(kafkaService, postgresService, outboxRepository, ledgerService, walletRepository, walletTransactionRepository);
+    super();
   }
 
   override async execute (dto: PlaceBetInput): Promise<WalletDto> {

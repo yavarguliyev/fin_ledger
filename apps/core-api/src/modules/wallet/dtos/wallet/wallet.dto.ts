@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { DatabaseAdapter, WalletStatus, WalletTransactionType } from '@common/libs';
+
 import { WalletRepository } from '../../repositories/wallet.repository';
+import { FxQuoteDto } from '../../../fx-rate/dtos/quote/fx-quote.dto';
 
 export const WalletSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
@@ -34,6 +36,11 @@ export type WalletInput = { walletId: string; amountMinor: number; adapter?: Dat
 
 export type WalletCurrencyInput = { userId: string; currency: string };
 
+export type WalletCurrencyInputWithIds = WalletCurrencyInput & {
+  walletId?: string | undefined;
+  ledgerAccountId?: string | undefined;
+};
+
 export type PerformWalletBalanceUpdateDto = {
   wallet: WalletDto;
   amountMinor: number;
@@ -46,3 +53,13 @@ export type UpdateWalletStatusInput = {
   walletId: string;
   status: WalletStatus;
 };
+
+export type GetSourceDto = {
+  walletId: string;
+  ledgerAccountId: string | undefined;
+  targetCurrency: string;
+  quote: FxQuoteDto;
+  tx: DatabaseAdapter;
+};
+
+export type GetWalletQuoteResponse = { wallet: WalletDto; quote: FxQuoteDto | null };

@@ -11,7 +11,7 @@ import {
   TransactionId,
   UpdatedAt,
   UserId
-} from './base.mode';
+} from './base.model';
 
 export interface LedgerAccount extends Id, UserId, Currency, CreatedAt, UpdatedAt, BalanceMinor {
   accountType: LedgerAccountType;

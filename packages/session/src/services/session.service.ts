@@ -7,7 +7,7 @@ import { CacheProvider } from '@common/redis';
 import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
 import { AUTH_CONSTANTS } from '../constants/auth.constant';
-import { parseExpiryToSeconds } from '../helpers/session.helper';
+import { SessionHelper } from '../helpers/session.helper';
 import { JwtPayload, SessionData } from '../interfaces/session.interface';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class SessionService {
     const expiresInConfig = this.configService.get<string>('JWT_EXPIRES_IN')!;
     const isNumeric = /^\d+$/.test(expiresInConfig);
     const expiresIn = isNumeric ? parseInt(expiresInConfig, 10) : (expiresInConfig as StringValue);
-    const ttlSeconds = typeof expiresIn === 'number' ? expiresIn : parseExpiryToSeconds(expiresIn);
+    const ttlSeconds = typeof expiresIn === 'number' ? expiresIn : SessionHelper.parseExpiryToSeconds({ expiry: expiresIn });
 
     await this.redis.set(`${AUTH_CONSTANTS.SESSION_PREFIX}${data.userId}:${jti}`, data, ttlSeconds);
 

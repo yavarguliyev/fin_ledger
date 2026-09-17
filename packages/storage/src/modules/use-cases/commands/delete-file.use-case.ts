@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { StorageType } from '@common/shared-libs';
 
-import { BaseStrategy } from '../../strategies/base/base.strategy';
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import { DeleteResult } from '../../interfaces/storage.interface';
 
@@ -9,8 +8,8 @@ import { DeleteResult } from '../../interfaces/storage.interface';
 export class DeleteFileUseCase extends StorageBaseUseCase<DeleteResult, DeleteResult> {
   protected readonly storageType: StorageType = StorageType.DELETE;
 
-  constructor (protected override readonly storageStrategy: BaseStrategy) {
-    super(storageStrategy);
+  constructor () {
+    super();
   }
 
   async execute (key: string): Promise<DeleteResult> {

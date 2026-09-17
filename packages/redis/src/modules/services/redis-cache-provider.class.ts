@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { Logger } from '@nestjs/common';
-import { errorResponse, ClientIds } from '@common/shared-libs';
+import { ClientIds, BaseHelper } from '@common/shared-libs';
 
 import { CacheProvider } from '../interfaces/redis.interface';
 import { RedisCacheConfig, RedisSentinelConfig } from '../interfaces/redis.interface';
@@ -14,7 +14,7 @@ export class RedisCacheProvider implements CacheProvider {
     this.clientId = config.clientId || ClientIds.DEAFULT;
     this.logger = new Logger(`${RedisCacheProvider.name}:${this.clientId}`);
     this.client = this.createClient(config);
-    this.client.on('error', (err: Error) => this.logger.warn(`Redis connection error: ${errorResponse(err).message}`));
+    this.client.on('error', (error: Error) => this.logger.warn(`Redis connection error: ${BaseHelper.errorResponse({ error }).message}`));
     this.logger.log(`Redis cache provider initialized for ${this.clientId}`);
   }
 

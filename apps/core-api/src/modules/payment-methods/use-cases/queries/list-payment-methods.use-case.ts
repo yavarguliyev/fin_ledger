@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PostgresService } from '@common/libs';
 
 import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
@@ -8,11 +7,8 @@ import { ListPaymentMethodsDto } from '../../dtos/request/list-payment-methods.d
 
 @Injectable()
 export class ListPaymentMethodsUseCase extends PaymentMethodBaseUseCase<ListPaymentMethodsDto, PaymentMethodDto[]> {
-  constructor (
-    protected override readonly postgresService: PostgresService,
-    protected override readonly paymentMethodRepository: PaymentMethodRepository
-  ) {
-    super(postgresService, paymentMethodRepository);
+  constructor (private readonly paymentMethodRepository: PaymentMethodRepository) {
+    super();
   }
 
   async execute ({ userId, status }: ListPaymentMethodsDto): Promise<PaymentMethodDto[]> {

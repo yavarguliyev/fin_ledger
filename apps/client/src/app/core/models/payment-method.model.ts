@@ -1,10 +1,11 @@
-import { CardBrand, CreatedAt, DigitalWalletType, Id, PaymentMethodStatus, PaymentMethodType, UpdatedAt, UserId } from './base.mode';
+import { CardBrand, CreatedAt, DigitalWalletType, Id, PaymentMethodStatus, PaymentMethodType, UpdatedAt, UserId } from './base.model';
 
 export interface CreatePaymentMethodRequest {
   type: PaymentMethodType;
   accountHolder: string;
   accountNumber: string;
   bankName?: string;
+  provider?: string;
   expiryMonth?: number;
   expiryYear?: number;
   cvv?: string;
@@ -28,5 +29,10 @@ export interface PaymentMethod extends Id, UserId, CreatedAt, UpdatedAt {
 
 export interface PaymentMethodOption {
   readonly type: PaymentMethodType;
+  readonly label: string;
+}
+
+export interface ProviderOption {
+  readonly id: string;
   readonly label: string;
 }

@@ -1,21 +1,21 @@
-import { Inject, Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit, Optional } from '@nestjs/common';
+import { Inject, Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, logLevel } from 'kafkajs';
-import { ClientIds, errorResponse, KAFKA_CLIENT_ID, UnknownRecord } from '@common/shared-libs';
+import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, UnknownRecord } from '@common/shared-libs';
 
 import { KafkaPublishRecord } from '../interfaces/kafka.interface';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private readonly logger: Logger;
-  private readonly clientId: ClientIds;
   private producer: Producer | null = null;
 
   constructor (
-    private readonly configService: ConfigService,
-    @Optional() @Inject(KAFKA_CLIENT_ID) clientId?: ClientIds
+    @Inject(KAFKA_CLIENT_ID)
+    private readonly clientId: ClientIds,
+    private readonly configService: ConfigService
   ) {
-    this.clientId = clientId || ClientIds.DEAFULT;
+    this.clientId = clientId;
     this.logger = new Logger(`${KafkaService.name}:${this.clientId}`);
   }
 
@@ -34,12 +34,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       }
     });
 
-    this.producer = kafka.producer({
-      maxInFlightRequests: 1,
-      idempotent: true,
-      transactionTimeout: 30000
-    });
-
+    this.producer = kafka.producer({ maxInFlightRequests: 1, idempotent: true, transactionTimeout: 30000 });
     await this.producer.connect();
     this.logger.log(`Kafka producer initialized for ${this.clientId}`);
   }
@@ -52,12 +47,9 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     if (!this.producer) throw new InternalServerErrorException('Kafka producer not initialized');
 
     try {
-      await this.producer.send({
-        topic: options.topic,
-        messages: [{ key: options.key ?? null, value: JSON.stringify(payload) }]
-      });
+      await this.producer.send({ topic: options.topic, messages: [{ key: options.key ?? null, value: JSON.stringify(payload) }] });
     } catch (error) {
-      this.logger.warn(`Kafka publish failed: ${errorResponse(error).message}`);
+      this.logger.warn(`Kafka publish failed: ${BaseHelper.errorResponse({ error }).message}`);
     }
   }
 

@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import amqp, { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
-import { errorResponse, ClientIds, UnknownRecord, HandleRecord } from '@common/shared-libs';
+import { ClientIds, UnknownRecord, HandleRecord, BaseHelper } from '@common/shared-libs';
 
 import { RabbitmqPublishOptions } from '../interfaces/queue.interface';
 import { RABBITMQ_CONSTANTS } from '../constants/rabbitmq.constant';
@@ -60,7 +60,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       await handler(payload);
       this.channel.ack(message);
     } catch (error) {
-      this.logger.warn(`RabbitMQ handler failed: ${errorResponse(error).message}`);
+      this.logger.warn(`RabbitMQ handler failed: ${BaseHelper.errorResponse({ error }).message}`);
       this.channel.nack(message, false, false);
     }
   }

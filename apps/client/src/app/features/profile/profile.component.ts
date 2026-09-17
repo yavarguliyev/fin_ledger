@@ -11,7 +11,7 @@ import { ProfileFormService } from './services/profile-form.service';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethodsComponent } from './payment-methods/payment-methods.component';
-import { ShowMoreConfig } from '../../core/models/base.mode';
+import { ShowMoreConfig } from '../../core/models/base.model';
 import { maskEmail } from '../../core/helpers/mask-email.helper';
 import { DateUtil } from '../../core/helpers/date.helper';
 import { createRequiredValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';

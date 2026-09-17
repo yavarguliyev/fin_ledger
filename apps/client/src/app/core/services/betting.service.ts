@@ -5,7 +5,7 @@ import { WalletService } from './wallet.service';
 import { GameEventsService } from './game-events.service';
 import { AuthService } from './auth.service';
 import { GameEvent, Transaction, BetRequest, Wallet } from '../models/wallet.model';
-import { PaginatedResponse } from '../models/base.mode';
+import { PaginatedResponse } from '../models/base.model';
 import { uuid } from '../helpers/uuid.helper';
 
 @Injectable({ providedIn: 'root' })

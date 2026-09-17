@@ -1,16 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { PostgresService } from '@common/libs';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
-import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodDto } from '../../dtos/payment-method/payment-method.dto';
 
-@Injectable()
 export abstract class PaymentMethodBaseUseCase<TInput, TOutput> {
-  constructor (
-    protected readonly postgresService: PostgresService,
-    protected readonly paymentMethodRepository: PaymentMethodRepository
-  ) {}
-
   protected abstract execute(input: TInput): Promise<TOutput>;
 
   protected maskAccountNumber (accountNumber: string): string {

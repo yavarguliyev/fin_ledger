@@ -8,7 +8,7 @@ import { DataTableComponent } from '../../shared/components/data-table/data-tabl
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { DataTableConfig } from '../../core/models/data-table.model';
-import { PaginationConfig } from '../../core/models/base.mode';
+import { PaginationConfig } from '../../core/models/base.model';
 import { LedgerEntry } from '../../core/models/ledger.model';
 import { getLedgerTableColumns } from './ledger.util';
 

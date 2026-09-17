@@ -2,7 +2,7 @@ import { Component, input, output, signal, computed, forwardRef } from '@angular
 import { CommonModule } from '@angular/common';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 
-import { CardBrand } from '../../../core/models/base.mode';
+import { CardBrand } from '../../../core/models/base.model';
 import { getMaxCardLength } from '@/core/helpers/get-max-card-length.helper';
 import { formatCardNumber } from '@/core/helpers/format-card-number.helper';
 import { detectCardBrand } from '@/core/helpers/detect-card-brand.helper';

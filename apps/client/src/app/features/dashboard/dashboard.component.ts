@@ -36,7 +36,7 @@ export class DashboardComponent implements OnInit {
   readonly summary = signal<WalletTransactionSummary | null>(null);
   readonly recentTx = signal<Transaction[]>([]);
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'user');
+  readonly isUser = computed(() => this.auth.currentUser()?.role === 'user' || this.auth.currentUser);
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');

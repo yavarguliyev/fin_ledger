@@ -1,7 +1,7 @@
 import { AsyncMethod } from '@common/shared-libs';
 
 import { CacheableOptions } from '../interfaces/redis.interface';
-import { resolveProvider, buildCacheKey, tryGetCached, tryCacheResult } from '../helpers/cache.helper';
+import { CacheHelper } from '../helpers/cache.helper';
 
 export const Cacheable = (options: CacheableOptions): MethodDecorator => {
   return (_target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {
@@ -9,15 +9,15 @@ export const Cacheable = (options: CacheableOptions): MethodDecorator => {
     const methodName = String(propertyKey);
 
     descriptor.value = async function (this: Record<string | symbol, unknown>, ...args: unknown[]): Promise<unknown> {
-      const provider = resolveProvider(this);
+      const provider = CacheHelper.resolveProvider({ target: this });
       if (!provider) return originalMethod.apply(this, args);
 
-      const cacheKey = buildCacheKey(options.keyPrefix, methodName, args);
-      const result = await tryGetCached(provider, cacheKey);
+      const cacheKey = CacheHelper.buildCacheKey({ prefix: options.keyPrefix, method: methodName, args });
+      const result = await CacheHelper.tryGetCached({ provider, cacheKey });
       if (result.hit) return result.value;
 
       const freshValue = await originalMethod.apply(this, args);
-      await tryCacheResult(provider, cacheKey, freshValue, options.ttlSeconds);
+      await CacheHelper.tryCacheResult({ provider, key: cacheKey, value: freshValue, ttl: options.ttlSeconds });
       return freshValue;
     };
   };

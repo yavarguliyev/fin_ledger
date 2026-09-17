@@ -1,4 +1,4 @@
-export * from './modules/helpers/convert-to-web-format.helper';
+export * from './modules/helpers/storage.helper';
 
 export * from './modules/interfaces/storage.interface';
 

@@ -1,4 +1,4 @@
-import { CardBrand } from '../models/base.mode';
+import { CardBrand } from '../models/base.model';
 import { getMaxCvvLength } from './get-max-cvv-length.helper';
 
 export const formatCvv = (raw: string, brand: CardBrand): string => {

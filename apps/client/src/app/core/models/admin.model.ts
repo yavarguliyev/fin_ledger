@@ -1,4 +1,4 @@
-import { Email, Id, Roles, DisplayName, CreatedAt, Message, Success } from './base.mode';
+import { Email, Id, Roles, DisplayName, CreatedAt, Message, Success } from './base.model';
 
 export interface AdminStats {
   totalUsers: number;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getSessionUser } from '@common/libs';
+import { SessionHelper } from '@common/libs';
 
 import { NotificationRepository } from '../../repositories/notification.repository';
 import { NotificationDto } from '../../dtos/notification/notification.dto';
@@ -13,7 +13,7 @@ export class GetNotificationsUseCase extends NotificationBaseUseCase<GetNotifica
   }
 
   async execute ({ context, limit = 50 }: GetNotificationsDto): Promise<NotificationDto[]> {
-    const { userId } = getSessionUser(context);
+    const { userId } = SessionHelper.getSessionUser({ context });
     return this.notificationRepository.findByUserId(userId, limit);
   }
 }

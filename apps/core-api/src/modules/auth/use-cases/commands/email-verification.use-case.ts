@@ -1,42 +1,19 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { KAFKA_SERVICE, KafkaService, OutboxRepository, PasswordHandler, PostgresService, SessionService } from '@common/libs';
+import { SessionHelper } from '@common/libs';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { AuthRepository } from '../../repositories/auth.repository';
 import { SessionUserDto } from '../../dtos/auth/session-user.dto';
-import { createSessionResponse } from '../../helpers/session-response.helper';
+import { AuthHelper } from '../../helpers/auth.helper';
 import { SessionResponseDto } from '../../dtos/auth/session-response.dto';
 import { EmailVerificationTokenPayload } from '../../dtos/auth/auth.dto';
 import { VerifyEmailDto } from '../../dtos/auth/set-password.dto';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletService } from '../../../wallet/wallet.service';
 
 @Injectable()
 export class EmailVerificationUseCase extends AuthBaseUseCase<VerifyEmailDto, SessionResponseDto> {
-  constructor (
-    protected override readonly postgresService: PostgresService,
-    protected override readonly authRepository: AuthRepository,
-    protected override readonly sessionService: SessionService,
-    protected override readonly passwordHelper: PasswordHandler,
-    protected override readonly configService: ConfigService,
-    protected override readonly ledgerService: LedgerService,
-    protected override readonly walletService: WalletService,
-    protected override readonly outboxRepository: OutboxRepository,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
-  ) {
-    super(
-      postgresService,
-      authRepository,
-      sessionService,
-      passwordHelper,
-      configService,
-      ledgerService,
-      walletService,
-      outboxRepository,
-      kafkaService
-    );
+  constructor (private readonly authRepository: AuthRepository) {
+    super();
   }
 
   async execute ({ token, password }: VerifyEmailDto): Promise<SessionResponseDto> {
@@ -48,11 +25,11 @@ export class EmailVerificationUseCase extends AuthBaseUseCase<VerifyEmailDto, Se
     const user = await this.authRepository.findByEmailAny(tokenPayload.email);
     if (!user) throw new UnauthorizedException('User not found');
 
-    const passwordHash = await this.passwordHelper.hash(password);
+    const passwordHash = await SessionHelper.hash({ password });
     const updatedUser = await this.authRepository.update(user.id, { isEmailVerified: true, passwordHash });
     if (!updatedUser) throw new UnauthorizedException('Failed to verify email');
 
-    return createSessionResponse({
+    return AuthHelper.createSessionResponse({
       dto: updatedUser as SessionUserDto,
       sessionService: this.sessionService,
       configService: this.configService,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Subject, Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
-import { getSessionUser, RequestContext } from '@common/libs';
+import { RequestContext, SessionHelper } from '@common/libs';
 
 import { NotificationDto } from '../dtos/notification/notification.dto';
 import { StreamSubjectKeyDto } from '../dtos/stream/stream-subject-key.dto';
@@ -21,7 +21,7 @@ export class NotificationStreamProvider {
     }
 
     return this.stream$.asObservable().pipe(
-      filter(event => event.userId === getSessionUser(context).userId),
+      filter(event => event.userId === SessionHelper.getSessionUser({ context }).userId),
       map(event => event.notification)
     );
   }

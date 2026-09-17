@@ -1,24 +1,24 @@
-import { Inject, Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { Inject, OnModuleInit, Logger } from '@nestjs/common';
 import { RabbitmqService, RABBITMQ_SERVICE, UnknownRecord, DomainEventType, NotificationType } from '@common/libs';
 
 import { NotificationService } from '../../notification.service';
 import { EventTitle } from '../../dtos/notification/notification-event-config.dto';
-import { handleEvent } from '../../helpers/handle-event.helper';
+import { NotificationHelper } from '../../helpers/notification.helper';
 
-@Injectable()
 export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements OnModuleInit {
+  @Inject(RABBITMQ_SERVICE)
+  protected readonly rabbitmqService!: RabbitmqService;
+
+  @Inject(NotificationService)
+  protected readonly notificationService!: NotificationService;
+
   protected abstract readonly title: EventTitle;
   protected abstract readonly eventType: DomainEventType;
   protected abstract readonly notificationType: NotificationType;
 
   protected readonly logger = new Logger(NotificationBaseConsumer.name);
 
-  constructor (
-    @Inject(RABBITMQ_SERVICE)
-    protected readonly rabbitmqService: RabbitmqService,
-    protected readonly notificationService: NotificationService,
-    protected readonly loggerContext: string
-  ) {
+  constructor (protected readonly loggerContext: string) {
     this.logger = new Logger(loggerContext);
   }
 
@@ -31,7 +31,7 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
 
   protected async subscribe (): Promise<void> {
     await this.rabbitmqService.subscribe(this.eventType, payload =>
-      handleEvent({
+      NotificationHelper.handleEvent({
         title: this.title,
         notificationType: this.notificationType,
         logger: this.logger,

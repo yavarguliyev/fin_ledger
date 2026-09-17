@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StorageService, SessionService, UserRoles, KAFKA_SERVICE, KafkaService, PasswordHandler } from '@common/libs';
+import { SessionService, UserRoles } from '@common/libs';
 
 import { ConvertWalletCurrencyUseCase } from '../../../wallet-currency-conversion/use-cases/commands/convert-wallet-currency.use-case';
 import { UserRepository } from '../../repositories/user.repository';
@@ -8,20 +8,17 @@ import { UpdateUser } from '../../dtos/update/update-user.dto';
 import { UserUpdateResponeDto } from '../../dtos/update/user-update-response.dto';
 import { UserDto } from '../../dtos/user/user.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { createSessionResponse } from '../../../auth/helpers/session-response.helper';
+import { AuthHelper } from '../../../auth/helpers/auth.helper';
 
 @Injectable()
 export class UpdateUserUseCase extends UserBaseCase<UpdateUser, UserUpdateResponeDto> {
   constructor (
-    protected override readonly storageService: StorageService,
-    protected override readonly userRepository: UserRepository,
-    protected override readonly sessionService: SessionService,
-    protected override readonly configService: ConfigService,
-    protected override readonly convertWalletCurrencyUseCase: ConvertWalletCurrencyUseCase,
-    protected override readonly passwordHelper: PasswordHandler,
-    @Inject(KAFKA_SERVICE) kafkaService: KafkaService
+    private readonly userRepository: UserRepository,
+    private readonly convertWalletCurrencyUseCase: ConvertWalletCurrencyUseCase,
+    private readonly sessionService: SessionService,
+    private readonly configService: ConfigService
   ) {
-    super(storageService, userRepository, sessionService, configService, convertWalletCurrencyUseCase, passwordHelper, kafkaService);
+    super();
   }
 
   async execute ({ userId, dto }: UpdateUser): Promise<UserUpdateResponeDto> {
@@ -54,7 +51,7 @@ export class UpdateUserUseCase extends UserBaseCase<UpdateUser, UserUpdateRespon
 
     if (!updatedUser) throw new NotFoundException('Failed to update user');
 
-    return createSessionResponse({
+    return AuthHelper.createSessionResponse({
       dto: updatedUser,
       sessionService: this.sessionService,
       configService: this.configService

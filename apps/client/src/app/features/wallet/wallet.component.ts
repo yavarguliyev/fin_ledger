@@ -10,7 +10,7 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
-import { PaginationConfig } from '../../core/models/base.mode';
+import { PaginationConfig } from '../../core/models/base.model';
 import { DateUtil } from '../../core/helpers/date.helper';
 import { typeIcon, typeClass, formatType, statusClass } from '../../core/helpers/transaction.helper';
 import { getWalletTableColumns, exportTransactionsToCsv, getTransactionFilterOptions } from './wallet.util';
