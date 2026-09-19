@@ -118,9 +118,8 @@ export class ProfileComponent implements OnInit {
         const { displayName, currency } = this.profileForm.value;
 
         const availableCurrency = currency ?? this.currency();
-        const walletId = this.auth.currentUser()?.walletId ?? null;
 
-        handleProfileUpdateSuccess(displayName ?? '', availableCurrency, this.isUser(), walletId, this.formService, this.currency, this.profileForm);
+        handleProfileUpdateSuccess(displayName ?? '', availableCurrency, this.formService, this.currency, this.profileForm);
 
         this.toast.success('Profile updated');
         this.isSaving.set(false);

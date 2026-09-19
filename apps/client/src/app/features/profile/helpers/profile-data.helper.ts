@@ -32,8 +32,6 @@ export const loadWalletData = (
 export const handleProfileUpdateSuccess = (
   displayName: string,
   currency: string,
-  isUser: boolean,
-  walletId: string | null,
   formService: ProfileFormService,
   currencySignal: WritableSignal<string>,
   profileForm: FormGroup
@@ -41,8 +39,6 @@ export const handleProfileUpdateSuccess = (
   formService.handleProfileUpdateSuccess(
     displayName,
     currency,
-    isUser,
-    walletId,
     (c: string) => currencySignal.set(c),
     (c: string) => {
       const control = profileForm.get('currency');

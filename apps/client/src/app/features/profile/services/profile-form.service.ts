@@ -86,23 +86,13 @@ export class ProfileFormService {
   handleProfileUpdateSuccess (
     displayName: string,
     currency: string,
-    isUser: boolean,
-    walletId: string | null,
     setCurrency: (val: string) => void,
     setCurrencyControl: (val: string) => void
   ): void {
-    if (isUser) {
-      setCurrency(currency);
-      if (walletId) {
-        this.refreshWalletCurrency(walletId, curr => {
-          setCurrency(curr);
-          setCurrencyControl(curr);
-        });
-      }
+    setCurrency(currency);
+    setCurrencyControl(currency);
 
-      this.setInitialValue(displayName, currency);
-    } else this.setInitialValue(displayName, currency);
-
+    this.setInitialValue(displayName, currency);
     this.resetChanged();
   }
 }
