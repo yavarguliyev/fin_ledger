@@ -3,10 +3,10 @@ import { PaymentMethodStatus, WorkflowStep, WorkflowStepMeta, WorkflowSteps } fr
 
 import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
 import { WalletService } from '../../../wallet/wallet.service';
-import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
+import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
-@WorkflowStepMeta('ValidatePaymentMethod')
+@WorkflowStepMeta({ stepName: 'ValidatePaymentMethod' })
 export class ValidatePaymentMethodStep implements WorkflowStep<DepositContextDto> {
   readonly stepName: WorkflowSteps = 'ValidatePaymentMethod';
 
@@ -16,17 +16,17 @@ export class ValidatePaymentMethodStep implements WorkflowStep<DepositContextDto
   ) {}
 
   async execute (context: DepositContextDto): Promise<void> {
-    const { paymentMethodId } = context.dto;
+    const { paymentMethodId, currency } = context.dto;
 
-    const userWallet = await this.walletService.getWalletByUserId(context.userId);
-    if (!userWallet) throw new BadRequestException('User wallet not found');
+    const userWallet = await this.walletService.getWalletByCurrency({ userId: context.userId, currency });
+    if (!userWallet) throw new BadRequestException(`You don't have a ${currency} wallet`);
 
     context.walletId = userWallet.id;
     context.ledgerAccountId = userWallet.ledgerAccountId ?? '';
 
     if (!paymentMethodId) throw new BadRequestException('Payment method is required for deposit');
 
-    const method = await this.paymentMethodRepository.findByIdAndUserId(paymentMethodId, context.userId);
+    const method = await this.paymentMethodRepository.findByIdAndUserId({ id: paymentMethodId, userId: context.userId });
 
     if (!method) throw new BadRequestException('Payment method not found or does not belong to user');
     if (method.status !== PaymentMethodStatus.VERIFIED) throw new BadRequestException('Payment method is not verified');

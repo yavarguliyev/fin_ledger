@@ -33,7 +33,12 @@
     </div>
   }
 
-  <app-stats-card [stats]="stats()" [columns]="4" />
+  @for (group of statGroups(); track group.currency) {
+    @if (showCurrencyLabels()) {
+      <h2 class="text-sm font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide">{{ group.currency }}</h2>
+    }
+    <app-stats-card [stats]="group.stats" [columns]="4" />
+  }
 
   <app-data-table 
     [config]="tableConfig()" 

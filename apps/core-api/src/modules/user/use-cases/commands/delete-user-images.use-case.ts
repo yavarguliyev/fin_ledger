@@ -1,22 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StorageService } from '@common/libs';
 
-import { UserRepository } from '../../repositories/user.repository';
+import { UserImagesDto } from '../../dtos/input/user-images.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { UserImagesDto } from '../../dtos/update/user-images.dto';
 
 @Injectable()
 export class DeleteImagesUseCase extends UserBaseCase<UserImagesDto, void> {
-  constructor (
-    private readonly userRepository: UserRepository,
-    private readonly storage: StorageService
-  ) {
-    super();
-  }
-
   async execute ({ userId, indexes }: UserImagesDto): Promise<void> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException('User not found');
-    await this.storage.delete(`user-${userId}`, indexes);
+    await this.storageService.delete({ key: `user-${userId}`, ...(indexes && { indexes }) });
   }
 }

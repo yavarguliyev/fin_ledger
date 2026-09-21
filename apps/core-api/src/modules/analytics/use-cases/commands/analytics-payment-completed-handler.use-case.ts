@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { KafkaSubscribe, KafkaMessageRecord, AnalyticsEventTopic, NotificationType, AggregateType, ActionEvent } from '@common/libs';
 
 import { AnalyticsBaseHandler } from '../base/analytics-base-handler.use-case';
-import { PaymentAnalyticsEventDto } from '../../dtos/payment-analytics-event.dto';
+import { PaymentAnalyticsEventDto } from '../../dtos/event/payment-analytics-event.dto';
 
 @Injectable()
 export class PaymentCompletedHandler extends AnalyticsBaseHandler<PaymentAnalyticsEventDto> {

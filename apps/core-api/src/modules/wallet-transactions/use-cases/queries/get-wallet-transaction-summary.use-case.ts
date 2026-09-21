@@ -1,23 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { UserRoles } from '@common/libs';
+import { STAFF_ROLES } from '@common/libs';
 
-import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
 import { WalletTransactionSummaryDto } from '../../dtos/summary/wallet-transaction-summary.dto';
+import { GetWalletSummaryDto } from '../../dtos/input/get-wallet-summary.dto';
 import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.use-case';
 
 @Injectable()
-export class GetWalletTransactionSummaryUseCase extends WalletTransactionsBaseUseCase<string, WalletTransactionSummaryDto> {
-  constructor (private readonly walletTransactionRepository: WalletTransactionRepository) {
-    super();
-  }
-
-  async execute (walletId: string, role?: UserRoles): Promise<WalletTransactionSummaryDto> {
-    const isAdmin = role && [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR].includes(role);
-
-    if (isAdmin) {
-      return this.walletTransactionRepository.getSummaryAll();
-    }
-
-    return this.walletTransactionRepository.getSummaryByWalletId(walletId);
+export class GetWalletTransactionSummaryUseCase extends WalletTransactionsBaseUseCase<GetWalletSummaryDto, WalletTransactionSummaryDto[]> {
+  async execute ({ walletId, role }: GetWalletSummaryDto): Promise<WalletTransactionSummaryDto[]> {
+    const isStaff = role && STAFF_ROLES.includes(role);
+    return this.walletTransactionRepository.getSummary({ ...(!isStaff && { walletId }) });
   }
 }

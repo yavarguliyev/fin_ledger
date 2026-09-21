@@ -17,12 +17,11 @@ export const typeIcon = (type: string): string => {
   const map: Record<string, string> = {
     DEPOSIT: '↓',
     WITHDRAWAL: '↑',
-    BET: '🎯',
-    WINNING: '🏆',
-    CREDIT: '+',
-    DEBIT: '−',
-    CONVERSION_IN: '🔄',
-    CONVERSION_OUT: '🔄'
+    BET_STAKE: '🎯',
+    BET_PAYOUT: '🏆',
+    BET_REFUND: '↩',
+    FEE: '−',
+    ADJUSTMENT: '±'
   };
 
   return map[type] ?? '•';
@@ -32,12 +31,11 @@ export const typeClass = (type: string): string => {
   const map: Record<string, string> = {
     DEPOSIT: 'bg-success/10 text-success',
     WITHDRAWAL: 'bg-danger/10 text-danger',
-    BET: 'bg-primary/10 text-primary',
-    WINNING: 'bg-warning/10 text-warning',
-    CREDIT: 'bg-success/10 text-success',
-    DEBIT: 'bg-danger/10 text-danger',
-    CONVERSION_IN: 'bg-info/10 text-info',
-    CONVERSION_OUT: 'bg-info/10 text-info'
+    BET_STAKE: 'bg-primary/10 text-primary',
+    BET_PAYOUT: 'bg-warning/10 text-warning',
+    BET_REFUND: 'bg-info/10 text-info',
+    FEE: 'bg-danger/10 text-danger',
+    ADJUSTMENT: 'bg-ink-100 text-ink-500'
   };
 
   return map[type] ?? 'bg-ink-100 text-ink-500';

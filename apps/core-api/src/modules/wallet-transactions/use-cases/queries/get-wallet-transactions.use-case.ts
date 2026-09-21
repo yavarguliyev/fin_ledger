@@ -1,33 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { PaginatedResponseDto, UserRoles } from '@common/libs';
+import { PaginatedResponseDto, STAFF_ROLES } from '@common/libs';
 
-import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
 import { WalletTransactionRecordDto } from '../../dtos/transaction/wallet-transaction-record.dto';
-import { WalletPaginatedReques } from '../../dtos/common/wallet-transaction-paginated-request.dto';
+import { ListWalletTransactionsDto } from '../../dtos/input/list-wallet-transactions.dto';
 import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.use-case';
 
 @Injectable()
-export class GetWalletTransactionsUseCase extends WalletTransactionsBaseUseCase<
-  WalletPaginatedReques,
-  PaginatedResponseDto<WalletTransactionRecordDto>
-> {
-  constructor (private readonly walletTransactionRepository: WalletTransactionRepository) {
-    super();
-  }
+export class GetWalletTransactionsUseCase extends WalletTransactionsBaseUseCase<ListWalletTransactionsDto, PaginatedResponseDto<WalletTransactionRecordDto>> {
+  async execute (dto: ListWalletTransactionsDto): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
+    const { walletId, page, limit, type, role } = dto;
+    const isStaff = role && STAFF_ROLES.includes(role);
+    const criteria = { ...(!isStaff && { walletId }), ...(type && { type }), limit, offset: (page - 1) * limit };
 
-  async execute ({ query, type, role }: WalletPaginatedReques): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
-    const { walletId, page, limit } = query;
-    const offset = (page - 1) * limit;
-    const isAdmin = role && [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR].includes(role);
+    const [transactions, total] = await Promise.all([
+      this.walletTransactionRepository.findPaginated(criteria),
+      this.walletTransactionRepository.countTransactions(criteria)
+    ]);
 
-    if (isAdmin) {
-      const transactions = await this.walletTransactionRepository.findAllPaginated(limit, offset, type);
-      const total = await this.walletTransactionRepository.countAll(type);
-      return new PaginatedResponseDto(transactions, total, page, limit);
-    }
-
-    const transactions = await this.walletTransactionRepository.findByWalletIdPaginated(walletId, limit, offset, type);
-    const total = await this.walletTransactionRepository.countByWalletId(walletId, type);
-    return new PaginatedResponseDto(transactions, total, page, limit);
+    return new PaginatedResponseDto({ data: transactions, total, page, pageSize: limit });
   }
 }

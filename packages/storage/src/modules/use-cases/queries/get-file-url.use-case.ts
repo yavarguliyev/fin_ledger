@@ -2,74 +2,51 @@ import { Injectable } from '@nestjs/common';
 import { StorageType } from '@common/shared-libs';
 
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
-import {
-  FileUrlResponse,
-  FileUrlResult,
-  FileUrlResults,
-  FileUrlsResponse,
-  UrlFileIndexRequest,
-  UrlRequest
-} from '../../interfaces/storage.interface';
+import { FileUrlResponse } from '../../interfaces/file-url-response.interface';
+import { FileUrlResults } from '../../interfaces/file-url-results.interface';
+import { FileUrlsResponse } from '../../interfaces/file-urls-response.interface';
+import { DownloadUrlDto } from '../../dtos/strategy/download-url.dto';
+import { GetFilesDto } from '../../dtos/service/get-files.dto';
+import { FileIndexDto } from '../../dtos/step/file-index.dto';
+import { FileUrlResultsDto } from '../../dtos/step/file-url-results.dto';
+
+const DEFAULT_EXPIRES_IN = 3600;
 
 @Injectable()
-export class GetFileUrlUseCase extends StorageBaseUseCase<FileUrlResponse, FileUrlsResponse> {
+export class GetFileUrlUseCase extends StorageBaseUseCase {
   protected readonly storageType: StorageType = StorageType.GET;
 
-  constructor () {
-    super();
+  async execute ({ key, expiresIn = DEFAULT_EXPIRES_IN }: DownloadUrlDto): Promise<FileUrlResponse> {
+    await this.ensureExists({ key });
+    const url = await this.storageStrategy.getDownloadUrl({ key, expiresIn });
+    return { url, expiresIn };
   }
 
-  async execute (key: string, expiresIn = 3600): Promise<FileUrlResponse> {
-    return this.executeSingleFile(
-      key,
-      async (k, exp) => {
-        const url = await this.getUrl(k, exp);
-        return { url, expiresIn: exp };
-      },
-      expiresIn
+  async getWithLogic (dto: GetFilesDto): Promise<FileUrlResponse | FileUrlsResponse> {
+    const { key, indexes, expiresIn = DEFAULT_EXPIRES_IN } = dto;
+    if (indexes && indexes.length > 0) return this.executeByKey({ key, indexes, expiresIn });
+    if (await this.isSingleFile({ key })) return this.execute({ key, expiresIn });
+    return this.executeByKey({ key, expiresIn });
+  }
+
+  private async executeByKey ({ key, indexes, expiresIn = DEFAULT_EXPIRES_IN }: GetFilesDto): Promise<FileUrlsResponse> {
+    const { files, targetFiles } = await this.resolveTargetFiles({ key, indexes });
+    const results = await Promise.all(
+      targetFiles.map(async filePath => ({ filePath, url: await this.storageStrategy.getDownloadUrl({ key: filePath, expiresIn }) }))
     );
+
+    return { key, files: this.getFileUrlResults({ results, files, indexes }), expiresIn };
   }
 
-  async getWithLogic (key: string, indexes?: number[], expiresIn = 3600): Promise<FileUrlResponse | FileUrlsResponse> {
-    if (indexes && indexes.length > 0) return this.executeByKey(key, indexes, expiresIn);
-    const files = await this.storageStrategy.listByPrefix(key);
-    if (files.length === 0 || (files.length === 1 && files[0] === key)) return this.execute(key, expiresIn);
-    return this.executeByKey(key, undefined, expiresIn);
-  }
-
-  private async getUrl (filePath: string, exp: number): Promise<string> {
-    return await this.storageStrategy.getDownloadUrl(filePath, { expiresIn: exp });
-  }
-
-  private getFileIndex (params: UrlFileIndexRequest): number | undefined {
-    const { files, result, indexes, index } = params;
+  private getFileIndex ({ files, result, indexes, index }: FileIndexDto): number | undefined {
     return indexes ? indexes[index] : files.indexOf(result.filePath);
   }
 
-  private async executeByKey (key: string, indexes?: number[], expiresIn = 3600): Promise<FileUrlsResponse> {
-    return this.executeMultiFile(
-      key,
-      indexes,
-      async (filePath, exp) => ({ filePath, url: await this.getUrl(filePath, exp) }),
-      (files: string[], results: unknown[], idxs: number[] | undefined) => ({
-        key,
-        files: this.getFileUrlResults({ results, files, indexes: idxs }),
-        expiresIn
-      }),
-      expiresIn
-    );
-  }
-
-  private getFileUrlResults (params: UrlRequest): FileUrlResults[] {
-    const { results, files, indexes } = params;
-    const urlResults = results as FileUrlResult[];
-
-    return urlResults.map((result, index) => {
-      return {
-        index: this.getFileIndex({ files, result, indexes, index })!,
-        path: result.filePath,
-        url: result.url
-      };
-    });
+  private getFileUrlResults ({ results, files, indexes }: FileUrlResultsDto): FileUrlResults[] {
+    return results.map((result, index) => ({
+      index: this.getFileIndex({ files, result, indexes, index })!,
+      path: result.filePath,
+      url: result.url
+    }));
   }
 }

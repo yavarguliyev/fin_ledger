@@ -1,12 +1,20 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { PaymentProviderRegistry, PaymentStatus, ProviderChargeStatus, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
-import { v7 as uuid } from 'uuid';
+import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
+import {
+  PaymentCapability,
+  PaymentProviderRegistry,
+  PaymentStatus,
+  ProviderChargeStatus,
+  WorkflowStep,
+  WorkflowStepMeta,
+  WorkflowSteps
+} from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
+import { IdempotencyHelper, PaymentOperation } from '../../helpers/idempotency.helper';
+import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
-@WorkflowStepMeta('ChargePayment')
+@WorkflowStepMeta({ stepName: 'ChargePayment' })
 export class ChargePaymentStep implements WorkflowStep<DepositContextDto> {
   readonly stepName: WorkflowSteps = 'ChargePayment';
 
@@ -19,7 +27,7 @@ export class ChargePaymentStep implements WorkflowStep<DepositContextDto> {
     if (!context.paymentId) throw new BadRequestException('Payment ID is required for ChargePayment step');
 
     const providerName = context.provider!;
-    const provider = this.providerRegistry.get(providerName);
+    const provider = this.providerRegistry.require({ providerName: providerName, capability: PaymentCapability.CHARGE });
 
     const chargeResult = await provider.charge({
       amount: context.dto.amountMinor,
@@ -29,15 +37,25 @@ export class ChargePaymentStep implements WorkflowStep<DepositContextDto> {
       description: `Deposit: ${context.paymentId}`
     });
 
+    if (chargeResult.status === ProviderChargeStatus.INDETERMINATE) {
+      await this.paymentRepository.updatePaymentStatus({
+        paymentId: context.paymentId,
+        status: PaymentStatus.REQUIRES_ACTION,
+        failureReason: chargeResult.failureReason ?? 'Provider outcome unconfirmed'
+      });
+
+      throw new ServiceUnavailableException('Payment outcome is unconfirmed and is awaiting reconciliation');
+    }
+
     if (chargeResult.status !== ProviderChargeStatus.SUCCEEDED) {
       const failureReason = chargeResult.failureReason ?? 'Charge failed';
-      await this.paymentRepository.updatePaymentStatus(context.paymentId, { status: PaymentStatus.FAILED, failureReason });
+      await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.FAILED, failureReason });
       throw new BadRequestException(chargeResult.failureReason ?? 'Payment charge was declined');
     }
 
     context.providerChargeId = chargeResult.chargeId;
 
-    await this.paymentRepository.updatePaymentStatus(context.paymentId, { providerChargeId: chargeResult.chargeId });
+    await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, providerChargeId: chargeResult.chargeId });
   }
 
   async compensate (context: DepositContextDto): Promise<void> {
@@ -45,18 +63,18 @@ export class ChargePaymentStep implements WorkflowStep<DepositContextDto> {
 
     try {
       const providerName = context.provider!;
-      const provider = this.providerRegistry.get(providerName);
+      const provider = this.providerRegistry.require({ providerName: providerName, capability: PaymentCapability.CHARGE });
 
       await provider.refund({
         chargeId: context.providerChargeId,
         amount: context.dto.amountMinor,
         currency: context.dto.currency,
-        idempotencyKey: `refund_${context.paymentId}_${uuid()}`
+        idempotencyKey: IdempotencyHelper.forPayment(PaymentOperation.REFUND, context.paymentId)
       });
 
-      await this.paymentRepository.updatePaymentStatus(context.paymentId, { status: PaymentStatus.REFUNDED });
+      await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.COMPENSATED });
     } catch {
-      await this.paymentRepository.updatePaymentStatus(context.paymentId, { status: PaymentStatus.COMPENSATED });
+      await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.REQUIRES_ACTION });
     }
   }
 }

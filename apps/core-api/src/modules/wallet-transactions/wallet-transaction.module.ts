@@ -8,9 +8,10 @@ import { GetWalletTransactionSummaryUseCase } from './use-cases/queries/get-wall
 import { WalletTransactionService } from './wallet-transaction.service';
 import { WalletTransactionController } from './wallet-transaction.controller';
 import { AuthModule } from '../auth/auth.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
-  imports: [SharedModule, forwardRef(() => AuthModule)],
+  imports: [SharedModule, forwardRef(() => AuthModule), forwardRef(() => WalletModule)],
   controllers: [WalletTransactionController],
   providers: [WalletTransactionService, WalletTransactionRepository, GetWalletTransactionsUseCase, GetWalletTransactionSummaryUseCase],
   exports: [WalletTransactionService, WalletTransactionRepository]

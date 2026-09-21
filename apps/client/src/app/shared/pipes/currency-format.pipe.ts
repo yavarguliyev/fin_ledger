@@ -1,15 +1,10 @@
 import { Pipe } from '@angular/core';
 
+import { formatCurrency } from '../../core/helpers/currency.helper';
+
 @Pipe({ name: 'currencyFormat', standalone: true })
 export class CurrencyFormatPipe {
   transform (amountMinor: string | number | null | undefined, currency = 'USD'): string {
-    return amountMinor === null || amountMinor === undefined
-      ? '-'
-      : new Intl.NumberFormat('en-US', {
-          style: 'currency',
-          currency,
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        }).format(parseInt(String(amountMinor), 10) / 100);
+    return amountMinor === null || amountMinor === undefined ? '-' : formatCurrency(Number(amountMinor), currency);
   }
 }

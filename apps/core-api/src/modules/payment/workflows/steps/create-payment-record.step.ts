@@ -2,17 +2,17 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PaymentStatus, PaymentType, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
+import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
-@WorkflowStepMeta('CreatePaymentRecord')
+@WorkflowStepMeta({ stepName: 'CreatePaymentRecord' })
 export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> {
   readonly stepName: WorkflowSteps = 'CreatePaymentRecord';
 
   constructor (private readonly paymentRepository: PaymentRepository) {}
 
   async execute (context: DepositContextDto): Promise<void> {
-    const existing = await this.paymentRepository.findByIdempotencyKey(context.dto.idempotencyKey);
+    const existing = await this.paymentRepository.findByIdempotencyKey({ idempotencyKey: context.dto.idempotencyKey });
     if (existing) {
       context.paymentId = existing.id;
       context.payment = existing;
@@ -31,8 +31,7 @@ export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> 
       type: PaymentType.DEPOSIT,
       status: PaymentStatus.PENDING,
       provider,
-      walletId: context.walletId ?? '',
-      ledgerAccountId: context.ledgerAccountId ?? ''
+      walletId: context.walletId ?? ''
     });
 
     if (!record) throw new InternalServerErrorException('Failed to create payment record');
@@ -43,6 +42,6 @@ export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> 
 
   async compensate (context: DepositContextDto): Promise<void> {
     if (!context.paymentId) return;
-    await this.paymentRepository.updatePaymentStatus(context.paymentId, { status: PaymentStatus.COMPENSATED });
+    await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.COMPENSATED });
   }
 }

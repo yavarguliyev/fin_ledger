@@ -11,7 +11,7 @@ export const guestGuard: CanActivateFn = (): boolean => {
   if (!auth.isAuthenticated()) return true;
 
   const user = auth.currentUser();
-  const redirectPath = user?.role === 'user' ? '/betting' : '/dashboard';
+  const redirectPath = user?.role === 'USER' ? '/betting' : '/dashboard';
 
   void router.navigate([redirectPath]);
 

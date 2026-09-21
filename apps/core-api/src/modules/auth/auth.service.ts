@@ -8,13 +8,16 @@ import { LogoutUseCase } from './use-cases/commands/logout.use-case';
 import { ForgotPasswordUseCase } from './use-cases/commands/forgot-password.use-case';
 import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-case';
 import { EmailVerificationUseCase } from './use-cases/commands/email-verification.use-case';
-import { RegisterDto } from './dtos/register/register.dto';
-import { LoginDto } from './dtos/login/login.dto';
-import { AuthResponseDto } from './dtos/auth/auth-response.dto';
-import { ForgotPasswordResponse } from './dtos/auth/forgot-password-response.dto';
-import { ResetPasswordDto, ResetPasswordResponseDto } from './dtos/reset-password/reset-password.dto';
-import { SessionResponseDto } from './dtos/auth/session-response.dto';
-import { VerifyEmailDto } from './dtos/auth/set-password.dto';
+import { RegisterDto } from './dtos/request/register.dto';
+import { LoginDto } from './dtos/request/login.dto';
+import { AuthResponseDto } from './dtos/response/auth-response.dto';
+import { ForgotPasswordResponseDto } from './dtos/response/forgot-password-response.dto';
+import { ResetPasswordDto } from './dtos/request/reset-password.dto';
+import { AuthorizationDto } from './dtos/request/authorization.dto';
+import { ForgotPasswordDto } from './dtos/request/forgot-password.dto';
+import { ResetPasswordResponseDto } from './dtos/response/reset-password-response.dto';
+import { SessionResponseDto } from './dtos/response/session-response.dto';
+import { VerifyEmailDto } from './dtos/request/verify-email.dto';
 
 @Injectable()
 export class AuthService {
@@ -36,16 +39,16 @@ export class AuthService {
     return this.loginUseCase.execute(dto);
   }
 
-  async logout (authorization?: string): Promise<void> {
-    await this.logoutUseCase.execute(authorization);
+  async logout (dto: AuthorizationDto): Promise<void> {
+    await this.logoutUseCase.execute(dto);
   }
 
-  async getSession (authorization?: string): Promise<SessionData> {
-    return this.validateSessionUseCase.execute(authorization);
+  async getSession (dto: AuthorizationDto): Promise<SessionData> {
+    return this.validateSessionUseCase.execute(dto);
   }
 
-  async forgotPassword (email: string): Promise<ForgotPasswordResponse> {
-    return this.forgotPasswordUseCase.execute(email);
+  async forgotPassword (dto: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
+    return this.forgotPasswordUseCase.execute(dto);
   }
 
   async resetPassword (dto: ResetPasswordDto): Promise<ResetPasswordResponseDto> {

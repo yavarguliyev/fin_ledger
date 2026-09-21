@@ -51,9 +51,9 @@ export class UserService {
     return this.http.delete<DeleteResponse>(`${this.apiUrl}/users/${userId}`).pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
   }
 
-  deleteUserFromDb (userId: string): Observable<DeleteResponse> {
+  anonymizeUser (userId: string): Observable<DeleteResponse> {
     return this.http
-      .delete<DeleteResponse>(`${this.apiUrl}/users/${userId}/from-db`)
+      .post<DeleteResponse>(`${this.apiUrl}/users/${userId}/anonymize`, {})
       .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
   }
 

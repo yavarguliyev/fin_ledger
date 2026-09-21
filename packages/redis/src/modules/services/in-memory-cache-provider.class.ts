@@ -1,10 +1,13 @@
-import { CacheProvider } from '../interfaces/redis.interface';
-import { CacheEntry } from '../interfaces/redis.interface';
+import { CacheProvider } from '../interfaces/cache-provider.interface';
+import { CacheEntry } from '../interfaces/cache-entry.interface';
+import { CacheKeyDto } from '../dtos/cache/cache-key.dto';
+import { CachePatternDto } from '../dtos/cache/cache-pattern.dto';
+import { CacheSetDto } from '../dtos/cache/cache-set.dto';
 
 export class InMemoryCacheProvider implements CacheProvider {
   private readonly store = new Map<string, CacheEntry<unknown>>();
 
-  async get<T> (key: string): Promise<T | null> {
+  async get<T> ({ key }: CacheKeyDto): Promise<T | null> {
     const entry = this.store.get(key);
     if (!entry) return null;
 
@@ -16,12 +19,12 @@ export class InMemoryCacheProvider implements CacheProvider {
     return Promise.resolve(entry.value as T);
   }
 
-  set<T> (key: string, value: T, ttlSeconds?: number): void {
-    const entry: CacheEntry<T> = ttlSeconds !== undefined ? { value, expiresAt: Date.now() + ttlSeconds * 1000 } : { value };
+  set ({ key, value, ttlSeconds }: CacheSetDto): void {
+    const entry: CacheEntry<unknown> = ttlSeconds !== undefined ? { value, expiresAt: Date.now() + ttlSeconds * 1000 } : { value };
     this.store.set(key, entry);
   }
 
-  invalidatePattern (pattern: string): void {
+  invalidatePattern ({ pattern }: CachePatternDto): void {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
 
     for (const key of this.store.keys()) {
@@ -33,11 +36,11 @@ export class InMemoryCacheProvider implements CacheProvider {
     return false;
   }
 
-  delete (key: string): void {
+  delete ({ key }: CacheKeyDto): void {
     this.store.delete(key);
   }
 
-  scan (pattern: string): Promise<string[]> {
+  scan ({ pattern }: CachePatternDto): Promise<string[]> {
     const regex = new RegExp(pattern.replace(/\*/g, '.*'));
     return Promise.resolve(Array.from(this.store.keys()).filter(key => regex.test(key)));
   }

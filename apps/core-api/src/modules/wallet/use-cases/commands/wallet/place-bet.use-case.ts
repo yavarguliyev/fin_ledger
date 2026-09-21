@@ -1,62 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import {
-  DomainEventType,
-  BettingType,
-  AggregateType,
-  WalletTransactionType,
-  NotificationType,
-  NotificationStatus,
-  WIN_CHANCE,
-  WIN_PAYOUT_MULTIPLIER
-} from '@common/libs';
+import { DomainEventType, EntryType, BettingType, AggregateType, WalletStatus, WalletTransactionType } from '@common/libs';
 
 import { WalletBaseUseCase } from '../../base/wallet-base.use-case';
-import { SettleWinningsUseCase } from './settle-winnings.use-case';
-import { PlaceBetInput } from '../../../dtos/betting/place-bet.dto';
-import { WalletDto } from '../../../dtos/wallet/wallet.dto';
-import { NotificationService } from '../../../../notification/notification.service';
+import { WalletOperationDto } from '../../../dtos/input/wallet-operation.dto';
+import { WalletOperationResultDto } from '../../../dtos/transaction/wallet-operation-result.dto';
 
 @Injectable()
-export class PlaceBetUseCase extends WalletBaseUseCase<PlaceBetInput, WalletDto> {
-  protected readonly currentWalletTransactionType: WalletTransactionType = WalletTransactionType.BET;
+export class PlaceBetUseCase extends WalletBaseUseCase<WalletOperationDto, WalletOperationResultDto> {
+  protected override readonly currentWalletTransactionType: WalletTransactionType = WalletTransactionType.BET_STAKE;
   protected readonly currentDomainEventType: DomainEventType = DomainEventType.WALLET_DEBITED;
   protected readonly currentAggregateType: AggregateType = 'Wallet';
   protected readonly currentBettingType: BettingType = 'BET';
-  protected readonly balanceWalletTransactionType = WalletTransactionType.DEBIT;
+  protected override readonly balanceWalletTransactionType = EntryType.DEBIT;
   protected readonly requiredToCheckAmountMinor: boolean = true;
+  protected override readonly allowedStatuses = [WalletStatus.ACTIVE];
 
-  constructor (
-    private readonly settleWinningsUseCase: SettleWinningsUseCase,
-    private readonly notificationService: NotificationService
-  ) {
-    super();
-  }
-
-  override async execute (dto: PlaceBetInput): Promise<WalletDto> {
-    const updatedWallet = await super.processWallet(dto);
-
-    if (Math.random() < WIN_CHANCE) {
-      const winAmountMinor = Math.round(dto.amountMinor * WIN_PAYOUT_MULTIPLIER);
-
-      const winningWallet = await this.settleWinningsUseCase.execute({
-        walletId: dto.walletId,
-        amountMinor: winAmountMinor,
-        currency: dto.currency,
-        transactionId: `${dto.transactionId}-win`,
-        reference: `Win: ${dto.reference ?? 'Sports Bet'}`
-      });
-
-      void this.notificationService.createNotification({
-        userId: updatedWallet.userId,
-        title: 'Bet Won! 🎉',
-        content: `Congratulations! You won ${(winAmountMinor / 100).toFixed(2)} ${dto.currency} on ${dto.reference ?? 'your bet'}.`,
-        type: NotificationType.WALLET_CREDITED,
-        status: NotificationStatus.SENT
-      });
-
-      return winningWallet;
-    }
-
-    return updatedWallet;
+  override async execute (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
+    return super.processWallet(dto);
   }
 }

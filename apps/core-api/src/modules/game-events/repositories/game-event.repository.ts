@@ -1,26 +1,29 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, GameEventStatus, PostgresService } from '@common/libs';
+import { BaseExtendedRepository, PostgresService } from '@common/libs';
 
-import { GameEventDto } from '../dtos/game-event.dto';
+import { GameEventDto } from '../dtos/game-event/game-event.dto';
+import { ListGameEventsDto } from '../dtos/request/list-game-events.dto';
 
 @Injectable()
 export class GameEventRepository extends BaseExtendedRepository<GameEventDto> {
   constructor (postgresService: PostgresService) {
-    super(postgresService, 'game_events', {
-      createdAt: 'created_at',
-      updatedAt: 'updated_at'
+    super({
+      service: postgresService,
+      tableName: 'game_events',
+      columnMappings: {
+        startsAt: 'starts_at',
+        bettingClosesAt: 'betting_closes_at',
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+      }
     });
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'label', 'odds', 'status', 'createdAt', 'updatedAt'];
+    return ['id', 'label', 'odds', 'status', 'startsAt', 'bettingClosesAt', 'createdAt', 'updatedAt'];
   }
 
-  async findByStatus (status: GameEventStatus): Promise<GameEventDto[]> {
-    return this.findAll({ where: { status }, orderBy: 'created_at', orderDirection: 'DESC' });
-  }
-
-  async findAllActive (): Promise<GameEventDto[]> {
-    return this.findAll({ orderBy: 'created_at', orderDirection: 'DESC' });
+  async findEvents ({ status }: ListGameEventsDto): Promise<GameEventDto[]> {
+    return this.findAll({ ...(status && { where: { status } }), orderBy: 'created_at', orderDirection: 'DESC' });
   }
 }

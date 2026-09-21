@@ -1,25 +1,17 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import { v7 as uuid } from 'uuid';
 import { SessionHelper } from '@common/libs';
 
-import { UserCreateDto, UserCreateResponse } from '../../dtos/user/user-create.dto';
+import { UserCreateDto } from '../../dtos/request/user-create.dto';
+import { UserCreateResponseDto } from '../../dtos/response/user-create-response.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { UserRepository } from '../../repositories/user.repository';
 import { EmailHelper } from '../../../email/helpers/email.helper';
 
 @Injectable()
-export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateResponse> {
-  constructor (
-    private readonly userRepository: UserRepository,
-    private readonly configService: ConfigService
-  ) {
-    super();
-  }
-
-  async execute (dto: UserCreateDto): Promise<UserCreateResponse> {
-    const existingUser = await this.userRepository.findOne({ email: dto.email });
+export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateResponseDto> {
+  async execute (dto: UserCreateDto): Promise<UserCreateResponseDto> {
+    const existingUser = await this.userRepository.findOne({ where: { email: dto.email } });
     if (existingUser) throw new ConflictException('Email already exists');
 
     const temporaryPassword = uuid();
@@ -27,7 +19,9 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
 
     const { email, displayName, role } = dto;
 
-    const user = await this.userRepository.create({ email, displayName, role, passwordHash, isEmailVerified: false });
+    const user = await this.userRepository.create({
+      data: { email, displayName, role, passwordHash, passwordChangedAt: new Date().toISOString(), isEmailVerified: false }
+    });
     if (!user) throw new ConflictException('Failed to create user');
 
     const privateKey = this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');

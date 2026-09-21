@@ -1,24 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { DomainEventType, BettingType, AggregateType, WalletTransactionType } from '@common/libs';
+import { DomainEventType, BettingType, AggregateType, EntryType, WalletTransactionType } from '@common/libs';
 
 import { WalletBaseUseCase } from '../../base/wallet-base.use-case';
-import { PlaceBetInput } from '../../../dtos/betting/place-bet.dto';
-import { WalletDto } from '../../../dtos/wallet/wallet.dto';
+import { WalletOperationDto } from '../../../dtos/input/wallet-operation.dto';
+import { WalletOperationResultDto } from '../../../dtos/transaction/wallet-operation-result.dto';
 
 @Injectable()
-export class CreditWalletUseCase extends WalletBaseUseCase<PlaceBetInput, WalletDto> {
-  protected readonly currentWalletTransactionType: WalletTransactionType = WalletTransactionType.CREDIT;
+export class CreditWalletUseCase extends WalletBaseUseCase<WalletOperationDto, WalletOperationResultDto> {
+  protected override readonly currentWalletTransactionType: WalletTransactionType = WalletTransactionType.DEPOSIT;
   protected readonly currentDomainEventType: DomainEventType = DomainEventType.WALLET_CREDITED;
   protected readonly currentAggregateType: AggregateType = 'Wallet';
   protected readonly currentBettingType: BettingType = 'NONE';
-  protected readonly balanceWalletTransactionType: WalletTransactionType = WalletTransactionType.CREDIT;
+  protected override readonly balanceWalletTransactionType: EntryType = EntryType.CREDIT;
   protected readonly requiredToCheckAmountMinor: boolean = false;
 
-  constructor () {
-    super();
-  }
-
-  async execute (input: PlaceBetInput): Promise<WalletDto> {
+  async execute (input: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.processWallet(input);
   }
 }

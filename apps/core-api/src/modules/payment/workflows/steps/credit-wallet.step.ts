@@ -1,12 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PaymentStatus, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
+import { PaymentStatus, WalletTransactionType, WorkflowStep, WorkflowStepMeta, WorkflowSteps } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { WalletService } from '../../../wallet/wallet.service';
-import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
+import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
-@WorkflowStepMeta('CreditWallet')
+@WorkflowStepMeta({ stepName: 'CreditWallet' })
 export class CreditWalletStep implements WorkflowStep<DepositContextDto> {
   readonly stepName: WorkflowSteps = 'CreditWallet';
 
@@ -25,9 +25,19 @@ export class CreditWalletStep implements WorkflowStep<DepositContextDto> {
       paymentId: transactionId
     } = context;
 
-    await this.walletService.creditWallet({ amountMinor, currency, walletId, transactionId, reference: `deposit: ${transactionId}` });
+    const { ledgerTransactionId } = await this.walletService.creditWallet({
+      amountMinor,
+      currency,
+      walletId,
+      transactionId,
+      reference: `deposit: ${transactionId}`
+    });
 
-    const updated = await this.paymentRepository.updatePaymentStatus(transactionId, { status: PaymentStatus.COMPLETED });
+    const updated = await this.paymentRepository.updatePaymentStatus({
+      paymentId: transactionId,
+      status: PaymentStatus.COMPLETED,
+      ledgerTransactionId
+    });
     if (updated) context.payment = updated;
   }
 
@@ -40,7 +50,14 @@ export class CreditWalletStep implements WorkflowStep<DepositContextDto> {
       paymentId: transactionId
     } = context;
 
-    await this.walletService.debitWallet({ amountMinor, currency, walletId, transactionId, reference: `reversal:deposit: ${transactionId}` });
-    await this.paymentRepository.updatePaymentStatus(transactionId, { status: PaymentStatus.COMPENSATED });
+    await this.walletService.debitWallet({
+      amountMinor,
+      currency,
+      walletId,
+      transactionId,
+      reference: `reversal:deposit: ${transactionId}`,
+      transactionType: WalletTransactionType.ADJUSTMENT
+    });
+    await this.paymentRepository.updatePaymentStatus({ paymentId: transactionId, status: PaymentStatus.COMPENSATED });
   }
 }

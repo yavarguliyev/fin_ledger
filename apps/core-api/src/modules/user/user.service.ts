@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FileUrlsResponse, UploadFile, UploadFileResponse } from '@common/libs';
+import { FileUrlsResponse, UploadFileResponse } from '@common/libs';
 
 import { UpdateUserUseCase } from './use-cases/commands/update-user.use-case';
 import { UploadFilesUseCase } from './use-cases/commands/upload-files.use-case';
@@ -8,11 +8,18 @@ import { DeleteImagesUseCase } from './use-cases/commands/delete-user-images.use
 import { DeleteUserUseCase } from './use-cases/commands/delete-user.use-case';
 import { UpdateEmailVerificationUseCase } from './use-cases/commands/update-email-verification.use-case';
 import { UserCreateUseCase } from './use-cases/commands/user-create.use-case';
-import { UpdateUserDto } from './dtos/update/update-user.dto';
-import { UserUpdateResponeDto } from './dtos/update/user-update-response.dto';
-import { DeleteUserDto, UserDto } from './dtos/user/user.dto';
-import { UserCreateDto, UserCreateResponse } from './dtos/user/user-create.dto';
 import { DeleteUserFromDbUseCase } from './use-cases/commands/delete-user-from-db.use-case';
+import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-case';
+import { UserDto } from './dtos/user/user.dto';
+import { UserCreateDto } from './dtos/request/user-create.dto';
+import { UserIdRequestDto } from './dtos/request/user-id-request.dto';
+import { UpdateEmailVerificationDto } from './dtos/request/update-email-verification.dto';
+import { UpdateUserDto } from './dtos/input/update-user.dto';
+import { UploadFilesDto } from './dtos/input/upload-files.dto';
+import { UserImagesDto } from './dtos/input/user-images.dto';
+import { UserCreateResponseDto } from './dtos/response/user-create-response.dto';
+import { UserUpdateRecordDto } from './dtos/response/user-update-response.dto';
+import { DeleteUserResponseDto } from './dtos/response/delete-user-response.dto';
 
 @Injectable()
 export class UserService {
@@ -24,38 +31,43 @@ export class UserService {
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly deleteUserFromDbUseCase: DeleteUserFromDbUseCase,
     private readonly updateEmailVerificationUseCase: UpdateEmailVerificationUseCase,
-    private readonly userCreateUseCase: UserCreateUseCase
+    private readonly userCreateUseCase: UserCreateUseCase,
+    private readonly anonymizeUserUseCase: AnonymizeUserUseCase
   ) {}
 
-  async createUser (dto: UserCreateDto): Promise<UserCreateResponse> {
+  async createUser (dto: UserCreateDto): Promise<UserCreateResponseDto> {
     return this.userCreateUseCase.execute(dto);
   }
 
-  async updateUser (id: string, dto: UpdateUserDto): Promise<UserUpdateResponeDto> {
-    return this.updateUserUseCase.execute({ userId: id, dto });
+  async updateUser (dto: UpdateUserDto): Promise<UserUpdateRecordDto> {
+    return this.updateUserUseCase.execute(dto);
   }
 
-  async uploadFiles (userId: string, files: UploadFile[]): Promise<UploadFileResponse> {
-    return this.uploadFilesUseCase.execute({ userId, files });
+  async uploadFiles (dto: UploadFilesDto): Promise<UploadFileResponse> {
+    return this.uploadFilesUseCase.execute(dto);
   }
 
-  async updateEmailVerification (userId: string, isEmailVerified: boolean): Promise<UserDto> {
-    return this.updateEmailVerificationUseCase.execute({ userId, isEmailVerified });
+  async updateEmailVerification (dto: UpdateEmailVerificationDto): Promise<UserDto> {
+    return this.updateEmailVerificationUseCase.execute(dto);
   }
 
-  async getImages (userId: string, indexes?: string): Promise<FileUrlsResponse> {
-    return this.getImagesUseCase.execute({ userId, indexes: indexes ? indexes.split(',').map(Number) : undefined });
+  async getImages (dto: UserImagesDto): Promise<FileUrlsResponse> {
+    return this.getImagesUseCase.execute(dto);
   }
 
-  async deleteImages (userId: string, indexes?: string): Promise<void> {
-    return this.deleteImagesUseCase.execute({ userId, indexes: indexes ? indexes.split(',').map(Number) : undefined });
+  async deleteImages (dto: UserImagesDto): Promise<void> {
+    return this.deleteImagesUseCase.execute(dto);
   }
 
-  async deleteUser (userId: string): Promise<DeleteUserDto> {
-    return this.deleteUserUseCase.execute(userId);
+  async deleteUser (dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
+    return this.deleteUserUseCase.execute(dto);
   }
 
-  async deleteUserFromDb (userId: string): Promise<DeleteUserDto> {
-    return this.deleteUserFromDbUseCase.execute(userId);
+  async anonymizeUser (dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
+    return this.anonymizeUserUseCase.execute(dto);
+  }
+
+  async deleteUserFromDb (dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
+    return this.deleteUserFromDbUseCase.execute(dto);
   }
 }

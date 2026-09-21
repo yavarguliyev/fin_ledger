@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { KafkaSubscribe, KafkaMessageRecord, NotificationType, AnalyticsEventTopic, AggregateType, ActionEvent } from '@common/libs';
 
 import { AnalyticsBaseHandler } from '../base/analytics-base-handler.use-case';
-import { WalletAnalyticsEventDto } from '../../dtos/wallet-analytics-event.dto';
+import { WalletAnalyticsEventDto } from '../../dtos/event/wallet-analytics-event.dto';
 
 @Injectable()
 export class WalletCreditedHandler extends AnalyticsBaseHandler<WalletAnalyticsEventDto> {

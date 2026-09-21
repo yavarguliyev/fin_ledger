@@ -1,29 +1,30 @@
-import { EntityId, UnknownRecord } from '@common/shared-libs';
-
 import { BaseRepository } from './base.repository';
-import { buildReturningClause, buildSetClause, buildUpdatedAtClause } from '../helpers/update-query.helper';
-import { DatabaseAdapter, QueryPaginationOptionsResults } from '../../interfaces/database.interface';
-import { QueryWithPaginationOptions } from '../../interfaces/database.interface';
+import { QueryPaginationOptionsResults } from '../../interfaces/query-pagination-options-results.interface';
+import { QueryWithAdapterDto } from '../../dtos/query/query-with-adapter.dto';
+import { FindWithPaginationDto } from '../../dtos/query/find-with-pagination.dto';
+import { EntityIdRefDto } from '../../dtos/repository/entity-id-ref.dto';
+import { IncrementDto } from '../../dtos/repository/increment.dto';
+import { UpdateWithVersionDto } from '../../dtos/repository/update-with-version.dto';
+import { UpdateWhereDto } from '../../dtos/repository/update-where.dto';
+import { DatabaseHelper } from '../helpers/database.helper';
 
 export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
-  async findWithPagination (
-    options: QueryWithPaginationOptions & { page: number; limit: number },
-    adapter?: DatabaseAdapter
-  ): Promise<QueryPaginationOptionsResults<T>> {
-    const { page, limit, ...queryOptions } = options;
+  async findWithPagination (dto: FindWithPaginationDto): Promise<QueryPaginationOptionsResults<T>> {
+    const { page, limit, ...queryOptions } = dto;
 
     const offset = (page - 1) * limit;
-    const total = await this.count(queryOptions, adapter);
-    const data = await this.findAll({ ...queryOptions, limit, offset }, adapter);
+    const total = await this.count(queryOptions);
+    const data = await this.findAll({ ...queryOptions, limit, offset });
     const totalPages = Math.ceil(total / limit);
 
     return { data, total, page, limit, totalPages };
   }
 
-  async findAllWithPagination (options: QueryWithPaginationOptions, adapter?: DatabaseAdapter): Promise<QueryPaginationOptionsResults<T>> {
-    const { page = 25, limit = 25, search, searchFields, where, orderBy, orderDirection } = options;
+  async findAllWithPagination (dto: QueryWithAdapterDto): Promise<QueryPaginationOptionsResults<T>> {
+    const { page = 25, limit = 25, search, searchFields, where, orderBy, orderDirection, adapter } = dto;
 
-    const queryOptions: QueryWithPaginationOptions = {
+    const queryOptions: QueryWithAdapterDto = {
+      ...(adapter && { adapter }),
       orderBy: orderBy || 'id',
       orderDirection: orderDirection || 'ASC'
     };
@@ -31,32 +32,30 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
     if (where) queryOptions.where = where;
     if (search && searchFields && searchFields.length > 0) queryOptions.search = search;
 
-    return this.findWithPagination({ ...queryOptions, page, limit }, adapter);
+    return this.findWithPagination({ ...queryOptions, page, limit });
   }
 
-  async findByIdForUpdate (id: EntityId, adapter?: DatabaseAdapter): Promise<T | null> {
-    const columns = this.getSelectColumns();
-
-    const { query, params } = this.builder.buildSelectQuery(columns, { where: { id } });
+  async findByIdForUpdate ({ id, adapter }: EntityIdRefDto): Promise<T | null> {
+    const { query, params } = this.builder.buildSelectQuery({ columns: this.getSelectColumns(), options: { where: { id } } });
 
     const lockQuery = `${query} FOR UPDATE`;
     const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(lockQuery, params);
+    const result = await db.query<T>({ sql: lockQuery, params });
 
     return (result.rows[0] as T) || null;
   }
 
-  async increment (id: EntityId, field: keyof T & string, amount: number, adapter?: DatabaseAdapter): Promise<T | null> {
-    const dbColumn = this.builder.getColumnMapping(field);
+  async increment ({ id, field, amount, adapter }: IncrementDto<T>): Promise<T | null> {
+    const dbColumn = this.builder.getColumnMapping({ column: field });
     const columns = this.getSelectColumns();
     const returning = columns
       .map(col => {
-        const mapping = this.builder.getColumnMapping(col);
+        const mapping = this.builder.getColumnMapping({ column: col });
         return mapping ? `${mapping} as "${col}"` : col;
       })
       .join(', ');
 
-    const updatedAtClause = buildUpdatedAtClause(this.builder);
+    const updatedAtClause = DatabaseHelper.buildUpdatedAtClause({ builder: this.builder });
 
     const query = `
       UPDATE ${this.builder.getTableName()}
@@ -66,29 +65,23 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
     `;
 
     const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, [amount, id]);
+    const result = await db.query<T>({ sql: query, params: [amount, id] });
 
     return result.rows[0] ?? null;
   }
 
-  async updateWithVersion (
-    id: EntityId,
-    data: Partial<T>,
-    versionField: keyof T & string,
-    expectedVersion: number,
-    adapter?: DatabaseAdapter
-  ): Promise<T | null> {
-    const { setClause, params, paramIndex: idx } = buildSetClause(this.builder, data as UnknownRecord);
-    const dbVersionCol = this.builder.getColumnMapping(versionField);
+  async updateWithVersion ({ id, data, versionField, expectedVersion, adapter }: UpdateWithVersionDto<T>): Promise<T | null> {
+    const { setClause, params, paramIndex: idx } = DatabaseHelper.buildSetClause({ builder: this.builder, data });
+    const dbVersionCol = this.builder.getColumnMapping({ column: versionField });
     const versionSet = `${dbVersionCol} = ${dbVersionCol} + 1`;
-    const updatedAtClause = buildUpdatedAtClause(this.builder);
+    const updatedAtClause = DatabaseHelper.buildUpdatedAtClause({ builder: this.builder });
 
     params.push(id);
     const idIdx = idx;
     params.push(expectedVersion);
     const verIdx = idx + 1;
 
-    const returning = buildReturningClause(this.builder, this.getSelectColumns());
+    const returning = DatabaseHelper.buildReturningClause({ builder: this.builder, selectColumns: this.getSelectColumns() });
 
     const query = `
       UPDATE ${this.builder.getTableName()}
@@ -98,14 +91,14 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
     `;
 
     const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
+    const result = await db.query<T>({ sql: query, params });
 
     return result.rows[0] ?? null;
   }
 
-  async updateWhere (where: UnknownRecord, data: Partial<T>, adapter?: DatabaseAdapter): Promise<T | null> {
-    const { setClause, params, paramIndex } = buildSetClause(this.builder, data as UnknownRecord);
-    const updatedAtClause = buildUpdatedAtClause(this.builder);
+  async updateWhere ({ where, data, adapter }: UpdateWhereDto<T>): Promise<T | null> {
+    const { setClause, params, paramIndex } = DatabaseHelper.buildSetClause({ builder: this.builder, data });
+    const updatedAtClause = DatabaseHelper.buildUpdatedAtClause({ builder: this.builder });
     let currentIdx = paramIndex;
 
     let whereClause = '';
@@ -115,14 +108,14 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
         'WHERE ' +
         whereKeys
           .map(key => {
-            const dbCol = this.builder.getColumnMapping(key);
+            const dbCol = this.builder.getColumnMapping({ column: key });
             params.push(where[key]);
             return `${dbCol} = $${currentIdx++}`;
           })
           .join(' AND ');
     }
 
-    const returning = buildReturningClause(this.builder, this.getSelectColumns());
+    const returning = DatabaseHelper.buildReturningClause({ builder: this.builder, selectColumns: this.getSelectColumns() });
 
     const query = `
       UPDATE ${this.builder.getTableName()}
@@ -132,7 +125,7 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
     `;
 
     const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
+    const result = await db.query<T>({ sql: query, params });
 
     return result.rows[0] ?? null;
   }

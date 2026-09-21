@@ -1,18 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { GameEventStatus } from '@common/libs';
 
-import { GameEventRepository } from '../../repositories/game-event.repository';
-import { GameEventDto } from '../../dtos/game-event.dto';
+import { GameEventDto } from '../../dtos/game-event/game-event.dto';
+import { ListGameEventsDto } from '../../dtos/request/list-game-events.dto';
 import { GameBaseHandlerUseCase } from '../base/game-base-handler.use-case';
 
 @Injectable()
-export class GetGameEventsUseCase extends GameBaseHandlerUseCase<GameEventStatus, GameEventDto[]> {
-  constructor (private readonly gameEventRepository: GameEventRepository) {
-    super();
-  }
-
-  async execute (status?: GameEventStatus): Promise<GameEventDto[]> {
-    if (status) return this.gameEventRepository.findByStatus(status);
-    return this.gameEventRepository.findAllActive();
+export class GetGameEventsUseCase extends GameBaseHandlerUseCase<ListGameEventsDto, GameEventDto[]> {
+  async execute (dto: ListGameEventsDto): Promise<GameEventDto[]> {
+    return this.gameEventRepository.findEvents(dto);
   }
 }

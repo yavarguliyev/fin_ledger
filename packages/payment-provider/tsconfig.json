@@ -4,9 +4,25 @@
     "composite": true,
     "rootDir": "./src",
     "outDir": "./dist",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "types": [
+      "node",
+      "jest"
+    ]
   },
-  "references": [{ "path": "../shared-libs" }, { "path": "../env" }],
-  "include": ["src/**/*.ts"],
-  "exclude": ["dist", "node_modules"]
+  "references": [
+    {
+      "path": "../shared-libs"
+    },
+    {
+      "path": "../env"
+    }
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
 }

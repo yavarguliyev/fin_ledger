@@ -1,17 +1,14 @@
-import { ColumnMapping, JoinClause } from '../../interfaces/database.interface';
+import { JoinClausesDto } from '../../dtos/builder/join-clauses.dto';
+import { JoinClauseRefDto } from '../../dtos/builder/join-clause.dto';
 import { BaseBuilder } from './base-builder';
 
 export class JoinBuilder extends BaseBuilder {
-  constructor (protected override columnMappings: ColumnMapping) {
-    super(columnMappings);
-  }
-
-  buildJoinClauses (joins: JoinClause[]): string {
+  buildJoinClauses ({ joins }: JoinClausesDto): string {
     if (!joins?.length) return '';
-    return joins.map(join => this.buildSingleJoin(join)).join(' ');
+    return joins.map(join => this.buildSingleJoin({ join })).join(' ');
   }
 
-  private buildSingleJoin (join: JoinClause): string {
-    return `${join.type} JOIN ${join.table} ON ${this.mapColumn(join.left)} = ${this.mapColumn(join.right)}`;
+  private buildSingleJoin ({ join }: JoinClauseRefDto): string {
+    return `${join.type} JOIN ${join.table} ON ${this.mapColumn({ column: join.left })} = ${this.mapColumn({ column: join.right })}`;
   }
 }

@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Wallet, Transaction, WalletTransactionSummary } from '../../core/models/wallet.model';
+import { Transaction, WalletTransactionSummary } from '../../core/models/wallet.model';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
@@ -14,6 +14,8 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
 import { getDashboardTableColumns, typeIcon, typeClass, formatType, statusClass } from './dashboard.util';
 import { formatCurrency } from '../../core/helpers/currency.helper';
+import { isStaffRole } from '../../core/helpers/role.helper';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
 
 @Component({
   selector: 'app-dashboard',
@@ -32,11 +34,12 @@ export class DashboardComponent implements OnInit {
   readonly statusClass = statusClass;
 
   readonly loading = signal(true);
-  readonly wallet = signal<Wallet | null>(null);
-  readonly summary = signal<WalletTransactionSummary | null>(null);
+  readonly wallet = computed(() => this.walletService.wallet());
+  readonly summaries = signal<WalletTransactionSummary[]>([]);
   readonly recentTx = signal<Transaction[]>([]);
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'user' || this.auth.currentUser);
+  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
+  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
@@ -48,47 +51,65 @@ export class DashboardComponent implements OnInit {
     headerAction: { label: 'View all', link: '/wallet' }
   }));
 
-  readonly stats = computed(() => {
-    const s = this.summary();
+  readonly statGroups = computed(() =>
+    this.summaries().map(summary => ({
+      currency: summary.currency,
+      stats: [
+        {
+          label: 'Total Deposits',
+          value: formatCurrency(summary.totalDepositsMinor, summary.currency),
+          icon: '📥',
+          trend: '+12%',
+          toneClass: 'bg-success/10 text-success'
+        },
+        {
+          label: 'Total Withdrawals',
+          value: formatCurrency(summary.totalWithdrawalsMinor, summary.currency),
+          icon: '📤',
+          trend: '-4%',
+          toneClass: 'bg-danger/10 text-danger'
+        },
+        { label: 'Bets Placed', value: String(summary.betsCount), icon: '🎯', trend: '+8%', toneClass: 'bg-primary/10 text-primary' },
+        {
+          label: 'Total Winnings',
+          value: formatCurrency(summary.totalWinningsMinor, summary.currency),
+          icon: '🏆',
+          trend: '+22%',
+          toneClass: 'bg-warning/10 text-warning'
+        }
+      ]
+    }))
+  );
 
-    const currency = this.wallet()?.currency ?? 'USD';
-    const deposits = s?.totalDepositsMinor ?? 0;
-    const withdrawals = s?.totalWithdrawalsMinor ?? 0;
-    const bets = s?.betsCount ?? 0;
-    const winnings = s?.totalWinningsMinor ?? 0;
-
-    return [
-      { label: 'Total Deposits', value: formatCurrency(deposits, currency), icon: '📥', trend: '+12%', toneClass: 'bg-success/10 text-success' },
-      { label: 'Total Withdrawals', value: formatCurrency(withdrawals, currency), icon: '📤', trend: '-4%', toneClass: 'bg-danger/10 text-danger' },
-      { label: 'Bets Placed', value: String(bets), icon: '🎯', trend: '+8%', toneClass: 'bg-primary/10 text-primary' },
-      { label: 'Total Winnings', value: formatCurrency(winnings, currency), icon: '🏆', trend: '+22%', toneClass: 'bg-warning/10 text-warning' }
-    ];
-  });
+  readonly showCurrencyLabels = computed(() => this.statGroups().length > 1);
 
   ngOnInit (): void {
     const user = this.auth.currentUser();
-    const walletId = user?.walletId;
 
-    if (!walletId) {
-      this.loading.set(false);
-      return;
+    if (this.isStaff()) this.loadActivity(ALL_RECORDS_SCOPE);
+    else {
+      this.walletService.loadWallets().subscribe({
+        next: () => {
+          const walletId = this.walletService.wallet()?.id;
+          if (walletId) this.loadActivity(walletId);
+          else this.loading.set(false);
+        },
+        error: () => this.loading.set(false)
+      });
     }
 
-    this.walletService.getWallet(walletId).subscribe({
+    if (user?.id) this.notif.getNotifications().subscribe();
+  }
+
+  private loadActivity (scope: string): void {
+    this.walletService.getSummary(scope).subscribe({ next: summaries => this.summaries.set(summaries) });
+
+    this.walletService.getTransactions(scope, 1, 10).subscribe({
       next: () => {
-        this.wallet.set(this.walletService.wallet() ?? null);
-        this.walletService.getSummary(walletId).subscribe({ next: summary => this.summary.set(summary) });
-        this.walletService.getTransactions(walletId, 1, 10).subscribe({
-          next: () => {
-            this.recentTx.set(this.walletService.transactions() ?? []);
-            this.loading.set(false);
-          },
-          error: () => this.loading.set(false)
-        });
+        this.recentTx.set(this.walletService.transactions() ?? []);
+        this.loading.set(false);
       },
       error: () => this.loading.set(false)
     });
-
-    if (user?.id) this.notif.getNotifications().subscribe();
   }
 }

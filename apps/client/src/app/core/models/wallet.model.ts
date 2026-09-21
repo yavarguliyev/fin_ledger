@@ -1,5 +1,6 @@
 import {
   AmountMinor,
+  BetStatus,
   AvailableBalanceMinor,
   CreatedAt,
   Currency,
@@ -17,7 +18,26 @@ import {
   WalletStatus
 } from './base.model';
 
-export interface BetRequest extends AmountMinor, Currency, Reference, TransactionId {}
+export interface BetRequest {
+  walletId: string;
+  eventId: string;
+  selection: string;
+  stakeMinor: number;
+  idempotencyKey: string;
+}
+
+export interface Bet extends Id, CreatedAt, UpdatedAt, Currency, UserId {
+  walletId: string;
+  eventId: string;
+  selection: string;
+  stakeMinor: number;
+  oddsAtPlacement: string;
+  potentialPayoutMinor: number;
+  status: BetStatus;
+  payoutMinor: number | null;
+  placedAt: string;
+  settledAt: string | null;
+}
 
 export interface WalletSummary extends Currency, AvailableBalanceMinor, ReservedBalanceMinor {
   totalBalance: number;
@@ -34,6 +54,7 @@ export interface Transaction extends Id, CreatedAt, UpdatedAt, AmountMinor, Curr
 }
 
 export interface Wallet extends Id, UserId, CreatedAt, UpdatedAt, Currency, AvailableBalanceMinor, ReservedBalanceMinor {
+  ledgerAccountId: string;
   version: number;
   status: WalletStatus;
 }
@@ -51,6 +72,7 @@ export interface PaymentRequest extends AmountMinor, Currency {
 }
 
 export interface WalletTransactionSummary {
+  currency: string;
   totalDepositsMinor: number;
   totalWithdrawalsMinor: number;
   totalWinningsMinor: number;

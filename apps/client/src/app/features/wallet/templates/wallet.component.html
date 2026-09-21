@@ -10,6 +10,10 @@
     </button>
   </div>
 
+  @if (isUser()) {
+    <app-wallet-switcher (walletChange)="onWalletChange($event)" />
+  }
+
   @if (loading() && !wallet()) {
     <div class="h-48 rounded-2xl skeleton"></div>
   } @else if (wallet() && isUser()) {

@@ -1,9 +1,11 @@
 import { Inject, Injectable, InternalServerErrorException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { DATABASE_CONFIG } from '@common/shared-libs';
 
-import { DatabaseAdapter } from '../../interfaces/database.interface';
+import { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 import { DATABASE_ADAPTER_MAP } from '../../constants/database.constant';
-import { DatabaseConfig } from '../../interfaces/database.interface';
+import { DatabaseConfig } from '../../interfaces/database-config.interface';
+import { AddConnectionDto } from '../../dtos/service/add-connection.dto';
+import { ConnectionNameDto } from '../../dtos/service/connection-name.dto';
 
 @Injectable()
 export class PostgresService implements OnModuleInit, OnModuleDestroy {
@@ -15,29 +17,34 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   constructor (@Inject(DATABASE_CONFIG) private readonly config: DatabaseConfig) {}
 
   async onModuleInit (): Promise<void> {
-    await this.addConnection('default', this.config);
+    await this.addConnection({ name: 'default', config: this.config });
   }
 
-  getWriteConnection = (name = 'default'): DatabaseAdapter => this.getConnection(name);
+  getWriteConnection = ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter => this.getConnection({ name });
   getConnectionNames = (): string[] => Array.from(this.adapters.keys());
 
-  getConnection (name?: string): DatabaseAdapter {
+  getConnection ({ name }: ConnectionNameDto = {}): DatabaseAdapter {
     if (!name && this.defaultAdapter) return this.defaultAdapter;
     if (name && this.adapters.has(name)) return this.adapters.get(name)!;
     throw new InternalServerErrorException(`Database connection '${name || 'default'}' not found`);
   }
 
-  getReadConnection (name = 'default'): DatabaseAdapter {
+  getReadConnection ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter {
     const readKey = `${name}_read`;
     if (this.adapters.has(readKey)) return this.adapters.get(readKey)!;
-    return this.getConnection(name);
+    return this.getConnection({ name });
   }
 
-  async addConnection (name: string, config: DatabaseConfig, isReadOnly = false): Promise<void> {
+  async addConnection ({ name, config, isReadOnly = false }: AddConnectionDto): Promise<void> {
     const AdapterClass = DATABASE_ADAPTER_MAP[config.type];
-    if (!AdapterClass) return;
 
-    const adapter = new AdapterClass(config);
+    if (!AdapterClass) {
+      throw new InternalServerErrorException(
+        `No database adapter registered for type '${config.type}'. Supported types: ${Object.keys(DATABASE_ADAPTER_MAP).join(', ')}`
+      );
+    }
+
+    const adapter = new AdapterClass({ config });
     await adapter.connect();
 
     const connectionKey = isReadOnly ? `${name}_read` : name;

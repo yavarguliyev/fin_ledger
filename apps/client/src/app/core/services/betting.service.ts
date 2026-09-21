@@ -1,26 +1,25 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
+import { BetService } from './bet.service';
 import { WalletService } from './wallet.service';
 import { GameEventsService } from './game-events.service';
-import { AuthService } from './auth.service';
-import { GameEvent, Transaction, BetRequest, Wallet } from '../models/wallet.model';
+import { Bet, GameEvent, BetRequest, Wallet } from '../models/wallet.model';
 import { PaginatedResponse } from '../models/base.model';
 import { uuid } from '../helpers/uuid.helper';
 
 @Injectable({ providedIn: 'root' })
 export class BettingService {
+  private readonly betService = inject(BetService);
   private readonly walletService = inject(WalletService);
   private readonly gameEventsService = inject(GameEventsService);
-  private readonly auth = inject(AuthService);
 
-  private readonly betsSignal = signal<Transaction[]>([]);
+  private readonly betsSignal = signal<Bet[]>([]);
   private readonly totalBetsSignal = signal(0);
-  private readonly availableBalanceSignal = signal(0);
 
   readonly bets = computed(() => this.betsSignal());
   readonly totalBets = computed(() => this.totalBetsSignal());
-  readonly availableBalance = computed(() => this.availableBalanceSignal());
+  readonly availableBalance = computed(() => this.walletService.wallet()?.availableBalanceMinor ?? 0);
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
   readonly events = computed(() => this.gameEventsService.events());
 
@@ -28,14 +27,12 @@ export class BettingService {
     return this.gameEventsService.getEvents();
   }
 
-  loadWalletBalance (walletId: string): Observable<Wallet> {
-    return this.walletService
-      .getWallet(walletId)
-      .pipe(tap(() => this.availableBalanceSignal.set(this.walletService.wallet()?.availableBalanceMinor ?? 0)));
+  loadWallets (): Observable<Wallet[]> {
+    return this.walletService.loadWallets();
   }
 
-  loadBets (walletId: string, page: number, pageSize: number): Observable<PaginatedResponse<Transaction>> {
-    return this.walletService.getBets(walletId, page, pageSize).pipe(
+  loadBets (page: number, pageSize: number): Observable<PaginatedResponse<Bet>> {
+    return this.betService.getBets(page, pageSize).pipe(
       tap(response => {
         this.betsSignal.set(response.data);
         this.totalBetsSignal.set(response.total);
@@ -43,16 +40,11 @@ export class BettingService {
     );
   }
 
-  placeBet (event: GameEvent, stakeMinor: number): Observable<Wallet> {
-    const user = this.auth.currentUser();
-    const walletId = user?.walletId;
-    const wallet = this.walletService.wallet();
+  placeBet (event: GameEvent, stakeMinor: number): Observable<Bet> {
+    const walletId = this.walletService.wallet()?.id;
+    if (!walletId) throw new Error('Wallet not found');
 
-    if (!walletId || !wallet) throw new Error('Wallet not found');
-
-    const betRequest: BetRequest = { amountMinor: stakeMinor, currency: wallet.currency, transactionId: uuid(), reference: event.label };
-    return this.walletService
-      .placeBet(walletId, betRequest)
-      .pipe(tap(() => this.availableBalanceSignal.set(this.walletService.wallet()?.availableBalanceMinor ?? 0)));
+    const request: BetRequest = { walletId, eventId: event.id, selection: event.label, stakeMinor, idempotencyKey: uuid() };
+    return this.betService.placeBet(request).pipe(tap(() => this.walletService.getWallet(walletId).subscribe()));
   }
 }

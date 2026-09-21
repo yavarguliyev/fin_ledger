@@ -14,21 +14,12 @@ import { SharedModule } from '../../shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { LedgerModule } from '../ledger/ledger.module';
-import { FxModule } from '../fx-rate/fx.module';
-import { WalletCurrencyConversionModule } from '../wallet-currency-conversion/wallet-currency-conversion.module';
 import { UserCreateUseCase } from './use-cases/commands/user-create.use-case';
 import { DeleteUserFromDbUseCase } from './use-cases/commands/delete-user-from-db.use-case';
+import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-case';
 
 @Module({
-  imports: [
-    SharedModule,
-    StorageModule.forRoot(ClientIds.API_GATEWAY),
-    AuthModule,
-    WalletModule,
-    LedgerModule,
-    FxModule,
-    WalletCurrencyConversionModule
-  ],
+  imports: [SharedModule, StorageModule.forRoot({ clientId: ClientIds.API_GATEWAY }), AuthModule, WalletModule, LedgerModule],
   controllers: [UserController],
   providers: [
     UserService,
@@ -40,6 +31,7 @@ import { DeleteUserFromDbUseCase } from './use-cases/commands/delete-user-from-d
     UserCreateUseCase,
     DeleteUserUseCase,
     DeleteUserFromDbUseCase,
+    AnonymizeUserUseCase,
     UpdateEmailVerificationUseCase
   ],
   exports: [UserService, UserRepository]

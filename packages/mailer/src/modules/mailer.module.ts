@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientIds, EMAIL_SERVICE } from '@common/shared-libs';
+import { ClientIdDto, EMAIL_SERVICE } from '@common/shared-libs';
 
 import { MailerService } from './services/mailer.service';
 
 @Module({})
 export class MailerModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot ({ clientId }: ClientIdDto = {}): DynamicModule {
     const mailer = {
       provide: MailerService,
-      useFactory: (configService: ConfigService): MailerService => new MailerService(configService, clientId),
+      useFactory: (configService: ConfigService): MailerService => new MailerService({ configService, ...(clientId && { clientId }) }),
       inject: [ConfigService]
     };
 

@@ -1,10 +1,5 @@
 import { z } from 'zod';
-import { DatabaseAdapter, OutboxRepository, PaymentType, RequestContext, UnknownRecord } from '@common/libs';
-
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
-import { PaymentRepository } from '../../repositories/payment.repository';
-import { WalletService } from '../../../wallet/wallet.service';
-import { WalletSummaryDto } from '../../../wallet/dtos/wallet/wallet-summary.dto';
+import { UnknownRecord } from '@common/libs';
 
 export const RequestPaymentSchema = z.object({
   amountMinor: z
@@ -25,37 +20,3 @@ export const RequestPaymentSchema = z.object({
 });
 
 export type RequestPaymentDto = z.infer<typeof RequestPaymentSchema>;
-
-export type RequestPayment = { context: RequestContext; dto: RequestPaymentDto };
-
-export type RequestPaymentInput = { userId: string; dto: RequestPaymentDto; paymentMethodRepository: PaymentMethodRepository };
-
-export type ProcessPaymentInput = {
-  userId: string;
-  paymentType: PaymentType;
-  dto: RequestPaymentDto;
-  tx: DatabaseAdapter;
-  paymentMethodRepository: PaymentMethodRepository;
-  paymentRepository: PaymentRepository;
-  walletService: WalletService;
-  outboxRepository: OutboxRepository;
-  validateWallet: (wallet: WalletSummaryDto, dto: RequestPaymentDto) => void;
-};
-
-export type ExecuteWalletOperationInput = {
-  walletService: WalletService;
-  walletId: string;
-  amountMinor: number;
-  currency: string;
-  paymentId: string;
-  paymentType: PaymentType;
-  tx: DatabaseAdapter;
-};
-
-export type CreateHandleOptionsInput = {
-  paymentId: string;
-  userId: string;
-  walletId: string;
-  input: RequestPaymentDto;
-  tx: DatabaseAdapter;
-};

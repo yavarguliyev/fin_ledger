@@ -44,7 +44,7 @@ export const routes: Routes = [
   {
     path: 'admin',
     loadComponent: () => import('./features/admin/admin.component').then(m => m.AdminComponent),
-    canActivate: [roleGuard(['admin', 'global admin'])]
+    canActivate: [roleGuard(['ADMIN', 'GLOBAL_ADMIN'])]
   },
   {
     path: 'dashboard',
@@ -59,12 +59,12 @@ export const routes: Routes = [
   {
     path: 'wallet/deposit',
     loadComponent: () => import('./features/wallet/deposit.component').then(m => m.DepositComponent),
-    canActivate: [roleGuard(['user'])]
+    canActivate: [roleGuard(['USER'])]
   },
   {
     path: 'wallet/withdraw',
     loadComponent: () => import('./features/wallet/withdraw.component').then(m => m.WithdrawComponent),
-    canActivate: [roleGuard(['user'])]
+    canActivate: [roleGuard(['USER'])]
   },
   {
     path: 'wallet',
@@ -74,7 +74,7 @@ export const routes: Routes = [
   {
     path: 'betting',
     loadComponent: () => import('./features/betting/betting.component').then(m => m.BettingComponent),
-    canActivate: [roleGuard(['user'])]
+    canActivate: [roleGuard(['USER'])]
   },
   {
     path: 'notifications',

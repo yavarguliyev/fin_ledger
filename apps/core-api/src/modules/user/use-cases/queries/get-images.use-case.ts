@@ -1,27 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StorageService, FileUrlsResponse } from '@common/libs';
+import { FileUrlsResponse } from '@common/libs';
 
-import { UserRepository } from '../../repositories/user.repository';
+import { UserImagesDto } from '../../dtos/input/user-images.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { UserImagesDto } from '../../dtos/update/user-images.dto';
 
 @Injectable()
 export class GetImagesUseCase extends UserBaseCase<UserImagesDto, FileUrlsResponse> {
-  constructor (
-    private readonly userRepository: UserRepository,
-    private readonly storage: StorageService
-  ) {
-    super();
-  }
-
   async execute ({ userId, indexes }: UserImagesDto): Promise<FileUrlsResponse> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
     const key = `user-${userId}`;
 
     try {
-      const response = await this.storage.get(key, indexes, 86400);
+      const response = await this.storageService.get({ key, ...(indexes && { indexes }), expiresIn: 86400 });
       return response as FileUrlsResponse;
     } catch (error) {
       if (error instanceof NotFoundException) return { key, expiresIn: 86400, files: [] };

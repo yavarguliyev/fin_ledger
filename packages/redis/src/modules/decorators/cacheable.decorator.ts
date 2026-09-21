@@ -1,9 +1,9 @@
 import { AsyncMethod } from '@common/shared-libs';
 
-import { CacheableOptions } from '../interfaces/redis.interface';
+import { CacheableOptionsDto } from '../dtos/decorator/cacheable-options.dto';
 import { CacheHelper } from '../helpers/cache.helper';
 
-export const Cacheable = (options: CacheableOptions): MethodDecorator => {
+export const Cacheable = (options: CacheableOptionsDto): MethodDecorator => {
   return (_target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {
     const originalMethod = descriptor.value as AsyncMethod;
     const methodName = String(propertyKey);

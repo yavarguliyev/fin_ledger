@@ -1,27 +1,37 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, DatabaseAdapter } from '@common/libs';
+import { BaseRepository, PostgresService, PaymentStatus } from '@common/libs';
 
-import { PaymentUpdateDto } from '../dtos/payment/payment-update.dto';
 import { PaymentDto } from '../dtos/payment/payment.dto';
 import { InternalPaymentRecordDto } from '../dtos/payment/internal-payment.dto';
+import { FindByProviderChargeIdDto } from '../dtos/repository/find-by-provider-charge-id.dto';
+import { FindPaymentByIdempotencyKeyDto } from '../dtos/repository/find-payment-by-idempotency-key.dto';
+import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status.dto';
 
 @Injectable()
 export class PaymentRepository extends BaseRepository<PaymentDto> {
   constructor (postgresService: PostgresService) {
-    super(postgresService, 'payments', {
-      idempotencyKey: 'idempotency_key',
-      userId: 'user_id',
-      walletId: 'wallet_id',
-      ledgerAccountId: 'ledger_account_id',
-      paymentMethodId: 'payment_method_id',
-      amountMinor: 'amount_minor',
-      provider: 'provider',
-      providerChargeId: 'provider_charge_id',
-      transactionId: 'transaction_id',
-      metadata: 'metadata',
-      failureReason: 'failure_reason',
-      createdAt: 'created_at',
-      updatedAt: 'updated_at'
+    super({
+      service: postgresService,
+      tableName: 'payments',
+      columnMappings: {
+        idempotencyKey: 'idempotency_key',
+        userId: 'user_id',
+        walletId: 'wallet_id',
+        paymentMethodId: 'payment_method_id',
+        amountMinor: 'amount_minor',
+        feeMinor: 'fee_minor',
+        provider: 'provider',
+        providerChargeId: 'provider_charge_id',
+        ledgerTransactionId: 'ledger_transaction_id',
+        metadata: 'metadata',
+        failureCode: 'failure_code',
+        failureReason: 'failure_reason',
+        authorizedAt: 'authorized_at',
+        completedAt: 'completed_at',
+        failedAt: 'failed_at',
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+      }
     });
   }
 
@@ -31,35 +41,47 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
       'idempotencyKey',
       'userId',
       'walletId',
-      'ledgerAccountId',
       'paymentMethodId',
       'type',
       'amountMinor',
+      'feeMinor',
       'currency',
       'status',
       'provider',
       'providerChargeId',
-      'transactionId',
+      'ledgerTransactionId',
       'metadata',
+      'failureCode',
       'failureReason',
+      'authorizedAt',
+      'completedAt',
+      'failedAt',
       'createdAt',
       'updatedAt'
     ];
   }
 
-  async findByIdempotencyKey (idempotencyKey: string, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
-    return this.findOne({ idempotency_key: idempotencyKey }, adapter);
+  async findByIdempotencyKey ({ idempotencyKey }: FindPaymentByIdempotencyKeyDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { idempotency_key: idempotencyKey } });
   }
 
-  async findByProviderChargeId (provider: string, providerChargeId: string, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
-    return this.findOne({ provider, provider_charge_id: providerChargeId }, adapter);
+  async findByProviderChargeId ({ provider, providerChargeId }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { provider, provider_charge_id: providerChargeId } });
   }
 
-  async createPayment (dto: InternalPaymentRecordDto, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
-    return this.create(dto, undefined, adapter);
+  async createPayment (dto: InternalPaymentRecordDto): Promise<PaymentDto | null> {
+    return this.create({ data: dto });
   }
 
-  async updatePaymentStatus (paymentId: string, update: PaymentUpdateDto, adapter?: DatabaseAdapter): Promise<PaymentDto | null> {
-    return this.update(paymentId, update as Partial<PaymentDto>, undefined, adapter);
+  async updatePaymentStatus (dto: UpdatePaymentStatusDto): Promise<PaymentDto | null> {
+    const { paymentId, ...update } = dto;
+    const now = new Date().toISOString();
+
+    const derived = {
+      ...(update.status === PaymentStatus.COMPLETED && { completedAt: now }),
+      ...(update.status === PaymentStatus.FAILED && { failedAt: now, failureCode: update.failureCode ?? 'PAYMENT_FAILED' })
+    };
+
+    return this.update({ id: paymentId, data: { ...update, ...derived } as Partial<PaymentDto> });
   }
 }

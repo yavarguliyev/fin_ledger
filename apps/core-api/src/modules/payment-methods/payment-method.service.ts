@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Cacheable, CacheEvict, PaymentMethodStatus, REDIS_CACHE_PROVIDER, RedisCacheProvider, SetupSessionResultDto } from '@common/libs';
+import { Cacheable, CacheEvict, REDIS_CACHE_PROVIDER, RedisCacheProvider, SetupSessionResultDto } from '@common/libs';
 
 import { RemovePaymentMethodUseCase } from './use-cases/commands/remove-payment-method.use-case';
 import { VerifyPaymentMethodUseCase } from './use-cases/commands/verify-payment-method.use-case';
@@ -8,7 +8,10 @@ import { ConfirmSetupSessionUseCase } from './use-cases/commands/confirm-setup-s
 import { ListPaymentMethodsUseCase } from './use-cases/queries/list-payment-methods.use-case';
 import { GetPaymentMethodUseCase } from './use-cases/queries/get-payment-method.use-case';
 import { PaymentMethodDto } from './dtos/payment-method/payment-method.dto';
-import { ConfirmSetupSessionDto, CreateSetupSessionDto } from './dtos/request/setup-session.dto';
+import { CreateSetupSessionDto } from './dtos/input/create-setup-session.dto';
+import { ConfirmSetupSessionDto } from './dtos/input/confirm-setup-session.dto';
+import { ListPaymentMethodsDto } from './dtos/input/list-payment-methods.dto';
+import { PaymentMethodByUserDto } from './dtos/input/payment-method-by-user.dto';
 
 @Injectable()
 export class PaymentMethodService {
@@ -27,23 +30,23 @@ export class PaymentMethodService {
   }
 
   @CacheEvict({ keyPrefix: ['payment-method'], isPattern: true })
-  async removePaymentMethod (id: string, userId: string): Promise<PaymentMethodDto> {
-    return this.removePaymentMethodUseCase.execute({ id, userId });
+  async removePaymentMethod (dto: PaymentMethodByUserDto): Promise<PaymentMethodDto> {
+    return this.removePaymentMethodUseCase.execute(dto);
   }
 
   @CacheEvict({ keyPrefix: ['payment-method'], isPattern: true })
-  async verifyPaymentMethod (id: string, userId: string): Promise<PaymentMethodDto> {
-    return this.verifyPaymentMethodUseCase.execute({ id, userId });
+  async verifyPaymentMethod (dto: PaymentMethodByUserDto): Promise<PaymentMethodDto> {
+    return this.verifyPaymentMethodUseCase.execute(dto);
   }
 
   @Cacheable({ keyPrefix: 'payment-method:list', ttlSeconds: 120 })
-  async listPaymentMethods (userId: string, status?: PaymentMethodStatus): Promise<PaymentMethodDto[]> {
-    return this.listPaymentMethodsUseCase.execute({ userId, status });
+  async listPaymentMethods (dto: ListPaymentMethodsDto): Promise<PaymentMethodDto[]> {
+    return this.listPaymentMethodsUseCase.execute(dto);
   }
 
   @Cacheable({ keyPrefix: 'payment-method', ttlSeconds: 120 })
-  async getPaymentMethod (id: string, userId: string): Promise<PaymentMethodDto> {
-    return this.getPaymentMethodUseCase.execute({ id, userId });
+  async getPaymentMethod (dto: PaymentMethodByUserDto): Promise<PaymentMethodDto> {
+    return this.getPaymentMethodUseCase.execute(dto);
   }
 
   async createSetupSession (dto: CreateSetupSessionDto): Promise<SetupSessionResultDto> {

@@ -1,52 +1,53 @@
 import { logLevel } from 'kafkajs';
-import { BaseHelper, HeadersPayload, WorkflowContext, WorkflowExecutionRecord, WorkflowStepStatus } from '@common/shared-libs';
+import { BaseHelper, HeadersPayload, WorkflowExecutionRecord, WorkflowStepStatus } from '@common/shared-libs';
 
-import { KafkaMessageRecord, KafkaMessage, KafkaConfigPayload, ConsumerConfigPayload } from '../interfaces/kafka.interface';
-import {
-  CreateConsumerConfigParams,
-  CreateKafkaConfigParams,
-  EnsureKafkaTopicsExistParams,
-  InstanceWrapper,
-  ParseKafkaHeadersParams,
-  ResolveBrokersParams,
-  RunCompensationsParams,
-  SubscribeToTopicsParams
-} from '../types/run-compensations-params.type';
+import { KafkaMessageRecord } from '../interfaces/kafka-message-record.interface';
+import { KafkaConfigPayload } from '../interfaces/kafka-config-payload.interface';
+import { ConsumerConfigPayload } from '../interfaces/consumer-config-payload.interface';
+import { BuildKafkaMessageDto } from '../dtos/helper/build-kafka-message.dto';
+import { CreateConsumerConfigDto } from '../dtos/helper/create-consumer-config.dto';
+import { CreateKafkaConfigDto } from '../dtos/helper/create-kafka-config.dto';
+import { EnsureKafkaTopicsDto } from '../dtos/helper/ensure-kafka-topics.dto';
+import { InstanceWrapperDto } from '../dtos/helper/instance-wrapper.dto';
+import { ParseKafkaHeadersDto } from '../dtos/helper/parse-kafka-headers.dto';
+import { ResolveBrokersDto } from '../dtos/helper/resolve-brokers.dto';
+import { RunCompensationsDto } from '../dtos/helper/run-compensations.dto';
+import { SubscribeToTopicsDto } from '../dtos/helper/subscribe-to-topics.dto';
 
 export class KafkaHelper {
-  public static isValidInstance (wrapper: InstanceWrapper): boolean {
+  static isValidInstance (wrapper: InstanceWrapperDto): boolean {
     return Boolean(wrapper.instance) && typeof wrapper.instance === 'object';
   }
 
-  public static createConsumerConfig ({ groupId }: CreateConsumerConfigParams): ConsumerConfigPayload {
+  static createConsumerConfig ({ groupId }: CreateConsumerConfigDto): ConsumerConfigPayload {
     return { groupId, sessionTimeout: 30000, heartbeatInterval: 3000, maxWaitTimeInMs: 5000, rebalanceTimeout: 60000 };
   }
 
-  public static async subscribeToTopics ({ consumer, topics }: SubscribeToTopicsParams): Promise<void> {
+  static async subscribeToTopics ({ consumer, topics }: SubscribeToTopicsDto): Promise<void> {
     for (const topic of topics) {
       await consumer.subscribe({ topic, fromBeginning: false });
     }
   }
 
-  public static resolveBrokers ({ brokers, host, port }: ResolveBrokersParams): string[] {
+  static resolveBrokers ({ brokers, host, port }: ResolveBrokersDto): string[] {
     if (brokers) return brokers.split(',').map(broker => broker.trim());
     if (!host || !port) return [];
     return [`${host}:${port}`];
   }
 
-  public static buildKafkaMessage ({ topic, partition, message }: KafkaMessage): KafkaMessageRecord {
+  static buildKafkaMessage ({ topic, partition, message }: BuildKafkaMessageDto): KafkaMessageRecord {
     const value: unknown = message.value ? JSON.parse(message.value.toString()) : null;
     const key = message.key ? message.key.toString() : null;
 
     if (message.headers) {
-      const headers = this.parseKafkaHeaders(message.headers as ParseKafkaHeadersParams);
+      const headers = KafkaHelper.parseKafkaHeaders({ headers: message.headers });
       return { topic, partition, value, key, timestamp: message.timestamp, headers };
     }
 
     return { topic, partition, value, key, timestamp: message.timestamp };
   }
 
-  public static parseKafkaHeaders (headers: ParseKafkaHeadersParams): HeadersPayload {
+  static parseKafkaHeaders ({ headers }: ParseKafkaHeadersDto): HeadersPayload {
     const parsed: Record<string, string | Buffer | (string | Buffer)[]> = {};
     const headersObj = headers as Record<string, Buffer | string | (Buffer | string)[]>;
 
@@ -59,7 +60,7 @@ export class KafkaHelper {
     return parsed;
   }
 
-  public static async ensureKafkaTopicsExist ({ kafka, topics, logger }: EnsureKafkaTopicsExistParams): Promise<void> {
+  static async ensureKafkaTopicsExist ({ kafka, topics, logger }: EnsureKafkaTopicsDto): Promise<void> {
     const admin = kafka.admin();
 
     try {
@@ -79,7 +80,7 @@ export class KafkaHelper {
     }
   }
 
-  public static createKafkaConfig ({ clientId, brokers }: CreateKafkaConfigParams): KafkaConfigPayload {
+  static createKafkaConfig ({ clientId, brokers }: CreateKafkaConfigDto): KafkaConfigPayload {
     return {
       clientId,
       brokers,
@@ -96,9 +97,7 @@ export class KafkaHelper {
     };
   }
 
-  public static async runCompensations<TContext extends WorkflowContext> (
-    params: RunCompensationsParams<TContext>
-  ): Promise<WorkflowExecutionRecord[]> {
+  static async runCompensations (params: RunCompensationsDto): Promise<WorkflowExecutionRecord[]> {
     const { steps, context, failedIndex, logger } = params;
 
     const log: WorkflowExecutionRecord[] = [];

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { WalletTransactionType } from '@common/libs';
+import { EntryType } from '@common/libs';
 
 export const LedgerEntryResponseSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
@@ -18,7 +18,7 @@ export const LedgerEntryResponseSchema = z.object({
 
   description: z.string({ message: 'Description must be a string' }),
 
-  entryType: z.enum(WalletTransactionType, { message: 'Entry type must be a valid wallet transaction type' }),
+  entryType: z.enum(EntryType, { message: 'Entry type must be DEBIT or CREDIT' }),
 
   reference: z.string({ message: 'Reference must be a string' }).optional()
 });

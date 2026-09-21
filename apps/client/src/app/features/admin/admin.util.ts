@@ -2,7 +2,7 @@ import { TableColumn } from '../../core/models/data-table.model';
 import { AdminUser } from '../../core/models/admin.model';
 import { formatCurrency, formatCurrencyCompact as formatCompact } from '../../core/helpers/currency.helper';
 
-const createActionsColumn = (onView: (userId: string) => void, onDelete: (userId: string) => void, showDelete: boolean): TableColumn<AdminUser> => ({
+const createActionsColumn = (onView: (userId: string) => void, onAnonymize: (userId: string) => void, showDelete: boolean): TableColumn<AdminUser> => ({
   key: 'actions',
   label: 'Actions',
   type: 'actions',
@@ -11,11 +11,12 @@ const createActionsColumn = (onView: (userId: string) => void, onDelete: (userId
     view: true,
     update: false,
     delete: showDelete,
+    deleteLabel: 'Anonymize user',
     onView: (row: AdminUser): void => {
       onView(row.id);
     },
     onDelete: (row: AdminUser): void => {
-      onDelete(row.id);
+      onAnonymize(row.id);
     }
   }
 });
@@ -49,12 +50,12 @@ const createBaseColumns = (): TableColumn<AdminUser>[] => [
     label: 'Balance',
     type: 'currency',
     align: 'center',
-    format: (value: unknown): string => formatCurrency(Number(value), 'USD')
+    format: (value: unknown, row: AdminUser): string => formatCurrency(Number(value), row.currency)
   }
 ];
 
 const createToggleColumns = (
-  onStatusToggle: (userId: string, isActive: boolean) => void,
+  onStatusToggle: (walletId: string | null, isActive: boolean) => void,
   onEmailVerificationToggle: (userId: string, isVerified: boolean) => void,
   onDeletedToggle: (userId: string, isDeleted: boolean) => void
 ): TableColumn<AdminUser>[] => [
@@ -64,7 +65,7 @@ const createToggleColumns = (
     type: 'toggle',
     align: 'center',
     getToggleValue: (row: AdminUser): boolean => row.status?.toUpperCase() === 'ACTIVE',
-    toggleCallback: (checked: boolean, row: AdminUser): void => onStatusToggle(row.id, checked)
+    toggleCallback: (checked: boolean, row: AdminUser): void => onStatusToggle(row.walletId, checked)
   },
   {
     key: 'isEmailVerified',
@@ -85,16 +86,16 @@ const createToggleColumns = (
 ];
 
 export const getAdminTableColumns = (
-  onStatusToggle: (userId: string, isActive: boolean) => void,
+  onStatusToggle: (walletId: string | null, isActive: boolean) => void,
   onEmailVerificationToggle: (userId: string, isVerified: boolean) => void,
   onDeletedToggle: (userId: string, isDeleted: boolean) => void,
   onView: (userId: string) => void,
-  onDelete: (userId: string) => void,
+  onAnonymize: (userId: string) => void,
   isGlobalAdmin: boolean
 ): TableColumn<AdminUser>[] => [
   ...createBaseColumns(),
   ...createToggleColumns(onStatusToggle, onEmailVerificationToggle, onDeletedToggle),
-  createActionsColumn(onView, onDelete, isGlobalAdmin)
+  createActionsColumn(onView, onAnonymize, isGlobalAdmin)
 ];
 
 export const formatCurrencyCompact = (amountMinor: number): string => formatCompact(amountMinor, 'USD');

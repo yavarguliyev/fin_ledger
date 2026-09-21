@@ -1,0 +1,22 @@
+export const CACHE_KEYS = [
+  'admin-dashboard',
+  'bet',
+  'bet:list',
+  'game-events',
+  'notification',
+  'notification:list',
+  'ledger',
+  'ledger:system',
+  'ledger:account',
+  'ledger:transaction',
+  'ledger:entries',
+  'payment',
+  'payment-method:list',
+  'payment-method',
+  'storage:file-urls',
+  'wallet',
+  'wallet:user',
+  'wallet:transaction',
+  'wallet:transaction:bets',
+  'wallet:transaction:summary'
+] as const;

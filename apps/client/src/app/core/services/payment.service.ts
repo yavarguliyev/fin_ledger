@@ -13,16 +13,16 @@ export class PaymentService {
   private readonly http = inject(HttpClient);
   private readonly walletService = inject(WalletService);
 
-  deposit (walletId: string, req: PaymentRequest): Observable<Payment> {
+  deposit (req: PaymentRequest): Observable<Payment> {
     return this.http.post<Payment>(`${this.apiUrl}/payments/deposit`, req).pipe(
-      tap(() => this.walletService.getWallet(walletId).subscribe()),
+      tap(() => this.walletService.loadWallets().subscribe()),
       catchError((error: HttpErrorResponse) => handleHttpError(error))
     );
   }
 
-  withdraw (walletId: string, req: PaymentRequest): Observable<Payment> {
+  withdraw (req: PaymentRequest): Observable<Payment> {
     return this.http.post<Payment>(`${this.apiUrl}/payments/withdraw`, req).pipe(
-      tap(() => this.walletService.getWallet(walletId).subscribe()),
+      tap(() => this.walletService.loadWallets().subscribe()),
       catchError((error: HttpErrorResponse) => handleHttpError(error))
     );
   }

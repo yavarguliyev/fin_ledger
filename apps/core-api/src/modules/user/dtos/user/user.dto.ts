@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 import { SessionUserSchema } from '../../../auth/dtos/auth/session-user.dto';
 
-export type UserDto = z.infer<typeof SessionUserSchema>;
+export const UserSchema = SessionUserSchema.extend({
+  passwordChangedAt: z.iso.datetime({ message: 'Password changed at must be a valid ISO datetime' }).nullable().optional()
+});
 
-export type DeleteUserDto = { success: boolean; message: string };
-
-export type UpdateEmailVerificationInput = { userId: string; isEmailVerified: boolean };
+export type UserDto = z.infer<typeof UserSchema>;

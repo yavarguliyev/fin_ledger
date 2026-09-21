@@ -1,7 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { BaseHelper, WorkflowContext, WorkflowExecutionRecord, WorkflowNames, WorkflowStepStatus } from '@common/shared-libs';
 
-import { WorkflowStep, WorkflowRunRecord } from '../interfaces/workflow.interface';
+import { WorkflowStep } from '../interfaces/workflow-step.interface';
+import { WorkflowRunRecord } from '../interfaces/workflow-run-record.interface';
 import { KafkaHelper } from '../helpers/kafka.helper';
 
 export abstract class WorkflowOrchestratorService<TInput, TContext extends WorkflowContext> {

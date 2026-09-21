@@ -1,21 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { StorageService, UploadFileResponse, StorageHelper } from '@common/libs';
+import { UploadFileResponse, StorageHelper } from '@common/libs';
 
-import { UserRepository } from '../../repositories/user.repository';
+import { UploadFilesDto } from '../../dtos/input/upload-files.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { UserUpload } from '../../dtos/update/update-user.dto';
 
 @Injectable()
-export class UploadFilesUseCase extends UserBaseCase<UserUpload, UploadFileResponse> {
-  constructor (
-    private readonly userRepository: UserRepository,
-    private readonly storage: StorageService
-  ) {
-    super();
-  }
-
-  async execute ({ userId, files }: UserUpload): Promise<UploadFileResponse> {
-    const user = await this.userRepository.findById(userId);
+export class UploadFilesUseCase extends UserBaseCase<UploadFilesDto, UploadFileResponse> {
+  async execute ({ userId, files }: UploadFilesDto): Promise<UploadFileResponse> {
+    const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
     const processedFiles = await Promise.all(
@@ -25,6 +17,6 @@ export class UploadFilesUseCase extends UserBaseCase<UserUpload, UploadFileRespo
       })
     );
 
-    return this.storage.uploadFiles({ key: `user-${userId}`, files: processedFiles });
+    return this.storageService.uploadFiles({ key: `user-${userId}`, files: processedFiles });
   }
 }

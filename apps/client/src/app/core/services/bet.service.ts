@@ -1,0 +1,24 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, catchError } from 'rxjs';
+
+import { Bet, BetRequest } from '../models/wallet.model';
+import { PaginatedResponse } from '../models/base.model';
+import { environment } from '../../../environments/environment';
+import { handleHttpError } from '../helpers/http-error.helper';
+
+@Injectable({ providedIn: 'root' })
+export class BetService {
+  private readonly apiUrl = environment.apiUrl;
+  private readonly http = inject(HttpClient);
+
+  getBets (page: number, limit: number): Observable<PaginatedResponse<Bet>> {
+    return this.http
+      .get<PaginatedResponse<Bet>>(`${this.apiUrl}/bets`, { params: { page: page.toString(), limit: limit.toString() } })
+      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+  }
+
+  placeBet (req: BetRequest): Observable<Bet> {
+    return this.http.post<Bet>(`${this.apiUrl}/bets`, req).pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+  }
+}

@@ -10,7 +10,7 @@ export const PaymentMethodSchema = z.object({
 
   accountHolder: z.string({ message: 'Account holder must be a string' }),
 
-  maskedAccount: z.string({ message: 'Masked account must be a string' }),
+  lastFour: z.string({ message: 'Last four must be a string' }).optional().nullable(),
 
   bankName: z.string({ message: 'Bank name must be a string' }).optional().nullable(),
 
@@ -26,7 +26,11 @@ export const PaymentMethodSchema = z.object({
 
   expiryYear: z.number({ message: 'Expiry year must be a number' }).optional().nullable(),
 
-  cvv: z.string({ message: 'CVV must be a string' }).optional().nullable(),
+  fingerprint: z.string({ message: 'Fingerprint must be a string' }).optional().nullable(),
+
+  verifiedAt: z.date({ message: 'Verified at must be a valid date' }).optional().nullable(),
+
+  deletedAt: z.date({ message: 'Deleted at must be a valid date' }).optional().nullable(),
 
   failureReason: z.string({ message: 'Failure reason must be a string' }).optional().nullable(),
 

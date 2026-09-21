@@ -1,34 +1,40 @@
-import { NotFoundException } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { StorageType } from '@common/shared-libs';
 
 import { BaseStrategy } from '../../strategies/base/base.strategy';
+import { ObjectKeyDto } from '../../dtos/strategy/object-key.dto';
+import { FilenameDto } from '../../dtos/step/filename.dto';
+import { FilterFilesDto } from '../../dtos/step/filter-files.dto';
+import { FileSelectionDto } from '../../dtos/service/file-selection.dto';
+import { TargetFilesDto } from '../../dtos/step/target-files.dto';
 
-export abstract class StorageBaseUseCase<TSingleResult = unknown, TMultiResult = unknown> {
+export abstract class StorageBaseUseCase {
   protected abstract readonly storageType: StorageType;
 
+  @Inject(BaseStrategy)
   protected readonly storageStrategy!: BaseStrategy;
 
-  protected async checkExists (key: string): Promise<boolean> {
-    return this.storageStrategy.exists(key);
+  protected async checkExists (dto: ObjectKeyDto): Promise<boolean> {
+    return this.storageStrategy.exists(dto);
   }
 
-  protected getFileExtension (filename: string): string {
+  protected getFileExtension ({ filename }: FilenameDto): string {
     const parts = filename.split('.');
     return parts.length > 1 ? `.${parts[parts.length - 1]}` : '';
   }
 
-  protected async ensureExists (key: string): Promise<void> {
-    const exists = await this.storageStrategy.exists(key);
+  protected async ensureExists (dto: ObjectKeyDto): Promise<void> {
+    const exists = await this.storageStrategy.exists(dto);
     if (!exists) throw new NotFoundException('File not found');
   }
 
-  protected async getFilesWithPrefix (key: string): Promise<string[]> {
-    const files = await this.storageStrategy.listByPrefix(key);
+  protected async getFilesWithPrefix ({ key }: ObjectKeyDto): Promise<string[]> {
+    const files = await this.storageStrategy.listByPrefix({ prefix: key });
     if (files.length === 0) throw new NotFoundException(`No files found for key: ${key}`);
     return files;
   }
 
-  protected filterFilesByIndexes (files: string[], indexes?: number[]): string[] {
+  protected filterFilesByIndexes ({ files, indexes }: FilterFilesDto): string[] {
     if (!indexes || indexes.length === 0) return files;
 
     const filtered = indexes
@@ -40,25 +46,13 @@ export abstract class StorageBaseUseCase<TSingleResult = unknown, TMultiResult =
     return filtered;
   }
 
-  protected async executeSingleFile<TParams extends unknown[]> (
-    key: string,
-    operation: (key: string, ...params: TParams) => Promise<TSingleResult>,
-    ...params: TParams
-  ): Promise<TSingleResult> {
-    await this.ensureExists(key);
-    return operation(key, ...params);
+  protected async resolveTargetFiles ({ key, indexes }: FileSelectionDto): Promise<TargetFilesDto> {
+    const files = await this.getFilesWithPrefix({ key });
+    return { files, targetFiles: this.filterFilesByIndexes({ files, indexes }) };
   }
 
-  protected async executeMultiFile<TParams extends unknown[]> (
-    key: string,
-    indexes: number[] | undefined,
-    operation: (filePath: string, ...params: TParams) => Promise<unknown>,
-    resultBuilder: (files: string[], results: unknown[], indexes?: number[]) => TMultiResult,
-    ...params: TParams
-  ): Promise<TMultiResult> {
-    const files = await this.getFilesWithPrefix(key);
-    const targetFiles = this.filterFilesByIndexes(files, indexes);
-    const results = await Promise.all(targetFiles.map(filePath => operation(filePath, ...params)));
-    return resultBuilder(files, results, indexes);
+  protected async isSingleFile ({ key }: ObjectKeyDto): Promise<boolean> {
+    const files = await this.storageStrategy.listByPrefix({ prefix: key });
+    return files.length === 0 || (files.length === 1 && files[0] === key);
   }
 }

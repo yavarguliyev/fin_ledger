@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cacheable } from '@common/libs';
 
-import { AdminDashboardDto } from './dtos/admin-dashboard.dto';
+import { AdminDashboardDto } from './dtos/dashboard/admin-dashboard.dto';
 import { GetAdminDashboardUseCase } from './use-cases/queries/get-admin-dashboard.use-case';
 
 @Injectable()

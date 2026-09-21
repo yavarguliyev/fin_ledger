@@ -18,8 +18,8 @@ export class CreateUserModalComponent {
   readonly loading = signal(false);
 
   readonly roleOptions = [
-    { value: 'admin', label: 'Admin' },
-    { value: 'moderator', label: 'Moderator' }
+    { value: 'ADMIN', label: 'Admin' },
+    { value: 'MODERATOR', label: 'Moderator' }
   ];
 
   readonly form = this.fb.group({

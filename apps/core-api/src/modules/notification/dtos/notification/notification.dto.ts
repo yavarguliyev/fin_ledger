@@ -2,6 +2,10 @@ import { z } from 'zod';
 import { NotificationStatus, NotificationType } from '@common/libs';
 
 export const NotificationSchema = z.object({
+  sentAt: z.string({ message: 'Sent at must be a string' }).nullable().optional(),
+
+  readAt: z.string({ message: 'Read at must be a string' }).nullable().optional(),
+
   userId: z.string({ message: 'User ID must be a string' }),
 
   id: z.string({ message: 'ID must be a string' }),

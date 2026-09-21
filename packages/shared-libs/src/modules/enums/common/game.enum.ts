@@ -1,0 +1,16 @@
+export enum GameEventStatus {
+  CANCELLED = 'CANCELLED',
+  FINISHED = 'FINISHED',
+  LIVE = 'LIVE',
+  POSTPONED = 'POSTPONED',
+  SCHEDULED = 'SCHEDULED',
+  SETTLED = 'SETTLED'
+}
+
+export enum BetStatus {
+  CASHED_OUT = 'CASHED_OUT',
+  LOST = 'LOST',
+  PENDING = 'PENDING',
+  VOIDED = 'VOIDED',
+  WON = 'WON'
+}

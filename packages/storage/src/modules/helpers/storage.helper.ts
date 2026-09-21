@@ -1,13 +1,11 @@
 import { BadRequestException } from '@nestjs/common';
 import sharp from 'sharp';
 
-import { UploadFile } from '../interfaces/storage.interface';
-import { ConvertToWebFormatParams } from '../dto/storage.dto';
+import { UploadFile } from '../interfaces/upload-file.interface';
+import { ConvertToWebFormatDto } from '../dtos/helper/convert-to-web-format.dto';
 
 export class StorageHelper {
-  public static async convertToWebFormat (params: ConvertToWebFormatParams): Promise<UploadFile> {
-    const { file } = params;
-
+  static async convertToWebFormat ({ file }: ConvertToWebFormatDto): Promise<UploadFile> {
     try {
       const convertedBuffer = await sharp(file.buffer).png().toBuffer();
       const originalName = file.originalname.replace(/\.[^.]+$/, '.png');

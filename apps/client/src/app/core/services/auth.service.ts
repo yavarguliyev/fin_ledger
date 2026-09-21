@@ -6,6 +6,7 @@ import { Observable, catchError, tap } from 'rxjs';
 import { AuthResponse, AuthUser, LoginRequest, RegisterDto, SessionData, UpdateProfileResponse } from '../models/auth.model';
 import { ThemeService } from './theme.service';
 import { NotificationService } from './notification.service';
+import { WalletService } from './wallet.service';
 import { environment } from '../../../environments/environment';
 import { handleHttpError } from '../helpers/http-error.helper';
 
@@ -16,6 +17,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
   private readonly notificationService = inject(NotificationService);
+  private readonly walletService = inject(WalletService);
   private readonly tokenSignal = signal<string | null>(this.readToken());
   private readonly userSignal = signal<AuthUser | null>(this.readUser());
   private readonly loggingOutSignal = signal(false);
@@ -115,6 +117,7 @@ export class AuthService {
 
   private clearSession (): void {
     this.notificationService.disconnectSSE();
+    this.walletService.reset();
     this.tokenSignal.set(null);
     this.userSignal.set(null);
 

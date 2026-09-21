@@ -2,7 +2,7 @@ import { Inject, OnModuleInit, Logger } from '@nestjs/common';
 import { RabbitmqService, RABBITMQ_SERVICE, UnknownRecord, DomainEventType, NotificationType } from '@common/libs';
 
 import { NotificationService } from '../../notification.service';
-import { EventTitle } from '../../dtos/notification/notification-event-config.dto';
+import { EventTitleDto } from '../../dtos/notification/event-title.dto';
 import { NotificationHelper } from '../../helpers/notification.helper';
 
 export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements OnModuleInit {
@@ -12,7 +12,7 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
   @Inject(NotificationService)
   protected readonly notificationService!: NotificationService;
 
-  protected abstract readonly title: EventTitle;
+  protected abstract readonly title: EventTitleDto;
   protected abstract readonly eventType: DomainEventType;
   protected abstract readonly notificationType: NotificationType;
 
@@ -30,17 +30,23 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
   }
 
   protected async subscribe (): Promise<void> {
-    await this.rabbitmqService.subscribe(this.eventType, payload =>
-      NotificationHelper.handleEvent({
+    await this.rabbitmqService.subscribe({
+      routingKey: this.eventType,
+      handler: async message => {
+      const payload = message as TPayload;
+      const userId = await this.getUserId(payload);
+
+      await NotificationHelper.handleEvent({
         title: this.title,
         notificationType: this.notificationType,
         logger: this.logger,
-        payload: payload as TPayload,
+        payload,
         eventType: this.eventType,
-        getUserId: this.getUserId.bind(this),
-        getContent: this.getContent.bind(this),
+        ...(userId && { userId }),
+        content: await this.getContent(payload),
         notificationService: this.notificationService
-      })
-    );
+      });
+      }
+    });
   }
 }

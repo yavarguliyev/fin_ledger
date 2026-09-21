@@ -1,7 +1,7 @@
 import { TableColumn, FilterOption } from '../../core/models/data-table.model';
 import { Transaction } from '../../core/models/wallet.model';
 import { formatType, statusClass } from '../../core/helpers/transaction.helper';
-import { formatCurrency } from '../../core/helpers/currency.helper';
+import { formatCurrency, fromMinor } from '../../core/helpers/currency.helper';
 
 export const getWalletTableColumns = (): TableColumn<Transaction>[] => {
   return [
@@ -53,15 +53,13 @@ export const getTransactionFilterOptions = (): FilterOption[] => {
     { label: 'Deposit', value: 'DEPOSIT' },
     { label: 'Withdrawal', value: 'WITHDRAWAL' },
     { label: 'Bet', value: 'BET' },
-    { label: 'Winning', value: 'WINNING' },
-    { label: 'Conversion In', value: 'CONVERSION_IN' },
-    { label: 'Conversion Out', value: 'CONVERSION_OUT' }
+    { label: 'Winning', value: 'WINNING' }
   ];
 };
 
 export const exportTransactionsToCsv = (transactions: Transaction[]): void => {
   const header = 'Date,Type,Amount,Status,Reference\n';
-  const rows = transactions.map(t => `${t.createdAt},${formatType(t.type)},${t.amountMinor / 100},${t.status},"${t.reference ?? ''}"`).join('\n');
+  const rows = transactions.map(t => `${t.createdAt},${formatType(t.type)},${fromMinor(t.amountMinor, t.currency)},${t.status},"${t.reference ?? ''}"`).join('\n');
 
   const blob = new Blob([header + rows], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);

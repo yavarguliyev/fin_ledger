@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DomainEventType, NotificationType } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
-import { UserRegisteredPayloadDto } from '../../dtos/user/user-register-payload.dto';
+import { UserRegisteredPayloadDto } from '../../dtos/event/user-registered-payload.dto';
 
 @Injectable()
 export class UserRegisteredConsumer extends NotificationBaseConsumer<UserRegisteredPayloadDto> {

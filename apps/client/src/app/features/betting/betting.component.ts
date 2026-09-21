@@ -2,7 +2,6 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
-import { AuthService } from '../../core/services/auth.service';
 import { BettingService } from '../../core/services/betting.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
@@ -12,7 +11,8 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { PaginationConfig } from '../../core/models/base.model';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { ShowMoreConfig } from '../../core/models/base.model';
-import { GameEvent } from '../../core/models/wallet.model';
+import { Bet, GameEvent } from '../../core/models/wallet.model';
+import { formatCurrency, toMinor } from '../../core/helpers/currency.helper';
 import { createRequiredValidator, createMinValidator } from '../../core/helpers/validators.helper';
 
 @Component({
@@ -23,7 +23,6 @@ import { createRequiredValidator, createMinValidator } from '../../core/helpers/
 })
 export class BettingComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
   private readonly bettingService = inject(BettingService);
   private readonly toast = inject(ToastService);
 
@@ -46,7 +45,7 @@ export class BettingComponent implements OnInit {
 
   readonly stakeMinor = computed(() => {
     const value = this.stakeValue();
-    return value && value > 0 ? Math.round(value * 100) : 0;
+    return value && value > 0 ? toMinor(value, this.currency()) : 0;
   });
 
   readonly potentialWin = computed(() => {
@@ -89,25 +88,19 @@ export class BettingComponent implements OnInit {
 
   onPageChange (page: number): void {
     this.currentPage.set(page);
-    const walletId = this.auth.currentUser()?.walletId;
-    if (walletId) this.loadBets(walletId);
+    this.loadBets();
   }
 
   onPageSizeChange (size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
-    const walletId = this.auth.currentUser()?.walletId;
-    if (walletId) this.loadBets(walletId);
+    this.loadBets();
   }
 
   ngOnInit (): void {
-    const walletId = this.auth.currentUser()?.walletId;
     this.bettingService.loadEvents().subscribe();
-
-    if (walletId) {
-      this.bettingService.loadWalletBalance(walletId).subscribe();
-      this.loadBets(walletId);
-    }
+    this.bettingService.loadWallets().subscribe();
+    this.loadBets();
   }
 
   placeBet (): void {
@@ -121,10 +114,9 @@ export class BettingComponent implements OnInit {
 
     this.loading.set(true);
     this.bettingService.placeBet(event, stake).subscribe({
-      next: () => {
-        const walletId = this.auth.currentUser()?.walletId;
-        if (walletId) this.loadBets(walletId);
-        this.toast.success('Bet placed!');
+      next: settled => {
+        this.loadBets();
+        this.announce(settled);
         this.form.reset();
         this.selectedEvent.set(null);
         this.loading.set(false);
@@ -136,7 +128,14 @@ export class BettingComponent implements OnInit {
     });
   }
 
-  private loadBets (walletId: string): void {
-    this.bettingService.loadBets(walletId, this.currentPage(), this.pageSize()).subscribe();
+  private announce (bet: Bet): void {
+    if (bet.status === 'WON') return this.toast.success(`Bet won! You collected ${formatCurrency(bet.payoutMinor ?? 0, bet.currency)}.`);
+    if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');
+
+    return this.toast.success('Bet placed!');
+  }
+
+  private loadBets (): void {
+    this.bettingService.loadBets(this.currentPage(), this.pageSize()).subscribe();
   }
 }

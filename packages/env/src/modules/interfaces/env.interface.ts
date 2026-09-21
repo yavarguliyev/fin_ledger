@@ -7,7 +7,9 @@ export interface Environment {
   };
   RESOURCES: {
     ADMIN: 'admin';
+    AUDIT_LOG: 'audit-logs';
     AUTH: 'auth';
+    BET: 'bets';
     GAME_EVENTS: 'game-events';
     LEDGER: 'ledgers';
     METRICS: 'metrics';

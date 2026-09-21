@@ -12,10 +12,10 @@ import {
 } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { DepositContextDto } from '../../dtos/payment/deposit-context.dto';
+import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
-@WorkflowStepMeta('EmitPaymentEvent')
+@WorkflowStepMeta({ stepName: 'EmitPaymentEvent' })
 export class EmitPaymentEventStep implements WorkflowStep<DepositContextDto> {
   readonly stepName: WorkflowSteps = 'EmitPaymentEvent';
   protected readonly [KAFKA_SERVICE]: KafkaService;
@@ -30,9 +30,9 @@ export class EmitPaymentEventStep implements WorkflowStep<DepositContextDto> {
   async execute (context: DepositContextDto): Promise<void> {
     if (!context.paymentId || !context.walletId) return;
 
-    await this.paymentRepository.updatePaymentStatus(context.paymentId, { status: PaymentStatus.COMPLETED });
-    await this[KAFKA_SERVICE].publish(
-      {
+    await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.COMPLETED });
+    await this[KAFKA_SERVICE].publish({
+      payload: {
         amountMinor: context.dto.amountMinor,
         currency: context.dto.currency,
         userId: context.userId,
@@ -42,19 +42,21 @@ export class EmitPaymentEventStep implements WorkflowStep<DepositContextDto> {
         paymentType: PaymentType.DEPOSIT,
         timestamp: new Date().toISOString()
       },
-      { topic: AnalyticsEventTopic.PAYMENT_COMPLETED, key: context.paymentId }
-    );
+      topic: AnalyticsEventTopic.PAYMENT_COMPLETED,
+      key: context.paymentId
+    });
   }
 
   async compensate (context: DepositContextDto): Promise<void> {
     if (!context.paymentId || !context.walletId) return;
 
-    await this.paymentRepository.updatePaymentStatus(context.paymentId, {
+    await this.paymentRepository.updatePaymentStatus({
+      paymentId: context.paymentId,
       status: PaymentStatus.COMPENSATED
     });
 
-    await this[KAFKA_SERVICE].publish(
-      {
+    await this[KAFKA_SERVICE].publish({
+      payload: {
         amountMinor: context.dto.amountMinor,
         currency: context.dto.currency,
         userId: context.userId,
@@ -65,7 +67,8 @@ export class EmitPaymentEventStep implements WorkflowStep<DepositContextDto> {
         eventType: DomainEventType.PAYMENT_COMPENSATED,
         timestamp: new Date().toISOString()
       },
-      { topic: AnalyticsEventTopic.PAYMENT_FAILED, key: context.paymentId }
-    );
+      topic: AnalyticsEventTopic.PAYMENT_FAILED,
+      key: context.paymentId
+    });
   }
 }

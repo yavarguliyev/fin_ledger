@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
 export const WebhookEventRecordSchema = z.object({
+  signatureVerified: z.boolean({ message: 'Signature verified must be a boolean' }).optional(),
+
+  processedAt: z.string({ message: 'Processed at must be a string' }).nullable().optional(),
+
   id: z.string({ message: 'ID must be a string' }),
 
   eventId: z.string({ message: 'Event ID must be a string' }),

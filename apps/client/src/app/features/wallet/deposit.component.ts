@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
-import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
+import { fromMinor, toMinor } from '../../core/helpers/currency.helper';
 import { PaymentService } from '../../core/services/payment.service';
 import { ToastService } from '../../core/services/toast.service';
 import { DepositFormService } from './services/deposit-form.service';
@@ -21,7 +21,6 @@ import { createMaxValidator, createMinValidator, createRequiredValidator } from 
 })
 export class DepositComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
   private readonly toast = inject(ToastService);
@@ -31,10 +30,9 @@ export class DepositComponent implements OnInit {
 
   readonly loading = signal(false);
   readonly success = signal(false);
-  readonly walletId = signal('');
 
   readonly termsControl = this.fb.nonNullable.control(false);
-  readonly amountMinor = computed(() => Math.round(this.amountControl.value * 100));
+  readonly amountMinor = computed(() => toMinor(this.amountControl.value, this.currency()));
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
 
   readonly amountControl = this.fb.nonNullable.control(0, {
@@ -42,17 +40,11 @@ export class DepositComponent implements OnInit {
   });
 
   setAmount (minor: number): void {
-    this.amountControl.setValue(minor / 100);
+    this.amountControl.setValue(fromMinor(minor, this.currency()));
   }
 
   ngOnInit (): void {
-    const user = this.auth.currentUser();
-
-    if (user?.walletId) {
-      this.walletId.set(user.walletId);
-      this.walletService.getWallet(user.walletId).subscribe();
-    }
-
+    this.walletService.loadWallets().subscribe();
     this.formService.loadPaymentMethods();
   }
 
@@ -75,7 +67,7 @@ export class DepositComponent implements OnInit {
 
     const payload = this.formService.buildPayload(this.amountMinor(), this.currency());
 
-    this.paymentService.deposit(this.walletId(), payload).subscribe({
+    this.paymentService.deposit(payload).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);

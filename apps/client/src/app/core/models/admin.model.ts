@@ -65,12 +65,7 @@ export interface BackendUserWithWallet extends Id, Email {
 }
 
 export interface BackendAdminDashboard {
-  stats: {
-    totalUsers: number;
-    activeWallets: number;
-    totalVolumeMinor: number;
-    pending: number;
-  };
+  stats: { totalUsers: number; activeWallets: number; totalVolumeMinor: number; pending: number };
   users: BackendUserWithWallet[];
 }
 export interface CreateUserDto extends Email, DisplayName {

@@ -6,10 +6,11 @@ import { CreatePaymentRecordStep } from './steps/create-payment-record.step';
 import { ChargePaymentStep } from './steps/charge-payment.step';
 import { CreditWalletStep } from './steps/credit-wallet.step';
 import { EmitPaymentEventStep } from './steps/emit-payment-event.step';
-import { DepositContextDto, DepositWorkflowInput } from '../dtos/payment/deposit-context.dto';
+import { DepositContextDto } from '../dtos/workflow/deposit-context.dto';
+import { DepositWorkflowInputDto } from '../dtos/workflow/deposit-workflow-input.dto';
 
 @Injectable()
-export class DepositOrchestratorWorkflow extends WorkflowOrchestratorService<DepositWorkflowInput, DepositContextDto> {
+export class DepositOrchestratorWorkflow extends WorkflowOrchestratorService<DepositWorkflowInputDto, DepositContextDto> {
   protected override readonly workflowName: WorkflowNames = 'PaymentDepositOrchestratorWorkflow';
 
   constructor (
@@ -22,7 +23,7 @@ export class DepositOrchestratorWorkflow extends WorkflowOrchestratorService<Dep
     super();
   }
 
-  protected buildContext ({ userId, dto }: DepositWorkflowInput): DepositContextDto {
+  protected buildContext ({ userId, dto }: DepositWorkflowInputDto): DepositContextDto {
     return { userId, dto };
   }
 

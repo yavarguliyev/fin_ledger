@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SendEmailDtoSchema = z.object({
+export const SendEmailSchema = z.object({
   subject: z.string({ message: 'Subject must be a string' }),
 
   purpose: z.string({ message: 'Purpose must be a string' }),
@@ -12,4 +12,4 @@ export const SendEmailDtoSchema = z.object({
   url: z.string({ message: 'URL must be a string' })
 });
 
-export type SendEmailDto = z.infer<typeof SendEmailDtoSchema>;
+export type SendEmailDto = z.infer<typeof SendEmailSchema>;

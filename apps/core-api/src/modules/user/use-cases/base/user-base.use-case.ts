@@ -1,11 +1,21 @@
 import { BadRequestException, Inject } from '@nestjs/common';
-import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, StorageService } from '@common/libs';
+import { ConfigService } from '@nestjs/config';
+import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, SessionService, StorageService } from '@common/libs';
 
-import { UpdateUserDto } from '../../dtos/update/update-user.dto';
-import { UserDto } from '../../dtos/user/user.dto';
+import { UserRepository } from '../../repositories/user.repository';
+import { ImageActionDto } from '../../dtos/helper/image-action.dto';
 
 export abstract class UserBaseCase<TInput, TOutput> {
   protected readonly webCompatibleFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+  @Inject(UserRepository)
+  protected readonly userRepository!: UserRepository;
+
+  @Inject(SessionService)
+  protected readonly sessionService!: SessionService;
+
+  @Inject(ConfigService)
+  protected readonly configService!: ConfigService;
 
   @Inject(StorageService)
   protected readonly storageService!: StorageService;
@@ -13,25 +23,25 @@ export abstract class UserBaseCase<TInput, TOutput> {
   @Inject(KAFKA_SERVICE)
   protected readonly [KAFKA_SERVICE]!: KafkaService;
 
-  protected abstract execute(input: TInput): Promise<TOutput>;
+  abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: (result: unknown) => EXTRACT_ID_KEY(result, 'userId') })
+  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
   protected async publishEmailVerification (eventPayload: SendEmailDto): Promise<SendEmailDto> {
     return Promise.resolve(eventPayload);
   }
 
-  protected async handleImageAction (dto: UpdateUserDto, user: UserDto, updates: Partial<UserDto>): Promise<void> {
-    switch (dto.imageAction) {
+  protected async handleImageAction (dto: ImageActionDto): Promise<void> {
+    switch (dto.request.imageAction) {
       case 'add':
-        this.handleAddImages(dto, user, updates);
+        this.handleAddImages(dto);
         break;
 
       case 'delete_all':
-        await this.handleDeleteAllImages(user, updates);
+        await this.handleDeleteAllImages(dto);
         break;
 
       case 'delete_by_index':
-        await this.handleDeleteByIndex(dto, user, updates);
+        await this.handleDeleteByIndex(dto);
         break;
 
       default:
@@ -39,33 +49,33 @@ export abstract class UserBaseCase<TInput, TOutput> {
     }
   }
 
-  protected handleAddImages (dto: UpdateUserDto, user: UserDto, updates: Partial<UserDto>): void {
-    if (!dto.profileImages || dto.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
-    const mergedImages = [...user.profileImages, ...dto.profileImages];
-    updates.profileImages = mergedImages;
-    if (dto.profileImagesKey) updates.profileImagesKey = dto.profileImagesKey;
+  protected handleAddImages ({ request, user, updates }: ImageActionDto): void {
+    if (!request.profileImages || request.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
+    updates.profileImages = [...user.profileImages, ...request.profileImages];
+    if (request.profileImagesKey) updates.profileImagesKey = request.profileImagesKey;
   }
 
-  protected async handleDeleteAllImages (user: UserDto, updates: Partial<UserDto>): Promise<void> {
-    if (user.profileImagesKey) await this.storageService?.delete(user.profileImagesKey);
+  protected async handleDeleteAllImages ({ user, updates }: ImageActionDto): Promise<void> {
+    if (user.profileImagesKey) await this.storageService.delete({ key: user.profileImagesKey });
     updates.profileImages = [];
     updates.profileImageIndex = 0;
     updates.profileImagesKey = null;
   }
 
-  protected async handleDeleteByIndex (dto: UpdateUserDto, user: UserDto, updates: Partial<UserDto>): Promise<void> {
-    if (!dto.deleteIndexes || dto.deleteIndexes.length === 0) throw new BadRequestException('Delete indexes are required for delete_by_index action');
+  protected async handleDeleteByIndex ({ request, user, updates }: ImageActionDto): Promise<void> {
+    const { deleteIndexes } = request;
+    if (!deleteIndexes || deleteIndexes.length === 0) throw new BadRequestException('Delete indexes are required for delete_by_index action');
     if (!user.profileImagesKey) throw new BadRequestException('No profile images key found');
 
-    await this.storageService?.delete(user.profileImagesKey, dto.deleteIndexes);
+    await this.storageService.delete({ key: user.profileImagesKey, indexes: deleteIndexes });
 
-    const remainingImages = user.profileImages.filter((_, idx) => !dto.deleteIndexes!.includes(idx));
+    const remainingImages = user.profileImages.filter((_, idx) => !deleteIndexes.includes(idx));
     updates.profileImages = remainingImages;
 
     if (remainingImages.length === 0) {
       updates.profileImagesKey = null;
       updates.profileImageIndex = 0;
-    } else if (dto.deleteIndexes.includes(user.profileImageIndex)) {
+    } else if (deleteIndexes.includes(user.profileImageIndex)) {
       updates.profileImageIndex = 0;
     }
   }

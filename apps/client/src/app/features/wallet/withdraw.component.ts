@@ -4,8 +4,8 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 
-import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
+import { fromMinor, toMinor } from '../../core/helpers/currency.helper';
 import { PaymentService } from '../../core/services/payment.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -23,7 +23,6 @@ import { createRequiredValidator, createMinValidator, createMaxValidator, create
 })
 export class WithdrawComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
   private readonly paymentMethodService = inject(PaymentMethodService);
@@ -33,11 +32,9 @@ export class WithdrawComponent implements OnInit {
   readonly loading = signal(false);
   readonly loadingMethods = signal(true);
   readonly success = signal(false);
-  readonly availableBalance = signal(0);
-  readonly walletId = signal('');
   readonly paymentMethods = signal<PaymentMethod[]>([]);
   readonly verifiedMethods = computed(() => this.paymentMethods().filter(m => m.status === 'VERIFIED'));
-  readonly available = computed(() => this.availableBalance());
+  readonly available = computed(() => this.walletService.wallet()?.availableBalanceMinor ?? 0);
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
 
   readonly form = this.fb.group({
@@ -50,7 +47,7 @@ export class WithdrawComponent implements OnInit {
   private readonly formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
 
   readonly isValid = computed(() => this.formStatus() === 'VALID');
-  readonly amountMinor = computed(() => Math.round((this.formValues().amount ?? 0) * 100));
+  readonly amountMinor = computed(() => toMinor(this.formValues().amount ?? 0, this.currency()));
 
   get amountControl (): typeof this.form.controls.amount {
     return this.form.controls.amount;
@@ -66,14 +63,7 @@ export class WithdrawComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    const user = this.auth.currentUser();
-    const walletId = user?.walletId;
-
-    if (walletId) {
-      this.walletId.set(walletId);
-      this.loadWallet(walletId);
-    }
-
+    this.loadWallet();
     this.loadPaymentMethods();
   }
 
@@ -87,7 +77,7 @@ export class WithdrawComponent implements OnInit {
     const selectedMethod = this.paymentMethods().find(m => m.id === this.form.controls.paymentMethodId.value);
 
     this.paymentService
-      .withdraw(this.walletId(), {
+      .withdraw({
         amountMinor: this.amountMinor(),
         currency: this.currency(),
         paymentMethodId: this.form.controls.paymentMethodId.value ?? undefined,
@@ -107,13 +97,13 @@ export class WithdrawComponent implements OnInit {
       });
   }
 
-  private loadWallet (walletId: string): void {
-    this.walletService.getWallet(walletId).subscribe(() => {
+  private loadWallet (): void {
+    this.walletService.loadWallets().subscribe(() => {
       const wallet = this.walletService.wallet();
       if (!wallet) return;
 
-      this.availableBalance.set(wallet.availableBalanceMinor);
-      this.amountControl.setValidators([createRequiredValidator(), createMinValidator(1), createMaxValidator(wallet.availableBalanceMinor / 100)]);
+      const maxAmount = fromMinor(wallet.availableBalanceMinor, wallet.currency);
+      this.amountControl.setValidators([createRequiredValidator(), createMinValidator(1), createMaxValidator(maxAmount)]);
       this.amountControl.updateValueAndValidity();
     });
   }

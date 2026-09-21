@@ -122,18 +122,22 @@ export interface HttpError {
   statusText?: string;
 }
 
-export type UserRole = 'user' | 'admin' | 'moderator' | 'global admin';
+export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR' | 'GLOBAL_ADMIN';
 export type LedgerAccountType = 'ASSET' | 'LIABILITY';
 export type LedgerWalletTransactionType = 'DEBIT' | 'CREDIT';
 export type NotificationType = 'payment' | 'wallet' | 'system' | 'bet';
 export type Theme = 'light' | 'dark';
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
-export type GameStatus = 'LIVE' | 'UPCOMING' | 'FINISHED' | 'CANCELLED';
+export type GameStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'SETTLED' | 'CANCELLED' | 'POSTPONED';
 export type WalletStatus = 'ACTIVE' | 'SUSPENDED' | 'CLOSED';
-export type TransactionType = 'DEPOSIT' | 'WITHDRAWAL' | 'BET' | 'WINNING' | 'CREDIT' | 'DEBIT' | 'CONVERSION_IN' | 'CONVERSION_OUT';
-export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
-export type PaymentStatus = 'PENDING' | 'COMPLETED' | 'FAILED';
+export type BetStatus = 'PENDING' | 'WON' | 'LOST' | 'VOIDED' | 'CASHED_OUT';
+
+export type PaymentStatus = 'PENDING' | 'PROCESSING' | 'REQUIRES_ACTION' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'COMPENSATED';
 export type PaymentMethodType = 'BANK_ACCOUNT' | 'DEBIT_CARD' | 'CREDIT_CARD' | 'APPLE_PAY' | 'GOOGLE_PAY';
 export type PaymentMethodStatus = 'PENDING_VERIFICATION' | 'VERIFIED' | 'REJECTED' | 'REMOVED';
 export type CardBrand = 'visa' | 'mastercard' | 'amex' | 'discover' | 'unknown';
 export type DigitalWalletType = 'apple_pay' | 'google_pay';
+
+export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+export type TransactionType =
+  'DEPOSIT' | 'WITHDRAWAL' | 'BET_STAKE' | 'BET_PAYOUT' | 'BET_REFUND' | 'FEE' | 'ADJUSTMENT';

@@ -1,7 +1,7 @@
 import { BadRequestException, DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisModule } from '@common/redis';
-import { ClientIds, STORAGE_OPTIONS, StorageStrategy } from '@common/shared-libs';
+import { ClientIdDto, STORAGE_OPTIONS, StorageStrategy } from '@common/shared-libs';
 
 import { BaseStrategy } from './strategies/base/base.strategy';
 import { S3StorageStrategy } from './strategies/s3-storage.strategy';
@@ -9,14 +9,14 @@ import { StorageService } from './services/storage.service';
 import { UploadFileUseCase } from './use-cases/commands/upload-file.use-case';
 import { GetFileUrlUseCase } from './use-cases/queries/get-file-url.use-case';
 import { DeleteFileUseCase } from './use-cases/commands/delete-file.use-case';
-import { StorageModuleOptions } from './interfaces/storage.interface';
+import { StorageModuleOptions } from './interfaces/storage-module-options.interface';
 
 @Module({})
 export class StorageModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot ({ clientId }: ClientIdDto = {}): DynamicModule {
     return {
       module: StorageModule,
-      imports: [RedisModule.forRoot(clientId)],
+      imports: [RedisModule.forRoot({ ...(clientId && { clientId }) })],
       providers: [
         {
           provide: STORAGE_OPTIONS,

@@ -1,23 +1,15 @@
 import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PaymentMethodStatus, PaymentProviderRegistry } from '@common/libs';
+import { PaymentCapability, PaymentMethodStatus } from '@common/libs';
 
-import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
 import { PaymentMethodDto } from '../../dtos/payment-method/payment-method.dto';
-import { VerifyPaymentMethodDto } from '../../dtos/request/verify-payment-method.dto';
+import { PaymentMethodByUserDto } from '../../dtos/input/payment-method-by-user.dto';
 
 @Injectable()
-export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<VerifyPaymentMethodDto, PaymentMethodDto> {
-  constructor (
-    private readonly paymentMethodRepository: PaymentMethodRepository,
-    private readonly providerRegistry: PaymentProviderRegistry
-  ) {
-    super();
-  }
-
-  async execute ({ id, userId }: VerifyPaymentMethodDto): Promise<PaymentMethodDto> {
-    const existing = await this.paymentMethodRepository.findById(id);
-    const method = this.validateOwnership(existing, userId);
+export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<PaymentMethodByUserDto, PaymentMethodDto> {
+  async execute ({ id, userId }: PaymentMethodByUserDto): Promise<PaymentMethodDto> {
+    const existing = await this.paymentMethodRepository.findById({ id });
+    const method = this.validateOwnership({ method: existing, userId });
 
     if (method.status === PaymentMethodStatus.VERIFIED) {
       return method;
@@ -29,12 +21,12 @@ export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<VerifyP
 
     let targetStatus = PaymentMethodStatus.VERIFIED;
     if (method.providerMethodId && method.provider) {
-      const provider = this.providerRegistry.get(method.provider);
-      const verifyResult = await provider.verifyPaymentMethod(method.providerMethodId);
+      const provider = this.providerRegistry.require({ providerName: method.provider, capability: PaymentCapability.METHOD_VAULT });
+      const verifyResult = await provider.verifyPaymentMethod({ paymentMethodToken: method.providerMethodId });
       targetStatus = verifyResult.status;
     }
 
-    const updated = await this.paymentMethodRepository.updateStatus(id, targetStatus);
+    const updated = await this.paymentMethodRepository.updateStatus({ id, status: targetStatus });
     if (!updated) throw new InternalServerErrorException('Failed to verify payment method');
 
     return updated;

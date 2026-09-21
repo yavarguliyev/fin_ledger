@@ -1,32 +1,33 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, RequestContext, SessionGuard, RolesGuard, Roles, UserRoles } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionGuard, RolesGuard, Roles, UserRoles } from '@common/libs';
 
 import { PaymentService } from './payment.service';
-import { RequestPaymentDto } from './dtos/request/request-payment.dto';
 import { PaymentDto } from './dtos/payment/payment.dto';
+import { RequestPaymentDto, RequestPaymentSchema } from './dtos/request/request-payment.dto';
+import { PaymentIdRequestDto, PaymentIdRequestSchema } from './dtos/request/payment-id-request.dto';
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT.key)
 @UseGuards(SessionGuard, RolesGuard)
-@Roles(UserRoles.USER)
+@Roles({ roles: [UserRoles.USER] })
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.PAYMENT, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
 export class PaymentController {
   constructor (private readonly paymentService: PaymentService) {}
 
   @Post('deposit')
-  async requestDeposit (@Req() req: RequestContext, @Body() dto: RequestPaymentDto): Promise<PaymentDto> {
-    return this.paymentService.deposit(req, dto);
+  async requestDeposit (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
+    return this.paymentService.deposit({ ...dto, userId: req.user.userId });
   }
 
   @Post('withdraw')
-  async requestWithdrawal (@Req() req: RequestContext, @Body() dto: RequestPaymentDto): Promise<PaymentDto> {
-    return this.paymentService.withdraw(req, dto);
+  async requestWithdrawal (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
+    return this.paymentService.withdraw({ ...dto, userId: req.user.userId });
   }
 
-  @Roles(UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER)
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER] })
   @Get(':id')
-  async findPaymentById (@Param('id') id: string): Promise<PaymentDto> {
-    return this.paymentService.getPayment(id);
+  async findPaymentById (@ParamsQueryAndHeaders({ schema: PaymentIdRequestSchema }) dto: PaymentIdRequestDto): Promise<PaymentDto> {
+    return this.paymentService.getPayment(dto);
   }
 }

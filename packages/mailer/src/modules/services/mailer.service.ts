@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientIds } from '@common/shared-libs';
+import { ClientIds, ServiceClientDto } from '@common/shared-libs';
 
 import { SendEmailDto } from '../dtos/send-email.dto';
 
@@ -10,10 +10,10 @@ export class MailerService {
   private readonly clientId: ClientIds;
   private readonly from: string;
 
-  constructor (
-    private readonly configService: ConfigService,
-    clientId?: ClientIds
-  ) {
+  private readonly configService: ConfigService;
+
+  constructor ({ configService, clientId }: ServiceClientDto) {
+    this.configService = configService;
     this.clientId = clientId || ClientIds.DEAFULT;
     this.logger = new Logger(`${MailerService.name}:${this.clientId}`);
     this.from = this.configService.get<string>('EMAIL_FROM')!;

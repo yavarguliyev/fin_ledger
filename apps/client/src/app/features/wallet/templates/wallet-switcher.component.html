@@ -1,0 +1,38 @@
+<div class="flex flex-wrap items-center gap-2">
+  @for (wallet of wallets(); track wallet.id) {
+    <button
+      type="button"
+      (click)="select(wallet)"
+      class="flex flex-col items-start px-4 py-2 rounded-xl border text-left transition-colors"
+      [class]="
+        wallet.id === activeWalletId()
+          ? 'border-primary bg-primary/10 text-primary'
+          : 'border-ink-200 dark:border-night-border text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-night-bg'
+      "
+    >
+      <span class="text-xs font-semibold">{{ wallet.currency }}</span>
+      <span class="text-sm">{{ wallet.availableBalanceMinor | currencyFormat: wallet.currency }}</span>
+    </button>
+  }
+
+  @if (openableCurrencies().length === 0) {
+    <button
+      type="button"
+      (click)="showOpenableCurrencies()"
+      class="px-4 py-2 rounded-xl border border-dashed border-ink-300 dark:border-night-border text-sm font-medium text-ink-600 dark:text-ink-300 hover:border-primary hover:text-primary transition-colors"
+    >
+      + Add currency
+    </button>
+  } @else {
+    @for (currency of openableCurrencies(); track currency) {
+      <button
+        type="button"
+        (click)="open(currency)"
+        [disabled]="opening()"
+        class="px-3 py-2 rounded-xl border border-primary/30 text-sm font-medium text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+      >
+        {{ currency }}
+      </button>
+    }
+  }
+</div>

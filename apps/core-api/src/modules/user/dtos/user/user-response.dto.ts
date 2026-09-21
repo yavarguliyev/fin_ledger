@@ -15,10 +15,6 @@ export const UserResponseSchema = z.object({
 
   profileImageIndex: z.number({ message: 'Profile image index must be a number' }).int({ message: 'Profile image index must be an integer' }),
 
-  walletId: z.string({ message: 'Wallet ID must be a string' }).nullable(),
-
-  ledgerAccountId: z.string({ message: 'Ledger account ID must be a string' }).nullable(),
-
   lastLogin: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
 
   isEmailVerified: z.boolean({ message: 'Is email verified must be a boolean' }),

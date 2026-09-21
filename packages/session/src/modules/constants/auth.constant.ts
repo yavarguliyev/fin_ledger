@@ -1,0 +1,8 @@
+export const AUTH_CONSTANTS = {
+  SESSION_PREFIX: 'session:',
+  IDEMPOTENCY_PREFIX: 'idempotency:',
+  ARGON2_MEMORY_COST: 65536,
+  ARGON2_TIME_COST: 3,
+  ARGON2_PARALLELISM: 4,
+  TOKEN_TYPE: 'Bearer'
+} as const;

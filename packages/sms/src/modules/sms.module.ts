@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientIds, SMS_SERVICE } from '@common/shared-libs';
+import { ClientIdDto, SMS_SERVICE } from '@common/shared-libs';
 
 import { SmsService } from './services/sms.service';
 
 @Module({})
 export class SmsModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot ({ clientId }: ClientIdDto = {}): DynamicModule {
     const sms = {
       provide: SmsService,
-      useFactory: (configService: ConfigService): SmsService => new SmsService(configService, clientId),
+      useFactory: (configService: ConfigService): SmsService => new SmsService({ configService, ...(clientId && { clientId }) }),
       inject: [ConfigService]
     };
 

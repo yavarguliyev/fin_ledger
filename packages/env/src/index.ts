@@ -1,7 +1,8 @@
 export * from './modules/constants/env.constant';
 
-export * from './modules/helpers/env.helper';
+export * from './modules/dtos/config/environment-variables.dto';
+export * from './modules/dtos/helper/validate-config.dto';
 
-export * from './modules/schemas/env.schema';
+export * from './modules/helpers/env.helper';
 
 export * from './modules/env.module';

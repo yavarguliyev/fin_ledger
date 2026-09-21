@@ -1,108 +1,96 @@
 import { Injectable } from '@nestjs/common';
-import { EntityId, UnknownRecord } from '@common/shared-libs';
 
 import { PostgresService } from '../services/postgres.service';
 import { Builder } from '../query-builder/builder';
-import { DatabaseAdapter } from '../../interfaces/database.interface';
-import { ColumnMapping, QueryWithPaginationOptions } from '../../interfaces/database.interface';
+import { RepositoryOptionsDto } from '../../dtos/repository/repository-options.dto';
+import { QueryWithAdapterDto } from '../../dtos/query/query-with-adapter.dto';
+import { EntityIdRefDto } from '../../dtos/repository/entity-id-ref.dto';
+import { FindOneDto } from '../../dtos/repository/find-one.dto';
+import { CreateRecordDto } from '../../dtos/repository/create-record.dto';
+import { UpdateRecordDto } from '../../dtos/repository/update-record.dto';
+import { SoftDeleteDto } from '../../dtos/repository/soft-delete.dto';
+import { AggregateByGroupDto } from '../../dtos/repository/aggregate-by-group.dto';
+import { SumDto } from '../../dtos/repository/sum.dto';
 
 @Injectable()
 export abstract class BaseRepository<T> {
   protected builder: Builder<T>;
 
-  constructor (
-    protected readonly service: PostgresService,
-    protected tableName: string,
-    protected columnMappings: ColumnMapping = {}
-  ) {
-    this.builder = new Builder(tableName, columnMappings);
+  protected readonly service: PostgresService;
+
+  constructor ({ service, tableName, columnMappings = {} }: RepositoryOptionsDto) {
+    this.service = service;
+    this.builder = new Builder({ tableName, columnMappings });
   }
 
   protected abstract getSelectColumns(): string[];
 
-  async findAll (options: QueryWithPaginationOptions = {}, adapter?: DatabaseAdapter): Promise<T[]> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.builder.buildSelectQuery(columns, options);
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
+  async findAll ({ adapter, ...options }: QueryWithAdapterDto = {}): Promise<T[]> {
+    const { query, params } = this.builder.buildSelectQuery({ columns: this.getSelectColumns(), options });
+    const result = await (adapter ?? this.service.getConnection()).query<T>({ sql: query, params });
 
     return result.rows;
   }
 
-  async findById (id: EntityId, adapter?: DatabaseAdapter): Promise<T | null> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.builder.buildSelectQuery(columns, { where: { id } });
+  async findById ({ id, adapter }: EntityIdRefDto): Promise<T | null> {
+    return this.findOne({ where: { id }, ...(adapter && { adapter }) });
+  }
 
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
+  async findOne ({ where, adapter }: FindOneDto): Promise<T | null> {
+    const { query, params } = this.builder.buildSelectQuery({ columns: this.getSelectColumns(), options: { where } });
+    const result = await (adapter ?? this.service.getConnection()).query<T>({ sql: query, params });
 
     return (result.rows[0] as T) || null;
   }
 
-  async findOne (where: UnknownRecord, adapter?: DatabaseAdapter): Promise<T | null> {
-    const columns = this.getSelectColumns();
-    const { query, params } = this.builder.buildSelectQuery(columns, { where });
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
-
-    return (result.rows[0] as T) || null;
-  }
-
-  async create<K extends keyof T> (data: Partial<T>, returningColumns?: K[], adapter?: DatabaseAdapter): Promise<Pick<T, K> | null> {
+  async create<K extends keyof T> ({ data, returningColumns, adapter }: CreateRecordDto<T, K>): Promise<Pick<T, K> | null> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
-    const { query, params } = this.builder.buildInsertQuery(data, columnsToReturn);
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<Pick<T, K>>(query, params);
+    const { query, params } = this.builder.buildInsertQuery({ data, returningColumns: columnsToReturn });
+    const result = await (adapter ?? this.service.getConnection()).query<Pick<T, K>>({ sql: query, params });
 
     return (result.rows[0] as T) ?? null;
   }
 
-  async update<K extends keyof T> (id: EntityId, data: Partial<T>, returningColumns?: K[], adapter?: DatabaseAdapter): Promise<Pick<T, K> | null> {
+  async update<K extends keyof T> ({ id, data, returningColumns, adapter }: UpdateRecordDto<T, K>): Promise<Pick<T, K> | null> {
     const columnsToReturn = returningColumns ?? (this.getSelectColumns() as K[]);
-    const { query, params } = this.builder.buildUpdateQuery(id, data, columnsToReturn.map(String));
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<T>(query, params);
+    const { query, params } = this.builder.buildUpdateQuery({ id, data, returningColumns: columnsToReturn.map(String) });
+    const result = await (adapter ?? this.service.getConnection()).query<T>({ sql: query, params });
 
     return (result.rows[0] as T) || null;
   }
 
-  async delete (id: EntityId, adapter?: DatabaseAdapter): Promise<boolean> {
-    const { query, params } = this.builder.buildDeleteQuery(id);
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query(query, params);
+  async delete ({ id, adapter }: EntityIdRefDto): Promise<boolean> {
+    const { query, params } = this.builder.buildDeleteQuery({ id });
+    const result = await (adapter ?? this.service.getConnection()).query({ sql: query, params });
 
     return result.rowCount > 0;
   }
 
-  async softDelete (id: EntityId, data: Partial<T>, adapter?: DatabaseAdapter): Promise<boolean> {
-    const { query, params } = this.builder.buildUpdateQuery(id, data, []);
-
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query(query, params);
+  async softDelete ({ id, data, adapter }: SoftDeleteDto<T>): Promise<boolean> {
+    const { query, params } = this.builder.buildUpdateQuery({ id, data, returningColumns: [] });
+    const result = await (adapter ?? this.service.getConnection()).query({ sql: query, params });
 
     return result.rowCount > 0;
   }
 
-  async count (options: QueryWithPaginationOptions = {}, adapter?: DatabaseAdapter): Promise<number> {
-    const { query, params } = this.builder.buildCountQuery(options);
+  async count ({ adapter, ...options }: QueryWithAdapterDto = {}): Promise<number> {
+    const { query, params } = this.builder.buildCountQuery({ options });
+    const result = await (adapter ?? this.service.getConnection()).query<{ count: number }>({ sql: query, params });
 
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<{ count: string }>(query, params);
-
-    return parseInt(result.rows[0]?.count as string, 10);
+    return Number(result.rows[0]?.count ?? 0);
   }
 
-  async sum (column: keyof T & string, options: QueryWithPaginationOptions = {}, adapter?: DatabaseAdapter): Promise<number> {
-    const { query, params } = this.builder.buildSumQuery(column, options);
+  async aggregateByGroup<R> ({ groupBy, aggregates, adapter, ...options }: AggregateByGroupDto): Promise<R[]> {
+    const { query, params } = this.builder.buildGroupedAggregateQuery({ groupBy, aggregates, options });
+    const result = await (adapter ?? this.service.getConnection()).query<R>({ sql: query, params });
 
-    const db = adapter ?? this.service.getConnection();
-    const result = await db.query<{ sum: string }>(query, params);
+    return result.rows;
+  }
 
-    return parseInt(result.rows[0]?.sum as string, 10) || 0;
+  async sum ({ column, adapter, ...options }: SumDto): Promise<number> {
+    const { query, params } = this.builder.buildSumQuery({ column, options });
+    const result = await (adapter ?? this.service.getConnection()).query<{ sum: string | null }>({ sql: query, params });
+
+    return Number(result.rows[0]?.sum ?? 0);
   }
 }

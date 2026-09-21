@@ -8,8 +8,6 @@ export const PaymentSchema = z.object({
 
   walletId: z.string({ message: 'Wallet ID must be a string' }),
 
-  ledgerAccountId: z.string({ message: 'Ledger account ID must be a string' }),
-
   paymentMethodId: z.string({ message: 'Payment method ID must be a string' }).nullable().optional(),
 
   idempotencyKey: z.string({ message: 'Idempotency key must be a string' }),
@@ -26,7 +24,7 @@ export const PaymentSchema = z.object({
 
   providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).nullable().optional(),
 
-  transactionId: z.string({ message: 'Transaction ID must be a string' }).nullable().optional(),
+  ledgerTransactionId: z.string({ message: 'Ledger transaction ID must be a string' }).nullable().optional(),
 
   failureReason: z.string({ message: 'Failure reason must be a string' }).nullable().optional(),
 

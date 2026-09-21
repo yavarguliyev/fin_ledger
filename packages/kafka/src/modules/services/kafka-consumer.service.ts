@@ -4,7 +4,11 @@ import { DiscoveryService } from '@nestjs/core';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
 import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler, UnknownRecord } from '@common/shared-libs';
 
-import { KafkaMessageRecord, KafkaSubscriberMetadataRecord, RegisterSingleSubscriberRecord } from '../interfaces/kafka.interface';
+import { KafkaMessageRecord } from '../interfaces/kafka-message-record.interface';
+import { KafkaSubscriberMetadataRecord } from '../interfaces/kafka-subscriber-metadata-record.interface';
+import { RegisterSubscriberDto } from '../dtos/consumer/register-subscriber.dto';
+import { SubscriberInstanceDto } from '../dtos/consumer/subscriber-instance.dto';
+import { KafkaMessagePayloadDto } from '../dtos/consumer/kafka-message-payload.dto';
 import { KafkaHelper } from '../helpers/kafka.helper';
 
 @Injectable()
@@ -42,11 +46,11 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     const providers = this.discoveryService.getProviders();
 
     for (const wrapper of providers) {
-      if (KafkaHelper.isValidInstance(wrapper)) this.registerSubscribersFromInstance(wrapper.instance as object);
+      if (KafkaHelper.isValidInstance(wrapper)) this.registerSubscribersFromInstance({ instance: wrapper.instance as object });
     }
   }
 
-  private registerSubscribersFromInstance (instance: object): void {
+  private registerSubscribersFromInstance ({ instance }: SubscriberInstanceDto): void {
     const metadata = Reflect.getMetadata(KAFKA_SUBSCRIBER_METADATA, instance.constructor) as KafkaSubscriberMetadataRecord[] | undefined;
     if (!metadata) return;
     for (const { methodName, options } of metadata) this.registerSingleSubscriber({ instance, methodName, options });
@@ -57,7 +61,8 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     await KafkaHelper.subscribeToTopics({ consumer: this.consumer, topics: Array.from(this.subscribers.keys()) });
   }
 
-  private async handleMessage ({ topic, partition, message }: EachMessagePayload): Promise<void> {
+  private async handleMessage ({ payload }: KafkaMessagePayloadDto): Promise<void> {
+    const { topic, partition, message } = payload;
     const handlers = this.subscribers.get(topic);
     if (!handlers || handlers.length === 0) return;
 
@@ -70,7 +75,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private registerSingleSubscriber ({ instance, methodName, options }: RegisterSingleSubscriberRecord): void {
+  private registerSingleSubscriber ({ instance, methodName, options }: RegisterSubscriberDto): void {
     const instanceRecord = instance as UnknownRecord;
     const handler = instanceRecord[methodName as string];
     if (typeof handler !== 'function') return;
@@ -99,7 +104,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     await this.subscribeToTopics();
 
     try {
-      await this.consumer.run({ eachMessage: async (payload: EachMessagePayload): Promise<void> => await this.handleMessage(payload) });
+      await this.consumer.run({ eachMessage: async (payload: EachMessagePayload): Promise<void> => await this.handleMessage({ payload }) });
       this.logger.log(`Kafka consumer initialized for ${this.clientId} with group: ${groupId}`);
     } catch (error) {
       this.logger.warn(`Kafka consumer group initialization warning: ${BaseHelper.errorResponse({ error }).message}`);

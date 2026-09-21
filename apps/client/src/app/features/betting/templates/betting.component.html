@@ -92,30 +92,37 @@
       <h2 class="font-semibold text-ink-900 dark:text-white">Bet History</h2>
     </div>
     <div class="divide-y divide-ink-100 dark:divide-night-border">
-      @for (tx of bets(); track tx.id) {
+      @for (bet of bets(); track bet.id) {
         <div class="flex items-center gap-4 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors">
           <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold shrink-0 bg-primary/10 text-primary">🎯</div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ tx.reference || 'Bet placed' }}</p>
+            <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ bet.selection }}</p>
             <div class="flex items-center gap-2 mt-1">
-              @if (tx.createdAt) {
-                <span class="text-xs text-ink-500 dark:text-ink-400">{{ tx.createdAt | relativeTime }}</span>
-              }
+              <span class="text-xs text-ink-500 dark:text-ink-400">{{ bet.placedAt | relativeTime }}</span>
+              <span class="text-xs text-ink-500 dark:text-ink-400">{{ bet.oddsAtPlacement }}x</span>
               <span
                 class="text-[10px] font-medium px-2 py-0.5 rounded-full"
                 [ngClass]="{
-                  'bg-success/10 text-success': tx.status === 'COMPLETED',
-                  'bg-warning/10 text-warning': tx.status === 'PENDING',
-                  'bg-danger/10 text-danger': tx.status === 'FAILED',
-                  'bg-ink-100 text-ink-500': tx.status === 'CANCELLED'
+                  'bg-success/10 text-success': bet.status === 'WON',
+                  'bg-warning/10 text-warning': bet.status === 'PENDING',
+                  'bg-danger/10 text-danger': bet.status === 'LOST',
+                  'bg-ink-100 text-ink-500': bet.status === 'VOIDED' || bet.status === 'CASHED_OUT'
                 }"
-                >{{ tx.status }}</span
+                >{{ bet.status }}</span
               >
             </div>
           </div>
           <div class="text-right shrink-0">
-            <p class="text-base font-bold text-danger">{{ (tx.amountMinor < 0 ? -tx.amountMinor : tx.amountMinor) | currencyFormat: tx.currency }}</p>
-            <p class="text-xs text-ink-400 dark:text-ink-500 mt-0.5">Stake</p>
+            <p class="text-base font-bold text-danger">{{ bet.stakeMinor | currencyFormat: bet.currency }}</p>
+            @if (bet.status === 'PENDING') {
+              <p class="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
+                To win {{ bet.potentialPayoutMinor | currencyFormat: bet.currency }}
+              </p>
+            } @else {
+              <p class="text-xs mt-0.5" [class]="(bet.payoutMinor ?? 0) > 0 ? 'text-success font-semibold' : 'text-ink-400 dark:text-ink-500'">
+                Paid {{ (bet.payoutMinor ?? 0) | currencyFormat: bet.currency }}
+              </p>
+            }
           </div>
         </div>
       } @empty {

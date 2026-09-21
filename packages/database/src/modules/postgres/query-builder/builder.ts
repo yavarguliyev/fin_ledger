@@ -1,38 +1,46 @@
-import { EntityData, EntityId } from '@common/shared-libs';
 
 import { WhereBuilder } from './where-builder';
 import { JoinBuilder } from './join-builder';
+import { AggregateBuilder } from './aggregate-builder';
 import { BaseBuilder } from './base-builder';
-import { BuildSelectQuery, ColumnMapping, JoinClause, QueryWithPaginationOptions } from '../../interfaces/database.interface';
+import { BuildSelectQuery } from '../../interfaces/build-select-query.interface';
+import { BuilderOptionsDto } from '../../dtos/builder/builder-options.dto';
+import { ColumnDto } from '../../dtos/builder/column.dto';
+import { ColumnsDto } from '../../dtos/builder/columns.dto';
+import { SelectQueryDto } from '../../dtos/builder/select-query.dto';
+import { InsertQueryDto } from '../../dtos/builder/insert-query.dto';
+import { UpdateQueryDto } from '../../dtos/builder/update-query.dto';
+import { DeleteQueryDto } from '../../dtos/builder/delete-query.dto';
+import { AggregateQueryDto } from '../../dtos/builder/aggregate-query.dto';
+import { SumQueryDto } from '../../dtos/builder/sum-query.dto';
+import { GroupedAggregateQueryDto } from '../../dtos/builder/grouped-aggregate-query.dto';
 
 export class Builder<T> extends BaseBuilder {
   private tableName: string;
   private whereBuilder: WhereBuilder;
   private joinBuilder: JoinBuilder;
+  private aggregateBuilder: AggregateBuilder;
 
   static buildDatabaseSizeQuery = (): string => 'SELECT pg_database_size(current_database()) as size';
 
-  constructor (
-    tableName: string,
-    protected override columnMappings: ColumnMapping = {}
-  ) {
-    super(columnMappings);
+  constructor ({ tableName, columnMappings = {} }: BuilderOptionsDto) {
+    super({ columnMappings });
     this.tableName = tableName;
-    this.columnMappings = columnMappings;
-    this.whereBuilder = new WhereBuilder(columnMappings);
-    this.joinBuilder = new JoinBuilder(columnMappings);
+    this.whereBuilder = new WhereBuilder({ columnMappings });
+    this.joinBuilder = new JoinBuilder({ columnMappings });
+    this.aggregateBuilder = new AggregateBuilder({ tableName, columnMappings });
   }
 
   getTableName = (): string => this.tableName;
-  getColumnMapping = (col: string): string => this.columnMappings[col] || col;
-  hasColumn = (col: string): boolean => this.columnMappings[col] !== undefined;
-  buildDeleteQuery = (id: EntityId): BuildSelectQuery => ({ query: `DELETE FROM ${this.tableName} WHERE id = $1`, params: [id] });
+  getColumnMapping = ({ column }: ColumnDto): string => this.columnMappings[column] || column;
+  hasColumn = ({ column }: ColumnDto): boolean => this.columnMappings[column] !== undefined;
+  buildDeleteQuery = ({ id }: DeleteQueryDto): BuildSelectQuery => ({ query: `DELETE FROM ${this.tableName} WHERE id = $1`, params: [id] });
 
-  buildSelectQuery (columns: string[], options: QueryWithPaginationOptions = {}, joins: JoinClause[] = []): BuildSelectQuery {
-    const mappedColumns = this.mapColumns(columns);
+  buildSelectQuery ({ columns, options = {}, joins = [] }: SelectQueryDto): BuildSelectQuery {
+    const mappedColumns = this.mapColumns({ columns });
     let query = `SELECT ${mappedColumns} FROM ${this.tableName}`;
 
-    const joinClause = this.joinBuilder.buildJoinClauses(joins);
+    const joinClause = this.joinBuilder.buildJoinClauses({ joins });
 
     if (joinClause) {
       query += ` ${joinClause}`;
@@ -41,7 +49,7 @@ export class Builder<T> extends BaseBuilder {
     const params: unknown[] = [];
     let paramIndex = 1;
 
-    const where = this.whereBuilder.buildWhereConditions(options, params, paramIndex);
+    const where = this.whereBuilder.buildWhereConditions({ options, params, startParamIndex: paramIndex });
 
     if (where.conditions.length) {
       query += ` WHERE ${where.conditions.join(' AND ')}`;
@@ -49,7 +57,7 @@ export class Builder<T> extends BaseBuilder {
     }
 
     if (options.orderBy) {
-      query += ` ORDER BY ${this.mapColumn(options.orderBy)} ${options.orderDirection ?? 'ASC'}`;
+      query += ` ORDER BY ${this.mapColumn({ column: options.orderBy })} ${options.orderDirection ?? 'ASC'}`;
     }
 
     if (options.limit) {
@@ -65,12 +73,12 @@ export class Builder<T> extends BaseBuilder {
     return { query, params };
   }
 
-  buildInsertQuery<K extends keyof T> (data: EntityData, returningColumns?: K[]): BuildSelectQuery {
+  buildInsertQuery<K extends keyof T> ({ data, returningColumns }: InsertQueryDto<T, K>): BuildSelectQuery {
     const keys = Object.keys(data);
     const values = Object.values(data);
-    const columns = keys.map(key => this.mapColumn(key));
+    const columns = keys.map(key => this.mapColumn({ column: key }));
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
-    const returning = (returningColumns ?? (keys as K[])).map(column => `${this.mapColumn(String(column))} AS "${String(column)}"`).join(', ');
+    const returning = (returningColumns ?? (keys as K[])).map(column => `${this.mapColumn({ column: String(column) })} AS "${String(column)}"`).join(', ');
 
     return {
       query: `
@@ -82,7 +90,7 @@ export class Builder<T> extends BaseBuilder {
     };
   }
 
-  buildUpdateQuery<K extends string> (id: EntityId, data: EntityData, returningColumns: K[]): BuildSelectQuery {
+  buildUpdateQuery ({ id, data, returningColumns }: UpdateQueryDto): BuildSelectQuery {
     const params: unknown[] = [];
     let paramIndex = 1;
 
@@ -90,7 +98,7 @@ export class Builder<T> extends BaseBuilder {
       .filter(([, value]) => value !== undefined)
       .map(([column, value]) => {
         params.push(value);
-        return `${this.mapColumn(column)} = $${paramIndex++}`;
+        return `${this.mapColumn({ column: column })} = $${paramIndex++}`;
       })
       .join(', ');
 
@@ -99,7 +107,7 @@ export class Builder<T> extends BaseBuilder {
     params.push(id);
 
     const returning = returningColumns.length
-      ? `RETURNING ${returningColumns.map(column => `${this.mapColumn(column)} AS "${column}"`).join(', ')}`
+      ? `RETURNING ${returningColumns.map(column => `${this.mapColumn({ column: column })} AS "${column}"`).join(', ')}`
       : '';
 
     return {
@@ -113,27 +121,17 @@ export class Builder<T> extends BaseBuilder {
     };
   }
 
-  buildCountQuery (options: QueryWithPaginationOptions = {}, joins: JoinClause[] = []): BuildSelectQuery {
-    return this.buildAggregateQuery('COUNT(*) AS count', options, joins);
+  buildCountQuery (dto: AggregateQueryDto): BuildSelectQuery {
+    return this.aggregateBuilder.buildCountQuery(dto);
   }
 
-  buildSumQuery (column: string, options: QueryWithPaginationOptions = {}, joins: JoinClause[] = []): BuildSelectQuery {
-    const dbCol = this.mapColumn(column);
-    return this.buildAggregateQuery(`COALESCE(SUM(${dbCol}), 0) AS sum`, options, joins);
+  buildSumQuery (dto: SumQueryDto): BuildSelectQuery {
+    return this.aggregateBuilder.buildSumQuery(dto);
   }
 
-  private mapColumns = (columns: string[]): string => columns.map(column => `${this.mapColumn(column)} AS "${column}"`).join(', ');
-
-  private buildAggregateQuery (aggregateExpr: string, options: QueryWithPaginationOptions = {}, joins: JoinClause[] = []): BuildSelectQuery {
-    let query = `SELECT ${aggregateExpr} FROM ${this.tableName}`;
-
-    const joinClause = this.joinBuilder.buildJoinClauses(joins);
-    if (joinClause) query += ` ${joinClause}`;
-
-    const params: unknown[] = [];
-    const where = this.whereBuilder.buildWhereConditions(options, params, 1);
-    if (where.conditions.length) query += ` WHERE ${where.conditions.join(' AND ')}`;
-
-    return { query, params };
+  buildGroupedAggregateQuery (dto: GroupedAggregateQueryDto): BuildSelectQuery {
+    return this.aggregateBuilder.buildGroupedAggregateQuery(dto);
   }
+
+  private mapColumns = ({ columns }: ColumnsDto): string => columns.map(column => `${this.mapColumn({ column: column })} AS "${column}"`).join(', ');
 }

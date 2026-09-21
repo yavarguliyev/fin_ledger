@@ -1,20 +1,23 @@
-import { Controller, Delete, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   ENVIRONMENT_CONSTANTS,
-  PaymentMethodStatus,
   RequestContext,
   SessionGuard,
   RolesGuard,
   Roles,
   UserRoles,
   ParamsQueryAndHeaders,
-  SetupSessionResultDto
+  SetupSessionResultDto,
+  Audited
 } from '@common/libs';
 
 import { PaymentMethodService } from './payment-method.service';
-import { ConfirmSetupSessionDto, CreateSetupSessionDto } from './dtos/request/setup-session.dto';
 import { PaymentMethodDto } from './dtos/payment-method/payment-method.dto';
+import { CreateSetupSessionRequestDto, CreateSetupSessionRequestSchema } from './dtos/request/create-setup-session-request.dto';
+import { ConfirmSetupSessionRequestDto, ConfirmSetupSessionRequestSchema } from './dtos/request/confirm-setup-session-request.dto';
+import { ListPaymentMethodsRequestDto, ListPaymentMethodsRequestSchema } from './dtos/request/list-payment-methods-request.dto';
+import { PaymentMethodIdRequestDto, PaymentMethodIdRequestSchema } from './dtos/request/payment-method-id-request.dto';
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT_METHOD.key)
@@ -25,36 +28,56 @@ export class PaymentMethodController {
   constructor (private readonly paymentMethodService: PaymentMethodService) {}
 
   @Post(':provider/session')
-  @Roles(UserRoles.USER)
-  async createSetupSession (@Req() req: RequestContext, @ParamsQueryAndHeaders() dto: CreateSetupSessionDto): Promise<SetupSessionResultDto> {
-    return this.paymentMethodService.createSetupSession({ ...dto, req });
+  @Roles({ roles: [UserRoles.USER] })
+  async createSetupSession (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: CreateSetupSessionRequestSchema }) dto: CreateSetupSessionRequestDto
+  ): Promise<SetupSessionResultDto> {
+    return this.paymentMethodService.createSetupSession({ ...dto, email: req.user.email });
   }
 
   @Post(':provider/confirm')
-  @Roles(UserRoles.USER)
-  async confirmSetupSession (@Req() req: RequestContext, @ParamsQueryAndHeaders() dto: ConfirmSetupSessionDto): Promise<PaymentMethodDto> {
-    return this.paymentMethodService.confirmSetupSession({ ...dto, req });
+  @Roles({ roles: [UserRoles.USER] })
+  async confirmSetupSession (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: ConfirmSetupSessionRequestSchema }) dto: ConfirmSetupSessionRequestDto
+  ): Promise<PaymentMethodDto> {
+    return this.paymentMethodService.confirmSetupSession({ ...dto, userId: req.user.userId });
   }
 
   @Get()
-  async listPaymentMethods (@Req() req: RequestContext, @Query('status') status?: PaymentMethodStatus): Promise<PaymentMethodDto[]> {
-    return this.paymentMethodService.listPaymentMethods(req.user.userId, status);
+  async listPaymentMethods (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: ListPaymentMethodsRequestSchema }) dto: ListPaymentMethodsRequestDto
+  ): Promise<PaymentMethodDto[]> {
+    return this.paymentMethodService.listPaymentMethods({ ...dto, userId: req.user.userId });
   }
 
   @Post(':id/verify')
-  @Roles(UserRoles.USER)
-  async verifyPaymentMethod (@Req() req: RequestContext, @Param('id') id: string): Promise<PaymentMethodDto> {
-    return this.paymentMethodService.verifyPaymentMethod(id, req.user.userId);
+  @Roles({ roles: [UserRoles.USER] })
+  @Audited({ action: 'PAYMENT_METHOD_VERIFIED', entityType: 'PaymentMethod', entityIdParam: 'id' })
+  async verifyPaymentMethod (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: PaymentMethodIdRequestSchema }) dto: PaymentMethodIdRequestDto
+  ): Promise<PaymentMethodDto> {
+    return this.paymentMethodService.verifyPaymentMethod({ ...dto, userId: req.user.userId });
   }
 
   @Get(':id')
-  async getPaymentMethod (@Req() req: RequestContext, @Param('id') id: string): Promise<PaymentMethodDto> {
-    return this.paymentMethodService.getPaymentMethod(id, req.user.userId);
+  async getPaymentMethod (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: PaymentMethodIdRequestSchema }) dto: PaymentMethodIdRequestDto
+  ): Promise<PaymentMethodDto> {
+    return this.paymentMethodService.getPaymentMethod({ ...dto, userId: req.user.userId });
   }
 
   @Delete(':id')
-  @Roles(UserRoles.USER)
-  async removePaymentMethod (@Req() req: RequestContext, @Param('id') id: string): Promise<PaymentMethodDto> {
-    return this.paymentMethodService.removePaymentMethod(id, req.user.userId);
+  @Roles({ roles: [UserRoles.USER] })
+  @Audited({ action: 'PAYMENT_METHOD_REMOVED', entityType: 'PaymentMethod', entityIdParam: 'id' })
+  async removePaymentMethod (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: PaymentMethodIdRequestSchema }) dto: PaymentMethodIdRequestDto
+  ): Promise<PaymentMethodDto> {
+    return this.paymentMethodService.removePaymentMethod({ ...dto, userId: req.user.userId });
   }
 }

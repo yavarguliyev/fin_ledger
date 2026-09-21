@@ -1,24 +1,21 @@
 import { BaseBuilder } from './base-builder';
-import { BuildConditions, ColumnMapping, QueryWithPaginationOptions } from '../../interfaces/database.interface';
+import { BuildConditions } from '../../interfaces/build-conditions.interface';
+import { BuildConditionsInputDto } from '../../dtos/builder/build-conditions-input.dto';
 
 export class WhereBuilder extends BaseBuilder {
-  constructor (protected override columnMappings: ColumnMapping) {
-    super(columnMappings);
-  }
-
-  buildWhereConditions (options: QueryWithPaginationOptions, params: unknown[], startParamIndex: number): BuildConditions {
+  buildWhereConditions ({ options, params, startParamIndex }: BuildConditionsInputDto): BuildConditions {
     const conditions: string[] = [];
     let paramIndex = startParamIndex;
 
-    const objectConditions = this.buildObjectConditions(options, params, paramIndex);
+    const objectConditions = this.buildObjectConditions({ options, params, startParamIndex: paramIndex });
     conditions.push(...objectConditions.conditions);
     paramIndex = objectConditions.paramIndex;
 
-    const arrayConditions = this.buildArrayConditions(options, params, paramIndex);
+    const arrayConditions = this.buildArrayConditions({ options, params, startParamIndex: paramIndex });
     conditions.push(...arrayConditions.conditions);
     paramIndex = arrayConditions.paramIndex;
 
-    const searchConditions = this.buildSearchConditions(options, params, paramIndex);
+    const searchConditions = this.buildSearchConditions({ options, params, startParamIndex: paramIndex });
     conditions.push(...searchConditions.conditions);
     paramIndex = searchConditions.paramIndex;
 
@@ -28,16 +25,16 @@ export class WhereBuilder extends BaseBuilder {
     };
   }
 
-  private buildObjectConditions (options: QueryWithPaginationOptions, params: unknown[], startParamIndex: number): BuildConditions {
+  private buildObjectConditions ({ options, params, startParamIndex }: BuildConditionsInputDto): BuildConditions {
     const conditions: string[] = [];
     let paramIndex = startParamIndex;
 
     if (options.where && !Array.isArray(options.where)) {
       for (const [field, value] of Object.entries(options.where)) {
         if (value === null) {
-          conditions.push(`${this.mapColumn(field)} IS NULL`);
+          conditions.push(`${this.mapColumn({ column: field })} IS NULL`);
         } else {
-          conditions.push(`${this.mapColumn(field)} = $${paramIndex++}`);
+          conditions.push(`${this.mapColumn({ column: field })} = $${paramIndex++}`);
           params.push(value);
         }
       }
@@ -46,13 +43,13 @@ export class WhereBuilder extends BaseBuilder {
     return { conditions, paramIndex };
   }
 
-  private buildArrayConditions (options: QueryWithPaginationOptions, params: unknown[], startParamIndex: number): BuildConditions {
+  private buildArrayConditions ({ options, params, startParamIndex }: BuildConditionsInputDto): BuildConditions {
     const conditions: string[] = [];
     let paramIndex = startParamIndex;
 
     if (Array.isArray(options.where)) {
       for (const condition of options.where) {
-        conditions.push(`${this.mapColumn(condition.field)} ${condition.operator} $${paramIndex++}`);
+        conditions.push(`${this.mapColumn({ column: condition.field })} ${condition.operator} $${paramIndex++}`);
         params.push(condition.value);
       }
     }
@@ -60,12 +57,12 @@ export class WhereBuilder extends BaseBuilder {
     return { conditions, paramIndex };
   }
 
-  private buildSearchConditions (options: QueryWithPaginationOptions, params: unknown[], startParamIndex: number): BuildConditions {
+  private buildSearchConditions ({ options, params, startParamIndex }: BuildConditionsInputDto): BuildConditions {
     const conditions: string[] = [];
     let paramIndex = startParamIndex;
 
     if (options.search?.term && options.search.fields.length) {
-      const search = options.search.fields.map(field => `LOWER(${this.mapColumn(field)}) LIKE LOWER($${paramIndex})`);
+      const search = options.search.fields.map(field => `LOWER(${this.mapColumn({ column: field })}) LIKE LOWER($${paramIndex})`);
 
       conditions.push(`(${search.join(' OR ')})`);
       params.push(`%${options.search.term}%`);

@@ -3,16 +3,25 @@ import { Pool, PoolClient } from 'pg';
 
 import { TransactionAdapter } from './transaction.adapter';
 import { CommonAdapter } from './common.adapter';
-import { DatabaseAdapter, QueryResult } from '../../interfaces/database.interface';
-import { DatabaseConfig } from '../../interfaces/database.interface';
+import { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
+import { QueryResult } from '../../interfaces/query-result.interface';
+import { DatabaseConfig } from '../../interfaces/database-config.interface';
+import { DatabaseHelper } from '../helpers/database.helper';
+import { TransactionWithRetryDto } from '../../dtos/service/transaction-with-retry.dto';
+import { QueryDto } from '../../dtos/adapter/query.dto';
+import { AdapterConfigDto } from '../../dtos/adapter/adapter-config.dto';
+import { TransactionDto } from '../../dtos/adapter/transaction.dto';
 
 @Injectable()
 export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter, OnModuleDestroy {
   private pool: Pool | null = null;
   private isDisconnecting = false;
 
-  constructor (private readonly config: DatabaseConfig) {
+  private readonly config: DatabaseConfig;
+
+  constructor ({ config }: AdapterConfigDto) {
     super();
+    this.config = config;
   }
 
   isConnected = (): boolean => this.pool !== null;
@@ -23,6 +32,8 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
 
   async connect (): Promise<void> {
     if (this.pool) return;
+
+    DatabaseHelper.registerPostgresTypeParsers();
 
     this.pool = new Pool({
       host: this.config.host,
@@ -62,17 +73,22 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
     }
   }
 
-  async query<T = unknown> (sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
+  async query<T = unknown> ({ sql, params = [] }: QueryDto): Promise<QueryResult<T>> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
-    const result = await this.pool.query(sql, params);
-    return { rows: this.validateQueryResult<T>(result.rows), rowCount: result.rowCount || 0 };
+
+    try {
+      const result = await this.pool.query(sql, params);
+      return { rows: this.validateQueryResult<T>({ rows: result.rows }), rowCount: result.rowCount || 0 };
+    } catch (error) {
+      throw DatabaseHelper.translateDatabaseError({ error });
+    }
   }
 
-  async transaction<R> (callback: (adapter: DatabaseAdapter) => Promise<R>): Promise<R> {
-    return this.transactionWithRetry(callback, 1);
+  async transaction<R> ({ callback }: TransactionDto<R>): Promise<R> {
+    return this.transactionWithRetry({ callback, retries: 1 });
   }
 
-  async transactionWithRetry<R> (callback: (adapter: DatabaseAdapter) => Promise<R>, retries = 3): Promise<R> {
+  async transactionWithRetry<R> ({ callback, retries = 3 }: TransactionWithRetryDto<R>): Promise<R> {
     if (!this.pool) throw new InternalServerErrorException('Database not connected');
 
     let lastError: unknown;
@@ -82,7 +98,7 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
 
       try {
         await client.query('BEGIN');
-        const transactionAdapter = new TransactionAdapter(client);
+        const transactionAdapter = new TransactionAdapter({ client });
         const result = await callback(transactionAdapter);
         await client.query('COMMIT');
         return result;
@@ -90,19 +106,18 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
         await client.query('ROLLBACK');
         lastError = error;
 
-        if (error && typeof error === 'object' && 'code' in error) {
-          if (error.code === '40P01' || error.code === '40001') {
-            const delay = Math.pow(2, attempt) * 100;
-            await new Promise(resolve => setTimeout(resolve, delay));
-            continue;
-          }
+        if (DatabaseHelper.isRetryableDatabaseError({ error })) {
+          const delay = Math.pow(2, attempt) * 100;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
         }
-        throw error;
+
+        throw DatabaseHelper.translateDatabaseError({ error });
       } finally {
         client.release();
       }
     }
 
-    throw lastError;
+    throw DatabaseHelper.translateDatabaseError({ error: lastError });
   }
 }

@@ -1,9 +1,11 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { PaymentMethodStatus, PaymentProvider, PaymentProviderRegistry, PaymentStatus, WebhookStatus } from '@common/libs';
+import { PaymentCapability, PaymentMethodStatus, PaymentProvider, PaymentProviderRegistry, PaymentStatus, WebhookStatus } from '@common/libs';
 
 import { HandlePaymentMethodEventUseCase } from './use-cases/commands/handle-payment-method-event.use-case';
 import { HandlePaymentChargeEventUseCase } from './use-cases/commands/handle-payment-charge-event.use-case';
-import { HandleWebhookDto, ProcessWebhookResult } from './dtos/request/handle-webhook.dto';
+import { HandleWebhookDto } from './dtos/input/handle-webhook.dto';
+import { ProcessWebhookResponseDto } from './dtos/response/process-webhook-response.dto';
+import { DispatchWebhookEventDto } from './dtos/step/dispatch-webhook-event.dto';
 import { WebhookEventRepository } from './repositories/webhook-event.repository';
 
 @Injectable()
@@ -23,41 +25,44 @@ export class WebhookService {
     this.paymentChargeEvents = this.handlePaymentCharge.paymentChargeEvents;
   }
 
-  async processWebhook (dto: HandleWebhookDto): Promise<ProcessWebhookResult> {
-    const {
-      req,
-      query: { provider: providerParam, ...signatures }
-    } = dto;
+  async processWebhook (dto: HandleWebhookDto): Promise<ProcessWebhookResponseDto> {
+    const { req, provider: providerParam } = dto;
 
-    const validProviders = Object.values(PaymentProvider) as string[];
-    if (!validProviders.includes(providerParam)) throw new BadRequestException(`Unsupported payment provider: ${providerParam}`);
+    const providerName = providerParam as PaymentProvider;
 
-    const providerSignature = providerParam as PaymentProvider;
+    if (!this.providerRegistry.has({ providerName })) {
+      throw new BadRequestException(`Unsupported payment provider: ${providerParam}. Available: ${this.providerRegistry.available().join(', ')}`);
+    }
 
-    const stripeSignature = signatures['stripe-signature'] || signatures.stripeSignature;
-    const customSignature = signatures['x-custom-signature'] || signatures.customSignature || '';
-
-    const signature = stripeSignature || customSignature;
+    const paymentProvider = this.providerRegistry.require({ providerName: providerName, capability: PaymentCapability.WEBHOOKS });
     const rawPayload = req.rawBody ?? JSON.stringify(req.body);
+    const signature = paymentProvider.extractSignature({ headers: req.headers });
+    const event = await paymentProvider.constructWebhookEvent({ payload: rawPayload, signature });
 
-    const paymentProvider = this.providerRegistry.get(providerSignature);
-    const event = await paymentProvider.constructWebhookEvent(rawPayload, signature);
-
-    const existing = await this.webhookEventRepository.findByProviderAndEventId(event.provider, event.eventId);
+    const existing = await this.webhookEventRepository.findByProviderAndEventId({ provider: event.provider, eventId: event.eventId });
     if (existing) {
       this.logger.warn(`Duplicate webhook skipped: ${event.provider}:${event.eventId}`);
       return { received: true, eventId: event.eventId };
     }
 
-    const { eventId, provider, eventType, payload } = event;
+    const { eventId, provider, eventType, payload, signatureVerified } = event;
 
-    await this.webhookEventRepository.recordEvent({ eventId, provider, eventType, payload, status: WebhookStatus.PROCESSED });
-    await this.dispatch(provider, eventType, payload);
+    await this.webhookEventRepository.recordEvent({
+      eventId,
+      provider,
+      eventType,
+      payload,
+      signatureVerified,
+      status: WebhookStatus.PROCESSED,
+      processedAt: new Date().toISOString()
+    });
+    await this.dispatch({ provider, eventType, payload });
 
     return { received: true, eventId };
   }
 
-  private async dispatch (provider: string, eventType: string, payload: Record<string, unknown>): Promise<void> {
+  private async dispatch (dto: DispatchWebhookEventDto): Promise<void> {
+    const { provider, eventType, payload } = dto;
     const paymentMethodStatus = this.paymentMethodEvents[eventType];
 
     if (paymentMethodStatus) {

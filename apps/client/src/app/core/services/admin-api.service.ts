@@ -37,8 +37,8 @@ export class AdminApiService {
     return this.userService.deleteUser(userId);
   }
 
-  deleteUserFromDb (userId: string): Observable<DeleteUserResponse> {
-    return this.userService.deleteUserFromDb(userId);
+  anonymizeUser (userId: string): Observable<DeleteUserResponse> {
+    return this.userService.anonymizeUser(userId);
   }
 
   updateEmailVerification (userId: string, isEmailVerified: boolean): Observable<unknown> {

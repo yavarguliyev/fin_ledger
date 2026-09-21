@@ -1,22 +1,11 @@
-import { UnknownRecord } from '@common/libs';
-
-import { HandleNotificationEventDto } from '../dtos/notification-helper.dto';
+import { HandleNotificationEventDto } from '../dtos/helper/handle-notification-event.dto';
 
 export class NotificationHelper {
-  public static async handleEvent<TPayload extends UnknownRecord> (event: HandleNotificationEventDto<TPayload>): Promise<void> {
-    const { payload, eventType, getUserId, getContent, notificationService, title, notificationType, logger } = event;
+  static async handleEvent (event: HandleNotificationEventDto): Promise<void> {
+    const { payload, eventType, userId, content, notificationService, title, notificationType, logger } = event;
+    if (!userId) return;
 
-    const userId = await getUserId(payload);
-
-    if (userId) {
-      await notificationService.createNotification({
-        userId,
-        title,
-        type: notificationType,
-        content: await getContent(payload)
-      });
-
-      logger.log(`Received ${eventType} event: ${JSON.stringify(payload)}`);
-    }
+    await notificationService.createNotification({ userId, title, type: notificationType, content });
+    logger.log(`Received ${eventType} event: ${JSON.stringify(payload)}`);
   }
 }

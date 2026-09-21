@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const WalletTransactionSummarySchema = z.object({
+  currency: z.string({ message: 'Currency must be a string' }),
+
   totalDepositsMinor: z.number({ message: 'Total deposits must be a number' }).int({ message: 'Total deposits must be an integer' }),
 
   totalWithdrawalsMinor: z.number({ message: 'Total withdrawals must be a number' }).int({ message: 'Total withdrawals must be an integer' }),

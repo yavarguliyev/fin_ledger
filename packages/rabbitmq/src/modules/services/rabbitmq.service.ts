@@ -1,9 +1,11 @@
 import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import amqp, { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
-import { ClientIds, UnknownRecord, HandleRecord, BaseHelper } from '@common/shared-libs';
+import { ClientIds, ServiceClientDto, UnknownRecord, BaseHelper } from '@common/shared-libs';
 
-import { RabbitmqPublishOptions } from '../interfaces/queue.interface';
+import { RabbitmqPublishDto } from '../dtos/service/rabbitmq-publish.dto';
+import { RabbitmqSubscribeDto } from '../dtos/service/rabbitmq-subscribe.dto';
+import { HandleMessageDto } from '../dtos/step/handle-message.dto';
 import { RABBITMQ_CONSTANTS } from '../constants/rabbitmq.constant';
 
 @Injectable()
@@ -13,10 +15,10 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
   private connection: ChannelModel | null = null;
   private channel: Channel | null = null;
 
-  constructor (
-    private readonly configService: ConfigService,
-    clientId?: ClientIds
-  ) {
+  private readonly configService: ConfigService;
+
+  constructor ({ configService, clientId }: ServiceClientDto) {
+    this.configService = configService;
     this.clientId = clientId || ClientIds.DEAFULT;
     this.logger = new Logger(`${RabbitmqService.name}:${this.clientId}`);
   }
@@ -35,24 +37,23 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     await this.connection?.close();
   }
 
-  async publish (payload: UnknownRecord, options: RabbitmqPublishOptions): Promise<void> {
+  async publish ({ payload, routingKey, exchange, persistent }: RabbitmqPublishDto): Promise<void> {
     if (!this.channel) throw new InternalServerErrorException('RabbitMQ channel not initialized');
-    const exchange = options.exchange ?? RABBITMQ_CONSTANTS.RABBITMQ_EXCHANGE.key;
     const buffer = Buffer.from(JSON.stringify(payload));
-    this.channel.publish(exchange, options.routingKey, buffer, { persistent: options.persistent ?? true });
+    this.channel.publish(exchange ?? RABBITMQ_CONSTANTS.RABBITMQ_EXCHANGE.key, routingKey, buffer, { persistent: persistent ?? true });
     await Promise.resolve();
   }
 
-  async subscribe (routingKey: string, handler: HandleRecord): Promise<void> {
+  async subscribe ({ routingKey, handler }: RabbitmqSubscribeDto): Promise<void> {
     if (!this.channel) throw new InternalServerErrorException('RabbitMQ channel not initialized');
     const queue = await this.channel.assertQueue('', { exclusive: true });
     await this.channel.bindQueue(queue.queue, RABBITMQ_CONSTANTS.RABBITMQ_EXCHANGE.key, routingKey);
     await this.channel.consume(queue.queue, (message: ConsumeMessage | null) => {
-      void this.handleMessage(message, handler);
+      void this.handleMessage({ message, handler });
     });
   }
 
-  private async handleMessage (message: ConsumeMessage | null, handler: HandleRecord): Promise<void> {
+  private async handleMessage ({ message, handler }: HandleMessageDto): Promise<void> {
     if (!message || !this.channel) return;
 
     try {

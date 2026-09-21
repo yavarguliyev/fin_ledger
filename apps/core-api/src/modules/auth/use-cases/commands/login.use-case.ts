@@ -1,16 +1,17 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { SessionHelper } from '@common/libs';
+import { PasswordAlgorithm, SessionHelper } from '@common/libs';
 
 import { AuthRepository } from '../../repositories/auth.repository';
-import { LoginDto } from '../../dtos/login/login.dto';
-import { AuthResponseDto } from '../../dtos/auth/auth-response.dto';
+import { LoginDto } from '../../dtos/request/login.dto';
+import { AuthResponseDto } from '../../dtos/response/auth-response.dto';
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { AuthHelper } from '../../helpers/auth.helper';
-import { SessionUserDto } from '../../dtos/auth/session-user.dto';
 
 @Injectable()
 export class LoginUseCase extends AuthBaseUseCase<LoginDto, AuthResponseDto> {
-  constructor (private readonly authRepository: AuthRepository) {
+  constructor (
+    private readonly authRepository: AuthRepository
+  ) {
     super();
   }
 
@@ -19,13 +20,18 @@ export class LoginUseCase extends AuthBaseUseCase<LoginDto, AuthResponseDto> {
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
     await SessionHelper.compare({ password: dto.password, passwordHash: user.passwordHash });
-    await this.authRepository.update(user.id, { lastLogin: new Date().toISOString() });
+
+    const rehash = SessionHelper.isLegacyHash({ passwordHash: user.passwordHash })
+      ? { passwordHash: await SessionHelper.hash({ password: dto.password }), passwordAlgo: PasswordAlgorithm.ARGON2ID }
+      : {};
+
+    await this.authRepository.update({ id: user.id, data: { lastLoginAt: new Date().toISOString(), ...rehash } });
 
     return AuthHelper.createSessionResponse({
-      dto: user as SessionUserDto,
+      dto: user,
       sessionService: this.sessionService,
       configService: this.configService,
       isAuth: true
-    }) as unknown as AuthResponseDto;
+    });
   }
 }

@@ -43,7 +43,7 @@ export class AdminComponent implements OnInit {
   readonly showCreateModal = signal(false);
   readonly createUserModalComponent = viewChild(CreateUserModalComponent);
 
-  readonly isGlobalAdmin = computed(() => this.authService.currentUser()?.role === 'global admin');
+  readonly isGlobalAdmin = computed(() => this.authService.currentUser()?.role === 'GLOBAL_ADMIN');
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -85,7 +85,7 @@ export class AdminComponent implements OnInit {
       this.handlers.onEmailVerificationToggle.bind(this.handlers),
       this.handlers.onDeletedToggle.bind(this.handlers),
       this.handlers.onView.bind(this.handlers),
-      this.handlers.onDelete.bind(this.handlers),
+      this.handlers.onAnonymize.bind(this.handlers),
       this.isGlobalAdmin()
     )
   }));

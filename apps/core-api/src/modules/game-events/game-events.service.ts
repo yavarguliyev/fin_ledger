@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Cacheable, GameEventStatus, REDIS_CACHE_PROVIDER, RedisCacheProvider } from '@common/libs';
+import { Cacheable, REDIS_CACHE_PROVIDER, RedisCacheProvider } from '@common/libs';
 
 import { GetGameEventsUseCase } from './use-cases/queries/get-game-events.use-case';
-import { GameEventDto } from './dtos/game-event.dto';
+import { GameEventDto } from './dtos/game-event/game-event.dto';
+import { ListGameEventsDto } from './dtos/request/list-game-events.dto';
 
 @Injectable()
 export class GameEventsService {
@@ -15,7 +16,7 @@ export class GameEventsService {
   }
 
   @Cacheable({ keyPrefix: 'game-events', ttlSeconds: 60 })
-  async getGameEvents (status?: GameEventStatus): Promise<GameEventDto[]> {
-    return this.getGameEventsUseCase.execute(status);
+  async getGameEvents (dto: ListGameEventsDto): Promise<GameEventDto[]> {
+    return this.getGameEventsUseCase.execute(dto);
   }
 }

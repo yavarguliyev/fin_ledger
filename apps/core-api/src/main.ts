@@ -1,8 +1,7 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger, VersioningType } from '@nestjs/common';
+import { BadRequestException, Logger, StandardSchemaValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, ClientIds, ENVIRONMENT_CONSTANTS } from '@common/libs';
-import { ZodValidationPipe } from 'nestjs-zod';
+import { BaseHelper, ClientIds, ENVIRONMENT_CONSTANTS, GracefulShutdown } from '@common/libs';
 
 import { AppModule } from './app.module';
 
@@ -24,7 +23,13 @@ async function bootstrap (): Promise<void> {
 
   app.enableVersioning({ type: VersioningType.URI, prefix: API_PREFIX });
   app.enableCors({ origin: ORIGIN, credentials: CREDENTIALS });
-  app.useGlobalPipes(new ZodValidationPipe());
+  app.useGlobalPipes(
+    new StandardSchemaValidationPipe({
+      validateCustomDecorators: true,
+      exceptionFactory: (issues): BadRequestException => new BadRequestException({ message: 'Validation failed', errors: issues })
+    })
+  );
+  GracefulShutdown.register({ app, context: ClientIds.API_GATEWAY });
 
   if (environemnt === NODE_ENV) {
     const options = { title: TITLE, description: DESCRIPTION, version: VERSION, path: 'api-docs' };
@@ -34,4 +39,7 @@ async function bootstrap (): Promise<void> {
   await app.listen(port, host, () => logger.log(`🚀 ${ClientIds.API_GATEWAY} started on http://${host}:${port}`));
 }
 
-void bootstrap();
+void bootstrap().catch((error: Error) => {
+  new Logger(ENVIRONMENT_CONSTANTS.LOGGING.BOOTSTRAP_CONTEXT).error(`Bootstrap failed: ${error.message}`, error.stack);
+  process.exit(1);
+});

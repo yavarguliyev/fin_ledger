@@ -30,7 +30,7 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
 
   protected abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: EmailTemplateType.PASSWORD_RESET, key: (result: unknown) => EXTRACT_ID_KEY(result, 'userId') })
+  @KafkaPublish({ topic: EmailTemplateType.PASSWORD_RESET, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
   protected async publishPasswordReset (eventPayload: SendEmailDto): Promise<SendEmailDto> {
     return Promise.resolve(eventPayload);
   }

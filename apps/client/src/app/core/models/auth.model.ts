@@ -1,18 +1,14 @@
-import { Password, Email, DisplayName, Roles, Id, UserId, UserRole, WalletId, Message, Success, Currency } from './base.model';
+import { Password, Email, DisplayName, Roles, Id, UserId, UserRole, Message, Success } from './base.model';
 
 export interface StoredUser extends AuthUser, Password {}
 export interface LoginRequest extends Email, Password {}
 export interface SessionData extends Email, DisplayName, Roles, UserId {}
 export interface DeleteResponse extends Message, Success {}
-export interface FormState extends DisplayName, Currency {}
-
 export interface RegisterDto extends Email, Password, DisplayName {
   role?: UserRole;
 }
 
-export interface ProfileFields extends DisplayName {
-  currency?: string;
-}
+export type ProfileFields = DisplayName;
 
 export interface UploadRequest {
   key: string;
@@ -37,8 +33,7 @@ export interface VisibleImages {
   path: string;
 }
 
-export interface AuthUser extends Id, Email, DisplayName, Roles, WalletId {
-  ledgerAccountId: string | null;
+export interface AuthUser extends Id, Email, DisplayName, Roles {
   profileImagesKey: string | null;
   profileImages: string[];
   profileImageIndex: number;

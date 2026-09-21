@@ -1,15 +1,15 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ClientIds, RABBITMQ_SERVICE } from '@common/shared-libs';
+import { ClientIdDto, RABBITMQ_SERVICE } from '@common/shared-libs';
 
 import { RabbitmqService } from './services/rabbitmq.service';
 
 @Module({})
 export class RabbitmqModule {
-  static forRoot (clientId?: ClientIds): DynamicModule {
+  static forRoot ({ clientId }: ClientIdDto = {}): DynamicModule {
     const rabbitmqServiceProvider = {
       provide: RabbitmqService,
-      useFactory: (configService: ConfigService): RabbitmqService => new RabbitmqService(configService, clientId),
+      useFactory: (configService: ConfigService): RabbitmqService => new RabbitmqService({ configService, ...(clientId && { clientId }) }),
       inject: [ConfigService]
     };
 

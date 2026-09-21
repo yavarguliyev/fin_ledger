@@ -1,29 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { StorageService, SessionService } from '@common/libs';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
-import { UserRepository } from '../../repositories/user.repository';
-import { DeleteUserDto } from '../../dtos/user/user.dto';
+import { UserIdRequestDto } from '../../dtos/request/user-id-request.dto';
+import { DeleteUserResponseDto } from '../../dtos/response/delete-user-response.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
 
 @Injectable()
-export class DeleteUserFromDbUseCase extends UserBaseCase<string, DeleteUserDto> {
-  constructor (
-    private readonly userRepository: UserRepository,
-    private readonly sessionService: SessionService,
-    private readonly storage: StorageService
-  ) {
-    super();
-  }
+export class DeleteUserFromDbUseCase extends UserBaseCase<UserIdRequestDto, DeleteUserResponseDto> {
+  async execute (dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
+    const { userId } = dto;
 
-  async execute (userId: string): Promise<DeleteUserDto> {
-    const user = await this.userRepository.findById(userId);
+    const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    const isDeleted = user.deletedAt !== null;
-    if (!isDeleted && user.profileImagesKey) await this.storage.delete(user.profileImagesKey);
+    if (await this.userRepository.hasRetainedRecords(dto)) {
+      throw new ConflictException('User has financial or audit history and cannot be permanently removed. Use soft delete instead.');
+    }
 
-    await this.userRepository.delete(userId);
-    if (!isDeleted) await this.sessionService.deleteUserSessions(userId);
+    await this.userRepository.delete({ id: userId });
+
+    if (user.deletedAt === null) {
+      if (user.profileImagesKey) await this.storageService.delete({ key: user.profileImagesKey });
+      await this.sessionService.deleteUserSessions({ userId });
+    }
 
     return { success: true, message: `User ${user.email} has been removed successfully` };
   }

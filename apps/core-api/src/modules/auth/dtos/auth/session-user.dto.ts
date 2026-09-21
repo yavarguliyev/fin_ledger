@@ -4,10 +4,6 @@ import { UserRoles } from '@common/libs';
 export const SessionUserSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
-  walletId: z.string({ message: 'Wallet ID must be a string' }),
-
-  ledgerAccountId: z.string({ message: 'Ledger account ID must be a string' }).nullable(),
-
   role: z.enum(Object.values(UserRoles) as [string, ...string[]], { message: 'Role must be a valid user role' }),
 
   passwordHash: z.string({ message: 'Password hash must be a string' }).optional(),
@@ -26,9 +22,11 @@ export const SessionUserSchema = z.object({
 
   profileImageIndex: z.number({ message: 'Profile image index must be a number' }).int({ message: 'Profile image index must be an integer' }),
 
-  lastLogin: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
+  lastLoginAt: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
 
   isEmailVerified: z.boolean({ message: 'Is email verified must be a boolean' }),
+
+  emailVerifiedAt: z.iso.datetime({ message: 'Email verified at must be a valid ISO datetime' }).nullable().optional(),
 
   deletedAt: z.iso.datetime({ message: 'Deleted at must be a valid ISO datetime' }).nullable()
 });

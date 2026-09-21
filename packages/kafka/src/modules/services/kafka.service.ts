@@ -1,9 +1,10 @@
 import { Inject, Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, logLevel } from 'kafkajs';
-import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, UnknownRecord } from '@common/shared-libs';
+import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_TOPICS } from '@common/shared-libs';
 
-import { KafkaPublishRecord } from '../interfaces/kafka.interface';
+import { KafkaPublishDto } from '../dtos/service/kafka-publish.dto';
+import { KafkaHelper } from '../helpers/kafka.helper';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
@@ -36,6 +37,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
     this.producer = kafka.producer({ maxInFlightRequests: 1, idempotent: true, transactionTimeout: 30000 });
     await this.producer.connect();
+    await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: KAFKA_TOPICS, logger: this.logger });
     this.logger.log(`Kafka producer initialized for ${this.clientId}`);
   }
 
@@ -43,11 +45,11 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     await this.producer?.disconnect();
   }
 
-  async publish (payload: UnknownRecord, options: KafkaPublishRecord): Promise<void> {
+  async publish ({ payload, topic, key }: KafkaPublishDto): Promise<void> {
     if (!this.producer) throw new InternalServerErrorException('Kafka producer not initialized');
 
     try {
-      await this.producer.send({ topic: options.topic, messages: [{ key: options.key ?? null, value: JSON.stringify(payload) }] });
+      await this.producer.send({ topic, messages: [{ key: key ?? null, value: JSON.stringify(payload) }] });
     } catch (error) {
       this.logger.warn(`Kafka publish failed: ${BaseHelper.errorResponse({ error }).message}`);
     }

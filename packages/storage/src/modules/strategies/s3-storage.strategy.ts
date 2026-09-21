@@ -14,7 +14,12 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ClientIds, STORAGE_OPTIONS } from '@common/shared-libs';
 
 import { BaseStrategy } from './base/base.strategy';
-import { DownloadUrlOptions, StorageModuleOptions } from '../interfaces/storage.interface';
+import { StorageModuleOptions } from '../interfaces/storage-module-options.interface';
+import { ObjectKeyDto } from '../dtos/strategy/object-key.dto';
+import { ObjectPrefixDto } from '../dtos/strategy/object-prefix.dto';
+import { UploadObjectDto } from '../dtos/strategy/upload-object.dto';
+import { DownloadUrlDto } from '../dtos/strategy/download-url.dto';
+import { EndpointDto } from '../dtos/strategy/endpoint.dto';
 
 export class S3StorageStrategy extends BaseStrategy {
   private readonly client: S3Client;
@@ -37,8 +42,8 @@ export class S3StorageStrategy extends BaseStrategy {
     this.bucketName = options.s3.bucketName;
     this.ensureBucketEnabled = options.s3.ensureBucket ?? true;
 
-    const endpoint = this.normalizeEndpoint(options.s3.endpoint);
-    const publicEndpoint = this.normalizeEndpoint(options.s3.publicEndpoint);
+    const endpoint = this.normalizeEndpoint({ endpoint: options.s3.endpoint });
+    const publicEndpoint = this.normalizeEndpoint({ endpoint: options.s3.publicEndpoint });
 
     const config: S3ClientConfig = {
       region: options.s3.region,
@@ -53,22 +58,22 @@ export class S3StorageStrategy extends BaseStrategy {
     this.logger.log(`S3 storage strategy initialized for ${this.clientId} with bucket: ${this.bucketName}`);
   }
 
-  async upload (key: string, body: Buffer | Uint8Array | string, contentType?: string): Promise<void> {
+  async upload ({ key, body, contentType }: UploadObjectDto): Promise<void> {
     await this.ensureBucket();
     const command = new PutObjectCommand({ Bucket: this.bucketName, Key: key, Body: body, ContentType: contentType });
     await this.client.send(command);
   }
 
-  async getDownloadUrl (key: string, options?: DownloadUrlOptions): Promise<string> {
+  async getDownloadUrl ({ key, expiresIn }: DownloadUrlDto): Promise<string> {
     const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key });
-    return getSignedUrl(this.urlClient, command, { expiresIn: options?.expiresIn ?? 3600 });
+    return getSignedUrl(this.urlClient, command, { expiresIn: expiresIn ?? 3600 });
   }
 
-  async delete (key: string): Promise<void> {
+  async delete ({ key }: ObjectKeyDto): Promise<void> {
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: key }));
   }
 
-  async exists (key: string): Promise<boolean> {
+  async exists ({ key }: ObjectKeyDto): Promise<boolean> {
     try {
       await this.client.send(new HeadObjectCommand({ Bucket: this.bucketName, Key: key }));
       return true;
@@ -82,7 +87,7 @@ export class S3StorageStrategy extends BaseStrategy {
     }
   }
 
-  async listByPrefix (prefix: string): Promise<string[]> {
+  async listByPrefix ({ prefix }: ObjectPrefixDto): Promise<string[]> {
     try {
       const command = new ListObjectsV2Command({ Bucket: this.bucketName, Prefix: prefix });
       const response = await this.client.send(command);
@@ -115,7 +120,7 @@ export class S3StorageStrategy extends BaseStrategy {
     }
   }
 
-  private normalizeEndpoint (endpoint?: string): string | undefined {
+  private normalizeEndpoint ({ endpoint }: EndpointDto): string | undefined {
     if (!endpoint || !endpoint.trim()) return undefined;
     const trimmed = endpoint.trim();
     if (this.bucketName && trimmed.includes(`${this.bucketName}.s3`)) return trimmed.replace(`${this.bucketName}.s3`, 's3');

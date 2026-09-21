@@ -1,18 +1,24 @@
 import { z } from 'zod';
-import { UserRoles } from '@common/libs';
+import { PasswordAlgorithm, UserRoles, UserStatus } from '@common/libs';
 
 export const AuthSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
   passwordHash: z.string({ message: 'Password hash must be a string' }),
 
+  passwordAlgo: z.enum(PasswordAlgorithm, { message: 'Password algorithm must be argon2id or bcrypt' }),
+
+  passwordChangedAt: z.iso.datetime({ message: 'Password changed at must be a valid ISO datetime' }).nullable(),
+
   createdAt: z.iso.datetime({ message: 'Created at must be a valid ISO datetime' }),
 
   updatedAt: z.iso.datetime({ message: 'Updated at must be a valid ISO datetime' }),
 
-  lastLogin: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
+  lastLoginAt: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
 
   isEmailVerified: z.boolean({ message: 'Is email verified must be a boolean' }),
+
+  emailVerifiedAt: z.iso.datetime({ message: 'Email verified at must be a valid ISO datetime' }).nullable(),
 
   deletedAt: z.iso.datetime({ message: 'Deleted at must be a valid ISO datetime' }).nullable(),
 
@@ -28,17 +34,7 @@ export const AuthSchema = z.object({
 
   role: z.enum(Object.values(UserRoles) as [string, ...string[]], { message: 'Role must be a valid user role' }),
 
-  walletId: z.string({ message: 'Wallet ID must be a string' }),
-
-  ledgerAccountId: z.string({ message: 'Ledger account ID must be a string' }).optional()
+  status: z.enum(Object.values(UserStatus) as [string, ...string[]], { message: 'Status must be a valid user status' })
 });
 
 export type AuthDto = z.infer<typeof AuthSchema>;
-
-export type EmailVerificationTokenPayload = {
-  userId: string;
-  email: string;
-  displayName: string;
-  role: string;
-  purpose: 'email_verification';
-};

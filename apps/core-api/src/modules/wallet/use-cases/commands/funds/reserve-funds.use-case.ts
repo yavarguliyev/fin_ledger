@@ -1,20 +1,15 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { WalletStatus } from '@common/libs';
 
 import { FundsBaseUseCase } from '../../base/funds-base.use-case';
-import { WalletDto, WalletInput } from '../../../dtos/wallet/wallet.dto';
 import { CalculateNewBalancesDto } from '../../../dtos/balance/calculate-new-balances.dto';
+import { CalculateBalancesInputDto } from '../../../dtos/step/calculate-balances-input.dto';
 
 @Injectable()
-export class ReserveFundsUseCase extends FundsBaseUseCase<WalletInput, WalletDto> {
-  constructor () {
-    super();
-  }
+export class ReserveFundsUseCase extends FundsBaseUseCase {
+  protected override readonly allowedStatuses = [WalletStatus.ACTIVE];
 
-  async execute (input: WalletInput): Promise<WalletDto> {
-    return this.processFunds(input);
-  }
-
-  protected override calculateNewBalances (wallet: WalletDto, amountMinor: number): CalculateNewBalancesDto {
+  protected override calculateNewBalances ({ wallet, amountMinor }: CalculateBalancesInputDto): CalculateNewBalancesDto {
     const available = Number(wallet.availableBalanceMinor);
     if (available < amountMinor) throw new ConflictException('Insufficient available balance to reserve');
 

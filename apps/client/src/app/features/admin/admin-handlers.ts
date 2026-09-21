@@ -55,37 +55,37 @@ export class AdminHandlers {
     });
   }
 
-  onDelete (userId: string): void {
+  onAnonymize (userId: string): void {
     const user = this.allUsers().find(u => u.id === userId);
     if (!user) return;
 
-    this.toast.confirm(`Are you sure you want to permanently delete ${user.email}? This action cannot be undone.`, () => {
-      this.adminApi.deleteUserFromDb(userId).subscribe({
+    const message = `Anonymize ${user.email}? Their personal data will be erased permanently. Financial records are kept for compliance. This cannot be undone.`;
+
+    this.toast.confirm(message, () => {
+      this.adminApi.anonymizeUser(userId).subscribe({
         next: response => {
           this.toast.success(response.message);
-          this.updateUsers(users => users.filter(u => u.id !== userId));
           this.loadDashboardData();
         },
         error: (err: HttpError) => {
-          const errorMessage = err?.error?.message ?? err?.message ?? `Failed to delete user`;
+          const errorMessage = err?.error?.message ?? err?.message ?? 'Failed to anonymize user';
           this.toast.error(errorMessage);
         }
       });
     });
   }
 
-  onStatusToggle (userId: string, isActive: boolean): void {
+  onStatusToggle (walletId: string | null, isActive: boolean): void {
     const newStatus = isActive ? 'ACTIVE' : 'SUSPENDED';
 
-    const user = this.allUsers().find(u => u.id === userId);
-    if (!user || !user.walletId) {
+    if (!walletId) {
       this.toast.error('User wallet not found');
       return;
     }
 
-    this.adminApi.updateWalletStatus(user.walletId, newStatus).subscribe({
+    this.adminApi.updateWalletStatus(walletId, newStatus).subscribe({
       next: () => {
-        this.updateUsers(users => users.map(u => (u.id === userId ? { ...u, status: newStatus } : u)));
+        this.updateUsers(users => users.map(u => (u.walletId === walletId ? { ...u, status: newStatus } : u)));
         this.toast.success(`Wallet status updated to ${newStatus}`);
       },
       error: (err: HttpError) => {

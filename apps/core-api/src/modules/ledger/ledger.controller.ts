@@ -1,12 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, AccountType, SessionGuard, RequestContext } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, SessionGuard, RequestContext, ParamsQueryAndHeaders } from '@common/libs';
 
 import { LedgerService } from './ledger.service';
-import { CreateLedgerAccountDto } from './dtos/account/create-account.dto';
-import { CreateLedgerTransactionDto } from './dtos/transaction/create-transaction.dto';
-import { LedgerEntryResponseDto } from './dtos/entry/ledger-entry-response.dto';
 import { LedgerAccountDto } from './dtos/account/ledger-account.dto';
+import { LedgerEntryResponseDto } from './dtos/entry/ledger-entry-response.dto';
+import { GetLedgerAccountDto, GetLedgerAccountSchema } from './dtos/request/get-ledger-account.dto';
+import { GetTransactionEntriesDto, GetTransactionEntriesSchema } from './dtos/request/get-transaction-entries.dto';
+import { ListAccountEntriesRequestDto, ListAccountEntriesRequestSchema } from './dtos/request/list-account-entries-request.dto';
 import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.LEDGER.key)
@@ -15,33 +16,21 @@ import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
 export class LedgerController {
   constructor (private readonly ledgerService: LedgerService) {}
 
-  @Post('accounts')
-  async createAccount (@Body() dto: CreateLedgerAccountDto): Promise<LedgerAccountDto> {
-    return this.ledgerService.createAccount(dto.userId, dto.accountType as AccountType, dto.currency);
-  }
-
-  @Post('transactions')
-  async createTransaction (@Body() dto: CreateLedgerTransactionDto): Promise<LedgerEntryResponseDto[]> {
-    return this.ledgerService.createTransaction(dto.entries);
-  }
-
   @Get('accounts/:id')
-  async getAccount (@Param('id') id: string): Promise<LedgerAccountDto | null> {
-    return this.ledgerService.getAccount(id);
+  async getAccount (@ParamsQueryAndHeaders({ schema: GetLedgerAccountSchema }) dto: GetLedgerAccountDto): Promise<LedgerAccountDto | null> {
+    return this.ledgerService.getAccount(dto);
   }
 
   @Get('transactions/:id/entries')
-  async getTransactionEntries (@Param('id') id: string): Promise<LedgerEntryResponseDto[]> {
-    return this.ledgerService.getTransactionEntries(id);
+  async getTransactionEntries (@ParamsQueryAndHeaders({ schema: GetTransactionEntriesSchema }) dto: GetTransactionEntriesDto): Promise<LedgerEntryResponseDto[]> {
+    return this.ledgerService.getTransactionEntries(dto);
   }
 
   @Get('accounts/:id/entries')
   async getAccountEntries (
     @Req() req: RequestContext,
-    @Param('id') id: string,
-    @Query('page') page: string = '1',
-    @Query('limit') limit: string = '25'
+    @ParamsQueryAndHeaders({ schema: ListAccountEntriesRequestSchema }) dto: ListAccountEntriesRequestDto
   ): Promise<PaginatedResponseDto<LedgerEntryResponseDto>> {
-    return this.ledgerService.getAccountEntries(id, parseInt(page, 10), parseInt(limit, 10), req.user.role);
+    return this.ledgerService.getAccountEntries({ ...dto, role: req.user.role });
   }
 }

@@ -26,19 +26,19 @@ export class ShellComponent {
   readonly mobileNav = computed(() => this.allMobileNavItems.filter(item => !item.hideForRoles?.includes(this.auth.currentUser()?.role ?? '')));
 
   private readonly allNavItems: NavItem[] = [
-    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', hideForRoles: ['moderator', 'user'] },
+    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', hideForRoles: ['MODERATOR', 'USER'] },
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/wallet', label: 'Wallet', icon: '👛' },
-    { path: '/betting', label: 'Betting', icon: '🎯', hideForRoles: ['global admin', 'admin', 'moderator'] },
+    { path: '/betting', label: 'Betting', icon: '🎯', hideForRoles: ['GLOBAL_ADMIN', 'ADMIN', 'MODERATOR'] },
     { path: '/ledger', label: 'Ledger', icon: '📒' },
     { path: '/profile', label: 'Profile', icon: '👤' }
   ];
 
   private readonly allMobileNavItems: NavItem[] = [
-    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', hideForRoles: ['moderator', 'user'] },
+    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', hideForRoles: ['MODERATOR', 'USER'] },
     { path: '/dashboard', label: 'Home', icon: '📊' },
     { path: '/wallet', label: 'Wallet', icon: '👛' },
-    { path: '/betting', label: 'Bet', icon: '🎯', hideForRoles: ['global admin', 'admin', 'moderator'] },
+    { path: '/betting', label: 'Bet', icon: '🎯', hideForRoles: ['GLOBAL_ADMIN', 'ADMIN', 'MODERATOR'] },
     { path: '/notifications', label: 'Alerts', icon: '🔔' },
     { path: '/profile', label: 'Profile', icon: '👤' }
   ];
@@ -64,7 +64,7 @@ export class ShellComponent {
   }
 
   roleLabel (): string {
-    const role = this.auth.currentUser()?.role ?? 'user';
+    const role = this.auth.currentUser()?.role ?? 'USER';
     return role.charAt(0).toUpperCase() + role.slice(1);
   }
 

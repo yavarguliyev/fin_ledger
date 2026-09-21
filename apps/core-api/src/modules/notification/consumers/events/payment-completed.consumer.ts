@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseHelper, DomainEventType, NotificationType } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
-import { PaymentEventPayloadDto } from '../../dtos/payment/payment-event-payload.dto';
+import { PaymentEventPayloadDto } from '../../dtos/event/payment-event-payload.dto';
 
 @Injectable()
 export class PaymentCompletedConsumer extends NotificationBaseConsumer<PaymentEventPayloadDto> {

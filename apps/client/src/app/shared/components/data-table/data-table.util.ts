@@ -20,7 +20,8 @@ export const getActionConfig = <T>(column: TableColumn<T>): ActionIconsConfig =>
   return {
     view: column.actions?.view ?? false,
     update: column.actions?.update ?? false,
-    delete: column.actions?.delete ?? false
+    delete: column.actions?.delete ?? false,
+    deleteLabel: column.actions?.deleteLabel ?? 'Delete'
   };
 };
 

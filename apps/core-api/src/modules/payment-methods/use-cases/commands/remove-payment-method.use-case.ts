@@ -1,22 +1,16 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { PaymentMethodStatus } from '@common/libs';
 
-import { PaymentMethodRepository } from '../../repositories/payment-method.repository';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
 import { PaymentMethodDto } from '../../dtos/payment-method/payment-method.dto';
-import { RemovePaymentMethodDto } from '../../dtos/request/remove-payment-method.dto';
+import { PaymentMethodByUserDto } from '../../dtos/input/payment-method-by-user.dto';
 
 @Injectable()
-export class RemovePaymentMethodUseCase extends PaymentMethodBaseUseCase<RemovePaymentMethodDto, PaymentMethodDto> {
-  constructor (private readonly paymentMethodRepository: PaymentMethodRepository) {
-    super();
-  }
+export class RemovePaymentMethodUseCase extends PaymentMethodBaseUseCase<PaymentMethodByUserDto, PaymentMethodDto> {
+  async execute ({ id, userId }: PaymentMethodByUserDto): Promise<PaymentMethodDto> {
+    const existing = await this.paymentMethodRepository.findById({ id });
+    this.validateOwnership({ method: existing, userId });
 
-  async execute ({ id, userId }: RemovePaymentMethodDto): Promise<PaymentMethodDto> {
-    const existing = await this.paymentMethodRepository.findById(id);
-    this.validateOwnership(existing, userId);
-
-    const updated = await this.paymentMethodRepository.updateStatus(id, PaymentMethodStatus.REMOVED);
+    const updated = await this.paymentMethodRepository.markRemoved({ id });
     if (!updated) throw new InternalServerErrorException('Failed to remove payment method');
 
     return updated;

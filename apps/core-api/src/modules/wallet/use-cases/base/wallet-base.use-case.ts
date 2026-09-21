@@ -4,6 +4,8 @@ import {
   AnalyticsEventTopic,
   BettingType,
   DomainEventType,
+  EntryType,
+  WalletStatus,
   WalletTransactionType,
   EXTRACT_ID_KEY,
   KAFKA_SERVICE,
@@ -15,20 +17,21 @@ import {
 
 import { WalletRepository } from '../../repositories/wallet.repository';
 import { LedgerService } from '../../../ledger/ledger.service';
-import { PlaceBetInput } from '../../dtos/betting/place-bet.dto';
-import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/analytics-event.dto';
-import { WalletDto } from '../../dtos/wallet/wallet.dto';
+import { WalletOperationDto } from '../../dtos/input/wallet-operation.dto';
+import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/payload/analytics-event-payload.dto';
+import { WalletOperationResultDto } from '../../dtos/transaction/wallet-operation-result.dto';
 import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
 import { AnalyticsHelper } from '../../../analytics/helpers/analytics.helper';
 import { WalletHelper } from '../../helpers/wallet.helper';
 
 export abstract class WalletBaseUseCase<TInput, TOutput> {
-  protected abstract readonly currentWalletTransactionType: WalletTransactionType;
+  protected readonly currentWalletTransactionType?: WalletTransactionType;
   protected abstract readonly currentDomainEventType: DomainEventType;
   protected abstract readonly currentAggregateType: AggregateType;
   protected abstract readonly currentBettingType: BettingType;
-  protected abstract readonly balanceWalletTransactionType: WalletTransactionType;
+  protected readonly balanceWalletTransactionType?: EntryType;
   protected abstract readonly requiredToCheckAmountMinor: boolean;
+  protected readonly allowedStatuses?: WalletStatus[];
 
   @Inject(PostgresService)
   protected readonly postgresService!: PostgresService;
@@ -48,21 +51,25 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
   @Inject(KAFKA_SERVICE)
   protected readonly [KAFKA_SERVICE]!: KafkaService;
 
-  protected abstract execute(input: TInput): Promise<TOutput>;
+  abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_CREDITED, key: (result: unknown) => EXTRACT_ID_KEY(result, 'walletId') })
+  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_CREDITED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'walletId' }) })
   protected async publishWalletCredited (eventPayload: AnalyticsEventPayloadDto): Promise<AnalyticsEventPayloadDto> {
     return Promise.resolve(eventPayload);
   }
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_DEBITED, key: (result: unknown) => EXTRACT_ID_KEY(result, 'walletId') })
+  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_DEBITED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'walletId' }) })
   protected async publishWalletDebited (eventPayload: AnalyticsEventPayloadDto): Promise<AnalyticsEventPayloadDto> {
     return Promise.resolve(eventPayload);
   }
 
-  protected async processWallet (dto: PlaceBetInput): Promise<WalletDto> {
+  protected async processWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     const { adapter, walletId } = dto;
     if (!walletId) throw new BadRequestException('Wallet ID is required');
+
+    const { balanceWalletTransactionType } = this;
+    const currentWalletTransactionType = dto.transactionType ?? this.currentWalletTransactionType;
+    if (!currentWalletTransactionType || !balanceWalletTransactionType) throw new BadRequestException('Wallet transaction type is required');
 
     const input = {
       ...dto,
@@ -70,22 +77,23 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
       currentAggregateType: this.currentAggregateType,
       currentDomainEventType: this.currentDomainEventType,
       currentBettingType: this.currentBettingType,
-      balanceWalletTransactionType: this.balanceWalletTransactionType,
-      currentWalletTransactionType: this.currentWalletTransactionType,
+      balanceWalletTransactionType,
+      currentWalletTransactionType,
       requiredToCheckAmountMinor: this.requiredToCheckAmountMinor,
+      ...(this.allowedStatuses && { allowedStatuses: this.allowedStatuses }),
       outboxRepository: this.outboxRepository,
       ledgerService: this.ledgerService,
       walletTransactionRepository: this.walletTransactionRepository
     };
 
     if (adapter) {
-      const result = await WalletHelper.processWalletTransaction({ adapter, ...input });
-      return result.wallet;
+      const inTx = await WalletHelper.processWalletTransaction({ adapter, ...input });
+      return { wallet: inTx.wallet, ledgerTransactionId: inTx.ledgerTransactionId };
     }
 
     const result = await this.postgresService
       .getWriteConnection()
-      .transaction(tx => WalletHelper.processWalletTransaction({ ...input, adapter: tx }));
+      .transaction({ callback: tx => WalletHelper.processWalletTransaction({ ...input, adapter: tx }) });
 
     void AnalyticsHelper.emitKafkaWalletAnalytics({
       ...result.eventPayload,
@@ -94,6 +102,6 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
       publishWalletDebited: payload => this.publishWalletDebited(payload)
     });
 
-    return result.wallet;
+    return { wallet: result.wallet, ledgerTransactionId: result.ledgerTransactionId };
   }
 }

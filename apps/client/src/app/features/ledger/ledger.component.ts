@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { LedgerService } from '../../core/services/ledger.service';
 import { AuthService } from '../../core/services/auth.service';
+import { WalletService } from '../../core/services/wallet.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
@@ -11,6 +12,8 @@ import { DataTableConfig } from '../../core/models/data-table.model';
 import { PaginationConfig } from '../../core/models/base.model';
 import { LedgerEntry } from '../../core/models/ledger.model';
 import { getLedgerTableColumns } from './ledger.util';
+import { isStaffRole } from '../../core/helpers/role.helper';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
 
 @Component({
   selector: 'app-ledger',
@@ -21,11 +24,13 @@ import { getLedgerTableColumns } from './ledger.util';
 export class LedgerComponent implements OnInit {
   private readonly ledgerService = inject(LedgerService);
   private readonly auth = inject(AuthService);
+  private readonly walletService = inject(WalletService);
 
   readonly loading = signal(true);
   readonly account = computed(() => this.ledgerService.account());
   readonly entries = computed(() => this.ledgerService.entries());
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'user');
+  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
+  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -75,9 +80,18 @@ export class LedgerComponent implements OnInit {
   }
 
   private loadEntries (): void {
-    const user = this.auth.currentUser();
-    const ledgerAccountId = user?.ledgerAccountId;
+    if (this.isStaff()) {
+      this.fetchEntries(ALL_RECORDS_SCOPE);
+      return;
+    }
 
+    this.walletService.loadWallets().subscribe({
+      next: () => this.loadAccountEntries(this.walletService.wallet()?.ledgerAccountId),
+      error: () => this.loading.set(false)
+    });
+  }
+
+  private loadAccountEntries (ledgerAccountId: string | undefined): void {
     if (!ledgerAccountId) {
       this.loading.set(false);
       return;

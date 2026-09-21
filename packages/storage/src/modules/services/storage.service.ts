@@ -5,7 +5,14 @@ import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 import { UploadFileUseCase } from '../use-cases/commands/upload-file.use-case';
 import { GetFileUrlUseCase } from '../use-cases/queries/get-file-url.use-case';
 import { DeleteFileUseCase } from '../use-cases/commands/delete-file.use-case';
-import { DeleteResult, FileUrlResponse, FileUrlsResponse, UploadFileResponse, UploadFilesRequest } from '../interfaces/storage.interface';
+import { DeleteResult } from '../interfaces/delete-result.interface';
+import { FileUrlResponse } from '../interfaces/file-url-response.interface';
+import { FileUrlsResponse } from '../interfaces/file-urls-response.interface';
+import { UploadFileResponse } from '../interfaces/upload-file-response.interface';
+import { UploadFilesDto } from '../dtos/service/upload-files.dto';
+import { GetFilesDto } from '../dtos/service/get-files.dto';
+import { FileSelectionDto } from '../dtos/service/file-selection.dto';
+import { ObjectKeyDto } from '../dtos/strategy/object-key.dto';
 
 @Injectable()
 export class StorageService {
@@ -21,21 +28,21 @@ export class StorageService {
   }
 
   @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true })
-  async uploadFiles (dto: UploadFilesRequest): Promise<UploadFileResponse> {
+  async uploadFiles (dto: UploadFilesDto): Promise<UploadFileResponse> {
     return this.uploadFileUseCase.execute(dto);
   }
 
   @Cacheable({ keyPrefix: 'storage:file-urls', ttlSeconds: 82800 })
-  async get (key: string, indexes?: number[], expiresIn?: number): Promise<FileUrlResponse | FileUrlsResponse> {
-    return this.getFileUrlUseCase.getWithLogic(key, indexes, expiresIn);
+  async get (dto: GetFilesDto): Promise<FileUrlResponse | FileUrlsResponse> {
+    return this.getFileUrlUseCase.getWithLogic(dto);
   }
 
   @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true })
-  async delete (key: string, indexes?: number[]): Promise<DeleteResult> {
-    return this.deleteFileUseCase.deleteWithLogic(key, indexes);
+  async delete (dto: FileSelectionDto): Promise<DeleteResult> {
+    return this.deleteFileUseCase.deleteWithLogic(dto);
   }
 
-  async fileExists (key: string): Promise<boolean> {
-    return this.getFileUrlUseCase['checkExists'](key);
+  async fileExists (dto: ObjectKeyDto): Promise<boolean> {
+    return this.getFileUrlUseCase['checkExists'](dto);
   }
 }

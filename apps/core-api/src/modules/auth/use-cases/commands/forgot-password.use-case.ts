@@ -1,20 +1,23 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
-import { ForgotPasswordResponse } from '../../dtos/auth/forgot-password-response.dto';
+import { ForgotPasswordDto } from '../../dtos/request/forgot-password.dto';
+import { ForgotPasswordResponseDto } from '../../dtos/response/forgot-password-response.dto';
 import { AuthRepository } from '../../repositories/auth.repository';
 import { EmailHelper } from '../../../email/helpers/email.helper';
 
 @Injectable()
-export class ForgotPasswordUseCase extends AuthBaseUseCase<string, ForgotPasswordResponse> {
+export class ForgotPasswordUseCase extends AuthBaseUseCase<ForgotPasswordDto, ForgotPasswordResponseDto> {
   constructor (private readonly authRepository: AuthRepository) {
     super();
   }
 
-  async execute (email: string): Promise<ForgotPasswordResponse> {
+  async execute ({ email }: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
+    const response = { status: true, message: 'If an account exists for this email, a password reset link has been sent.' };
+
     const user = await this.authRepository.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) return response;
 
     const tokenPayload = { userId: user.id, email: user.email, purpose: 'password_reset' };
     const token = jwt.sign(tokenPayload, this.privateKey, { algorithm: 'RS256', expiresIn: '15m', ...(this.issuer && { issuer: this.issuer }) });
@@ -30,6 +33,6 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<string, ForgotPasswor
       publishPasswordReset: this.publishPasswordReset.bind(this)
     });
 
-    return { status: true, message: 'Password reset email sent successfully.', token };
+    return response;
   }
 }

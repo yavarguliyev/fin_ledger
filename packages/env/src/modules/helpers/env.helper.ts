@@ -1,11 +1,11 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { UnknownRecord } from '@common/shared-libs';
 import { z } from 'zod';
 
-import { EnvironmentVariablesSchema, EnvironmentVariables } from '../schemas/env.schema';
+import { EnvironmentVariablesDto, EnvironmentVariablesSchema } from '../dtos/config/environment-variables.dto';
+import { ValidateConfigDto } from '../dtos/helper/validate-config.dto';
 
 export class ConfigValidator {
-  public static validate (this: void, config: UnknownRecord): EnvironmentVariables {
+  static validate ({ config }: ValidateConfigDto): EnvironmentVariablesDto {
     const result = EnvironmentVariablesSchema.safeParse(config);
 
     if (!result.success) {

@@ -1,29 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, DatabaseAdapter, AccountType } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, AccountOwnerType } from '@common/libs';
 
 import { LedgerAccountDto } from '../dtos/account/ledger-account.dto';
+import { CreateLedgerAccountDto } from '../dtos/input/create-ledger-account.dto';
 
 @Injectable()
 export class LedgerAccountRepository extends BaseExtendedRepository<LedgerAccountDto> {
   constructor (postgresService: PostgresService) {
-    super(postgresService, 'ledger_accounts', {
-      userId: 'user_id',
-      accountType: 'account_type',
-      balanceMinor: 'balance_minor',
-      createdAt: 'created_at',
-      updatedAt: 'updated_at'
+    super({
+      service: postgresService,
+      tableName: 'ledger_accounts',
+      columnMappings: {
+        userId: 'user_id',
+        ownerType: 'owner_type',
+        accountType: 'account_type',
+        balanceMinor: 'balance_minor',
+        isActive: 'is_active',
+        createdAt: 'created_at',
+        updatedAt: 'updated_at'
+      }
     });
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'userId', 'accountType', 'currency', 'balanceMinor', 'createdAt', 'updatedAt'];
+    return ['id', 'userId', 'ownerType', 'code', 'accountType', 'currency', 'balanceMinor', 'isActive', 'version', 'createdAt', 'updatedAt'];
   }
 
-  async createAccount (userId: string, accountType: AccountType, currency: string, adapter?: DatabaseAdapter): Promise<LedgerAccountDto | null> {
-    return this.create({ userId, accountType, currency, balanceMinor: 0 }, undefined, adapter);
-  }
+  async createAccount (dto: CreateLedgerAccountDto): Promise<LedgerAccountDto | null> {
+    const { userId, accountType, currency, adapter } = dto;
 
-  async adjustBalance (accountId: string, deltaMinor: number, adapter?: DatabaseAdapter): Promise<void> {
-    await this.increment(accountId, 'balanceMinor', deltaMinor, adapter);
+    return this.create({ data: { userId, ownerType: AccountOwnerType.USER, accountType, currency, balanceMinor: 0 }, adapter });
   }
 }

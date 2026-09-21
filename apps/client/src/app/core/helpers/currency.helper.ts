@@ -1,26 +1,11 @@
-export const formatCurrency = (amountMinor: number, currency = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amountMinor / 100);
-};
+const fractionDigits = (currency: string): number => new Intl.NumberFormat('en-US', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2;
 
-export const formatCurrencyCompact = (amountMinor: number, currency = 'USD'): string => {
-  const amount = amountMinor / 100;
+export const toMinor = (amount: number, currency: string): number => Math.round(amount * 10 ** fractionDigits(currency));
 
-  if (amount >= 1000000) {
-    return `$${(amount / 1000000).toFixed(1)}M`;
-  }
+export const fromMinor = (amountMinor: number, currency: string): number => amountMinor / 10 ** fractionDigits(currency);
 
-  if (amount >= 1000) {
-    return `$${(amount / 1000).toFixed(1)}K`;
-  }
+export const formatCurrency = (amountMinor: number, currency = 'USD'): string =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(fromMinor(amountMinor, currency));
 
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0
-  }).format(amount);
-};
+export const formatCurrencyCompact = (amountMinor: number, currency = 'USD'): string =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency, notation: 'compact', maximumFractionDigits: 1 }).format(fromMinor(amountMinor, currency));

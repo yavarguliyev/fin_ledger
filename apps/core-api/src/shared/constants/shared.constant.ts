@@ -2,7 +2,9 @@ import { ModuleRegistry } from '@common/shared-libs';
 
 export const SHARED_CONSTANTS = {
   ADMIN: { key: 'Admin' },
+  AUDIT_LOG: { key: 'Audit Logs' },
   AUTH: { key: 'Auth' },
+  BET: { key: 'Bets' },
   GAME_EVENTS: { key: 'Game Events' },
   LEDGER: { key: 'Ledgers' },
   NOTIFICATION: { key: 'Notifications' },

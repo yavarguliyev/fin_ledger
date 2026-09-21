@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Kafka } from 'kafkajs';
 
-import { CalculateTotalMessagesRecord, KafkaMetricsRecord, ReplicatedPartitionsRecord } from '../interfaces/kafka.interface';
+import { KafkaMetricsRecord } from '../interfaces/kafka-metrics-record.interface';
+import { ReplicatedPartitionsDto } from '../dtos/metrics/replicated-partitions.dto';
+import { CalculateTotalMessagesDto } from '../dtos/metrics/calculate-total-messages.dto';
+import { MessagesPerSecondDto } from '../dtos/metrics/messages-per-second.dto';
 
 @Injectable()
 export class KafkaMetrics {
@@ -20,7 +23,7 @@ export class KafkaMetrics {
 
     await admin.disconnect();
 
-    const messagesInPerSec = this.calculateMessagesPerSecond(currentTotalMessages);
+    const messagesInPerSec = this.calculateMessagesPerSecond({ currentTotalMessages });
 
     return {
       messagesInPerSec: parseFloat(messagesInPerSec.toFixed(2)),
@@ -28,7 +31,7 @@ export class KafkaMetrics {
     };
   }
 
-  private calculateUnderReplicatedPartitions ({ topicMetadata }: ReplicatedPartitionsRecord): number {
+  private calculateUnderReplicatedPartitions ({ topicMetadata }: ReplicatedPartitionsDto): number {
     let underReplicatedPartitions = 0;
 
     topicMetadata.topics.forEach(topic => {
@@ -42,7 +45,7 @@ export class KafkaMetrics {
     return underReplicatedPartitions;
   }
 
-  private async calculateTotalMessages ({ topicMetadata, admin }: CalculateTotalMessagesRecord): Promise<number> {
+  private async calculateTotalMessages ({ topicMetadata, admin }: CalculateTotalMessagesDto): Promise<number> {
     let currentTotalMessages = 0;
 
     for (const topic of topicMetadata.topics) {
@@ -59,7 +62,7 @@ export class KafkaMetrics {
     return currentTotalMessages;
   }
 
-  private calculateMessagesPerSecond (currentTotalMessages: number): number {
+  private calculateMessagesPerSecond ({ currentTotalMessages }: MessagesPerSecondDto): number {
     const now = Date.now();
     const elapsedSeconds = (now - this.lastMetricsTimestamp) / 1000;
     const delta = currentTotalMessages - this.lastTotalMessages;

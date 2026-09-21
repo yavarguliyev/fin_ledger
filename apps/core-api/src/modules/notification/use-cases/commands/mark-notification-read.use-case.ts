@@ -1,20 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { SessionHelper } from '@common/libs';
 
-import { NotificationRepository } from '../../repositories/notification.repository';
 import { NotificationDto } from '../../dtos/notification/notification.dto';
+import { MarkNotificationReadDto } from '../../dtos/input/mark-notification-read.dto';
 import { NotificationBaseUseCase } from '../base/base-notification.use-case';
-import { MarkNotificationReadDto } from '../../dtos/notification/notification-event-config.dto';
 
 @Injectable()
 export class MarkNotificationReadUseCase extends NotificationBaseUseCase<MarkNotificationReadDto, NotificationDto> {
-  constructor (private readonly notificationRepository: NotificationRepository) {
-    super();
-  }
-
-  async execute ({ notificationId, context }: MarkNotificationReadDto): Promise<NotificationDto> {
-    const { userId } = SessionHelper.getSessionUser({ context });
-    const updated = await this.notificationRepository.markAsRead(notificationId, userId);
+  async execute (dto: MarkNotificationReadDto): Promise<NotificationDto> {
+    const updated = await this.notificationRepository.markAsRead(dto);
     if (!updated) throw new NotFoundException('Notification not found or unauthorized');
     return updated;
   }

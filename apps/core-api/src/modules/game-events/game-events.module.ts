@@ -11,6 +11,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [SharedModule, AuthModule],
   controllers: [GameEventsController],
   providers: [GameEventsService, GameEventRepository, GetGameEventsUseCase],
-  exports: [GameEventsService]
+  exports: [GameEventsService, GameEventRepository]
 })
 export class GameEventsModule {}

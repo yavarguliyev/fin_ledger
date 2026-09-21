@@ -8,8 +8,6 @@ export const InternalPaymentRecordSchema = z.object({
 
   walletId: z.string({ message: 'Wallet ID must be a string' }),
 
-  ledgerAccountId: z.string({ message: 'Ledger account ID must be a string' }),
-
   paymentMethodId: z.string({ message: 'Payment method ID must be a string' }).optional(),
 
   amountMinor: z.number({ message: 'Amount must be an integer' }).int({ message: 'Amount must be an integer' }),
@@ -24,7 +22,7 @@ export const InternalPaymentRecordSchema = z.object({
 
   providerChargeId: z.string({ message: 'Provider charge ID must be a string' }).optional(),
 
-  transactionId: z.string({ message: 'Transaction ID must be a string' }).optional(),
+  ledgerTransactionId: z.string({ message: 'Ledger transaction ID must be a string' }).optional(),
 
   failureReason: z.string({ message: 'Failure reason must be a string' }).optional(),
 

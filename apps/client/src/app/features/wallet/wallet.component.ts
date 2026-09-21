@@ -14,11 +14,14 @@ import { PaginationConfig } from '../../core/models/base.model';
 import { DateUtil } from '../../core/helpers/date.helper';
 import { typeIcon, typeClass, formatType, statusClass } from '../../core/helpers/transaction.helper';
 import { getWalletTableColumns, exportTransactionsToCsv, getTransactionFilterOptions } from './wallet.util';
+import { isStaffRole } from '../../core/helpers/role.helper';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
+import { WalletSwitcherComponent } from './wallet-switcher.component';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent],
   templateUrl: './templates/wallet.component.html'
 })
 export class WalletComponent implements OnInit {
@@ -26,9 +29,10 @@ export class WalletComponent implements OnInit {
   private readonly walletService = inject(WalletService);
 
   readonly loading = signal(true);
-  readonly wallet = signal<Wallet | null>(null);
+  readonly wallet = computed(() => this.walletService.wallet());
   readonly allTx = signal<Transaction[]>([]);
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'user');
+  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
+  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -83,36 +87,44 @@ export class WalletComponent implements OnInit {
     this.activeFilter.set(filterValue);
   }
 
+  private transactionScope (): string | null {
+    if (this.isStaff()) return ALL_RECORDS_SCOPE;
+    return this.walletService.wallet()?.id ?? null;
+  }
+
   onPageChange (page: number): void {
     this.currentPage.set(page);
-    const user = this.auth.currentUser();
-    if (user?.walletId) this.loadTransactions(user.walletId);
+    const scope = this.transactionScope();
+    if (scope) this.loadTransactions(scope);
   }
 
   onPageSizeChange (size: number): void {
     this.pageSize.set(size);
     this.currentPage.set(1);
-    const user = this.auth.currentUser();
-    if (user?.walletId) this.loadTransactions(user.walletId);
+    const scope = this.transactionScope();
+    if (scope) this.loadTransactions(scope);
   }
 
   refresh (): void {
-    const user = this.auth.currentUser();
-    const walletId = user?.walletId;
-
-    if (!walletId) {
-      this.loading.set(false);
+    if (this.isStaff()) {
+      this.loadTransactions(ALL_RECORDS_SCOPE);
       return;
     }
 
     this.loading.set(true);
-    this.walletService.getWallet(walletId).subscribe({
+    this.walletService.loadWallets().subscribe({
       next: () => {
-        this.wallet.set(this.walletService.wallet() ?? null);
-        this.loadTransactions(walletId);
+        const walletId = this.walletService.wallet()?.id;
+        if (walletId) this.loadTransactions(walletId);
+        else this.loading.set(false);
       },
       error: () => this.loading.set(false)
     });
+  }
+
+  onWalletChange (wallet: Wallet): void {
+    this.currentPage.set(1);
+    this.loadTransactions(wallet.id);
   }
 
   private loadTransactions (walletId: string): void {
