@@ -50,6 +50,25 @@ describe('Stripe PaymentIntent status mapping', () => {
     expect(failure).toMatchObject({ code: 'canceled', message: STRIPE_INTENT_DEFAULTS.FAILURE_MESSAGE, indeterminate: false });
   });
 
+});
+
+describe('StripeOperationHelper.createCharge', () => {
+  it('sends our metadata to Stripe so webhooks can find the payment', async () => {
+    const sent: unknown[] = [];
+    const client = {
+      paymentIntents: {
+        create: async (params: unknown): Promise<PaymentIntent> => {
+          sent.push(params);
+          return Promise.resolve(intentOf({ status: 'succeeded' }));
+        }
+      }
+    } as unknown as Stripe;
+
+    await StripeOperationHelper.createCharge({ client, dto: { ...CHARGE_INPUT, metadata: { paymentId: 'payment-1' } } });
+
+    expect(sent[0]).toMatchObject({ metadata: { paymentId: 'payment-1' } });
+  });
+
   it('is what createCharge returns', async () => {
     const client = { paymentIntents: { create: async (): Promise<PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) } } as unknown as Stripe;
 

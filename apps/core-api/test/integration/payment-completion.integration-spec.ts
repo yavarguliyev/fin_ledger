@@ -31,8 +31,12 @@ describe('Payment completion', () => {
     return row;
   };
 
-  const webhook = (type: string, chargeId: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: '/webhooks/stripe', body: { id: `evt_${ApiHelper.randomIp()}_${Date.now()}`, type, data: { object: { id: chargeId } } } });
+  const webhook = (type: string, chargeId: string, metadata: Record<string, string> = {}): ReturnType<typeof ApiHelper.request> =>
+    ApiHelper.request({
+      method: 'POST',
+      path: '/webhooks/stripe',
+      body: { id: `evt_${ApiHelper.randomIp()}_${Date.now()}`, type, data: { object: { id: chargeId, metadata } } }
+    });
 
   const oneCompletion = { status: 'COMPLETED', wallet_transactions: 1, ledger_entries: 2, completed_events: 1, failed_events: 0 };
 
@@ -94,6 +98,28 @@ describe('Payment completion', () => {
     await webhook('payment_intent.payment_failed', payment?.provider_charge_id as string);
 
     await expect(records(payment?.id as string)).resolves.toEqual(oneCompletion);
+  });
+
+  it('finds a payment by our own ID when its charge ID was never stored', async () => {
+    const [payment] = await DbHelper.query<{ id: string }>({
+      sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, payment_method_id, type, amount_minor, currency, status, provider)
+            VALUES ('completion-metadata', (SELECT id FROM users WHERE email = $1), $2, $3, 'DEPOSIT', 1200, $4, 'PENDING', 'stripe') RETURNING id`,
+      params: [email, wallet.id, methodId, wallet.currency]
+    });
+    const paymentId = payment?.id as string;
+    const before = await balance();
+
+    await expect(webhook('payment_intent.succeeded', 'pi_never_stored', { paymentId: 'not-a-uuid' })).resolves.toMatchObject({ status: 200 });
+    await expect(records(paymentId)).resolves.toMatchObject({ status: 'PENDING' });
+
+    await webhook('payment_intent.succeeded', 'pi_never_stored', { paymentId });
+    await webhook('charge.succeeded', 'ch_never_stored', { paymentId });
+
+    await expect(records(paymentId)).resolves.toEqual(oneCompletion);
+    await expect(DbHelper.query({ sql: 'SELECT provider_charge_id FROM payments WHERE id = $1', params: [paymentId] })).resolves.toEqual([
+      { provider_charge_id: 'pi_never_stored' }
+    ]);
+    await expect(balance()).resolves.toBe(before + 1200);
   });
 
   it('keeps the wallets and the ledger in agreement', async () => {

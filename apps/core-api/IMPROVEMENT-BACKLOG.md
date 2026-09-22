@@ -22,7 +22,7 @@ Last full review: 2026-09-22.
 
 ## P0 — Money correctness, security, availability
 
-### API-P0-1 · Webhooks can miss payments, and webhook handling isn't atomic
+### API-P0-1 · Webhook handling isn't atomic
 
 **Done (2026-09-22).** `CompletePaymentUseCase` is the only way a payment becomes `COMPLETED` (deposit credit or
 withdrawal capture + status + outbox event, one transaction behind a row lock). `PAYMENT_TRANSITIONS` guards every
@@ -30,17 +30,16 @@ status update in SQL (`status = ANY(allowed)`), so a late `FAILED` can't overwri
 events go through the same use case; replays credit nothing twice (integration spec `payment-completion`).
 Deposits keep `PENDING` (→ `PROCESSING`) and `REQUIRES_ACTION` charges open, store the charge ID and return the
 3-D Secure `clientSecret`; declines store the decline code (integration spec `payment-open-results`).
+Charges carry `metadata.paymentId`; webhooks look the payment up by it first (UUID and provider checked), then by
+charge ID, and never overwrite a stored charge ID.
 
 **Still open.**
-- **Match by our own ID.** Send `metadata.paymentId` to the PSP and look payments up by it first. The charge ID is
-  stored only after the charge call, so a crash in between leaves a charge no webhook can match.
 - **Atomic webhook handling.** The webhook row is recorded `PROCESSED` before the handler runs, and the handler's
   status update and outbox insert (for `FAILED`) run outside one transaction.
 - **Withdrawal failure webhook.** A `FAILED` webhook for a withdrawal doesn't release the reserved funds
   (depends on the withdrawal model, `PKG-P0-2`).
 
 **Verify.**
-- [ ] A webhook for a charge whose ID was never stored still finds the payment by `metadata.paymentId`.
 - [ ] A crash between recording the webhook and handling it leaves the event retryable, not `PROCESSED`.
 
 ### API-P0-3 · Bet outcomes ignore the odds, so the house loses money at higher odds

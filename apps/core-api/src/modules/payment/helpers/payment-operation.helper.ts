@@ -13,6 +13,7 @@ import { OPEN_PAYMENT_STATUS } from '../constants/status/open-payment-status.con
 import { PAYMENT_ERRORS } from '../constants/errors/payment-errors.constant';
 import { PAYMENT_FAILURE_REASONS } from '../constants/operations/payment-failure-reasons.constant';
 import { PAYMENT_LABELS } from '../constants/operations/payment-labels.constant';
+import { PAYMENT_METADATA_KEYS } from '../constants/operations/payment-metadata.constant';
 
 export class PaymentOperationHelper {
   private static async markIndeterminate ({ paymentRepository, paymentId, charge }: MarkIndeterminateDto): Promise<void> {
@@ -40,7 +41,8 @@ export class PaymentOperationHelper {
       currency: dto.currency,
       paymentMethodToken: method.providerMethodId!,
       idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.DEPOSIT, paymentId: payment.id }),
-      description: `${PAYMENT_LABELS.DEPOSIT.DESCRIPTION}${PAYMENT_LABELS.SEPARATOR}${payment.id}`
+      description: `${PAYMENT_LABELS.DEPOSIT.DESCRIPTION}${PAYMENT_LABELS.SEPARATOR}${payment.id}`,
+      metadata: { [PAYMENT_METADATA_KEYS.PAYMENT_ID]: payment.id }
     });
 
     if (charge.status === ProviderChargeStatus.INDETERMINATE) {
