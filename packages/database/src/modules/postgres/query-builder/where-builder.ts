@@ -50,6 +50,12 @@ export class WhereBuilder extends BaseBuilder {
     if (Array.isArray(options.where)) {
       for (const condition of options.where) {
         const column = this.mapColumn({ column: condition.field });
+
+        if (condition.operator === 'IS NULL' || condition.operator === 'IS NOT NULL') {
+          conditions.push(`${column} ${condition.operator}`);
+          continue;
+        }
+
         const placeholder = `$${paramIndex++}`;
 
         if (condition.operator === 'IN') conditions.push(`${column} = ANY(${placeholder})`);

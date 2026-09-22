@@ -7,11 +7,16 @@ import { CompletePaymentUseCase } from '../use-cases/commands/complete-payment.u
 import { FailPaymentUseCase } from '../use-cases/commands/fail-payment.use-case';
 import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
 import { PAYMENT_RECONCILIATION } from '../constants/jobs/payment-reconciliation.constant';
+import { PAYMENT_METADATA_KEYS } from '../constants/operations/payment-metadata.constant';
+import { PAYMENT_FAILURE_REASONS } from '../constants/operations/payment-failure-reasons.constant';
+import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
+import { SettleReconciledPaymentDto } from '../dtos/helper/settle-reconciled-payment.dto';
 
 /**
- * Finishes deposits the provider settled but whose webhook never arrived: deposits left PROCESSING or REQUIRES_ACTION
- * longer than a threshold are looked up at the provider and completed or failed through the same use cases as the
- * webhook. Payments the provider still reports as open are left alone.
+ * Finishes deposits whose webhook never arrived: deposits left open longer than a threshold are looked up at the
+ * provider (by charge ID, or by our payment ID in the charge metadata when no charge ID was stored) and completed or
+ * failed through the same use cases as the webhook. Payments the provider never saw are failed; payments it still
+ * reports as open are left alone.
  */
 @Injectable()
 export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModuleDestroy {
@@ -74,11 +79,28 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
   }
 
   private async reconcile ({ payment }: PaymentRefDto): Promise<void> {
-    if (!payment.provider || !payment.providerChargeId) return;
+    if (!payment.provider) return;
 
     const provider = this.providerRegistry.require({ providerName: payment.provider, capability: PaymentCapability.CHARGE });
-    const charge = await provider.retrieveCharge({ chargeId: payment.providerChargeId });
+    if (payment.providerChargeId) return this.settle({ payment, charge: await provider.retrieveCharge({ chargeId: payment.providerChargeId }) });
 
+    const charge = await provider.findChargeByMetadata({ key: PAYMENT_METADATA_KEYS.PAYMENT_ID, value: payment.id });
+    if (!charge) {
+      await this.failPayment.execute({
+        paymentId: payment.id,
+        failureReason: PAYMENT_FAILURE_REASONS.NOT_FOUND_AT_PROVIDER,
+        failureCode: PAYMENT_FAILURE_CODES.NOT_FOUND_AT_PROVIDER
+      });
+      return;
+    }
+
+    if (charge.status === ProviderChargeStatus.INDETERMINATE) return;
+
+    await this.paymentRepository.attachChargeId({ paymentId: payment.id, providerChargeId: charge.chargeId });
+    await this.settle({ payment, charge });
+  }
+
+  private async settle ({ payment, charge }: SettleReconciledPaymentDto): Promise<void> {
     if (charge.status === ProviderChargeStatus.SUCCEEDED) {
       await this.completePayment.execute({ paymentId: payment.id });
       return;

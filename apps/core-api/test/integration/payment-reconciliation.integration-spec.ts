@@ -5,7 +5,7 @@ import { DbHelper } from '../helpers/db.helper';
 describe('Payment reconciliation', () => {
   const email = 'player18@seed.local';
 
-  const staleDeposit = async (key: string, status: string, chargeId: string, amount: number): Promise<string> => {
+  const staleDeposit = async (key: string, status: string, chargeId: string | null, amount: number): Promise<string> => {
     const [row] = await DbHelper.query<{ id: string }>({
       sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider, provider_charge_id, created_at, updated_at)
             SELECT $2, u.id, w.id, 'DEPOSIT', $5, w.currency, $3::payment_status, 'stripe', $4, now() - interval '1 hour', now() - interval '1 hour'
@@ -53,5 +53,23 @@ describe('Payment reconciliation', () => {
     await expect(state(declined)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
     await expect(state(open)).resolves.toEqual({ status: 'PROCESSING', credits: 0, failedEvents: 0 });
     await expect(balance()).resolves.toBe(before + 2200);
+  }, 30_000);
+
+  it('fails stale deposits the provider never saw, found by our payment ID', async () => {
+    const neverCharged = await staleDeposit('reconcile-never-charged', 'PENDING', null, 700);
+    const timedOut = await staleDeposit('reconcile-timed-out', 'REQUIRES_ACTION', null, 800);
+
+    const deadline = Date.now() + 20_000;
+    while (Date.now() < deadline) {
+      const [a, b] = await Promise.all([state(neverCharged), state(timedOut)]);
+      if (a.status === 'FAILED' && b.status === 'FAILED') break;
+      await sleep(500);
+    }
+
+    await expect(state(neverCharged)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
+    await expect(state(timedOut)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
+    await expect(DbHelper.query({ sql: 'SELECT DISTINCT failure_code FROM payments WHERE id = ANY($1)', params: [[neverCharged, timedOut]] })).resolves.toEqual([
+      { failure_code: 'NOT_FOUND_AT_PROVIDER' }
+    ]);
   }, 30_000);
 });

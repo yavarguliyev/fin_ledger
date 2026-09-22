@@ -99,3 +99,23 @@ describe('StripeOperationHelper.retrieveCharge', () => {
     expect(retrieved).toEqual(['pi_direct', 'pi_from_charge']);
   });
 });
+
+describe('StripeOperationHelper.findIntentId', () => {
+  it('searches PaymentIntents by our metadata and returns null when the provider never saw the payment', async () => {
+    const queries: string[] = [];
+    const clientReturning = (ids: string[]): Stripe =>
+      ({
+        paymentIntents: {
+          search: async ({ query }: { query: string }): Promise<unknown> => {
+            queries.push(query);
+            return Promise.resolve({ data: ids.map(id => ({ id })) });
+          }
+        }
+      }) as unknown as Stripe;
+    const dto = { key: 'paymentId', value: '0192f3a4-0000-7000-8000-000000000001' };
+
+    await expect(StripeOperationHelper.findIntentId({ client: clientReturning(['pi_found']), dto })).resolves.toBe('pi_found');
+    await expect(StripeOperationHelper.findIntentId({ client: clientReturning([]), dto })).resolves.toBeNull();
+    expect(queries[0]).toBe("metadata['paymentId']:'0192f3a4-0000-7000-8000-000000000001'");
+  });
+});

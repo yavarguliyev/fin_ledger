@@ -9,6 +9,7 @@ import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-re
 import { ProviderMethodResultDto } from '../../dtos/operation/provider-method-result.dto';
 import { RefundPaymentDto } from '../../dtos/operation/refund-payment.dto';
 import { RetrieveChargeDto } from '../../dtos/operation/retrieve-charge.dto';
+import { FindChargeByMetadataDto } from '../../dtos/operation/find-charge-by-metadata.dto';
 import { WebhookEventDto } from '../../dtos/operation/webhook-event.dto';
 import { CreateSetupSessionDto } from '../../dtos/operation/create-setup-session.dto';
 import { SetupSessionResultDto } from '../../dtos/operation/setup-session-result.dto';
@@ -33,6 +34,7 @@ import { ExecuteOperationDto } from '../../dtos/adapter/execute-operation.dto';
 import { StripeSimulationHelper } from './helpers/stripe-simulation.helper';
 import { STRIPE_SIMULATION } from '../../constants/stripe/stripe-simulated-outcomes.constant';
 import { STRIPE_ERROR_DEFAULTS } from '../../constants/stripe/stripe-error-defaults.constant';
+import { STRIPE_HEADERS } from '../../constants/stripe/stripe-headers.constant';
 
 @Injectable()
 export class StripeAdapter
@@ -42,8 +44,6 @@ export class StripeAdapter
   readonly providerName = PaymentProvider.STRIPE;
 
   readonly capabilities = [PaymentCapability.CHARGE, PaymentCapability.PAYOUT, PaymentCapability.METHOD_VAULT, PaymentCapability.HOSTED_SETUP, PaymentCapability.WEBHOOKS] as const;
-
-  private static readonly SIGNATURE_HEADER = 'stripe-signature';
 
   private readonly stripe: Stripe | null;
   private readonly isSimulated: boolean;
@@ -63,7 +63,7 @@ export class StripeAdapter
   }
 
   extractSignature ({ headers }: ExtractSignatureDto): string {
-    return this.headerValue({ headers, name: StripeAdapter.SIGNATURE_HEADER });
+    return this.headerValue({ headers, name: STRIPE_HEADERS.SIGNATURE });
   }
 
   constructWebhookEvent (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
@@ -82,7 +82,6 @@ export class StripeAdapter
 
   async charge (dto: ChargePaymentDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return Promise.resolve(StripeSimulationHelper.charge({ dto, provider: this.providerName }));
-
     return this.stripeOperation({
       prefix: STRIPE_SIMULATION.CHARGE_PREFIX,
       amount: dto.amount,
@@ -93,9 +92,13 @@ export class StripeAdapter
 
   async retrieveCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return Promise.resolve(StripeSimulationHelper.retrieveCharge({ dto, provider: this.providerName }));
-
     const { CHARGE_PREFIX: prefix, UNKNOWN_AMOUNT: amount, UNKNOWN_CURRENCY: currency } = STRIPE_SIMULATION;
     return this.executeOperation({ prefix, amount, currency, operation: async () => StripeOperationHelper.retrieveCharge({ client: this.stripe!, dto }) });
+  }
+
+  async findChargeByMetadata (dto: FindChargeByMetadataDto): Promise<ProviderChargeResultDto | null> {
+    const intentId = this.stripe ? await StripeOperationHelper.findIntentId({ client: this.stripe, dto }) : null;
+    return intentId ? this.retrieveCharge({ chargeId: intentId }) : null;
   }
 
   async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {

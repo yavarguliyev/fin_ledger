@@ -47,7 +47,7 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 
 ## P1 — Stuck, stale or lost state
 
-### API-P1-1 · Deposits without a stored charge ID are never resolved
+### API-P1-1 · Abandoned 3-D Secure deposits stay open, and unresolved payments aren't flagged
 
 **Done (2026-09-22).**
 - **Webhook replay:** `WebhookReplayJob` re-handles events still `RECEIVED` / `FAILED` after
@@ -56,17 +56,15 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - **Payment reconciliation:** `PaymentReconciliationJob` looks up deposits left `PROCESSING` / `REQUIRES_ACTION`
   longer than `PAYMENT_RECONCILE_STALE_AFTER_MS` at the provider (`retrieveCharge`) and completes them through
   `CompletePaymentUseCase` or fails them through `FailPaymentUseCase` (spec `payment-reconciliation`).
+  Deposits without a stored charge ID are found by `metadata.paymentId` (Stripe search, ~40 s indexing delay, so the
+  threshold stays well above it); if the provider has none, the payment fails with `NOT_FOUND_AT_PROVIDER`.
 
 **Still open.**
-- **No charge ID.** A deposit whose charge call timed out (marked `REQUIRES_ACTION` with no charge ID), or that crashed
-  before the ID was stored, is skipped. Find the charge by `metadata.paymentId` (Stripe PaymentIntent search); if the
-  provider has none after a grace period, mark the payment `FAILED`.
 - **Abandoned 3-D Secure.** A `REQUIRES_ACTION` deposit the customer never authenticates stays open forever. After an
   expiry, cancel the PaymentIntent and fail the payment.
 - **Manual review.** Count reconciliation attempts (needs a column) and flag payments that stay unresolved.
 
 **Verify.**
-- [ ] A payment the PSP never saw is marked `FAILED`.
 - [ ] An unauthenticated 3-D Secure deposit is cancelled and failed after the expiry.
 
 ### API-P1-2 · A crash between charge and credit leaves a charged, uncredited deposit
@@ -76,9 +74,10 @@ wallet. If the process dies between the two, Stripe has the money and the paymen
 finish it. (The unused in-memory deposit saga was deleted on 2026-09-22: it kept no state, so it couldn't survive this
 crash either.)
 
-**Solution.** Recover crashed deposits with the reconciliation job
-(`API-P1-1`), which finds `PENDING`/`PROCESSING` payments older than a threshold and finishes them through
-`CompletePaymentUseCase`.
+**Solution (implemented 2026-09-22, not yet verified live).** `PaymentReconciliationJob` (`API-P1-1`) finds the
+crashed deposit (`PENDING`, no charge ID) by `metadata.paymentId` at Stripe and completes it through
+`CompletePaymentUseCase`. Simulation can't produce "charged but no ID stored", so this needs a scratch run against
+Stripe test mode.
 
 **Verify.**
 - [ ] Killing the API right after a successful charge: within one reconciliation cycle the wallet is credited exactly once.

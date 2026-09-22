@@ -9,6 +9,7 @@ import { StripeRefundDto } from '../../../dtos/helper/stripe-refund.dto';
 import { StripeMethodHelper } from './stripe-method.helper';
 import { StripeIntentHelper } from './stripe-intent.helper';
 import { StripeRetrieveChargeDto } from '../../../dtos/helper/stripe-retrieve-charge.dto';
+import { StripeFindIntentDto } from '../../../dtos/helper/stripe-find-intent.dto';
 import { STRIPE_ID_PREFIXES } from '../../../constants/stripe/stripe-id-prefixes.constant';
 
 export class StripeOperationHelper {
@@ -50,6 +51,11 @@ export class StripeOperationHelper {
     const intent = await client.paymentIntents.retrieve(typeof intentRef === 'string' ? intentRef : (intentRef?.id ?? dto.chargeId));
 
     return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
+  }
+
+  static async findIntentId ({ client, dto }: StripeFindIntentDto): Promise<string | null> {
+    const result = await client.paymentIntents.search({ query: `metadata['${dto.key}']:'${dto.value}'`, limit: 1 });
+    return result.data[0]?.id ?? null;
   }
 
   static async createPayout ({ client, dto }: StripePayoutDto): Promise<string> {

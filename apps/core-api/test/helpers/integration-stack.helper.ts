@@ -98,7 +98,7 @@ export class IntegrationStackHelper {
       WEBHOOK_REPLAY_INTERVAL_MS: '500',
       WEBHOOK_REPLAY_STALE_AFTER_MS: '5000',
       PAYMENT_RECONCILE_INTERVAL_MS: '500',
-      PAYMENT_RECONCILE_STALE_AFTER_MS: '5000',
+      PAYMENT_RECONCILE_STALE_AFTER_MS: '30000',
       TRUST_PROXY: '1',
       MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64'),
       MFA_ISSUER: 'Integration Wallet'

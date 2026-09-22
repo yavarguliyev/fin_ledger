@@ -9,6 +9,7 @@ import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status
 import { PAYMENT_TRANSITIONS } from '../constants/status/payment-transitions.constant';
 import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
 import { FindStalePaymentsDto } from '../dtos/repository/find-stale-payments.dto';
+import { AttachChargeIdDto } from '../dtos/repository/attach-charge-id.dto';
 
 @Injectable()
 export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
@@ -74,13 +75,16 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
 
   async findStaleOpenDeposits ({ updatedBefore, limit }: FindStalePaymentsDto): Promise<PaymentDto[]> {
     const where: WhereCondition[] = [
-      { field: 'status', operator: 'IN', value: [PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
+      { field: 'status', operator: 'IN', value: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
       { field: 'type', operator: '=', value: PaymentType.DEPOSIT },
-      { field: 'updatedAt', operator: '<', value: updatedBefore },
-      { field: 'providerChargeId', operator: '!=', value: '' }
+      { field: 'updatedAt', operator: '<', value: updatedBefore }
     ];
 
     return this.findAll({ where, orderBy: 'updated_at', orderDirection: 'ASC', limit });
+  }
+
+  async attachChargeId ({ paymentId, providerChargeId }: AttachChargeIdDto): Promise<PaymentDto | null> {
+    return this.updateWhere({ where: { id: paymentId, providerChargeId: null }, data: { providerChargeId } });
   }
 
   async createPayment (dto: InternalPaymentRecordDto): Promise<PaymentDto | null> {
