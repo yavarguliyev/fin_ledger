@@ -8,7 +8,6 @@ import { GetWalletByCurrencyUseCase } from './use-cases/queries/get-wallet-by-cu
 import { GetOpenableCurrenciesUseCase } from './use-cases/queries/get-openable-currencies.use-case';
 import { OpenWalletUseCase } from './use-cases/commands/wallet/open-wallet.use-case';
 import { CreditWalletUseCase } from './use-cases/commands/wallet/credit-wallet.use-case';
-import { DebitWalletUseCase } from './use-cases/commands/wallet/debit-wallet.use-case';
 import { ReserveFundsUseCase } from './use-cases/commands/funds/reserve-funds.use-case';
 import { ReleaseFundsUseCase } from './use-cases/commands/funds/release-funds.use-case';
 import { CaptureReservedFundsUseCase } from './use-cases/commands/funds/capture-reserved-funds.use-case';
@@ -39,7 +38,6 @@ export class WalletService {
     private readonly getOpenableCurrenciesUseCase: GetOpenableCurrenciesUseCase,
     private readonly openWalletUseCase: OpenWalletUseCase,
     private readonly creditWalletUseCase: CreditWalletUseCase,
-    private readonly debitWalletUseCase: DebitWalletUseCase,
     private readonly reserveFundsUseCase: ReserveFundsUseCase,
     private readonly releaseFundsUseCase: ReleaseFundsUseCase,
     private readonly captureReservedFundsUseCase: CaptureReservedFundsUseCase,
@@ -81,11 +79,6 @@ export class WalletService {
   @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async creditWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.creditWalletUseCase.execute(dto);
-  }
-
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
-  async debitWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
-    return this.debitWalletUseCase.execute(dto);
   }
 
   @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })

@@ -69,16 +69,7 @@ export class StripeAdapter
   }
 
   constructWebhookEvent (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
-    try {
-      if (!this.stripe || !this.webhookSecret) {
-        if (!this.isSimulated) throw new UnauthorizedException('Stripe webhook signature cannot be verified');
-        return Promise.resolve(this.simulateWebhook(dto));
-      }
-
-      return Promise.resolve(StripeWebhookHelper.verify({ ...dto, client: this.stripe, secret: this.webhookSecret }));
-    } catch (error) {
-      return Promise.reject(error instanceof Error ? error : new Error(String(error)));
-    }
+    return Promise.resolve().then(() => this.buildWebhookEvent(dto));
   }
 
   override async verifyPaymentMethod (dto: VerifyPaymentMethodDto): Promise<ProviderMethodResultDto> {
@@ -130,6 +121,15 @@ export class StripeAdapter
 
   protected override classifyError (dto: ClassifyErrorDto): ProviderError {
     return StripeErrorMapper.toProviderError(dto);
+  }
+
+  private buildWebhookEvent (dto: ConstructWebhookEventDto): WebhookEventDto {
+    if (!this.stripe || !this.webhookSecret) {
+      if (!this.isSimulated) throw new UnauthorizedException('Stripe webhook signature cannot be verified');
+      return this.simulateWebhook(dto);
+    }
+
+    return StripeWebhookHelper.verify({ ...dto, client: this.stripe, secret: this.webhookSecret });
   }
 
   private async stripeOperation ({ prefix, amount, currency, operation }: ExecuteOperationDto): Promise<ProviderChargeResultDto> {

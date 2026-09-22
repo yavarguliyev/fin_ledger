@@ -118,12 +118,9 @@ describe('Login and user status lifecycle', () => {
     const key = `session:${userId}:${jti}`;
     const redis = new Redis(process.env[TEST_ENV_KEYS.REDIS_URL] as string);
 
-    try {
-      const session = JSON.parse((await redis.get(key)) as string) as Record<string, unknown>;
-      await redis.set(key, JSON.stringify({ ...session, status: 'SUSPENDED' }), 'KEEPTTL');
-    } finally {
-      redis.disconnect();
-    }
+    const session = JSON.parse((await redis.get(key)) as string) as Record<string, unknown>;
+    await redis.set(key, JSON.stringify({ ...session, status: 'SUSPENDED' }), 'KEEPTTL');
+    redis.disconnect();
 
     await expect(ApiHelper.request({ path: '/wallets', token })).resolves.toMatchObject({ status: 401 });
   });

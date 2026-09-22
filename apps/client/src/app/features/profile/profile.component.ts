@@ -11,6 +11,7 @@ import { ProfileFormService } from './services/profile-form.service';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethodsComponent } from './payment-methods/payment-methods.component';
+import { TwoFactorSettingsComponent } from './two-factor/two-factor-settings.component';
 import { ShowMoreConfig } from '../../core/interfaces/ui/show-more-config.interface';
 import { EmailHelper } from '../../core/helpers/auth/email.helper';
 import { DateHelper } from '../../core/helpers/common/date.helper';
@@ -20,7 +21,7 @@ import { ProfileFormHelper } from './helpers/profile-form.helper';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent],
   providers: [ProfileFormService],
   templateUrl: './templates/profile.component.html'
 })

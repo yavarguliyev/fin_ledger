@@ -15,9 +15,6 @@ import { RABBITMQ_KEYS } from '../constants/messaging/rabbitmq-keys.constant';
 import { STORAGE_STRATEGIES } from '../constants/storage/storage-strategies.constant';
 import { TranslationCodes } from '../constants/database/translation-codes.constant';
 import { WALLET_STATUS } from '../constants/wallet/wallet-status.constant';
-import { WORKFLOW_NAMES } from '../constants/workflow/workflow-names.constant';
-import { WORKFLOW_STEPS } from '../constants/workflow/workflow-steps.constant';
-import { WorkflowStepStatus } from '../enums/common/events.enum';
 
 export type ActionEvent = (typeof ACTION_EVENTS)[number];
 export type AggregateFunction = 'SUM' | 'COUNT';
@@ -47,7 +44,3 @@ export type TranslationCode = (typeof TranslationCodes)[number];
 export type UnknownRecord = Record<string, unknown>;
 export type UserWalletStatus = (typeof WALLET_STATUS)[number];
 export type WhereCondition = { readonly field: string; readonly value: unknown; readonly operator?: Operators };
-export type WorkflowContext = Record<string, unknown>;
-export type WorkflowExecutionRecord = { readonly stepName: string; readonly status: WorkflowStepStatus };
-export type WorkflowNames = (typeof WORKFLOW_NAMES)[number];
-export type WorkflowSteps = (typeof WORKFLOW_STEPS)[number];

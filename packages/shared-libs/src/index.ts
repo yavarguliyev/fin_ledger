@@ -70,8 +70,6 @@ export * from './modules/constants/auth/token-types.constant';
 export * from './modules/constants/database/translation-codes.constant';
 export * from './modules/constants/wallet/wallet-status.constant';
 export * from './modules/constants/betting/win-chance.constant';
-export * from './modules/constants/workflow/workflow-names.constant';
-export * from './modules/constants/workflow/workflow-steps.constant';
 
 export * from './modules/decorators/audited.decorator';
 export * from './modules/decorators/params-query-and-headers.decorator';
@@ -96,6 +94,7 @@ export * from './modules/interceptors/audit.interceptor';
 export * from './modules/interfaces/audit-event-publisher.interface';
 export * from './modules/interfaces/audit-request.interface';
 export * from './modules/interfaces/catch-exception-record.interface';
+export * from './modules/interfaces/exposed-http-error-record.interface';
 export * from './modules/interfaces/log-exception-record.interface';
 export * from './modules/interfaces/map-exception-record.interface';
 export * from './modules/interfaces/swagger-options.interface';

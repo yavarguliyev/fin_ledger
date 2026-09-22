@@ -13,17 +13,13 @@ export class StripeOperationHelper {
   static async resolveCustomerForCharge ({ client, dto }: ResolveCustomerChargeDto): Promise<string | undefined> {
     if (!dto.paymentMethodToken) return dto.customerId;
 
-    try {
-      const pm = await client.paymentMethods.retrieve(dto.paymentMethodToken);
-      if (pm.customer) return typeof pm.customer === 'string' ? pm.customer : pm.customer.id;
+    const pm = await client.paymentMethods.retrieve(dto.paymentMethodToken);
+    if (pm.customer) return typeof pm.customer === 'string' ? pm.customer : pm.customer.id;
 
-      const customerId = await StripeMethodHelper.getOrCreateCustomer({ client });
-      await client.paymentMethods.attach(pm.id, { customer: customerId });
+    const customerId = await StripeMethodHelper.getOrCreateCustomer({ client });
+    await client.paymentMethods.attach(pm.id, { customer: customerId });
 
-      return customerId;
-    } catch {
-      return dto.customerId;
-    }
+    return customerId;
   }
 
   static buildChargeParams ({ dto, customerId }: BuildChargeParamsDto): PaymentIntentCreateParams {

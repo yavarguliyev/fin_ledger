@@ -142,12 +142,13 @@ export class IntegrationStackHelper {
     while (Date.now() < deadline) {
       if (api.exitCode !== null) throw new Error(`core-api exited during startup:\n${logs.join('')}`);
 
-      try {
-        await fetch(`${url}/game-events`);
-        return;
-      } catch {
-        await sleep(500);
-      }
+      const ready = await fetch(`${url}/game-events`).then(
+        () => true,
+        () => false
+      );
+      if (ready) return;
+
+      await sleep(500);
     }
 
     throw new Error(`core-api did not become ready in time:\n${logs.join('')}`);

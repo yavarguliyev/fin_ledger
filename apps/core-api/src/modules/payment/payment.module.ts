@@ -10,12 +10,6 @@ import { SharedModule } from '../../shared/shared.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { AuthModule } from '../auth/auth.module';
 import { PaymentMethodModule } from '../payment-methods/payment-method.module';
-import { DepositOrchestratorWorkflow } from './workflows/deposit-orchestrator.workflow';
-import { ValidatePaymentMethodStep } from './workflows/steps/validate-payment-method.step';
-import { CreatePaymentRecordStep } from './workflows/steps/create-payment-record.step';
-import { ChargePaymentStep } from './workflows/steps/charge-payment.step';
-import { CreditWalletStep } from './workflows/steps/credit-wallet.step';
-import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step';
 
 @Module({
   imports: [SharedModule, WalletModule, AuthModule, PaymentMethodModule],
@@ -25,14 +19,8 @@ import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step'
     PaymentRepository,
     RequestDepositUseCase,
     RequestWithdrawalUseCase,
-    GetPaymentUseCase,
-    ValidatePaymentMethodStep,
-    CreatePaymentRecordStep,
-    ChargePaymentStep,
-    CreditWalletStep,
-    EmitPaymentEventStep,
-    DepositOrchestratorWorkflow
+    GetPaymentUseCase
   ],
-  exports: [PaymentService, PaymentRepository, DepositOrchestratorWorkflow]
+  exports: [PaymentService, PaymentRepository]
 })
 export class PaymentModule {}

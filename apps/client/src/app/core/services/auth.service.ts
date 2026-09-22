@@ -9,6 +9,10 @@ import { LoginRequest } from '../interfaces/auth/login-request.interface';
 import { RegisterDto } from '../interfaces/auth/register-dto.interface';
 import { RegisterResponse } from '../interfaces/auth/register-response.interface';
 import { VerifyEmailDto } from '../dtos/auth/verify-email.dto';
+import { LoginDto } from '../dtos/auth/login.dto';
+import { VerifyMfaLoginDto } from '../dtos/auth/verify-mfa-login.dto';
+import { LoginResult } from '../types/auth/login-result.type';
+import { MfaHelper } from '../helpers/auth/mfa.helper';
 import { SessionData } from '../interfaces/auth/session-data.interface';
 import { UpdateProfileResponse } from '../interfaces/auth/update-profile-response.interface';
 import { ThemeService } from './theme.service';
@@ -75,15 +79,23 @@ export class AuthService {
     localStorage.setItem('auth_user', JSON.stringify(response.user));
   }
 
-  login (email: string, password: string, rememberMe = false): Observable<AuthResponse> {
+  login ({ email, password, rememberMe }: LoginDto): Observable<LoginResult> {
     const payload: LoginRequest = { email, password };
 
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, payload).pipe(
-      tap(response => {
-        this.persist(response);
+    return this.http.post<LoginResult>(`${this.apiUrl}/auth/login`, payload).pipe(
+      tap(result => {
+        const session = MfaHelper.sessionOf({ result });
+        if (session) this.persist(session);
         if (rememberMe) localStorage.setItem('remembered_email', email);
         else localStorage.removeItem('remembered_email');
       }),
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
+    );
+  }
+
+  verifyMfaLogin (dto: VerifyMfaLoginDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/mfa/verify`, dto).pipe(
+      tap(response => this.persist(response)),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }

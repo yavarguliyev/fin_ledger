@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthTokenPurpose, PostgresService, TotpService, UserStatus } from '@common/libs';
 
 import { AuthBaseUseCase } from '../../base/auth-base.use-case';
@@ -31,32 +31,26 @@ export class VerifyMfaLoginUseCase extends AuthBaseUseCase<VerifyMfaLoginDto, Se
     const user = await this.authRepository.findById({ id: userId });
     if (!user || user.deletedAt || user.status !== UserStatus.ACTIVE || !user.mfaEnabledAt) throw new UnauthorizedException('Invalid credentials');
 
-    let codeRejected = false;
+    const signedInUser = await this.postgresService.getWriteConnection().transaction({
+      callback: async adapter => {
+        const result = await MfaHelper.matchSecondFactor({ user, code, totpService, mfaRecoveryCodeRepository, adapter });
+        if (!result) return null;
 
-    try {
-      const signedInUser = await this.postgresService.getWriteConnection().transaction({
-        callback: async adapter => {
-          const result = await MfaHelper.verifySecondFactor({ user, code, totpService, mfaRecoveryCodeRepository, adapter }).catch((error: unknown) => {
-            codeRejected = true;
-            throw error;
-          });
+        await AuthTokenHelper.claim({ authTokenRepository, token: challengeToken, purposes, adapter });
 
-          await AuthTokenHelper.claim({ authTokenRepository, token: challengeToken, purposes, adapter });
+        return this.authRepository.update({
+          id: userId,
+          data: { lastLoginAt: new Date().toISOString(), ...(result.timeStep !== undefined && { mfaLastUsedStep: result.timeStep }) },
+          adapter
+        });
+      }
+    });
 
-          return this.authRepository.update({
-            id: userId,
-            data: { lastLoginAt: new Date().toISOString(), ...(result.timeStep !== undefined && { mfaLastUsedStep: result.timeStep }) },
-            adapter
-          });
-        }
-      });
-
-      if (!signedInUser) throw new UnauthorizedException('Invalid credentials');
-
-      return AuthHelper.createSessionResponse({ dto: signedInUser, sessionService: this.sessionService, configService: this.configService, isAuth: true });
-    } catch (error) {
-      if (codeRejected) await AuthTokenHelper.recordFailure({ authTokenRepository, token: challengeToken });
-      throw error;
+    if (!signedInUser) {
+      await AuthTokenHelper.recordFailure({ authTokenRepository, token: challengeToken });
+      throw new BadRequestException('Invalid authentication code');
     }
+
+    return AuthHelper.createSessionResponse({ dto: signedInUser, sessionService: this.sessionService, configService: this.configService, isAuth: true });
   }
 }

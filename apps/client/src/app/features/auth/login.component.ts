@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { MfaHelper } from '../../core/helpers/auth/mfa.helper';
 
 @Component({
   selector: 'app-login',
@@ -22,6 +23,15 @@ export class LoginComponent implements OnInit {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly showPassword = signal(false);
+  readonly challengeToken = signal<string | null>(null);
+
+  readonly codeForm = this.fb.nonNullable.group({
+    code: this.fb.nonNullable.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)] })
+  });
+
+  get codeControl (): FormControl<string> {
+    return this.codeForm.controls.code;
+  }
 
   readonly form = this.fb.group({
     email: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()], nonNullable: false }),
@@ -61,16 +71,53 @@ export class LoginComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
-    this.auth.login(email, password, rememberMe).subscribe({
-      next: () => {
+    this.auth.login({ email, password, rememberMe }).subscribe({
+      next: result => {
         this.loading.set(false);
-        this.toast.success('Welcome back!');
-        void this.router.navigate(['/dashboard']);
+
+        const challenge = MfaHelper.challengeOf({ result });
+
+        if (challenge) {
+          this.challengeToken.set(challenge.challengeToken);
+          return;
+        }
+
+        this.completeSignIn();
       },
       error: (err: Error) => {
         this.loading.set(false);
         this.error.set(err.message);
       }
     });
+  }
+
+  onVerifyCode (): void {
+    const challengeToken = this.challengeToken();
+    if (!challengeToken || this.codeControl.invalid) {
+      this.codeControl.markAsTouched();
+      return;
+    }
+
+    this.loading.set(true);
+    this.error.set(null);
+    this.auth.verifyMfaLogin({ challengeToken, code: this.codeControl.value }).subscribe({
+      next: () => this.completeSignIn(),
+      error: (err: Error) => {
+        this.loading.set(false);
+        this.error.set(err.message);
+      }
+    });
+  }
+
+  backToPassword (): void {
+    this.challengeToken.set(null);
+    this.codeControl.reset();
+    this.error.set(null);
+  }
+
+  private completeSignIn (): void {
+    this.loading.set(false);
+    this.toast.success('Welcome back!');
+    void this.router.navigate(['/dashboard']);
   }
 }

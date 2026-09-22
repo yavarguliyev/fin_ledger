@@ -5,6 +5,7 @@ import { ApplicationError } from '../errors/application.error';
 import { DomainError } from '../errors/domain.error';
 import { InfrastructureError } from '../errors/infrastructure.error';
 import { CatchExceptionRecord } from '../interfaces/catch-exception-record.interface';
+import { ExposedHttpErrorRecord } from '../interfaces/exposed-http-error-record.interface';
 import { MapExceptionRecord } from '../interfaces/map-exception-record.interface';
 import { JWT_ERROR_NAMES } from '../constants/auth/jwt-error-names.constant';
 import { BaseHelper } from '../helpers/base.helper';
@@ -16,7 +17,8 @@ import { ExceptionRefDto } from '../dtos/filter/exception-ref.dto';
 export class UnifiedExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(UnifiedExceptionFilter.name);
 
-  catch (exception: unknown, host: ArgumentsHost): void {
+  catch (thrown: unknown, host: ArgumentsHost): void {
+    const exception = this.normalize({ exception: thrown });
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<CatchExceptionRecord>();
@@ -24,6 +26,17 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
     const body = this.mapException({ exception, correlationId });
     this.logException({ exception, correlationId, request });
     response.status(this.resolveStatus({ exception })).json(body);
+  }
+
+  private normalize ({ exception }: ExceptionRefDto): unknown {
+    const exposed = this.exposedHttpErrorOf({ exception });
+    return exposed ? new HttpException(exposed.message, exposed.status) : exception;
+  }
+
+  private exposedHttpErrorOf ({ exception }: ExceptionRefDto): ExposedHttpErrorRecord | null {
+    if (!(exception instanceof Error) || !('status' in exception) || !('expose' in exception)) return null;
+    if (exception.expose !== true || typeof exception.status !== 'number') return null;
+    return exception.status >= 400 && exception.status < 500 ? { message: exception.message, status: exception.status } : null;
   }
 
   private isWarning ({ exception }: ExceptionRefDto): boolean {

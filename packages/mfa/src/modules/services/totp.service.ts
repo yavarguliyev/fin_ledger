@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { generateSecret, generateURI, verifySync } from 'otplib';
 import { toDataURL } from 'qrcode';
@@ -26,7 +26,7 @@ export class TotpService {
     this.issuer = this.configService.get<string>('MFA_ISSUER') ?? TOTP_OPTIONS.DEFAULT_ISSUER;
 
     if (this.encryptionKey.length !== CRYPTO_DEFAULTS.CIPHER_KEY_BYTES) {
-      throw new Error(`MFA_ENCRYPTION_KEY must be ${CRYPTO_DEFAULTS.CIPHER_KEY_BYTES} random bytes, base64-encoded`);
+      throw new InternalServerErrorException(`MFA_ENCRYPTION_KEY must be ${CRYPTO_DEFAULTS.CIPHER_KEY_BYTES} random bytes, base64-encoded`);
     }
   }
 

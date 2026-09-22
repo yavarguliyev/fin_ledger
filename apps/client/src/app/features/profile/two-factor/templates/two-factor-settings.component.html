@@ -1,0 +1,98 @@
+<div class="flex items-center justify-between py-2 gap-3">
+  <div>
+    <p class="text-sm font-medium text-ink-900 dark:text-white">Two-factor authentication</p>
+    <p class="text-xs text-ink-500 dark:text-ink-400">Ask for a code from your authenticator app when you sign in</p>
+  </div>
+
+  @if (status(); as current) {
+    <div class="flex items-center gap-2 shrink-0">
+      @if (current.enabled) {
+        <span class="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success">Enabled</span>
+        <button type="button" (click)="openDisable()" class="text-sm font-medium text-danger hover:underline">Turn off</button>
+      } @else {
+        <span class="text-xs font-medium px-2 py-1 rounded-full bg-warning/10 text-warning">Not enabled</span>
+        <button type="button" (click)="startSetup()" [disabled]="loading()" class="text-sm font-medium text-primary hover:underline disabled:opacity-60">
+          Set up
+        </button>
+      }
+    </div>
+  }
+</div>
+
+<app-modal [isOpen]="setupOpen()" title="Set up two-factor authentication" maxWidth="max-w-md" (close)="closeSetup()">
+  @if (enrollment(); as current) {
+    <div class="space-y-4">
+      <p class="text-sm text-ink-600 dark:text-ink-300">Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy…), then enter the 6-digit code it shows.</p>
+      <img [src]="current.qrCodeDataUrl" alt="Two-factor QR code" class="mx-auto w-48 h-48 rounded-lg bg-white p-2" />
+      <p class="text-xs text-ink-500 dark:text-ink-400 text-center">
+        Can't scan it? Enter this key manually:
+        <span class="block mt-1 font-mono text-sm text-ink-900 dark:text-white break-all" data-testid="mfa-manual-key">{{ manualKey() }}</span>
+      </p>
+      <input
+        type="text"
+        [formControl]="setupCode"
+        autocomplete="one-time-code"
+        inputmode="numeric"
+        placeholder="123456"
+        aria-label="Authentication code"
+        class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-primary/40"
+      />
+      @if (error()) {
+        <p class="text-sm text-danger" role="alert">{{ error() }}</p>
+      }
+      <button
+        type="button"
+        (click)="confirmSetup()"
+        [disabled]="loading()"
+        class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
+      >
+        {{ loading() ? 'Checking…' : 'Turn on' }}
+      </button>
+    </div>
+  } @else if (recoveryCodes(); as codes) {
+    <div class="space-y-4">
+      <p class="text-sm text-ink-600 dark:text-ink-300">
+        Two-factor authentication is on. Save these recovery codes somewhere safe: each one lets you sign in once if you lose your phone.
+        <strong>They won't be shown again.</strong>
+      </p>
+      <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-ink-900 dark:text-white" data-testid="mfa-recovery-codes">
+        @for (code of codes; track code) {
+          <li class="px-3 py-1.5 rounded bg-ink-100 dark:bg-night-bg text-center">{{ code }}</li>
+        }
+      </ul>
+      <div class="flex gap-2">
+        <button type="button" (click)="copyRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">Copy</button>
+        <button type="button" (click)="downloadRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">Download</button>
+      </div>
+      <button type="button" (click)="closeSetup()" class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">I've saved them</button>
+    </div>
+  }
+</app-modal>
+
+<app-modal [isOpen]="disableOpen()" title="Turn off two-factor authentication" maxWidth="max-w-md" (close)="closeDisable()">
+  <form [formGroup]="disableForm" (ngSubmit)="confirmDisable()" class="space-y-4" novalidate>
+    <p class="text-sm text-ink-600 dark:text-ink-300">Enter your password and a code from your authenticator app (or a recovery code).</p>
+    <input
+      type="password"
+      formControlName="password"
+      autocomplete="current-password"
+      placeholder="Password"
+      aria-label="Password"
+      class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+    />
+    <input
+      type="text"
+      formControlName="code"
+      autocomplete="one-time-code"
+      placeholder="Authentication or recovery code"
+      aria-label="Authentication code"
+      class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+    />
+    @if (error()) {
+      <p class="text-sm text-danger" role="alert">{{ error() }}</p>
+    }
+    <button type="submit" [disabled]="loading()" class="w-full py-2.5 rounded-lg bg-danger text-white font-semibold disabled:opacity-60">
+      {{ loading() ? 'Turning off…' : 'Turn off' }}
+    </button>
+  </form>
+</app-modal>

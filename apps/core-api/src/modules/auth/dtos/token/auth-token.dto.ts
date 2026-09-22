@@ -16,6 +16,8 @@ export const AuthTokenSchema = z.object({
 
   revokedAt: z.iso.datetime({ message: 'Revoked at must be a valid ISO datetime' }).nullable(),
 
+  failedAttempts: z.number({ message: 'Failed attempts must be a number' }).int(),
+
   createdAt: z.iso.datetime({ message: 'Created at must be a valid ISO datetime' })
 });
 

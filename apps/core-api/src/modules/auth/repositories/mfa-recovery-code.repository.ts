@@ -1,23 +1,44 @@
 import { Injectable } from '@nestjs/common';
+import { BaseExtendedRepository, PostgresService } from '@common/libs';
 
-import { MFA_RECOVERY_CODE_CONSTANTS } from '../constants/mfa/mfa-recovery-code.constant';
+import { MfaRecoveryCodeDto } from '../dtos/mfa/mfa-recovery-code.dto';
 import { ReplaceRecoveryCodesDto } from '../dtos/repository/replace-recovery-codes.dto';
 import { RetireRecoveryCodesDto } from '../dtos/repository/retire-recovery-codes.dto';
 import { ClaimRecoveryCodeDto } from '../dtos/repository/claim-recovery-code.dto';
 
 @Injectable()
-export class MfaRecoveryCodeRepository {
+export class MfaRecoveryCodeRepository extends BaseExtendedRepository<MfaRecoveryCodeDto> {
+  constructor (postgresService: PostgresService) {
+    super({
+      service: postgresService,
+      tableName: 'mfa_recovery_codes',
+      columnMappings: {
+        userId: 'user_id',
+        codeHash: 'code_hash',
+        usedAt: 'used_at',
+        createdAt: 'created_at'
+      }
+    });
+  }
+
+  protected getSelectColumns (): string[] {
+    return ['id', 'userId', 'codeHash', 'usedAt', 'createdAt'];
+  }
+
   async replace ({ userId, hashes, adapter }: ReplaceRecoveryCodesDto): Promise<void> {
     await this.retire({ userId, adapter });
-    await adapter.query({ sql: MFA_RECOVERY_CODE_CONSTANTS.INSERT_SQL, params: [userId, hashes] });
+
+    for (const codeHash of hashes) {
+      await this.create({ data: { userId, codeHash }, adapter });
+    }
   }
 
   async retire ({ userId, adapter }: RetireRecoveryCodesDto): Promise<void> {
-    await adapter.query({ sql: MFA_RECOVERY_CODE_CONSTANTS.RETIRE_UNUSED_SQL, params: [userId] });
+    await this.updateWhere({ where: { userId, usedAt: null }, data: { usedAt: new Date().toISOString() }, adapter });
   }
 
   async claim ({ userId, codeHash, adapter }: ClaimRecoveryCodeDto): Promise<boolean> {
-    const result = await adapter.query({ sql: MFA_RECOVERY_CODE_CONSTANTS.CLAIM_SQL, params: [userId, codeHash] });
-    return result.rowCount > 0;
+    const claimed = await this.updateWhere({ where: { userId, codeHash, usedAt: null }, data: { usedAt: new Date().toISOString() }, adapter });
+    return claimed !== null;
   }
 }

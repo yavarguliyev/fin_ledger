@@ -14,6 +14,12 @@ export const EnvironmentVariablesSchema = z.object({
   EMAIL_FROM: z.string({ message: 'EMAIL_FROM must be a string' }).min(1, { message: 'EMAIL_FROM is required' }),
   HOST: z.string({ message: 'HOST must be a string' }).default('0.0.0.0'),
 
+  TRUST_PROXY: z.coerce
+    .number({ message: 'TRUST_PROXY must be a number' })
+    .int({ message: 'TRUST_PROXY must be an integer' })
+    .min(0, { message: 'TRUST_PROXY must be at least 0' })
+    .default(0),
+
   JWT_PRIVATE_KEY: z.string({ message: 'JWT_PRIVATE_KEY must be a string' }).min(1, { message: 'JWT_PRIVATE_KEY is required' }),
   JWT_PUBLIC_KEY: z.string({ message: 'JWT_PUBLIC_KEY must be a string' }).min(1, { message: 'JWT_PUBLIC_KEY is required' }),
   JWT_EXPIRES_IN: z.string({ message: 'JWT_EXPIRES_IN must be a string' }).min(1, { message: 'JWT_EXPIRES_IN is required' }),

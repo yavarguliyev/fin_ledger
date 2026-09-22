@@ -214,8 +214,7 @@ dead-lettering come from `PKG-P1-2`.
    Set `UV_THREADPOOL_SIZE` explicitly (8–16).
 
 Then add a **worker entry point** (`apps/core-api/src/main.worker.ts`), the same modules without HTTP, so API and
-workers scale independently. Move `WorkflowOrchestratorService` / `KafkaHelper.runCompensations` out of `@common/kafka`
-into this package (or delete them if `API-P1-2` removes the saga).
+workers scale independently.
 
 **Verify.**
 - [ ] A job enqueued in a rolled-back transaction never runs; a committed one runs exactly once.

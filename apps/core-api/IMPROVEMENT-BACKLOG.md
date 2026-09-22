@@ -106,19 +106,16 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - [ ] A 50 MB upload or 50 files get a 413/400 before any processing.
 - [ ] A `.png` that is really a text file is rejected.
 
-### API-P0-8 · No rate limiting or security headers
+### API-P0-8 · No rate limiting
 
-**Problem.** `main.ts` has no rate limiting (login, forgot-password, register, deposit and bet are open to brute force
-and flooding), no `helmet`, and no `trust proxy`, so client IPs are wrong behind a load balancer.
+**Problem.** Login, forgot-password, register, deposit and bet are open to brute force and flooding.
+(`helmet`, the 100kb body limit and `TRUST_PROXY` are done, so `req.ip` is the real client behind a proxy.)
 
-**Solution.**
-- **Rate limiting:** `@nestjs/throttler` with Redis storage, a strict tier for `auth/*` (e.g. 5/min per IP + email)
-  and money routes (per user).
-- **Headers and proxy:** `helmet()`, an explicit JSON body limit, and `app.set('trust proxy', …)` from config.
+**Solution.** `@nestjs/throttler` with Redis storage, a strict tier for `auth/*` (e.g. 5/min per IP + email) and money
+routes (per user).
 
 **Verify.**
 - [ ] The 6th wrong login in a minute gets 429. Normal use of other routes is unaffected.
-- [ ] Response headers include `helmet` defaults.
 
 ---
 
@@ -137,19 +134,18 @@ After N tries it flags them for manual review.
 - [ ] A simulated timeout after Stripe charged: within one cycle the payment is `COMPLETED` and credited once.
 - [ ] A payment the PSP never saw is marked `FAILED`.
 
-### API-P1-2 · A crash between charge and credit leaves a charged, uncredited deposit; the deposit saga is dead code
+### API-P1-2 · A crash between charge and credit leaves a charged, uncredited deposit
 
 **Problem.** Deposits run synchronously in `PaymentOperationHelper.executeDepositOperation`: charge, then credit the
 wallet. If the process dies between the two, Stripe has the money and the payment stays `PENDING` with nothing to
-finish it. Separately, `DepositOrchestratorWorkflow` and its five steps in `payment/workflows/` are registered and
-exported but **never run**. They're dead code that looks like the real deposit path.
+finish it. (The unused in-memory deposit saga was deleted on 2026-09-22: it kept no state, so it couldn't survive this
+crash either.)
 
-**Solution.** Delete `payment/workflows/` and its DTOs. Recover crashed deposits with the reconciliation job
+**Solution.** Recover crashed deposits with the reconciliation job
 (`API-P1-1`), which finds `PENDING`/`PROCESSING` payments older than a threshold and finishes them through
 `CompletePaymentUseCase` (`API-P0-1`).
 
 **Verify.**
-- [ ] `payment/workflows/` is gone; build, typecheck, lint and tests pass.
 - [ ] Killing the API right after a successful charge: within one reconciliation cycle the wallet is credited exactly once.
 
 ### API-P1-3 · Cached money data can be stale, and each write clears every user's cache
@@ -375,55 +371,17 @@ lifecycle and timing, and per-user payment idempotency, plus drift = 0. A mutati
 Researched 2026-09-22. Effort is for one developer and includes integration tests. Build each one as its own series
 of small changes. Prices are from the vendors' own pages; check them again before signing up.
 
-### API-F-1 · Two-factor authentication (TOTP authenticator apps)
+### API-F-7 · Two-factor follow-ups
 
-**Today.** `users.mfa_secret_encrypted` and `users.mfa_enabled_at` exist, but no code reads them. The profile
-page's "Two-factor authentication: Not enabled" is static text.
+Two-factor authentication shipped on 2026-09-22 (TOTP, recovery codes, two-step login, profile set-up and turn-off).
+Still to decide or build:
+- **Required for staff:** make it mandatory for `ADMIN`/`GLOBAL_ADMIN`, so an admin without it is sent to the set-up
+  wizard after login.
+- **Passkeys:** WebAuthn with `@simplewebauthn/server` (MIT) as a second option alongside authenticator apps.
+- **Regenerate recovery codes:** from the profile page (password + current code), replacing the old set.
+- **Notify on changes:** email when two-factor is turned on or off (needs `PKG-P1-5` for real delivery).
 
-**Design.** No paid service is needed: TOTP works with Google Authenticator, 1Password, Authy and similar apps.
-- **Package:** `packages/mfa` (`@common/mfa`), alongside `mailer`/`sms`, with:
-  - `TotpService`: create secret, `otpauth://` URI, verify code;
-  - secret encryption with AES-256-GCM (`node:crypto`, key from `MFA_ENCRYPTION_KEY`).
-- **Libraries:** [otplib](https://www.npmjs.com/package/otplib) (MIT, RFC 6238/4226, TypeScript, actively maintained) and `qrcode` (MIT) for the QR image.
-- **Schema (fold into migration 003):**
-  - add `mfa_last_used_step` to `users`, so a code can't be replayed within its 30-second window;
-  - add a `mfa_recovery_codes` table (`user_id`, `code_hash`, `used_at`) holding 10 one-time backup codes, stored as hashes.
-- **Setting it up** (profile, "Security" section):
-  - `POST /auth/mfa/setup` returns the QR code and stores a pending secret.
-  - `POST /auth/mfa/enable {code}` confirms it and returns the recovery codes **once**.
-  - `POST /auth/mfa/disable {password, code}` turns it off.
-- **Login:**
-  - When the password is right and MFA is on, return `{ mfaRequired: true, challengeToken }` instead of a session.
-    The challenge is a 5-minute one-time link token: a new `mfa_challenge` purpose in `auth_tokens`.
-  - Then `POST /auth/mfa/verify {challengeToken, code | recoveryCode}` returns the session.
-  - Code attempts are rate-limited (`API-P0-8`).
-- **Client:** an enable wizard (QR, confirm code, show and download recovery codes), a disable dialog, and a second
-  login step.
-- **Later:** require MFA for `ADMIN`/`GLOBAL_ADMIN`; passkeys (WebAuthn) with `@simplewebauthn/server` (MIT).
-  SMS codes are **not** recommended (SIM-swap attacks), and `packages/sms` is only a log stub anyway, with no phone column.
-
-**Effort.** About 3–4 days: backend 2, client 1–1.5, tests 0.5.
-
-**Progress.**
-- [x] **Step 1 (2026-09-22):** the `packages/mfa` package (`TotpService`: secret, QR code, verify with replay
-  protection, AES-256-GCM secret encryption; `RecoveryCodeHelper`) is exported through `@common/libs`, with 10 unit
-  tests. Schema: `users.mfa_last_used_step`, check `chk_users_mfa_consistency`, and the `mfa_recovery_codes` table;
-  migrations up and down verified.
-- [x] **Step 2 (2026-09-22):** `GET /auth/mfa/status`, `POST /auth/mfa/setup | enable | disable` (disable needs the
-  password plus a current code or a recovery code). `MFA_ENCRYPTION_KEY` (required) and `MFA_ISSUER` are in the env
-  schema and `.env.example`. There are 4 integration tests. **Note: until step 3, an enabled user still logs in with the
-  password alone.**
-- [x] **Step 3 (2026-09-22):** `POST /auth/login` returns `{ mfaRequired, challengeToken }` for users with 2FA on (a
-  one-time `mfa_challenge` token, 5 min); `POST /auth/mfa/verify` accepts a current code or a recovery code and
-  returns the session. Each challenge allows 5 wrong codes (`auth_tokens.failed_attempts`), then it's revoked. There
-  are 5 integration tests. **The client doesn't handle the challenge yet (step 4), so a 2FA user can't sign in
-  through the UI until then.**
-- [ ] Step 4: client (profile Security wizard, second login step).
-
-**Verify.**
-- [ ] Enabling with a real authenticator app works. Login then needs the code, and a wrong or reused code is rejected.
-- [ ] A recovery code logs in exactly once.
-- [ ] The secret in the DB is encrypted, not the raw base32 secret.
+**Verify.** Each bullet, once built, has an integration test and a browser check like the one used for the set-up wizard.
 
 ### API-F-2 · Identity verification (KYC)
 
@@ -527,7 +485,7 @@ Every column of `users` (migration 003) checked against the code on 2026-09-22.
 | `terms_accepted_at` | ✅ used (2026-09-22) | registration requires `termsAccepted: true` (400 otherwise) and saves the time; covered by an integration test |
 | `failed_login_attempts`, `locked_until` | ❌ unused | account lockout: count failures, lock for N minutes after M tries, reset on success. Do it with rate limiting (`API-P0-8`) |
 | `last_login_ip` | ❌ never written | set it at login, using the real client IP behind the proxy (`trust proxy`, `API-P0-8`) |
-| `mfa_secret_encrypted`, `mfa_enabled_at` | ❌ unused | two-factor authentication, `API-F-1` |
+| `mfa_secret_encrypted`, `mfa_enabled_at`, `mfa_last_used_step` | ✅ used (2026-09-22) | two-factor authentication: `@common/mfa`, `/auth/mfa/*`, two-step login and the profile wizard |
 | `kyc_status` | ❌ seed only | KYC, `API-F-2` |
 | `date_of_birth`, `country_code` | ❌ never written | filled from verified KYC data. Enforce a minimum age of 18 and allowed countries (`API-F-2`) |
 | `self_exclusion_until` | ❌ unused | responsible gambling, `API-F-3` |

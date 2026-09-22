@@ -15,23 +15,19 @@ export class EmailInboxHelper {
     await consumer.connect();
     await consumer.subscribe({ topic, fromBeginning: true });
 
-    try {
-      return await new Promise<SentEmail>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error(`Fewer than ${count} emails to ${to} on ${topic}`)), EmailInboxHelper.TIMEOUT_MS);
-        let received = 0;
+    return new Promise<SentEmail>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`Fewer than ${count} emails to ${to} on ${topic}`)), EmailInboxHelper.TIMEOUT_MS);
+      let received = 0;
 
-        void consumer.run({
-          eachMessage: async ({ message }) => {
-            const email = JSON.parse(message.value?.toString() ?? '{}') as SentEmail;
-            if (email.to !== to || ++received < count) return;
+      void consumer.run({
+        eachMessage: async ({ message }) => {
+          const email = JSON.parse(message.value?.toString() ?? '{}') as SentEmail;
+          if (email.to !== to || ++received < count) return;
 
-            clearTimeout(timer);
-            resolve(email);
-          }
-        });
+          clearTimeout(timer);
+          resolve(email);
+        }
       });
-    } finally {
-      await consumer.disconnect();
-    }
+    }).finally(() => consumer.disconnect());
   }
 }

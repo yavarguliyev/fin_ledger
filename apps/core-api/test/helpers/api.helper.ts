@@ -16,7 +16,7 @@ export class ApiHelper {
     });
 
     const text = await response.text();
-    return { status: response.status, body: (text ? JSON.parse(text) : null) as T };
+    return { status: response.status, headers: response.headers, body: (text ? JSON.parse(text) : null) as T };
   }
 
   static async login ({ email, password = SEED_PASSWORD }: LoginRequest): Promise<string> {

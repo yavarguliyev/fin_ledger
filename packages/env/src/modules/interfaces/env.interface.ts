@@ -4,6 +4,7 @@ export interface Environment {
     DEFAULT_PORT: 3000;
     DEFAULT_HOST: '0.0.0.0';
     API_PREFIX: 'api/v';
+    BODY_LIMIT: '100kb';
   };
   RESOURCES: {
     ADMIN: 'admin';
