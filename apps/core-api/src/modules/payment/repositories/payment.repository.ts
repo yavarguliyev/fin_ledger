@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, PaymentStatus } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, PaymentStatus } from '@common/libs';
 
 import { PaymentDto } from '../dtos/payment/payment.dto';
 import { InternalPaymentRecordDto } from '../dtos/payment/internal-payment.dto';
 import { FindByProviderChargeIdDto } from '../dtos/repository/find-by-provider-charge-id.dto';
 import { FindPaymentByIdempotencyKeyDto } from '../dtos/repository/find-payment-by-idempotency-key.dto';
 import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status.dto';
+import { PAYMENT_TRANSITIONS } from '../constants/status/payment-transitions.constant';
+import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
 
 @Injectable()
-export class PaymentRepository extends BaseRepository<PaymentDto> {
+export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
   constructor (postgresService: PostgresService) {
     super({
       service: postgresService,
@@ -74,14 +76,18 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
   }
 
   async updatePaymentStatus (dto: UpdatePaymentStatusDto): Promise<PaymentDto | null> {
-    const { paymentId, ...update } = dto;
+    const { paymentId, adapter, ...update } = dto;
     const now = new Date().toISOString();
 
     const derived = {
       ...(update.status === PaymentStatus.COMPLETED && { completedAt: now }),
-      ...(update.status === PaymentStatus.FAILED && { failedAt: now, failureCode: update.failureCode ?? 'PAYMENT_FAILED' })
+      ...(update.status === PaymentStatus.FAILED && { failedAt: now, failureCode: update.failureCode ?? PAYMENT_FAILURE_CODES.DEFAULT })
     };
 
-    return this.update({ id: paymentId, data: { ...update, ...derived } as Partial<PaymentDto> });
+    return this.updateWhere({
+      where: { id: paymentId, status: [...PAYMENT_TRANSITIONS[update.status]] },
+      data: { ...update, ...derived } as Partial<PaymentDto>,
+      ...(adapter && { adapter })
+    });
   }
 }

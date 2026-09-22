@@ -22,36 +22,28 @@ Last full review: 2026-09-22.
 
 ## P0 — Money correctness, security, availability
 
-### API-P0-1 · Webhooks mark payments COMPLETED without crediting the wallet
+### API-P0-1 · Open payment results are failed, and webhook handling isn't atomic
 
-**Problem.** `webhook/use-cases/commands/handle-payment-charge-event.use-case.ts` only sets `payments.status`.
-- A `COMPLETED` webhook never credits the wallet or ledger. It also breaks `chk_payments_completed_has_ledger`, so the webhook fails.
-- A late `FAILED` webhook can overwrite a `COMPLETED` payment that is already credited. There's no state machine.
-- The status update and the outbox insert run outside one transaction.
-- The payment is found only by `provider_charge_id`. That ID is stored *after* the charge call, so a crash in between
-  leaves a charge no webhook can match.
-- `PaymentOperationHelper.executeDepositOperation` (the live deposit path) treats every non-`SUCCEEDED` result as
-  `FAILED`. A 3-D Secure or still-processing charge is failed even though the PSP may still take the money. (The adapter
-  now reports `PENDING`, `REQUIRES_ACTION` with a `clientSecret`, and `FAILED` with the decline code; core-api must act on them.)
+**Done (2026-09-22).** `CompletePaymentUseCase` is the only way a payment becomes `COMPLETED` (deposit credit or
+withdrawal capture + status + outbox event, one transaction behind a row lock). `PAYMENT_TRANSITIONS` guards every
+status update in SQL (`status = ANY(allowed)`), so a late `FAILED` can't overwrite `COMPLETED`. Webhook `succeeded`
+events go through the same use case; replays credit nothing twice (integration spec `payment-completion`).
 
-**Solution.**
-- **One completion path.** Add `CompletePaymentUseCase` (credit wallet + ledger + `COMPLETED` + outbox, one transaction)
-  and call it from the synchronous deposit path, the webhook and reconciliation (`API-P1-1`).
-- **Allowed transitions, in one place.**
-  `PENDING → PROCESSING → {REQUIRES_ACTION, COMPLETED, FAILED}`, `REQUIRES_ACTION → {COMPLETED, FAILED}`,
-  `COMPLETED → {COMPENSATED}`. Enforce them in SQL: `UPDATE … WHERE id=$1 AND status = ANY($allowedFrom)`,
-  and treat 0 rows as "already handled".
-- **Charge step leaves open results open.** `PENDING` / `REQUIRES_ACTION` from the adapter keep the payment open and
-  return the next action to the client (see `WEB-P1-1`).
-- **Match by our own ID.** Send `metadata.paymentId` to the PSP and look payments up by it first.
-- **Atomic webhook handling.** The whole handler, the webhook row update included, runs in one DB transaction.
+**Still open.**
+- **Charge step fails open results.** `PaymentOperationHelper.executeDepositOperation` still treats every
+  non-`SUCCEEDED` charge as `FAILED`. `PENDING` / `REQUIRES_ACTION` (the adapter now returns them, with a
+  `clientSecret` for 3-D Secure) must keep the payment open and return the next action to the client (`WEB-P1-1`).
+- **Match by our own ID.** Send `metadata.paymentId` to the PSP and look payments up by it first. The charge ID is
+  stored only after the charge call, so a crash in between leaves a charge no webhook can match.
+- **Atomic webhook handling.** The webhook row is recorded `PROCESSED` before the handler runs, and the handler's
+  status update and outbox insert (for `FAILED`) run outside one transaction.
+- **Withdrawal failure webhook.** A `FAILED` webhook for a withdrawal doesn't release the reserved funds
+  (depends on the withdrawal model, `PKG-P0-2`).
 
 **Verify.**
-- [ ] A `PROCESSING` deposit completed by a replayed `payment_intent.succeeded` gets exactly one credit
-      (wallet, `ledger_entries` and `wallet_transactions` agree).
-- [ ] Replaying the same webhook twice changes nothing the second time.
-- [ ] `FAILED` after `COMPLETED` is ignored and logged.
 - [ ] A 3-D Secure test card (`4000 0027 6000 3184`) ends `REQUIRES_ACTION`, then `COMPLETED` after authentication.
+- [ ] A webhook for a charge whose ID was never stored still finds the payment by `metadata.paymentId`.
+- [ ] A crash between recording the webhook and handling it leaves the event retryable, not `PROCESSED`.
 
 ### API-P0-3 · Bet outcomes ignore the odds, so the house loses money at higher odds
 

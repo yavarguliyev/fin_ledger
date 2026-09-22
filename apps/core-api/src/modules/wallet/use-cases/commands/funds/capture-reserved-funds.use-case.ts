@@ -5,6 +5,7 @@ import { ReleaseFundsUseCase } from './release-funds.use-case';
 import { DebitWalletUseCase } from '../wallet/debit-wallet.use-case';
 import { WalletOperationDto } from '../../../dtos/input/wallet-operation.dto';
 import { WalletOperationResultDto } from '../../../dtos/transaction/wallet-operation-result.dto';
+import { WalletOperationInTransactionDto } from '../../../dtos/input/wallet-operation-in-transaction.dto';
 
 /**
  * Turns a reservation into a real debit. Release and debit share one transaction so
@@ -20,14 +21,16 @@ export class CaptureReservedFundsUseCase {
   ) {}
 
   async execute (input: WalletOperationDto): Promise<WalletOperationResultDto> {
-    const { walletId, amountMinor } = input;
+    if (input.adapter) return this.capture({ ...input, adapter: input.adapter });
 
-    return this.postgresService.getWriteConnection().transaction({
-      callback: async adapter => {
-        await this.releaseFundsUseCase.execute({ walletId, amountMinor, adapter });
+    return this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.capture({ ...input, adapter }) });
+  }
 
-        return this.debitWalletUseCase.execute({ ...input, adapter });
-      }
-    });
+  private async capture (input: WalletOperationInTransactionDto): Promise<WalletOperationResultDto> {
+    const { walletId, amountMinor, adapter } = input;
+
+    await this.releaseFundsUseCase.execute({ walletId, amountMinor, adapter });
+
+    return this.debitWalletUseCase.execute(input);
   }
 }

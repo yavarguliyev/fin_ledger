@@ -11,5 +11,7 @@ export const PAYMENT_ERRORS = {
     message: 'Withdrawal outcome is unconfirmed and is awaiting reconciliation',
     statusCode: HttpStatus.SERVICE_UNAVAILABLE
   },
-  STATUS_UPDATE_FAILED: 'Failed to update payment status'
+  STATUS_UPDATE_FAILED: 'Failed to update payment status',
+  NOT_FOUND: 'Payment not found',
+  NOT_COMPLETABLE: 'Only deposits and withdrawals can be completed'
 } as const;

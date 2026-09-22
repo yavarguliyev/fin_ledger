@@ -1,7 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
-import { DomainEventType, PaymentMethodStatus, PaymentStatus } from '@common/libs';
+import { PaymentMethodStatus, PaymentStatus } from '@common/libs';
 
-import { PublishPaymentEventsDto } from '../dtos/helper/publish-payment-events.dto';
+import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
+import { EmitCompletedAnalyticsDto } from '../dtos/helper/emit-completed-analytics.dto';
+import { PaymentAnalyticsEventPayloadDto } from '../dtos/analytics/payment-analytics-event.dto';
 import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-payment-method.dto';
 import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
 import { AnalyticsHelper } from '../../analytics/helpers/analytics.helper';
@@ -18,28 +20,25 @@ export class PaymentHelper {
 
     return method;
   }
-  public static async publishPaymentEvents (options: PublishPaymentEventsDto): Promise<void> {
-    const { payment, walletId, dto, updated, paymentType, outboxRepository, publishPaymentCompleted, publishPaymentFailed } = options;
 
-    const eventPayload = {
+  public static completedEventPayload ({ payment }: PaymentRefDto): PaymentAnalyticsEventPayloadDto {
+    return {
       paymentId: payment.id,
-      userId: dto.userId,
-      walletId,
-      amountMinor: dto.amountMinor,
-      currency: dto.currency,
+      userId: payment.userId,
+      walletId: payment.walletId,
+      amountMinor: payment.amountMinor,
+      currency: payment.currency,
       status: PaymentStatus.COMPLETED,
-      paymentType,
+      paymentType: payment.type,
       timestamp: new Date().toISOString(),
-      providerTransactionId: updated.providerChargeId ?? ''
+      providerTransactionId: payment.providerChargeId ?? ''
     };
+  }
 
-    await outboxRepository.createEvent({
-      aggregateType: 'Payment',
-      aggregateId: payment.id,
-      eventType: DomainEventType.PAYMENT_COMPLETED,
-      payload: eventPayload
-    });
+  public static emitCompletedAnalytics ({ payment, publishPaymentCompleted, publishPaymentFailed }: EmitCompletedAnalyticsDto): void {
+    if (payment.status !== PaymentStatus.COMPLETED) return;
 
-    void AnalyticsHelper.emitKafkaPaymentAnalytics({ ...eventPayload, isCompleted: true, publishPaymentCompleted, publishPaymentFailed });
+    const payload = PaymentHelper.completedEventPayload({ payment });
+    void AnalyticsHelper.emitKafkaPaymentAnalytics({ ...payload, isCompleted: true, publishPaymentCompleted, publishPaymentFailed });
   }
 }

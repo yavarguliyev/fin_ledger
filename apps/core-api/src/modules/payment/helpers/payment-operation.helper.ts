@@ -1,9 +1,8 @@
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 import { ApplicationError, PaymentOperation, PaymentStatus, ProviderChargeStatus } from '@common/libs';
 
 import { ExecuteDepositOperationDto } from '../dtos/helper/execute-deposit-operation.dto';
 import { ExecuteWithdrawalOperationDto } from '../dtos/helper/execute-withdrawal-operation.dto';
-import { MarkCompletedDto } from '../dtos/helper/mark-completed.dto';
 import { MarkIndeterminateDto } from '../dtos/helper/mark-indeterminate.dto';
 import { FailWithdrawalDto } from '../dtos/helper/fail-withdrawal.dto';
 import { IdempotencyHelper } from './idempotency.helper';
@@ -22,22 +21,8 @@ export class PaymentOperationHelper {
     });
   }
 
-  private static async markCompleted (options: MarkCompletedDto): Promise<PaymentDto> {
-    const { paymentRepository, paymentId, providerChargeId, ledgerTransactionId } = options;
-
-    const updated = await paymentRepository.updatePaymentStatus({
-      paymentId,
-      status: PaymentStatus.COMPLETED,
-      ...(providerChargeId && { providerChargeId }),
-      ledgerTransactionId
-    });
-
-    if (!updated) throw new InternalServerErrorException(PAYMENT_ERRORS.STATUS_UPDATE_FAILED);
-    return updated;
-  }
-
   public static async executeDepositOperation (options: ExecuteDepositOperationDto): Promise<PaymentDto> {
-    const { payment, dto, userWallet, method, provider, walletService, paymentRepository } = options;
+    const { payment, dto, method, provider, paymentRepository, completePayment } = options;
 
     const charge = await provider.charge({
       amount: dto.amountMinor,
@@ -58,16 +43,8 @@ export class PaymentOperationHelper {
       throw new BadRequestException(failureReason);
     }
 
-    let ledgerTransactionId: string;
-
     try {
-      ({ ledgerTransactionId } = await walletService.creditWallet({
-        walletId: userWallet.id,
-        amountMinor: dto.amountMinor,
-        currency: dto.currency,
-        transactionId: payment.id,
-        reference: `${PAYMENT_LABELS.DEPOSIT.REFERENCE}${PAYMENT_LABELS.SEPARATOR}${payment.id}`
-      }));
+      return await completePayment.execute({ paymentId: payment.id, providerChargeId: charge.chargeId });
     } catch (err) {
       if (charge.chargeId) {
         await provider.refund({
@@ -81,12 +58,10 @@ export class PaymentOperationHelper {
       await paymentRepository.updatePaymentStatus({ paymentId: payment.id, status: PaymentStatus.COMPENSATED });
       throw err;
     }
-
-    return PaymentOperationHelper.markCompleted({ paymentRepository, paymentId: payment.id, providerChargeId: charge.chargeId, ledgerTransactionId });
   }
 
   public static async executeWithdrawalOperation (options: ExecuteWithdrawalOperationDto): Promise<PaymentDto> {
-    const { payment, dto, userWallet, method, provider, walletService, paymentRepository } = options;
+    const { payment, dto, userWallet, method, provider, walletService, paymentRepository, completePayment } = options;
     const { amountMinor, currency } = dto;
     const { id: walletId } = userWallet;
     const { id: paymentId } = payment;
@@ -119,15 +94,7 @@ export class PaymentOperationHelper {
       throw new BadRequestException(reason);
     }
 
-    const { ledgerTransactionId } = await walletService.captureReservedFunds({
-      walletId,
-      amountMinor,
-      currency,
-      transactionId: paymentId,
-      reference: `${PAYMENT_LABELS.WITHDRAWAL.REFERENCE}${PAYMENT_LABELS.SEPARATOR}${paymentId}`
-    });
-
-    return PaymentOperationHelper.markCompleted({ paymentRepository, paymentId, providerChargeId: payout.chargeId, ledgerTransactionId });
+    return completePayment.execute({ paymentId, providerChargeId: payout.chargeId });
   }
 
   private static async failWithdrawal (dto: FailWithdrawalDto): Promise<void> {

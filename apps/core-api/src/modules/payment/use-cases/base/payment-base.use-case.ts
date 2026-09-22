@@ -5,12 +5,10 @@ import {
   KAFKA_SERVICE,
   KafkaPublish,
   KafkaService,
-  OutboxRepository,
   PaymentCapability,
   PaymentProviderRegistry,
   PaymentStatus,
   PaymentType,
-  PostgresService,
   WalletStatus
 } from '@common/libs';
 
@@ -26,12 +24,10 @@ import { WalletHelper } from '../../../wallet/helpers/wallet.helper';
 import { CreatePaymentRecordDto } from '../../dtos/step/create-payment-record.dto';
 import { DispatchPaymentOperationDto } from '../../dtos/step/dispatch-payment-operation.dto';
 import { ValidateWalletDto } from '../../dtos/step/validate-wallet.dto';
+import { CompletePaymentUseCase } from '../commands/complete-payment.use-case';
 
 export abstract class PaymentBaseUseCase {
   protected abstract readonly paymentType: PaymentType;
-
-  @Inject(PostgresService)
-  protected readonly postgresService!: PostgresService;
 
   @Inject(WalletService)
   protected readonly walletService!: WalletService;
@@ -42,8 +38,8 @@ export abstract class PaymentBaseUseCase {
   @Inject(PaymentMethodRepository)
   protected readonly paymentMethodRepository!: PaymentMethodRepository;
 
-  @Inject(OutboxRepository)
-  protected readonly outboxRepository!: OutboxRepository;
+  @Inject(CompletePaymentUseCase)
+  protected readonly completePayment!: CompletePaymentUseCase;
 
   @Inject(PaymentProviderRegistry)
   protected readonly providerRegistry!: PaymentProviderRegistry;
@@ -83,13 +79,8 @@ export abstract class PaymentBaseUseCase {
     const payment = await this.createPaymentRecord({ wallet: userWallet, dto, provider: method.provider });
     const updated = await this.dispatchPaymentOperation({ payment, dto, userWallet, method });
 
-    await PaymentHelper.publishPaymentEvents({
-      payment,
-      walletId: userWallet.id,
-      dto,
-      updated,
-      paymentType: this.paymentType,
-      outboxRepository: this.outboxRepository,
+    PaymentHelper.emitCompletedAnalytics({
+      payment: updated,
       publishPaymentCompleted: payload => this.publishPaymentCompleted(payload),
       publishPaymentFailed: payload => this.publishPaymentFailed(payload)
     });
@@ -111,7 +102,15 @@ export abstract class PaymentBaseUseCase {
   }
 
   private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentDto> {
-    const base = { payment, dto, userWallet, method, walletService: this.walletService, paymentRepository: this.paymentRepository };
+    const base = {
+      payment,
+      dto,
+      userWallet,
+      method,
+      walletService: this.walletService,
+      paymentRepository: this.paymentRepository,
+      completePayment: this.completePayment
+    };
 
     if (this.paymentType === PaymentType.DEPOSIT) {
       const provider = this.providerRegistry.require({ providerName: method.provider, capability: PaymentCapability.CHARGE });
