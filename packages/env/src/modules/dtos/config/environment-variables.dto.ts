@@ -89,7 +89,9 @@ export const EnvironmentVariablesSchema = z.object({
 
   PAYMENT_ACTION_EXPIRY_MS: z.coerce.number({ message: 'PAYMENT_ACTION_EXPIRY_MS must be a number' }).int().positive().optional(),
 
-  LEDGER_INTEGRITY_INTERVAL_MS: z.coerce.number({ message: 'LEDGER_INTEGRITY_INTERVAL_MS must be a number' }).int().positive().optional()
+  LEDGER_INTEGRITY_INTERVAL_MS: z.coerce.number({ message: 'LEDGER_INTEGRITY_INTERVAL_MS must be a number' }).int().positive().optional(),
+
+  BETTING_MARGIN: z.coerce.number({ message: 'BETTING_MARGIN must be a number' }).nonnegative().optional()
 });
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

@@ -1,5 +1,6 @@
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
-import { DomainEventType, OutboxRepository } from '@common/libs';
+import { ConfigService } from '@nestjs/config';
+import { BETTING_DRAW, DomainEventType, OutboxRepository } from '@common/libs';
 
 import { BetBaseUseCase } from '../base/bet-base.use-case';
 import { BetHelper } from '../../helpers/bet.helper';
@@ -14,6 +15,9 @@ export class SettleBetUseCase extends BetBaseUseCase<SettleBetDto, BetDto> {
   @Inject(OutboxRepository)
   private readonly outboxRepository!: OutboxRepository;
 
+  @Inject(ConfigService)
+  private readonly configService!: ConfigService;
+
   async execute (dto: SettleBetDto): Promise<BetDto> {
     return this.postgresService.getWriteConnection().transaction({ callback: adapter => this.settle({ ...dto, adapter }) });
   }
@@ -22,7 +26,9 @@ export class SettleBetUseCase extends BetBaseUseCase<SettleBetDto, BetDto> {
     const { betId, outcome, adapter } = dto;
 
     const bet = BetHelper.assertSettleable(await this.betRepository.findByIdForUpdate({ id: betId, adapter }));
-    const result = BetHelper.assertOutcomeMatchesStake({ outcome: outcome ?? BetHelper.resolveOutcome(bet), bet });
+    const margin = this.configService.get<number>('BETTING_MARGIN') ?? BETTING_DRAW.DEFAULT_MARGIN;
+    const drawn = BetHelper.resolveOutcome({ bet, margin });
+    const result = BetHelper.assertOutcomeMatchesStake({ outcome: outcome ?? drawn, bet });
     const settlementLedgerTransactionId =
       result.payoutMinor > 0 ? await this.creditPayout({ bet, payoutMinor: result.payoutMinor, adapter }) : undefined;
 
@@ -32,6 +38,7 @@ export class SettleBetUseCase extends BetBaseUseCase<SettleBetDto, BetDto> {
       payoutMinor: result.payoutMinor,
       settledAt: new Date().toISOString(),
       ...(settlementLedgerTransactionId && { settlementLedgerTransactionId }),
+      ...(outcome ? {} : { drawValue: drawn.drawValue, drawThreshold: drawn.drawThreshold }),
       adapter
     });
 

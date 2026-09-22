@@ -22,30 +22,7 @@ Last full review: 2026-09-22.
 
 ## P0 — Money correctness, security, availability
 
-### API-P0-3 · Bet outcomes ignore the odds, so the house loses money at higher odds
-
-**Problem.** `PlaceBetUseCase` settles every bet **immediately** after placing it. `BetHelper.resolveOutcome` decides
-with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
-- **Negative house edge:** at odds 3.0 the expected return is 0.45 × 3 = **1.35 per unit staked**. The house loses on
-  every event priced above about 2.22.
-- **Events ignored:** the event's status and result play no part.
-- **Not a secure random source:** `Math.random` is predictable, which isn't acceptable for a game of chance.
-- **Loose admin settlement:** `POST /bets/:betId/settlement` lets an admin pass any outcome. *(Fixed 2026-09-23:
-  a `WON` outcome must pay exactly `potentialPayoutMinor`; `LOST` and `VOIDED` were already checked. The rest of
-  this item is unchanged.)*
-
-**Solution** *(needs a product decision: sportsbook or instant game)*.
-- **Sportsbook:** bets stay `PENDING`. Settlement is driven by the event result (`API-P2-4`) and runs as a job over all
-  bets on that event. Admin settlement only records the event result, not individual bet outcomes.
-- **Instant game:** remove events from the flow. The win probability comes from the offered odds with a margin
-  (`p = 1 / (odds × (1 + margin))`), draws use `crypto.randomInt`, and we store the seed/draw for audit.
-- Either way, keep `WIN_CHANCE` out of the payout maths.
-
-**Verify.**
-- [ ] A simulation of 1M bets at several odds shows a positive house edge equal to the configured margin.
-- [ ] (Sportsbook) Placing a bet leaves it `PENDING`; recording the event result settles every bet on it exactly once.
-
----
+Nothing open.
 
 ## P1 — Stuck, stale or lost state
 
@@ -146,7 +123,13 @@ Stripe test mode.
 the seeded status.
 
 **Solution.** Admin use cases to create events, change status (validated transitions) and record the result.
-Recording a result enqueues settlement of that event's bets (`API-P0-3`, sportsbook option).
+
+**Bet model decided 2026-09-23: instant game.** `API-P0-3` was closed by deriving the win probability from the offered
+odds with a configured margin (`p = 1 / (odds x (1 + margin))`, `BETTING_MARGIN`, default 0.05), drawing with
+`crypto.randomInt`, and storing `bets.draw_value` / `bets.draw_threshold` for audit. Bets still settle at placement, so
+this item is now only about the event lifecycle itself, not about settling bets from a result. Moving to a sportsbook
+later would mean re-opening that decision: bets would stay `PENDING` and a result would settle them, and the draw
+columns would become dead.
 
 **Verify.**
 - [ ] Bets are refused once the event is `LIVE`.

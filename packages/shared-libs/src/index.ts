@@ -27,6 +27,8 @@ export * from './modules/dtos/errors/provider-error.dto';
 export * from './modules/dtos/filter/exception-ref.dto';
 export * from './modules/dtos/filter/log-exception.dto';
 export * from './modules/dtos/filter/map-exception.dto';
+export * from './modules/dtos/helper/bet-draw-result.dto';
+export * from './modules/dtos/helper/bet-draw.dto';
 export * from './modules/dtos/helper/error-response-input.dto';
 export * from './modules/dtos/helper/error-response.dto';
 export * from './modules/dtos/helper/extract-id-key.dto';
@@ -77,7 +79,7 @@ export * from './modules/constants/storage/storage-strategies.constant';
 export * from './modules/constants/auth/token-types.constant';
 export * from './modules/constants/database/translation-codes.constant';
 export * from './modules/constants/wallet/wallet-status.constant';
-export * from './modules/constants/betting/win-chance.constant';
+export * from './modules/constants/betting/betting-draw.constant';
 
 export * from './modules/decorators/audited.decorator';
 export * from './modules/decorators/auth-rate-limit.decorator';
@@ -95,6 +97,7 @@ export * from './modules/filters/unified-exception.filter';
 
 export * from './modules/helpers/audit.helper';
 export * from './modules/helpers/base.helper';
+export * from './modules/helpers/betting.helper';
 export * from './modules/helpers/crypto.helper';
 export * from './modules/helpers/rate-limit.helper';
 

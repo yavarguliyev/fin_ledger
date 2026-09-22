@@ -1,5 +1,7 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+import { BETTING_DRAW } from '@common/shared-libs';
+
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
@@ -68,17 +70,26 @@ describe('Bet settlement', () => {
     });
     const player = await ApiHelper.login({ email });
 
-    const placed = await ApiHelper.request<SettledBet>({
-      method: 'POST',
-      path: '/bets',
-      token: player,
-      body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: 'settlement-admin-payout' }
-    });
-    expect(placed).toMatchObject({ status: 201 });
+    let placed: SettledBet | null = null;
+    for (let attempt = 0; attempt < maxBets && !placed; attempt++) {
+      const bet = await ApiHelper.request<SettledBet>({
+        method: 'POST',
+        path: '/bets',
+        token: player,
+        body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: `settlement-admin-payout-${attempt}` }
+      });
+      expect(bet).toMatchObject({ status: 201 });
+      if (bet.body.status === 'LOST') placed = bet.body;
+    }
+
+    if (!placed) throw new Error('No losing bet to re-settle');
+
+    const target = placed;
 
     await DbHelper.query({
-      sql: "UPDATE bets SET status = 'PENDING', payout_minor = NULL, settled_at = NULL, settlement_ledger_transaction_id = NULL WHERE id = $1",
-      params: [placed.body.id]
+      sql: `UPDATE bets SET status = 'PENDING', payout_minor = NULL, settled_at = NULL, settlement_ledger_transaction_id = NULL,
+            draw_value = NULL, draw_threshold = NULL WHERE id = $1`,
+      params: [target.id]
     });
 
     const admin = await ApiHelper.login({ email: 'admin@seed.local' });
@@ -86,17 +97,51 @@ describe('Bet settlement', () => {
       (
         await ApiHelper.request({
           method: 'POST',
-          path: `/bets/${placed.body.id}/settlement`,
+          path: `/bets/${target.id}/settlement`,
           token: admin,
           body: { outcome: { status: 'WON', payoutMinor } }
         })
       ).status;
 
-    await expect(settle(placed.body.potentialPayoutMinor * 1000)).resolves.toBe(400);
+    await expect(settle(target.potentialPayoutMinor * 1000)).resolves.toBe(400);
     await expect(
-      DbHelper.query({ sql: 'SELECT status, payout_minor FROM bets WHERE id = $1', params: [placed.body.id] })
+      DbHelper.query({ sql: 'SELECT status, payout_minor FROM bets WHERE id = $1', params: [target.id] })
     ).resolves.toEqual([{ status: 'PENDING', payout_minor: null }]);
 
-    await expect(settle(placed.body.potentialPayoutMinor)).resolves.toBe(201);
+    await expect(settle(target.potentialPayoutMinor)).resolves.toBe(201);
+    await expect(
+      DbHelper.query({ sql: 'SELECT draw_value, draw_threshold FROM bets WHERE id = $1', params: [target.id] })
+    ).resolves.toEqual([{ draw_value: null, draw_threshold: null }]);
+  }, 60_000);
+
+  it('records the odds-derived draw that decided each settled bet', async () => {
+    const [wallet] = await DbHelper.query<{ id: string }>({
+      sql: 'SELECT w.id FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
+      params: [email]
+    });
+    const [event] = await DbHelper.query<{ id: string }>({
+      sql: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
+    });
+    const player = await ApiHelper.login({ email });
+
+    const bet = await ApiHelper.request<SettledBet>({
+      method: 'POST',
+      path: '/bets',
+      token: player,
+      body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: 'settlement-draw-audit' }
+    });
+    expect(bet).toMatchObject({ status: 201 });
+
+    const [row] = await DbHelper.query<{ status: string; draw_value: string; draw_threshold: string; odds_at_placement: string }>({
+      sql: 'SELECT status, draw_value, draw_threshold, odds_at_placement FROM bets WHERE id = $1',
+      params: [bet.body.id]
+    });
+
+    const drawValue = Number(row?.draw_value);
+    const drawThreshold = Number(row?.draw_threshold);
+
+    expect(drawValue).toBeGreaterThanOrEqual(0);
+    expect(row?.status).toBe(drawValue < drawThreshold ? 'WON' : 'LOST');
+    expect(drawThreshold).toBe(Math.floor(BETTING_DRAW.DRAW_RANGE / (Number(row?.odds_at_placement) * (1 + BETTING_DRAW.DEFAULT_MARGIN))));
   }, 60_000);
 });

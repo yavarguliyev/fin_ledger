@@ -24,6 +24,10 @@ export const BetSchema = z.object({
 
   payoutMinor: z.number({ message: 'Payout must be a number' }).int({ message: 'Payout must be an integer' }).nullable().optional(),
 
+  drawValue: z.number({ message: 'Draw value must be a number' }).int().nullable().optional(),
+
+  drawThreshold: z.number({ message: 'Draw threshold must be a number' }).int().nullable().optional(),
+
   idempotencyKey: z.string({ message: 'Idempotency key must be a string' }),
 
   stakeLedgerTransactionId: z.string({ message: 'Stake ledger transaction ID must be a string' }),
