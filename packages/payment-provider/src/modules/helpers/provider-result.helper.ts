@@ -1,5 +1,4 @@
-import { CardBrand, PaymentMethodStatus, ProviderChargeStatus } from '@common/shared-libs';
-import { v7 as uuid } from 'uuid';
+import { CardBrand, CryptoHelper, PaymentMethodStatus, ProviderChargeStatus } from '@common/shared-libs';
 
 import { ProviderChargeResultDto } from '../dtos/operation/provider-charge-result.dto';
 import { ProviderMethodResultDto } from '../dtos/operation/provider-method-result.dto';
@@ -28,7 +27,7 @@ export class ProviderResultHelper {
 
   static simulatedCharge ({ prefix, amount, currency, provider }: SimulatedChargeDto): ProviderChargeResultDto {
     return {
-      chargeId: `${prefix}_${uuid()}`,
+      chargeId: `${prefix}_${CryptoHelper.uuid()}`,
       status: ProviderChargeStatus.SUCCEEDED,
       amount,
       currency,
@@ -38,7 +37,7 @@ export class ProviderResultHelper {
 
   static failedOperation ({ prefix, amount, currency, failure }: FailedOperationDto): ProviderChargeResultDto {
     return {
-      chargeId: `${prefix}_failed_${uuid()}`,
+      chargeId: `${prefix}_failed_${CryptoHelper.uuid()}`,
       status: failure.indeterminate ? ProviderChargeStatus.INDETERMINATE : ProviderChargeStatus.FAILED,
       amount,
       currency,
@@ -55,7 +54,7 @@ export class ProviderResultHelper {
 
   static failedMethod ({ token, message, walletType }: FailedMethodDto): ProviderMethodResultDto {
     return {
-      paymentMethodToken: token || `pm_failed_${uuid()}`,
+      paymentMethodToken: token || `pm_failed_${CryptoHelper.uuid()}`,
       status: PaymentMethodStatus.REJECTED,
       walletType,
       failureReason: message

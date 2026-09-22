@@ -6,6 +6,7 @@ import { PaymentService } from './payment.service';
 import { PaymentDto } from './dtos/payment/payment.dto';
 import { RequestPaymentDto, RequestPaymentSchema } from './dtos/request/request-payment.dto';
 import { PaymentIdRequestDto, PaymentIdRequestSchema } from './dtos/request/payment-id-request.dto';
+import { PaymentAccessGuard } from './guards/payment-access.guard';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT.key)
@@ -27,6 +28,7 @@ export class PaymentController {
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER] })
   @Get(':id')
+  @UseGuards(PaymentAccessGuard)
   async findPaymentById (@ParamsQueryAndHeaders({ schema: PaymentIdRequestSchema }) dto: PaymentIdRequestDto): Promise<PaymentDto> {
     return this.paymentService.getPayment(dto);
   }

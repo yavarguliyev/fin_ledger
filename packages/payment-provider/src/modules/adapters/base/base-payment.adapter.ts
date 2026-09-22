@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { v7 as uuid } from 'uuid';
-import { BaseHelper, CircuitBreaker, PaymentCapability, PaymentProvider, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
+import { BaseHelper, CircuitBreaker, CryptoHelper, PaymentCapability, PaymentProvider, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
 
 import { PaymentProviderCore } from '../../interfaces/payment-provider-core.interface';
 import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-result.dto';
@@ -80,7 +79,7 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
 
   protected simulateWebhook ({ payload, signature }: ConstructWebhookEventDto): WebhookEventDto {
     const parsed = this.parseRawPayload({ payload });
-    const eventId = typeof parsed['id'] === 'string' ? parsed['id'] : `evt_${uuid()}`;
+    const eventId = typeof parsed['id'] === 'string' ? parsed['id'] : `evt_${CryptoHelper.uuid()}`;
     const eventType = typeof parsed['type'] === 'string' ? parsed['type'] : 'payment.unknown';
 
     return { eventId, eventType, provider: this.providerName, payload: parsed, signature, signatureVerified: false };

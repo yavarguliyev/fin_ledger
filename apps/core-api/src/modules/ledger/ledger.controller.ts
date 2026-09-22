@@ -8,6 +8,8 @@ import { LedgerEntryResponseDto } from './dtos/entry/ledger-entry-response.dto';
 import { GetLedgerAccountDto, GetLedgerAccountSchema } from './dtos/request/get-ledger-account.dto';
 import { GetTransactionEntriesDto, GetTransactionEntriesSchema } from './dtos/request/get-transaction-entries.dto';
 import { ListAccountEntriesRequestDto, ListAccountEntriesRequestSchema } from './dtos/request/list-account-entries-request.dto';
+import { LedgerAccountAccessGuard } from './guards/ledger-account-access.guard';
+import { LedgerTransactionAccessGuard } from './guards/ledger-transaction-access.guard';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.LEDGER.key)
@@ -17,16 +19,19 @@ export class LedgerController {
   constructor (private readonly ledgerService: LedgerService) {}
 
   @Get('accounts/:id')
+  @UseGuards(LedgerAccountAccessGuard)
   async getAccount (@ParamsQueryAndHeaders({ schema: GetLedgerAccountSchema }) dto: GetLedgerAccountDto): Promise<LedgerAccountDto | null> {
     return this.ledgerService.getAccount(dto);
   }
 
   @Get('transactions/:id/entries')
+  @UseGuards(LedgerTransactionAccessGuard)
   async getTransactionEntries (@ParamsQueryAndHeaders({ schema: GetTransactionEntriesSchema }) dto: GetTransactionEntriesDto): Promise<LedgerEntryResponseDto[]> {
     return this.ledgerService.getTransactionEntries(dto);
   }
 
   @Get('accounts/:id/entries')
+  @UseGuards(LedgerAccountAccessGuard)
   async getAccountEntries (
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: ListAccountEntriesRequestSchema }) dto: ListAccountEntriesRequestDto

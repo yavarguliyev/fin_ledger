@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { v7 as uuid } from 'uuid';
+import { CryptoHelper } from '@common/shared-libs';
 
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import { UploadFileResponse } from '../../interfaces/upload-file-response.interface';
@@ -15,7 +15,7 @@ export class UploadFileUseCase extends StorageBaseUseCase {
 
     for (const file of dto.files) {
       const extension = this.getFileExtension({ filename: file.originalname });
-      const filePath = `${dto.key}/${uuid()}${extension}`;
+      const filePath = `${dto.key}/${CryptoHelper.uuid()}${extension}`;
       await this.storageStrategy.upload({ key: filePath, body: file.buffer, contentType: file.mimetype });
       uploadedFiles.push(filePath);
     }

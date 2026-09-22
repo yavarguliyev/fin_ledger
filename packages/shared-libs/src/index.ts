@@ -1,6 +1,14 @@
+export * from './modules/interfaces/authenticated-request.interface';
 export * from './modules/interfaces/category-traits.interface';
 export * from './modules/enums/common/provider-error-category.enum';
+export * from './modules/constants/crypto/crypto-defaults.constant';
 export * from './modules/constants/errors/category-traits.constant';
+export * from './modules/dtos/guard/resource-ownership.dto';
+export * from './modules/dtos/crypto/decrypt-value.dto';
+export * from './modules/dtos/crypto/encrypt-value.dto';
+export * from './modules/dtos/crypto/hash-value.dto';
+export * from './modules/dtos/crypto/random-bytes.dto';
+export * from './modules/dtos/crypto/rsa-key-pair.dto';
 export * from './modules/dtos/audit/audit-actor.dto';
 export * from './modules/dtos/audit/audit-event.dto';
 export * from './modules/dtos/audit/audit-header.dto';
@@ -79,6 +87,9 @@ export * from './modules/filters/unified-exception.filter';
 
 export * from './modules/helpers/audit.helper';
 export * from './modules/helpers/base.helper';
+export * from './modules/helpers/crypto.helper';
+
+export * from './modules/guards/resource-owner.guard';
 
 export * from './modules/interceptors/audit.interceptor';
 
