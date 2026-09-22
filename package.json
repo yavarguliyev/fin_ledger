@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "packageManager": "npm@10.9.2",
-  "workspaces": ["packages/*", "apps/core-api", "apps/client"],
+  "workspaces": [
+    "packages/*",
+    "apps/core-api",
+    "apps/client"
+  ],
   "scripts": {
     "install:all": "npm install",
     "install:deps": "npm install",
@@ -29,6 +33,7 @@
     "migrate:up": "node-pg-migrate up --migrations-dir apps/core-api/migrations",
     "migrate:down": "node-pg-migrate down --migrations-dir apps/core-api/migrations",
     "migrate:create": "node-pg-migrate create --migrations-dir apps/core-api/migrations",
+    "db:provision-roles": "node --env-file-if-exists=apps/core-api/.env scripts/db/provision-login-roles.mjs",
     "infra:up:dev": "bash infrastructure/dev/start.sh",
     "infra:down:dev": "bash infrastructure/dev/stop.sh",
     "infra:restart:dev": "bash infrastructure/dev/restart.sh",

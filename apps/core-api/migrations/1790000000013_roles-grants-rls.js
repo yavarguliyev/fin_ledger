@@ -26,8 +26,10 @@ export const up = pgm => {
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_readonly;
     GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO app_readwrite;
 
-    -- Deliberately no DELETE for the application role anywhere. Removals are
-    -- soft deletes or reversing entries; hard deletes are an operator action.
+    -- No DELETE for the application role except where the code really deletes:
+    -- the GDPR hard delete of a user without financial history, and that user's
+    -- notifications. Everything else is a soft delete or a reversing entry.
+    GRANT DELETE ON users, notifications TO app_readwrite;
 
     ALTER DEFAULT PRIVILEGES IN SCHEMA public
       GRANT SELECT, INSERT, UPDATE ON TABLES TO app_readwrite;
@@ -80,6 +82,7 @@ export const down = pgm => {
   pgm.sql(`
     ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM app_readonly;
     ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT, INSERT, UPDATE ON TABLES FROM app_readwrite;
+    REVOKE DELETE ON users, notifications FROM app_readwrite;
     REVOKE ALL ON ALL TABLES IN SCHEMA public FROM app_readwrite, app_readonly;
     REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM app_readwrite;
     REVOKE USAGE ON SCHEMA public FROM app_readwrite, app_readonly;

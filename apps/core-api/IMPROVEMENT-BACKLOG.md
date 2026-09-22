@@ -43,22 +43,24 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - [ ] A simulation of 1M bets at several odds shows a positive house edge equal to the configured margin.
 - [ ] (Sportsbook) Placing a bet leaves it `PENDING`; recording the event result settles every bet on it exactly once.
 
-### API-P0-5 · Row-level security is written but not in effect
+### API-P0-5 · Row-level security is written but not enforced
 
-**Problem.** Migration 013 creates `app_readwrite` and per-user RLS policies, but the API connects as `postgres`.
-`postgres` owns the tables, so RLS doesn't apply. Nothing sets `app.current_user_id`, and the column grants in 013 are unused.
+**Done (2026-09-22): least privilege.** The API no longer connects as the table owner. `npm run db:provision-roles`
+(owner connection) creates the `app_api` login, a member of `app_readwrite`: no ownership, no DDL or `TRUNCATE`,
+`DELETE` only on `users` and `notifications`. The integration stack runs the API as `app_api`
+(spec `database-privileges`). `app_api` still has `BYPASSRLS`, so the policies from migration 013 don't apply yet.
 
-**Solution.**
-1. **Separate logins.** Make `app_api` (member of `app_readwrite`) the API login, `app_worker` (`BYPASSRLS`) for jobs
-   and relays, and keep `postgres` for migrations only.
-2. **Set the user per transaction.** Give `@common/database` `transaction({ callback, actor })`, which runs
-   `SELECT set_config('app.current_user_id', $1, true)` first. That's `SET LOCAL`, which is safe behind PgBouncer.
-3. **Staff access** goes through an explicit policy (`app_current_role() IN (…)`) or the worker role.
+**Still open: enforce the policies.**
+1. **Request-scoped user.** Keep the authenticated user (and role) in `AsyncLocalStorage`; the database adapter runs
+   `SELECT set_config('app.current_user_id', $1, true)` at the start of every transaction and wraps standalone queries
+   in one. That's `SET LOCAL`, which is safe behind PgBouncer.
+2. **Staff and system access.** Staff through an explicit policy (`app_current_role() IN (…)`); webhooks, consumers,
+   the outbox relay and jobs through a separate `app_worker` login with `BYPASSRLS`.
+3. **Drop `BYPASSRLS` from `app_api`.**
 
 **Verify.**
-- [ ] `SELECT current_user` from the API is `app_api`.
 - [ ] With the ownership guards (`ResourceOwnerGuard` children) temporarily removed, user B still can't read user A's rows.
-- [ ] Jobs and the outbox relay still work as `app_worker`.
+- [ ] Webhooks, consumers and the outbox relay still work as `app_worker`.
 
 ---
 
