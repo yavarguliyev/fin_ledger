@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, DatabaseAdapter, PasswordAlgorithm, UserRoles } from '@common/libs';
+import { BaseRepository, PostgresService, DatabaseAdapter, PasswordAlgorithm } from '@common/libs';
 
 import { AuthDto } from '../dtos/auth/auth.dto';
+import { CreateAuthUserDto } from '../dtos/repository/create-auth-user.dto';
 
 @Injectable()
 export class AuthRepository extends BaseRepository<AuthDto> {
@@ -19,6 +20,10 @@ export class AuthRepository extends BaseRepository<AuthDto> {
         lastLoginAt: 'last_login_at',
         isEmailVerified: 'is_email_verified',
         emailVerifiedAt: 'email_verified_at',
+        termsAcceptedAt: 'terms_accepted_at',
+        mfaSecretEncrypted: 'mfa_secret_encrypted',
+        mfaEnabledAt: 'mfa_enabled_at',
+        mfaLastUsedStep: 'mfa_last_used_step',
         passwordChangedAt: 'password_changed_at',
         deletedAt: 'deleted_at',
         createdAt: 'created_at',
@@ -41,6 +46,10 @@ export class AuthRepository extends BaseRepository<AuthDto> {
       'status',
       'lastLoginAt',
       'isEmailVerified',
+      'termsAcceptedAt',
+      'mfaSecretEncrypted',
+      'mfaEnabledAt',
+      'mfaLastUsedStep',
       'deletedAt',
       'createdAt',
       'updatedAt'
@@ -55,7 +64,7 @@ export class AuthRepository extends BaseRepository<AuthDto> {
     return this.findOne({ where: { email }, adapter });
   }
 
-  async createUser (email: string, passwordHash: string, role: UserRoles, displayName: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
+  async createUser ({ email, passwordHash, role, displayName, termsAcceptedAt, adapter }: CreateAuthUserDto): Promise<AuthDto | null> {
     return this.create({
       data: {
         email,
@@ -64,9 +73,10 @@ export class AuthRepository extends BaseRepository<AuthDto> {
         passwordChangedAt: new Date().toISOString(),
         role,
         displayName,
-        isEmailVerified: false
+        isEmailVerified: false,
+        termsAcceptedAt
       },
-      adapter
+      ...(adapter && { adapter })
     });
   }
 }

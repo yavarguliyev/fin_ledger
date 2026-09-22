@@ -12,23 +12,16 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
   @Inject(KAFKA_SERVICE)
   protected readonly [KAFKA_SERVICE]!: KafkaService;
 
-  protected get privateKey (): string {
-    return this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
-  }
-
-  protected get publicKey (): string {
-    return this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
-  }
-
-  protected get issuer (): string {
-    return this.configService.get<string>('JWT_ISSUER')!;
-  }
-
   protected get frontendUrl (): string {
     return this.configService.get<string>('FRONTEND_URL')!;
   }
 
   protected abstract execute(input: TInput): Promise<TOutput>;
+
+  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
+  protected async publishEmailVerification (eventPayload: SendEmailDto): Promise<SendEmailDto> {
+    return Promise.resolve(eventPayload);
+  }
 
   @KafkaPublish({ topic: EmailTemplateType.PASSWORD_RESET, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
   protected async publishPasswordReset (eventPayload: SendEmailDto): Promise<SendEmailDto> {

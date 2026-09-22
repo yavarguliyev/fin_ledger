@@ -20,6 +20,7 @@
     "remove:running:port": "lsof -ti:3000 | xargs kill -9",
     "build:client": "turbo run build --filter=@core/client",
     "test": "turbo run test",
+    "test:integration": "turbo run test:integration --filter=@core/api",
     "lint": "turbo run lint",
     "lint:fix": "eslint \"**/src/**/*.ts\" --fix",
     "typecheck": "turbo run typecheck",

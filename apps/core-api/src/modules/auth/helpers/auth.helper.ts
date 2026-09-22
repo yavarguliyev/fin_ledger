@@ -15,6 +15,7 @@ export class AuthHelper {
         userId: dto.id,
         email: dto.email,
         role: dto.role as UserRoles,
+        status: dto.status,
         displayName: dto.displayName,
         profileImagesKey: dto.profileImagesKey,
         profileImages: dto.profileImages,
@@ -44,7 +45,14 @@ export class AuthHelper {
   static async createUserWalletAndLedger (options: CreateUserWalletAndLedgerDto): Promise<UserWalletAndLedgerDto> {
     const { dto, tx, passwordHash, authRepository, outboxRepository, ledgerService, walletService } = options;
 
-    const user = await authRepository.createUser(dto.email, passwordHash, UserRoles.USER, dto.displayName, tx);
+    const user = await authRepository.createUser({
+      email: dto.email,
+      passwordHash,
+      role: UserRoles.USER,
+      displayName: dto.displayName,
+      termsAcceptedAt: new Date().toISOString(),
+      adapter: tx
+    });
     if (!user) throw new InternalServerErrorException('Failed to create user');
 
     const ledgerAccount = await ledgerService.createAccount({

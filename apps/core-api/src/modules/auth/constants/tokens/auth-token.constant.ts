@@ -1,0 +1,22 @@
+import { AuthTokenPurpose } from '@common/libs';
+
+export const AUTH_TOKEN_CONSTANTS = {
+  TOKEN_BYTES: 32,
+  TTL_SECONDS: {
+    [AuthTokenPurpose.ACCOUNT_INVITE]: 86_400,
+    [AuthTokenPurpose.EMAIL_VERIFICATION]: 86_400,
+    [AuthTokenPurpose.PASSWORD_RESET]: 900
+  } satisfies Record<AuthTokenPurpose, number>,
+  REVOKE_ACTIVE_SQL: 'UPDATE auth_tokens SET revoked_at = now() WHERE user_id = $1 AND purpose = $2 AND used_at IS NULL AND revoked_at IS NULL',
+  INSERT_SQL: 'INSERT INTO auth_tokens (user_id, purpose, token_hash, expires_at) VALUES ($1, $2, $3, $4)',
+  CLAIM_SQL: `
+    UPDATE auth_tokens
+       SET used_at = now()
+     WHERE token_hash = $1
+       AND purpose = ANY($2)
+       AND used_at IS NULL
+       AND revoked_at IS NULL
+       AND expires_at > now()
+    RETURNING user_id AS "userId", purpose
+  `
+} as const;

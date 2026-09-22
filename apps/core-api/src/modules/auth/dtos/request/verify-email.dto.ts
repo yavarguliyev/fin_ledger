@@ -7,6 +7,7 @@ export const VerifyEmailSchema = z.object({
     .string({ message: 'Password must be a string' })
     .min(6, { message: 'Password must be at least 6 characters long' })
     .max(100, { message: 'Password must not exceed 100 characters' })
+    .optional()
 });
 
 export type VerifyEmailDto = z.infer<typeof VerifyEmailSchema>;

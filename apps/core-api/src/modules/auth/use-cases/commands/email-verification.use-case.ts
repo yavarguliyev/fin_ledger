@@ -1,36 +1,47 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
-import { SessionHelper } from '@common/libs';
+import { AuthTokenPurpose, PostgresService, SessionHelper, UserStatus } from '@common/libs';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { AuthRepository } from '../../repositories/auth.repository';
+import { AuthTokenRepository } from '../../repositories/auth-token.repository';
 import { AuthHelper } from '../../helpers/auth.helper';
+import { AuthTokenHelper } from '../../helpers/auth-token.helper';
 import { SessionResponseDto } from '../../dtos/response/session-response.dto';
-import { EmailVerificationTokenPayloadDto } from '../../dtos/token/email-verification-token-payload.dto';
 import { VerifyEmailDto } from '../../dtos/request/verify-email.dto';
 
 @Injectable()
 export class EmailVerificationUseCase extends AuthBaseUseCase<VerifyEmailDto, SessionResponseDto> {
-  constructor (private readonly authRepository: AuthRepository) {
+  constructor (
+    private readonly postgresService: PostgresService,
+    private readonly authRepository: AuthRepository,
+    private readonly authTokenRepository: AuthTokenRepository
+  ) {
     super();
   }
 
   async execute ({ token, password }: VerifyEmailDto): Promise<SessionResponseDto> {
-    const issuer = this.issuer;
+    const purposes = password ? [AuthTokenPurpose.EMAIL_VERIFICATION, AuthTokenPurpose.ACCOUNT_INVITE] : [AuthTokenPurpose.EMAIL_VERIFICATION];
+    const passwordUpdate = password ? { passwordHash: await SessionHelper.hash({ password }), passwordChangedAt: new Date().toISOString() } : {};
 
-    const tokenPayload = jwt.verify(token, this.publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as EmailVerificationTokenPayloadDto;
-    if (tokenPayload.purpose !== 'email_verification') throw new UnauthorizedException('Invalid token purpose');
+    const updatedUser = await this.postgresService.getWriteConnection().transaction({
+      callback: async adapter => {
+        const { userId } = await AuthTokenHelper.claim({ authTokenRepository: this.authTokenRepository, token, purposes, adapter });
 
-    const user = await this.authRepository.findByEmailAny(tokenPayload.email);
-    if (!user) throw new UnauthorizedException('User not found');
+        const user = await this.authRepository.findById({ id: userId, adapter });
+        if (!user || user.deletedAt) throw new UnauthorizedException('User not found');
 
-    const passwordHash = await SessionHelper.hash({ password });
-    const updatedUser = await this.authRepository.update({ id: user.id, data: {
-      isEmailVerified: true,
-      emailVerifiedAt: new Date().toISOString(),
-      passwordHash,
-      passwordChangedAt: new Date().toISOString()
-    } });
+        return this.authRepository.update({
+          id: userId,
+          data: {
+            isEmailVerified: true,
+            emailVerifiedAt: new Date().toISOString(),
+            ...passwordUpdate,
+            ...(user.status === UserStatus.PENDING && { status: UserStatus.ACTIVE })
+          },
+          adapter
+        });
+      }
+    });
 
     if (!updatedUser) throw new UnauthorizedException('Failed to verify email');
 

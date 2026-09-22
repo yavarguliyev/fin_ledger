@@ -1,5 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PasswordAlgorithm, SessionHelper } from '@common/libs';
+import { PasswordAlgorithm, SessionHelper, UserStatus } from '@common/libs';
 
 import { AuthRepository } from '../../repositories/auth.repository';
 import { LoginDto } from '../../dtos/request/login.dto';
@@ -17,9 +17,10 @@ export class LoginUseCase extends AuthBaseUseCase<LoginDto, AuthResponseDto> {
 
   async execute (dto: LoginDto): Promise<AuthResponseDto> {
     const user = await this.authRepository.findByEmail(dto.email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user) return SessionHelper.rejectWithDummyHash({ password: dto.password });
 
     await SessionHelper.compare({ password: dto.password, passwordHash: user.passwordHash });
+    if (user.status !== UserStatus.ACTIVE) throw new UnauthorizedException('Invalid credentials');
 
     const rehash = SessionHelper.isLegacyHash({ passwordHash: user.passwordHash })
       ? { passwordHash: await SessionHelper.hash({ password: dto.password }), passwordAlgo: PasswordAlgorithm.ARGON2ID }

@@ -1,4 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
+import { CryptoHelper } from '@common/shared-libs';
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcryptjs';
 
@@ -11,6 +12,8 @@ import { GetSessionUserDto } from '../dtos/helper/get-session-user.dto';
 import { ParseExpiryDto } from '../dtos/helper/parse-expiry.dto';
 
 export class SessionHelper {
+  private static dummyPasswordHash: Promise<string> | null = null;
+
   static async hash ({ password }: HashDto): Promise<string> {
     return argon2.hash(password, ARGON2_OPTIONS);
   }
@@ -32,6 +35,13 @@ export class SessionHelper {
   static async compare (dto: CompareDto): Promise<void> {
     const isMatch = await SessionHelper.verify(dto);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+  }
+
+  static async rejectWithDummyHash ({ password }: HashDto): Promise<never> {
+    SessionHelper.dummyPasswordHash ??= SessionHelper.hash({ password: CryptoHelper.uuid() });
+    await SessionHelper.verify({ password, passwordHash: await SessionHelper.dummyPasswordHash });
+
+    throw new UnauthorizedException('Invalid credentials');
   }
 
   static getSessionUser ({ context }: GetSessionUserDto): SessionData {

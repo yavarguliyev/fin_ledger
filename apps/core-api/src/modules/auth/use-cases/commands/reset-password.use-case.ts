@@ -1,32 +1,39 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
-import { SessionHelper } from '@common/libs';
+import { AuthTokenPurpose, PostgresService, SessionHelper } from '@common/libs';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { ResetPasswordDto } from '../../dtos/request/reset-password.dto';
 import { ResetPasswordResponseDto } from '../../dtos/response/reset-password-response.dto';
-import { PasswordResetTokenPayloadDto } from '../../dtos/token/password-reset-token-payload.dto';
 import { AuthRepository } from '../../repositories/auth.repository';
+import { AuthTokenRepository } from '../../repositories/auth-token.repository';
+import { AuthTokenHelper } from '../../helpers/auth-token.helper';
 
 @Injectable()
 export class ResetPasswordUseCase extends AuthBaseUseCase<ResetPasswordDto, ResetPasswordResponseDto> {
-  constructor (private readonly authRepository: AuthRepository) {
+  constructor (
+    private readonly postgresService: PostgresService,
+    private readonly authRepository: AuthRepository,
+    private readonly authTokenRepository: AuthTokenRepository
+  ) {
     super();
   }
 
-  async execute (dto: ResetPasswordDto): Promise<ResetPasswordResponseDto> {
-    const issuer = this.issuer;
+  async execute ({ token, password }: ResetPasswordDto): Promise<ResetPasswordResponseDto> {
+    const passwordHash = await SessionHelper.hash({ password });
 
-    const tokenPayload = jwt.verify(dto.token, this.publicKey, { algorithms: ['RS256'], ...(issuer && { issuer }) }) as PasswordResetTokenPayloadDto;
-    if (tokenPayload.purpose !== 'password_reset') throw new UnauthorizedException('Invalid token purpose');
+    const userId = await this.postgresService.getWriteConnection().transaction({
+      callback: async adapter => {
+        const claimed = await AuthTokenHelper.claim({ authTokenRepository: this.authTokenRepository, token, purposes: [AuthTokenPurpose.PASSWORD_RESET], adapter });
 
-    const user = await this.authRepository.findByEmail(tokenPayload.email);
-    if (!user || user.deletedAt) throw new UnauthorizedException('User not found');
+        const user = await this.authRepository.findById({ id: claimed.userId, adapter });
+        if (!user || user.deletedAt) throw new UnauthorizedException('User not found');
 
-    const passwordHash = await SessionHelper.hash({ password: dto.password });
+        await this.authRepository.update({ id: user.id, data: { passwordHash, passwordChangedAt: new Date().toISOString() }, adapter });
+        return user.id;
+      }
+    });
 
-    await this.authRepository.update({ id: user.id, data: { passwordHash, passwordChangedAt: new Date().toISOString() } });
-    await this.sessionService.deleteUserSessions({ userId: user.id });
+    await this.sessionService.deleteUserSessions({ userId });
 
     return { success: true, message: 'Password reset successfully. Please login with your new password.' };
   }

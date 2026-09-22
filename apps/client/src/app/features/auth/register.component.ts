@@ -88,12 +88,13 @@ export class RegisterComponent {
       .register({
         email: this.form.controls.email.value ?? '',
         password: this.form.controls.password.value ?? '',
-        displayName: this.form.controls.displayName.value ?? ''
+        displayName: this.form.controls.displayName.value ?? '',
+        termsAccepted
       })
       .subscribe({
-        next: () => {
+        next: response => {
           this.loading.set(false);
-          this.toast.success('Account created successfully! Please contact an administrator to verify your email before logging in.');
+          this.toast.success(response.message);
           void this.router.navigate(['/auth/login']);
         },
         error: (err: Error) => {

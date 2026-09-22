@@ -20,6 +20,14 @@ export const AuthSchema = z.object({
 
   emailVerifiedAt: z.iso.datetime({ message: 'Email verified at must be a valid ISO datetime' }).nullable(),
 
+  termsAcceptedAt: z.iso.datetime({ message: 'Terms accepted at must be a valid ISO datetime' }).nullable(),
+
+  mfaSecretEncrypted: z.custom<Buffer>().nullable(),
+
+  mfaEnabledAt: z.iso.datetime({ message: 'MFA enabled at must be a valid ISO datetime' }).nullable(),
+
+  mfaLastUsedStep: z.number({ message: 'MFA last used step must be a number' }).int().nullable(),
+
   deletedAt: z.iso.datetime({ message: 'Deleted at must be a valid ISO datetime' }).nullable(),
 
   email: z.string({ message: 'Email must be a string' }),
@@ -34,7 +42,7 @@ export const AuthSchema = z.object({
 
   role: z.enum(Object.values(UserRoles) as [string, ...string[]], { message: 'Role must be a valid user role' }),
 
-  status: z.enum(Object.values(UserStatus) as [string, ...string[]], { message: 'Status must be a valid user status' })
+  status: z.enum(UserStatus, { message: 'Status must be a valid user status' })
 });
 
 export type AuthDto = z.infer<typeof AuthSchema>;

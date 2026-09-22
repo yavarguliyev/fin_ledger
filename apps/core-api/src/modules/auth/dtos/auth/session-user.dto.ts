@@ -1,10 +1,12 @@
 import { z } from 'zod';
-import { UserRoles } from '@common/libs';
+import { UserRoles, UserStatus } from '@common/libs';
 
 export const SessionUserSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
   role: z.enum(Object.values(UserRoles) as [string, ...string[]], { message: 'Role must be a valid user role' }),
+
+  status: z.enum(UserStatus, { message: 'Status must be a valid user status' }),
 
   passwordHash: z.string({ message: 'Password hash must be a string' }).optional(),
 

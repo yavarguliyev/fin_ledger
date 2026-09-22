@@ -19,9 +19,9 @@ export class MailerService {
     this.from = this.configService.get<string>('EMAIL_FROM')!;
   }
 
-  sendEmail ({ subject, purpose, title, body, url }: SendEmailDto): void {
+  sendEmail ({ to, subject, purpose, title, body, url }: SendEmailDto): void {
     this.logger.log(
-      ['Email sent', `From: ${this.from}`, `Subject: ${subject}`, `Purpose: ${purpose}`, `Title: ${title}`, `Body: ${body}`, `URL: ${url}`].join('\n')
+      ['Email sent', `From: ${this.from}`, `To: ${to}`, `Subject: ${subject}`, `Purpose: ${purpose}`, `Title: ${title}`, `Body: ${body}`, `URL: ${url}`].join('\n')
     );
   }
 }

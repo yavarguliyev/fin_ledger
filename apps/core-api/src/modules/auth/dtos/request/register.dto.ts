@@ -11,7 +11,9 @@ export const RegisterSchema = z.object({
     .min(6, { message: 'Password must be at least 6 characters long' })
     .max(100, { message: 'Password must not exceed 100 characters' }),
 
-  displayName: z.string({ message: 'Display name must be a string' }).min(1, { message: 'Display name is required' })
+  displayName: z.string({ message: 'Display name must be a string' }).min(1, { message: 'Display name is required' }),
+
+  termsAccepted: z.literal(true, { message: 'You must accept the Terms and Privacy Policy' })
 });
 
 export type RegisterDto = z.infer<typeof RegisterSchema>;

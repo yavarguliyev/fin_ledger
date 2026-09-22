@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
 export const SendEmailSchema = z.object({
+  to: z.email({ message: 'Recipient must be a valid email' }),
+
   subject: z.string({ message: 'Subject must be a string' }),
 
   purpose: z.string({ message: 'Purpose must be a string' }),

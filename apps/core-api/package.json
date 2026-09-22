@@ -7,27 +7,37 @@
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
     "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck:integration": "tsc -p tsconfig.integration.json",
+    "test:integration": "TESTCONTAINERS_RYUK_PRIVILEGED=true NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js --runInBand"
   },
   "dependencies": {
+    "@common/libs": "1.0.0",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/swagger": "^12.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2",
-    "zod": "^4.4.3",
     "nestjs-zod": "^5.5.0",
     "node-pg-migrate": "^8.0.4",
-    "@common/libs": "1.0.0"
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@testcontainers/kafka": "^12.1.0",
+    "@testcontainers/postgresql": "^12.1.0",
+    "@testcontainers/rabbitmq": "^12.1.0",
+    "@testcontainers/redis": "^12.1.0",
+    "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
-    "@types/express": "^5.0.0",
+    "@types/pg": "^8.23.1",
+    "jest": "^30.5.2",
+    "testcontainers": "^12.1.0",
+    "ts-jest": "^29.4.12",
     "typescript": "^5.7.3"
   }
 }

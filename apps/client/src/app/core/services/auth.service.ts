@@ -7,6 +7,8 @@ import { AuthResponse } from '../interfaces/auth/auth-response.interface';
 import { AuthUser } from '../interfaces/auth/auth-user.interface';
 import { LoginRequest } from '../interfaces/auth/login-request.interface';
 import { RegisterDto } from '../interfaces/auth/register-dto.interface';
+import { RegisterResponse } from '../interfaces/auth/register-response.interface';
+import { VerifyEmailDto } from '../dtos/auth/verify-email.dto';
 import { SessionData } from '../interfaces/auth/session-data.interface';
 import { UpdateProfileResponse } from '../interfaces/auth/update-profile-response.interface';
 import { ThemeService } from './theme.service';
@@ -36,8 +38,8 @@ export class AuthService {
     return localStorage.getItem('remembered_email');
   }
 
-  register (dto: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+  register (dto: RegisterDto): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   requestPasswordReset (email: string): Observable<{ message: string }> {
@@ -52,8 +54,8 @@ export class AuthService {
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
-  verifyEmail (token: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, { token, password }).pipe(
+  verifyEmail (dto: VerifyEmailDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, dto).pipe(
       tap(response => this.persist(response)),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );

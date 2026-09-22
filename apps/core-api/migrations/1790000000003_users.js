@@ -20,6 +20,7 @@ export const up = pgm => {
 
     mfa_secret_encrypted: { type: 'bytea' },
     mfa_enabled_at: { type: 'timestamptz' },
+    mfa_last_used_step: { type: 'bigint' },
 
     is_email_verified: { type: 'boolean', notNull: true, default: false },
     email_verified_at: { type: 'timestamptz' },
@@ -59,11 +60,46 @@ export const up = pgm => {
     check: '(is_email_verified = false AND email_verified_at IS NULL) OR (is_email_verified = true AND email_verified_at IS NOT NULL)'
   });
 
+  // A secret can exist while enrolment is pending (not yet confirmed); an enabled factor must always have one.
+  pgm.addConstraint('users', 'chk_users_mfa_consistency', { check: 'mfa_enabled_at IS NULL OR mfa_secret_encrypted IS NOT NULL' });
+
   pgm.addConstraint('users', 'chk_users_dob_sane', {
     check: "date_of_birth IS NULL OR (date_of_birth > DATE '1900-01-01' AND date_of_birth < CURRENT_DATE)"
   });
+
+  pgm.createTable('auth_tokens', {
+    id: 'id',
+    user_id: { type: 'uuid', notNull: true, references: 'users(id)', onDelete: 'CASCADE' },
+    purpose: { type: 'text', notNull: true },
+    token_hash: { type: 'char(64)', notNull: true },
+    expires_at: { type: 'timestamptz', notNull: true },
+    used_at: { type: 'timestamptz' },
+    revoked_at: { type: 'timestamptz' },
+    created_at: 'created_at'
+  });
+
+  pgm.addConstraint('auth_tokens', 'uq_auth_tokens_token_hash', { unique: ['token_hash'] });
+  pgm.addConstraint('auth_tokens', 'chk_auth_tokens_purpose', { check: "purpose IN ('account_invite', 'email_verification', 'password_reset')" });
+  pgm.addConstraint('auth_tokens', 'chk_auth_tokens_expiry', { check: 'expires_at > created_at' });
+  pgm.addConstraint('auth_tokens', 'chk_auth_tokens_single_outcome', { check: 'used_at IS NULL OR revoked_at IS NULL' });
+
+  pgm.createIndex('auth_tokens', ['user_id', 'purpose'], { name: 'idx_auth_tokens_active', where: 'used_at IS NULL AND revoked_at IS NULL' });
+
+  // Two-factor backup codes: shown to the user once, stored only as SHA-256 hashes, each usable a single time.
+  pgm.createTable('mfa_recovery_codes', {
+    id: 'id',
+    user_id: { type: 'uuid', notNull: true, references: 'users(id)', onDelete: 'CASCADE' },
+    code_hash: { type: 'char(64)', notNull: true },
+    used_at: { type: 'timestamptz' },
+    created_at: 'created_at'
+  });
+
+  pgm.addConstraint('mfa_recovery_codes', 'uq_mfa_recovery_codes_user_code', { unique: ['user_id', 'code_hash'] });
+  pgm.createIndex('mfa_recovery_codes', 'user_id', { name: 'idx_mfa_recovery_codes_unused', where: 'used_at IS NULL' });
 };
 
 export const down = pgm => {
+  pgm.dropTable('mfa_recovery_codes');
+  pgm.dropTable('auth_tokens');
   pgm.dropTable('users');
 };

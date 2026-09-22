@@ -24,6 +24,7 @@
     "@common/env": "1.0.0",
     "@common/kafka": "1.0.0",
     "@common/mailer": "1.0.0",
+    "@common/mfa": "1.0.0",
     "@common/payment-provider": "1.0.0",
     "@common/rabbitmq": "1.0.0",
     "@common/redis": "1.0.0",

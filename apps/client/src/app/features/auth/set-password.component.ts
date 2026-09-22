@@ -82,7 +82,7 @@ export class SetPasswordComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
-    this.auth.verifyEmail(token, password).subscribe({
+    this.auth.verifyEmail({ token, password }).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);

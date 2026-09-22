@@ -1,5 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { UserStatus } from '@common/shared-libs';
 
 import { SessionService } from '../services/session.service';
 import { ExpressReqFields } from '../interfaces/express-req-fields.interface';
@@ -18,6 +19,7 @@ export class SessionGuard implements CanActivate {
     if (!session) throw new UnauthorizedException('Invalid or expired session');
     if (!session.isEmailVerified) throw new UnauthorizedException('Please verify your email before accessing this resource');
     if (session.deletedAt !== null && session.deletedAt !== undefined) throw new UnauthorizedException('Your account has been deleted');
+    if (session.status !== UserStatus.ACTIVE) throw new UnauthorizedException('Your account is not active');
 
     request.user = session;
 
