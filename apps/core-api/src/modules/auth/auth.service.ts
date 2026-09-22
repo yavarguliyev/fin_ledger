@@ -10,7 +10,6 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
 import { EmailVerificationUseCase } from './use-cases/commands/email-verification.use-case';
 import { RegisterDto } from './dtos/request/register.dto';
 import { LoginDto } from './dtos/request/login.dto';
-import { AuthResponseDto } from './dtos/response/auth-response.dto';
 import { RegisterResponseDto } from './dtos/response/register-response.dto';
 import { ForgotPasswordResponseDto } from './dtos/response/forgot-password-response.dto';
 import { ResetPasswordDto } from './dtos/request/reset-password.dto';
@@ -23,6 +22,9 @@ import { GetMfaStatusUseCase } from './use-cases/queries/get-mfa-status.use-case
 import { SetupMfaUseCase } from './use-cases/commands/mfa/setup-mfa.use-case';
 import { EnableMfaUseCase } from './use-cases/commands/mfa/enable-mfa.use-case';
 import { DisableMfaUseCase } from './use-cases/commands/mfa/disable-mfa.use-case';
+import { VerifyMfaLoginUseCase } from './use-cases/commands/mfa/verify-mfa-login.use-case';
+import { VerifyMfaLoginDto } from './dtos/request/verify-mfa-login.dto';
+import { LoginResponseDto } from './dtos/response/login-response.dto';
 import { MfaUserDto } from './dtos/input/mfa-user.dto';
 import { EnableMfaDto } from './dtos/input/enable-mfa.dto';
 import { DisableMfaDto } from './dtos/input/disable-mfa.dto';
@@ -44,14 +46,15 @@ export class AuthService {
     private readonly getMfaStatusUseCase: GetMfaStatusUseCase,
     private readonly setupMfaUseCase: SetupMfaUseCase,
     private readonly enableMfaUseCase: EnableMfaUseCase,
-    private readonly disableMfaUseCase: DisableMfaUseCase
+    private readonly disableMfaUseCase: DisableMfaUseCase,
+    private readonly verifyMfaLoginUseCase: VerifyMfaLoginUseCase
   ) {}
 
   async register (dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.registerUserUseCase.execute(dto);
   }
 
-  async login (dto: LoginDto): Promise<AuthResponseDto> {
+  async login (dto: LoginDto): Promise<LoginResponseDto> {
     return this.loginUseCase.execute(dto);
   }
 
@@ -89,5 +92,9 @@ export class AuthService {
 
   async disableMfa (dto: DisableMfaDto): Promise<MfaDisabledResponseDto> {
     return this.disableMfaUseCase.execute(dto);
+  }
+
+  async verifyMfaLogin (dto: VerifyMfaLoginDto): Promise<SessionResponseDto> {
+    return this.verifyMfaLoginUseCase.execute(dto);
   }
 }

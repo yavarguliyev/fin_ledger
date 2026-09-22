@@ -1,4 +1,5 @@
 import { generateSync } from 'otplib';
+import { CryptoHelper } from '@common/shared-libs';
 
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { ApiHelper } from '../helpers/api.helper';
@@ -84,5 +85,90 @@ describe('Two-factor authentication setup', () => {
     await expect(disable(usedCode)).resolves.toMatchObject({ status: 400 });
     await expect(disable(unusedCode)).resolves.toMatchObject({ status: 400 });
     await expect(disable(newRecoveryCodes[0] as string)).resolves.toMatchObject({ status: 201 });
+  });
+});
+
+describe('Two-factor login', () => {
+  const email = 'player16@seed.local';
+  let secret = '';
+  let recoveryCodes: string[] = [];
+
+  const loginStep = (): Promise<{ status: number; body: { mfaRequired?: boolean; challengeToken?: string; accessToken?: string } }> =>
+    ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: SEED_PASSWORD } });
+  const challenge = async (): Promise<string> => (await loginStep()).body.challengeToken as string;
+  const verify = (challengeToken: string, code: string): Promise<{ status: number; body: { accessToken?: string } }> =>
+    ApiHelper.request({ method: 'POST', path: '/auth/mfa/verify', body: { challengeToken, code } });
+  const tokenRow = (challengeToken: string): Promise<Array<{ failed_attempts: number; revoked: boolean; used: boolean }>> =>
+    DbHelper.query({
+      sql: 'SELECT failed_attempts, revoked_at IS NOT NULL AS revoked, used_at IS NOT NULL AS used FROM auth_tokens WHERE token_hash = $1',
+      params: [CryptoHelper.sha256({ value: challengeToken })]
+    });
+  const nextWindowCode = (): string => generateSync({ secret, epoch: Math.floor(Date.now() / 1000) + 30 });
+
+  beforeAll(async () => {
+    const token = await ApiHelper.login({ email });
+    const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: '/auth/mfa/setup', token });
+    secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
+
+    const enabled = await ApiHelper.request<{ recoveryCodes: string[] }>({ method: 'POST', path: '/auth/mfa/enable', token, body: { code: generateSync({ secret }) } });
+    recoveryCodes = enabled.body.recoveryCodes;
+  });
+
+  afterAll(async () => DbHelper.close());
+
+  it('asks for a second factor instead of returning a session', async () => {
+    const response = await loginStep();
+
+    expect(response.status).toBe(201);
+    expect(response.body).toEqual({ mfaRequired: true, challengeToken: expect.any(String) as string });
+  });
+
+  it('counts a wrong code, signs in with a correct one, and the challenge and code are single-use', async () => {
+    const challengeToken = await challenge();
+
+    await expect(verify(challengeToken, '000000')).resolves.toMatchObject({ status: 400 });
+    await expect(tokenRow(challengeToken)).resolves.toEqual([{ failed_attempts: 1, revoked: false, used: false }]);
+
+    const code = nextWindowCode();
+    const signedIn = await verify(challengeToken, code);
+    expect(signedIn.status).toBe(201);
+    await expect(ApiHelper.request({ path: '/wallets', token: signedIn.body.accessToken as string })).resolves.toMatchObject({ status: 200 });
+    await expect(
+      DbHelper.query({ sql: "SELECT last_login_at > now() - interval '1 minute' AS recent FROM users WHERE email = $1", params: [email] })
+    ).resolves.toEqual([{ recent: true }]);
+
+    await expect(verify(challengeToken, nextWindowCode())).resolves.toMatchObject({ status: 400 });
+    await expect(verify(await challenge(), code)).resolves.toMatchObject({ status: 400 });
+  });
+
+  it('accepts a recovery code exactly once', async () => {
+    const [recoveryCode] = recoveryCodes as [string];
+
+    await expect(verify(await challenge(), recoveryCode)).resolves.toMatchObject({ status: 201 });
+    await expect(verify(await challenge(), recoveryCode)).resolves.toMatchObject({ status: 400 });
+  });
+
+  it('revokes the challenge after 5 wrong codes without spending the recovery code tried afterwards', async () => {
+    const challengeToken = await challenge();
+    const recoveryCode = recoveryCodes[1] as string;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await expect(verify(challengeToken, '000000')).resolves.toMatchObject({ status: 400 });
+    }
+
+    await expect(verify(challengeToken, recoveryCode)).resolves.toMatchObject({ status: 400 });
+    await expect(tokenRow(challengeToken)).resolves.toEqual([{ failed_attempts: 5, revoked: true, used: false }]);
+    await expect(verify(await challenge(), recoveryCode)).resolves.toMatchObject({ status: 201 });
+  });
+
+  it('rejects an expired challenge', async () => {
+    const challengeToken = await challenge();
+
+    await DbHelper.query({
+      sql: "UPDATE auth_tokens SET created_at = now() - interval '10 minutes', expires_at = now() - interval '5 minutes' WHERE token_hash = $1",
+      params: [CryptoHelper.sha256({ value: challengeToken })]
+    });
+
+    await expect(verify(challengeToken, recoveryCodes[2] as string)).resolves.toMatchObject({ status: 400 });
   });
 });

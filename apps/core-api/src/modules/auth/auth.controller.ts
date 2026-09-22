@@ -9,12 +9,13 @@ import { AuthorizationDto, AuthorizationSchema } from './dtos/request/authorizat
 import { ForgotPasswordDto, ForgotPasswordSchema } from './dtos/request/forgot-password.dto';
 import { ResetPasswordDto, ResetPasswordSchema } from './dtos/request/reset-password.dto';
 import { VerifyEmailDto, VerifyEmailSchema } from './dtos/request/verify-email.dto';
-import { AuthResponseDto } from './dtos/response/auth-response.dto';
 import { RegisterResponseDto } from './dtos/response/register-response.dto';
 import { ForgotPasswordResponseDto } from './dtos/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from './dtos/response/reset-password-response.dto';
 import { SessionResponseDto } from './dtos/response/session-response.dto';
 import { MfaCodeDto, MfaCodeSchema } from './dtos/request/mfa-code.dto';
+import { VerifyMfaLoginDto, VerifyMfaLoginSchema } from './dtos/request/verify-mfa-login.dto';
+import { LoginResponseDto } from './dtos/response/login-response.dto';
 import { DisableMfaRequestDto, DisableMfaRequestSchema } from './dtos/request/disable-mfa-request.dto';
 import { MfaStatusResponseDto } from './dtos/response/mfa-status-response.dto';
 import { MfaEnrollmentResponseDto } from './dtos/response/mfa-enrollment-response.dto';
@@ -33,7 +34,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login (@Body({ schema: LoginSchema }) dto: LoginDto): Promise<AuthResponseDto> {
+  async login (@Body({ schema: LoginSchema }) dto: LoginDto): Promise<LoginResponseDto> {
     return this.authService.login(dto);
   }
 
@@ -84,5 +85,10 @@ export class AuthController {
   @Post('mfa/disable')
   async disableMfa (@Req() req: RequestContext, @Body({ schema: DisableMfaRequestSchema }) dto: DisableMfaRequestDto): Promise<MfaDisabledResponseDto> {
     return this.authService.disableMfa({ ...dto, userId: req.user.userId });
+  }
+
+  @Post('mfa/verify')
+  async verifyMfaLogin (@Body({ schema: VerifyMfaLoginSchema }) dto: VerifyMfaLoginDto): Promise<SessionResponseDto> {
+    return this.authService.verifyMfaLogin(dto);
   }
 }

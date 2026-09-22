@@ -413,7 +413,11 @@ page's "Two-factor authentication: Not enabled" is static text.
   password plus a current code or a recovery code). `MFA_ENCRYPTION_KEY` (required) and `MFA_ISSUER` are in the env
   schema and `.env.example`. There are 4 integration tests. **Note: until step 3, an enabled user still logs in with the
   password alone.**
-- [ ] Step 3: two-step login (`mfa_challenge` link token, `POST /auth/mfa/verify`, recovery-code login).
+- [x] **Step 3 (2026-09-22):** `POST /auth/login` returns `{ mfaRequired, challengeToken }` for users with 2FA on (a
+  one-time `mfa_challenge` token, 5 min); `POST /auth/mfa/verify` accepts a current code or a recovery code and
+  returns the session. Each challenge allows 5 wrong codes (`auth_tokens.failed_attempts`), then it's revoked. There
+  are 5 integration tests. **The client doesn't handle the challenge yet (step 4), so a 2FA user can't sign in
+  through the UI until then.**
 - [ ] Step 4: client (profile Security wizard, second login step).
 
 **Verify.**

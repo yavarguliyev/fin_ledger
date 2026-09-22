@@ -5,6 +5,8 @@ import { AuthTokenDto } from '../dtos/token/auth-token.dto';
 import { ClaimedAuthTokenDto } from '../dtos/token/claimed-auth-token.dto';
 import { IssueAuthTokenDto } from '../dtos/repository/issue-auth-token.dto';
 import { ClaimAuthTokenDto } from '../dtos/repository/claim-auth-token.dto';
+import { FindActiveAuthTokenDto } from '../dtos/repository/find-active-auth-token.dto';
+import { RecordAuthTokenFailureDto } from '../dtos/repository/record-auth-token-failure.dto';
 import { AUTH_TOKEN_CONSTANTS } from '../constants/tokens/auth-token.constant';
 
 @Injectable()
@@ -37,6 +39,15 @@ export class AuthTokenRepository extends BaseRepository<AuthTokenDto> {
         await adapter.query({ sql: INSERT_SQL, params: [userId, purpose, tokenHash, expiresAt] });
       }
     });
+  }
+
+  async findActive ({ tokenHash, purposes }: FindActiveAuthTokenDto): Promise<ClaimedAuthTokenDto | null> {
+    const result = await this.service.getConnection().query<ClaimedAuthTokenDto>({ sql: AUTH_TOKEN_CONSTANTS.FIND_ACTIVE_SQL, params: [tokenHash, purposes] });
+    return result.rows[0] ?? null;
+  }
+
+  async recordFailure ({ tokenHash, maxAttempts }: RecordAuthTokenFailureDto): Promise<void> {
+    await this.service.getWriteConnection().query({ sql: AUTH_TOKEN_CONSTANTS.RECORD_FAILURE_SQL, params: [tokenHash, maxAttempts] });
   }
 
   async claim ({ tokenHash, purposes, adapter }: ClaimAuthTokenDto): Promise<ClaimedAuthTokenDto | null> {

@@ -75,11 +75,12 @@ export const up = pgm => {
     expires_at: { type: 'timestamptz', notNull: true },
     used_at: { type: 'timestamptz' },
     revoked_at: { type: 'timestamptz' },
+    failed_attempts: { type: 'smallint', notNull: true, default: 0, check: 'failed_attempts >= 0' },
     created_at: 'created_at'
   });
 
   pgm.addConstraint('auth_tokens', 'uq_auth_tokens_token_hash', { unique: ['token_hash'] });
-  pgm.addConstraint('auth_tokens', 'chk_auth_tokens_purpose', { check: "purpose IN ('account_invite', 'email_verification', 'password_reset')" });
+  pgm.addConstraint('auth_tokens', 'chk_auth_tokens_purpose', { check: "purpose IN ('account_invite', 'email_verification', 'mfa_challenge', 'password_reset')" });
   pgm.addConstraint('auth_tokens', 'chk_auth_tokens_expiry', { check: 'expires_at > created_at' });
   pgm.addConstraint('auth_tokens', 'chk_auth_tokens_single_outcome', { check: 'used_at IS NULL OR revoked_at IS NULL' });
 

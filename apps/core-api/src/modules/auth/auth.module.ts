@@ -10,6 +10,7 @@ import { GetMfaStatusUseCase } from './use-cases/queries/get-mfa-status.use-case
 import { SetupMfaUseCase } from './use-cases/commands/mfa/setup-mfa.use-case';
 import { EnableMfaUseCase } from './use-cases/commands/mfa/enable-mfa.use-case';
 import { DisableMfaUseCase } from './use-cases/commands/mfa/disable-mfa.use-case';
+import { VerifyMfaLoginUseCase } from './use-cases/commands/mfa/verify-mfa-login.use-case';
 import { LoginUseCase } from './use-cases/commands/login.use-case';
 import { RegisterUserUseCase } from './use-cases/commands/register-user.use-case';
 import { LogoutUseCase } from './use-cases/commands/logout.use-case';
@@ -37,6 +38,7 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
     SetupMfaUseCase,
     EnableMfaUseCase,
     DisableMfaUseCase,
+    VerifyMfaLoginUseCase,
     AuthRepository,
     AuthTokenRepository,
     MfaRecoveryCodeRepository

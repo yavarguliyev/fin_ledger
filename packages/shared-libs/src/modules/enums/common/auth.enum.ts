@@ -15,6 +15,7 @@ export enum UserStatus {
 export enum AuthTokenPurpose {
   ACCOUNT_INVITE = 'account_invite',
   EMAIL_VERIFICATION = 'email_verification',
+  MFA_CHALLENGE = 'mfa_challenge',
   PASSWORD_RESET = 'password_reset'
 }
 
