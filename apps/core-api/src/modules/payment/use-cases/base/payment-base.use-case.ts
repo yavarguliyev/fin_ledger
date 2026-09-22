@@ -66,7 +66,7 @@ export abstract class PaymentBaseUseCase {
   async execute (dto: ProcessPaymentDto): Promise<PaymentDto> {
     const { userId } = dto;
 
-    const existing = await this.paymentRepository.findByIdempotencyKey({ idempotencyKey: dto.idempotencyKey });
+    const existing = await this.paymentRepository.findByIdempotencyKey({ userId, idempotencyKey: dto.idempotencyKey });
     if (existing) return existing;
 
     const userWallet = await this.walletService.getWalletByCurrency({ userId, currency: dto.currency });

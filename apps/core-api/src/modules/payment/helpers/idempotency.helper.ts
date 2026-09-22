@@ -1,9 +1,7 @@
-export enum PaymentOperation {
-  REFUND = 'refund'
-}
+import { PaymentIdempotencyKeyDto } from '../dtos/helper/payment-idempotency-key.dto';
 
 export class IdempotencyHelper {
-  static forPayment (operation: PaymentOperation, paymentId: string): string {
+  static forPayment ({ operation, paymentId }: PaymentIdempotencyKeyDto): string {
     return `${operation}:${paymentId}`;
   }
 }

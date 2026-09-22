@@ -1,12 +1,12 @@
 import { BadRequestException, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
-import { PaymentStatus, ProviderChargeStatus } from '@common/libs';
+import { PaymentOperation, PaymentStatus, ProviderChargeStatus } from '@common/libs';
 
 import { ExecuteDepositOperationDto } from '../dtos/helper/execute-deposit-operation.dto';
 import { ExecuteWithdrawalOperationDto } from '../dtos/helper/execute-withdrawal-operation.dto';
 import { MarkCompletedDto } from '../dtos/helper/mark-completed.dto';
 import { MarkIndeterminateDto } from '../dtos/helper/mark-indeterminate.dto';
 import { FailWithdrawalDto } from '../dtos/helper/fail-withdrawal.dto';
-import { IdempotencyHelper, PaymentOperation } from './idempotency.helper';
+import { IdempotencyHelper } from './idempotency.helper';
 import { PaymentDto } from '../dtos/payment/payment.dto';
 
 export class PaymentOperationHelper {
@@ -40,7 +40,7 @@ export class PaymentOperationHelper {
       amount: dto.amountMinor,
       currency: dto.currency,
       paymentMethodToken: method.providerMethodId!,
-      idempotencyKey: dto.idempotencyKey,
+      idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.DEPOSIT, paymentId: payment.id }),
       description: `Deposit: ${payment.id}`
     });
 
@@ -71,7 +71,7 @@ export class PaymentOperationHelper {
         chargeId: charge.chargeId,
         amount: dto.amountMinor,
         currency: dto.currency,
-        idempotencyKey: IdempotencyHelper.forPayment(PaymentOperation.REFUND, payment.id)
+        idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.REFUND, paymentId: payment.id })
       });
       }
 
@@ -84,7 +84,7 @@ export class PaymentOperationHelper {
 
   public static async executeWithdrawalOperation (options: ExecuteWithdrawalOperationDto): Promise<PaymentDto> {
     const { payment, dto, userWallet, method, provider, walletService, paymentRepository } = options;
-    const { amountMinor, currency, idempotencyKey } = dto;
+    const { amountMinor, currency } = dto;
     const { id: walletId } = userWallet;
     const { id: paymentId } = payment;
     const failure = { walletService, paymentRepository, walletId, amountMinor, paymentId };
@@ -97,7 +97,7 @@ export class PaymentOperationHelper {
         amount: amountMinor,
         currency,
         recipientToken: method.providerMethodId!,
-        idempotencyKey,
+        idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.PAYOUT, paymentId }),
         description: `Withdrawal: ${paymentId}`
       });
     } catch (error) {

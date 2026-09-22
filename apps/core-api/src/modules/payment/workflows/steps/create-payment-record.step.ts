@@ -12,7 +12,7 @@ export class CreatePaymentRecordStep implements WorkflowStep<DepositContextDto> 
   constructor (private readonly paymentRepository: PaymentRepository) {}
 
   async execute (context: DepositContextDto): Promise<void> {
-    const existing = await this.paymentRepository.findByIdempotencyKey({ idempotencyKey: context.dto.idempotencyKey });
+    const existing = await this.paymentRepository.findByIdempotencyKey({ userId: context.userId, idempotencyKey: context.dto.idempotencyKey });
     if (existing) {
       context.paymentId = existing.id;
       context.payment = existing;

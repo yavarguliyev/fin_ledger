@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, ServiceUnavailableException } from '@nestjs/common';
 import {
   PaymentCapability,
+  PaymentOperation,
   PaymentProviderRegistry,
   PaymentStatus,
   ProviderChargeStatus,
@@ -10,7 +11,7 @@ import {
 } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { IdempotencyHelper, PaymentOperation } from '../../helpers/idempotency.helper';
+import { IdempotencyHelper } from '../../helpers/idempotency.helper';
 import { DepositContextDto } from '../../dtos/workflow/deposit-context.dto';
 
 @Injectable()
@@ -69,7 +70,7 @@ export class ChargePaymentStep implements WorkflowStep<DepositContextDto> {
         chargeId: context.providerChargeId,
         amount: context.dto.amountMinor,
         currency: context.dto.currency,
-        idempotencyKey: IdempotencyHelper.forPayment(PaymentOperation.REFUND, context.paymentId)
+        idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.REFUND, paymentId: context.paymentId })
       });
 
       await this.paymentRepository.updatePaymentStatus({ paymentId: context.paymentId, status: PaymentStatus.COMPENSATED });

@@ -61,8 +61,8 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
     ];
   }
 
-  async findByIdempotencyKey ({ idempotencyKey }: FindPaymentByIdempotencyKeyDto): Promise<PaymentDto | null> {
-    return this.findOne({ where: { idempotency_key: idempotencyKey } });
+  async findByIdempotencyKey ({ userId, idempotencyKey }: FindPaymentByIdempotencyKeyDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { user_id: userId, idempotency_key: idempotencyKey } });
   }
 
   async findByProviderChargeId ({ provider, providerChargeId }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
