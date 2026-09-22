@@ -75,3 +75,27 @@ describe('StripeOperationHelper.createCharge', () => {
     await expect(StripeOperationHelper.createCharge({ client, dto: CHARGE_INPUT })).resolves.toEqual({ id: 'pi_test', status: ProviderChargeStatus.PENDING });
   });
 });
+
+describe('StripeOperationHelper.retrieveCharge', () => {
+  it('reads the PaymentIntent, and follows a charge ID to its PaymentIntent', async () => {
+    const retrieved: string[] = [];
+    const client = {
+      charges: { retrieve: async (): Promise<unknown> => Promise.resolve({ payment_intent: 'pi_from_charge' }) },
+      paymentIntents: {
+        retrieve: async (id: string): Promise<PaymentIntent> => {
+          retrieved.push(id);
+          return Promise.resolve(intentOf({ id, status: 'succeeded', amount: 1500, currency: 'usd' }));
+        }
+      }
+    } as unknown as Stripe;
+
+    await expect(StripeOperationHelper.retrieveCharge({ client, dto: { chargeId: 'pi_direct' } })).resolves.toMatchObject({
+      status: ProviderChargeStatus.SUCCEEDED,
+      amount: 1500,
+      currency: 'usd'
+    });
+    await StripeOperationHelper.retrieveCharge({ client, dto: { chargeId: 'ch_indirect' } });
+
+    expect(retrieved).toEqual(['pi_direct', 'pi_from_charge']);
+  });
+});

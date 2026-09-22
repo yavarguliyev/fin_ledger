@@ -8,6 +8,8 @@ import { StripePayoutDto } from '../../../dtos/helper/stripe-payout.dto';
 import { StripeRefundDto } from '../../../dtos/helper/stripe-refund.dto';
 import { StripeMethodHelper } from './stripe-method.helper';
 import { StripeIntentHelper } from './stripe-intent.helper';
+import { StripeRetrieveChargeDto } from '../../../dtos/helper/stripe-retrieve-charge.dto';
+import { STRIPE_ID_PREFIXES } from '../../../constants/stripe/stripe-id-prefixes.constant';
 
 export class StripeOperationHelper {
   static async resolveCustomerForCharge ({ client, dto }: ResolveCustomerChargeDto): Promise<string | undefined> {
@@ -43,6 +45,13 @@ export class StripeOperationHelper {
     return StripeIntentHelper.toOperationResult({ intent });
   }
 
+  static async retrieveCharge ({ client, dto }: StripeRetrieveChargeDto): Promise<OperationResultDto> {
+    const intentRef = dto.chargeId.startsWith(STRIPE_ID_PREFIXES.CHARGE) ? (await client.charges.retrieve(dto.chargeId)).payment_intent : dto.chargeId;
+    const intent = await client.paymentIntents.retrieve(typeof intentRef === 'string' ? intentRef : (intentRef?.id ?? dto.chargeId));
+
+    return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
+  }
+
   static async createPayout ({ client, dto }: StripePayoutDto): Promise<string> {
     const { amount, description, idempotencyKey, recipientToken } = dto;
     const currency = dto.currency.toLowerCase();
@@ -58,7 +67,7 @@ export class StripeOperationHelper {
 
   static async createRefund ({ client, dto }: StripeRefundDto): Promise<string> {
     const { amount, chargeId, idempotencyKey } = dto;
-    const target = chargeId.startsWith('pi_') ? { payment_intent: chargeId } : { charge: chargeId };
+    const target = chargeId.startsWith(STRIPE_ID_PREFIXES.PAYMENT_INTENT) ? { payment_intent: chargeId } : { charge: chargeId };
     const refund = await client.refunds.create({ amount, ...target }, { idempotencyKey });
 
     return refund.id;

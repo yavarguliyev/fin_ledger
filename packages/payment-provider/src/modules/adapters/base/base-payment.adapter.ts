@@ -126,8 +126,8 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
       return {
         chargeId: result.id,
         status: result.status,
-        amount,
-        currency: currency.toUpperCase(),
+        amount: result.amount ?? amount,
+        currency: (result.currency ?? currency).toUpperCase(),
         ...(result.failure && { failure: result.failure, failureReason: result.failure.message }),
         ...(result.clientSecret && { clientSecret: result.clientSecret })
       };

@@ -3,10 +3,24 @@ import { ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@com
 import { ProviderChargeResultDto } from '../../../dtos/operation/provider-charge-result.dto';
 import { SimulateChargeDto } from '../../../dtos/helper/simulate-charge.dto';
 import { ProviderResultHelper } from '../../../helpers/provider-result.helper';
-import { STRIPE_SIMULATED_OUTCOMES, STRIPE_SIMULATION } from '../../../constants/stripe/stripe-simulated-outcomes.constant';
+import { STRIPE_SIMULATED_OUTCOMES, STRIPE_SIMULATED_RETRIEVALS, STRIPE_SIMULATION } from '../../../constants/stripe/stripe-simulated-outcomes.constant';
+import { SimulateRetrieveChargeDto } from '../../../dtos/helper/simulate-retrieve-charge.dto';
 import { STRIPE_INTENT_DEFAULTS } from '../../../constants/stripe/stripe-intent-status.constant';
 
 export class StripeSimulationHelper {
+  static retrieveCharge ({ dto, provider }: SimulateRetrieveChargeDto): ProviderChargeResultDto {
+    const prefix = Object.keys(STRIPE_SIMULATED_RETRIEVALS).find(key => dto.chargeId.startsWith(key));
+    const status = prefix ? STRIPE_SIMULATED_RETRIEVALS[prefix] : ProviderChargeStatus.PENDING;
+
+    return {
+      chargeId: dto.chargeId,
+      status: status ?? ProviderChargeStatus.PENDING,
+      amount: STRIPE_SIMULATION.UNKNOWN_AMOUNT,
+      currency: STRIPE_SIMULATION.UNKNOWN_CURRENCY,
+      rawResponse: { provider, simulated: true }
+    };
+  }
+
   static charge ({ dto, provider }: SimulateChargeDto): ProviderChargeResultDto {
     const result = ProviderResultHelper.simulatedCharge({ prefix: STRIPE_SIMULATION.CHARGE_PREFIX, amount: dto.amount, currency: dto.currency, provider });
     const outcome = dto.paymentMethodToken ? STRIPE_SIMULATED_OUTCOMES[dto.paymentMethodToken] : undefined;

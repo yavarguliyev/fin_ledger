@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, PaymentStatus } from '@common/libs';
+import { BaseExtendedRepository, PaymentStatus, PaymentType, PostgresService, WhereCondition } from '@common/libs';
 
 import { PaymentDto } from '../dtos/payment/payment.dto';
 import { InternalPaymentRecordDto } from '../dtos/payment/internal-payment.dto';
@@ -8,6 +8,7 @@ import { FindPaymentByIdempotencyKeyDto } from '../dtos/repository/find-payment-
 import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status.dto';
 import { PAYMENT_TRANSITIONS } from '../constants/status/payment-transitions.constant';
 import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
+import { FindStalePaymentsDto } from '../dtos/repository/find-stale-payments.dto';
 
 @Injectable()
 export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
@@ -69,6 +70,17 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
 
   async findByProviderChargeId ({ provider, providerChargeId, adapter }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
     return this.findOne({ where: { provider, provider_charge_id: providerChargeId }, ...(adapter && { adapter }) });
+  }
+
+  async findStaleOpenDeposits ({ updatedBefore, limit }: FindStalePaymentsDto): Promise<PaymentDto[]> {
+    const where: WhereCondition[] = [
+      { field: 'status', operator: 'IN', value: [PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
+      { field: 'type', operator: '=', value: PaymentType.DEPOSIT },
+      { field: 'updatedAt', operator: '<', value: updatedBefore },
+      { field: 'providerChargeId', operator: '!=', value: '' }
+    ];
+
+    return this.findAll({ where, orderBy: 'updated_at', orderDirection: 'ASC', limit });
   }
 
   async createPayment (dto: InternalPaymentRecordDto): Promise<PaymentDto | null> {

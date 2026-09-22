@@ -10,7 +10,11 @@ export const OperationResultSchema = z.object({
 
   failure: ProviderFailureSchema.optional(),
 
-  clientSecret: z.string().optional()
+  clientSecret: z.string().optional(),
+
+  amount: z.number().int().nonnegative().optional(),
+
+  currency: z.string().optional()
 });
 
 export type OperationResultDto = z.infer<typeof OperationResultSchema>;

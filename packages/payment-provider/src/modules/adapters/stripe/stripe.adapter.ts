@@ -8,6 +8,7 @@ import { PayoutFundsDto } from '../../dtos/operation/payout-funds.dto';
 import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-result.dto';
 import { ProviderMethodResultDto } from '../../dtos/operation/provider-method-result.dto';
 import { RefundPaymentDto } from '../../dtos/operation/refund-payment.dto';
+import { RetrieveChargeDto } from '../../dtos/operation/retrieve-charge.dto';
 import { WebhookEventDto } from '../../dtos/operation/webhook-event.dto';
 import { CreateSetupSessionDto } from '../../dtos/operation/create-setup-session.dto';
 import { SetupSessionResultDto } from '../../dtos/operation/setup-session-result.dto';
@@ -31,6 +32,7 @@ import { StripeOperationHelper } from './helpers/stripe-operation.helper';
 import { ExecuteOperationDto } from '../../dtos/adapter/execute-operation.dto';
 import { StripeSimulationHelper } from './helpers/stripe-simulation.helper';
 import { STRIPE_SIMULATION } from '../../constants/stripe/stripe-simulated-outcomes.constant';
+import { STRIPE_ERROR_DEFAULTS } from '../../constants/stripe/stripe-error-defaults.constant';
 
 @Injectable()
 export class StripeAdapter
@@ -89,31 +91,30 @@ export class StripeAdapter
     });
   }
 
+  async retrieveCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.retrieveCharge({ dto, provider: this.providerName }));
+
+    const { CHARGE_PREFIX: prefix, UNKNOWN_AMOUNT: amount, UNKNOWN_CURRENCY: currency } = STRIPE_SIMULATION;
+    return this.executeOperation({ prefix, amount, currency, operation: async () => StripeOperationHelper.retrieveCharge({ client: this.stripe!, dto }) });
+  }
+
   async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {
-    return this.stripeOperation({
-      prefix: 'po',
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createPayout({ client: this.stripe!, dto })
-    });
+    const { amount, currency } = dto;
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.PAYOUT_PREFIX, amount, currency, operation: async () => StripeOperationHelper.createPayout({ client: this.stripe!, dto }) });
   }
 
   async refund (dto: RefundPaymentDto): Promise<ProviderChargeResultDto> {
-    return this.stripeOperation({
-      prefix: 're',
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createRefund({ client: this.stripe!, dto })
-    });
+    const { amount, currency } = dto;
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.REFUND_PREFIX, amount, currency, operation: async () => StripeOperationHelper.createRefund({ client: this.stripe!, dto }) });
   }
 
   async createSetupSession (dto: CreateSetupSessionDto): Promise<SetupSessionResultDto> {
-    if (!this.stripe) throw new InternalServerErrorException('Stripe client not initialized');
+    if (!this.stripe) throw new InternalServerErrorException(STRIPE_ERROR_DEFAULTS.CLIENT_NOT_INITIALIZED);
     return StripeMethodHelper.createSetupSession({ client: this.stripe, session: dto });
   }
 
   async retrieveSessionPaymentMethod ({ sessionId }: RetrieveSessionDto): Promise<ProviderMethodResultDto> {
-    if (!this.stripe) throw new InternalServerErrorException('Stripe client not initialized');
+    if (!this.stripe) throw new InternalServerErrorException(STRIPE_ERROR_DEFAULTS.CLIENT_NOT_INITIALIZED);
     return StripeMethodHelper.retrieveSessionMethod({ client: this.stripe, sessionId });
   }
 
@@ -123,7 +124,7 @@ export class StripeAdapter
 
   private buildWebhookEvent (dto: ConstructWebhookEventDto): WebhookEventDto {
     if (!this.stripe || !this.webhookSecret) {
-      if (!this.isSimulated) throw new UnauthorizedException('Stripe webhook signature cannot be verified');
+      if (!this.isSimulated) throw new UnauthorizedException(STRIPE_ERROR_DEFAULTS.UNVERIFIABLE_WEBHOOK);
       return this.simulateWebhook(dto);
     }
 

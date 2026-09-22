@@ -47,25 +47,27 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 
 ## P1 — Stuck, stale or lost state
 
-### API-P1-1 · Nothing resumes payments stuck in REQUIRES_ACTION / PROCESSING / INDETERMINATE
+### API-P1-1 · Deposits without a stored charge ID are never resolved
 
-**Done (2026-09-22): webhook replay.** `WebhookReplayJob` re-handles events still `RECEIVED` / `FAILED` after
-`WEBHOOK_REPLAY_STALE_AFTER_MS`, through the same locked transaction as live deliveries, and leaves them `FAILED` for
-manual review after `MAX_ATTEMPTS` (spec `webhook-inbox`).
+**Done (2026-09-22).**
+- **Webhook replay:** `WebhookReplayJob` re-handles events still `RECEIVED` / `FAILED` after
+  `WEBHOOK_REPLAY_STALE_AFTER_MS`, through the same locked transaction as live deliveries, and leaves them `FAILED`
+  for manual review after `MAX_ATTEMPTS` (spec `webhook-inbox`).
+- **Payment reconciliation:** `PaymentReconciliationJob` looks up deposits left `PROCESSING` / `REQUIRES_ACTION`
+  longer than `PAYMENT_RECONCILE_STALE_AFTER_MS` at the provider (`retrieveCharge`) and completes them through
+  `CompletePaymentUseCase` or fails them through `FailPaymentUseCase` (spec `payment-reconciliation`).
 
-**Still open: reconcile open payments.** `PaymentOperationHelper` marks an unknown charge outcome `REQUIRES_ACTION`
-and returns 503; `PENDING` charges stay `PROCESSING` until a webhook arrives; failed refund compensations end there
-too. If the webhook never comes, nothing finishes them.
-
-**Solution.**
-1. **Ask the provider.** Add `retrieveCharge` to the charge capability (Stripe: `paymentIntents.retrieve`, mapped by
-   `StripeIntentHelper`), and for payments without a stored charge ID, find it by `metadata.paymentId`.
-2. **Reconciliation job** (same pattern as `WebhookReplayJob`): payments open longer than a threshold are completed
-   through `CompletePaymentUseCase`, failed, or left open; after N tries they're flagged for manual review.
+**Still open.**
+- **No charge ID.** A deposit whose charge call timed out (marked `REQUIRES_ACTION` with no charge ID), or that crashed
+  before the ID was stored, is skipped. Find the charge by `metadata.paymentId` (Stripe PaymentIntent search); if the
+  provider has none after a grace period, mark the payment `FAILED`.
+- **Abandoned 3-D Secure.** A `REQUIRES_ACTION` deposit the customer never authenticates stays open forever. After an
+  expiry, cancel the PaymentIntent and fail the payment.
+- **Manual review.** Count reconciliation attempts (needs a column) and flag payments that stay unresolved.
 
 **Verify.**
-- [ ] A simulated timeout after Stripe charged: within one cycle the payment is `COMPLETED` and credited once.
 - [ ] A payment the PSP never saw is marked `FAILED`.
+- [ ] An unauthenticated 3-D Secure deposit is cancelled and failed after the expiry.
 
 ### API-P1-2 · A crash between charge and credit leaves a charged, uncredited deposit
 

@@ -7,6 +7,8 @@ import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-
 import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawal.use-case';
 import { GetPaymentUseCase } from './use-cases/queries/get-payment.use-case';
 import { CompletePaymentUseCase } from './use-cases/commands/complete-payment.use-case';
+import { FailPaymentUseCase } from './use-cases/commands/fail-payment.use-case';
+import { PaymentReconciliationJob } from './jobs/payment-reconciliation.job';
 import { SharedModule } from '../../shared/shared.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { AuthModule } from '../auth/auth.module';
@@ -21,8 +23,10 @@ import { PaymentMethodModule } from '../payment-methods/payment-method.module';
     RequestDepositUseCase,
     RequestWithdrawalUseCase,
     CompletePaymentUseCase,
+    FailPaymentUseCase,
+    PaymentReconciliationJob,
     GetPaymentUseCase
   ],
-  exports: [PaymentService, PaymentRepository, CompletePaymentUseCase]
+  exports: [PaymentService, PaymentRepository, CompletePaymentUseCase, FailPaymentUseCase]
 })
 export class PaymentModule {}

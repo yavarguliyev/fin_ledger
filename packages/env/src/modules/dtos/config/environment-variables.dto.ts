@@ -81,7 +81,11 @@ export const EnvironmentVariablesSchema = z.object({
 
   WEBHOOK_REPLAY_INTERVAL_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_INTERVAL_MS must be a number' }).int().positive().optional(),
 
-  WEBHOOK_REPLAY_STALE_AFTER_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_STALE_AFTER_MS must be a number' }).int().nonnegative().optional()
+  WEBHOOK_REPLAY_STALE_AFTER_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_STALE_AFTER_MS must be a number' }).int().nonnegative().optional(),
+
+  PAYMENT_RECONCILE_INTERVAL_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_INTERVAL_MS must be a number' }).int().positive().optional(),
+
+  PAYMENT_RECONCILE_STALE_AFTER_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_STALE_AFTER_MS must be a number' }).int().nonnegative().optional()
 });
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

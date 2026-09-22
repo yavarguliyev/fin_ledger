@@ -31,3 +31,13 @@ describe('Stripe simulation follows the Stripe test cards', () => {
     expect(simulate('pm_simulated_processing').status).toBe(ProviderChargeStatus.PENDING);
   });
 });
+
+describe('Stripe simulation of charge lookups', () => {
+  it('reports the outcome encoded in a simulated charge ID, and anything else as still pending', () => {
+    const retrieve = (chargeId: string): ProviderChargeStatus => StripeSimulationHelper.retrieveCharge({ dto: { chargeId }, provider: 'stripe' }).status;
+
+    expect(retrieve('pi_simulated_succeeded_1')).toBe(ProviderChargeStatus.SUCCEEDED);
+    expect(retrieve('pi_simulated_failed_1')).toBe(ProviderChargeStatus.FAILED);
+    expect(retrieve('ch_anything')).toBe(ProviderChargeStatus.PENDING);
+  });
+});

@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { DomainEventType, PaymentStatus } from '@common/libs';
+import { PaymentStatus } from '@common/libs';
 
 import { HandlePaymentChargeEventDto } from '../../dtos/input/handle-payment-charge-event.dto';
 import { WebhookBaseUseCase } from '../base/webhook-base.use-case';
 import { CompletePaymentUseCase } from '../../../payment/use-cases/commands/complete-payment.use-case';
+import { FailPaymentUseCase } from '../../../payment/use-cases/commands/fail-payment.use-case';
 import { PaymentDto } from '../../../payment/dtos/payment/payment.dto';
 import { ChargeEventHelper } from '../../helpers/charge-event.helper';
 import { FindChargePaymentDto } from '../../dtos/helper/find-charge-payment.dto';
@@ -14,6 +15,9 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
 
   @Inject(CompletePaymentUseCase)
   private readonly completePayment!: CompletePaymentUseCase;
+
+  @Inject(FailPaymentUseCase)
+  private readonly failPayment!: FailPaymentUseCase;
 
   async execute ({ provider, payload, status, adapter }: HandlePaymentChargeEventDto): Promise<void> {
     const object = ChargeEventHelper.objectOf({ payload });
@@ -32,29 +36,12 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
       return;
     }
 
-    const updated = await this.paymentRepository.updatePaymentStatus({ paymentId: payment.id, status, ...chargeIdToStore, adapter });
-    if (!updated) {
-      this.logger.warn(`Ignored ${status} for payment ${payment.id}: already ${payment.status}`);
-      return;
-    }
+    const updated =
+      status === PaymentStatus.FAILED
+        ? await this.failPayment.execute({ paymentId: payment.id, ...chargeIdToStore, adapter })
+        : await this.paymentRepository.updatePaymentStatus({ paymentId: payment.id, status, ...chargeIdToStore, adapter });
 
-    if (status !== PaymentStatus.FAILED) return;
-
-    await this.outboxRepository.createEvent({
-      aggregateType: 'Payment',
-      aggregateId: payment.id,
-      eventType: DomainEventType.PAYMENT_FAILED,
-      payload: {
-        paymentId: payment.id,
-        userId: payment.userId,
-        amountMinor: payment.amountMinor,
-        currency: payment.currency,
-        status,
-        provider,
-        providerChargeId
-      },
-      adapter
-    });
+    if (!updated) this.logger.warn(`Ignored ${status} for payment ${payment.id}: already ${payment.status}`);
   }
 
   private async findPayment ({ provider, providerChargeId, paymentId, adapter }: FindChargePaymentDto): Promise<PaymentDto | null> {

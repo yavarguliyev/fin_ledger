@@ -9,7 +9,16 @@ export const STRIPE_SIMULATED_OUTCOMES: Readonly<Record<string, SimulatedOutcome
   pm_simulated_processing: { status: ProviderChargeStatus.PENDING }
 };
 
+export const STRIPE_SIMULATED_RETRIEVALS: Readonly<Record<string, ProviderChargeStatus>> = {
+  pi_simulated_succeeded: ProviderChargeStatus.SUCCEEDED,
+  pi_simulated_failed: ProviderChargeStatus.FAILED
+};
+
 export const STRIPE_SIMULATION = {
   CHARGE_PREFIX: 'ch',
+  PAYOUT_PREFIX: 'po',
+  REFUND_PREFIX: 're',
+  UNKNOWN_AMOUNT: 0,
+  UNKNOWN_CURRENCY: '',
   CLIENT_SECRET_SUFFIX: '_secret_simulated'
 } as const;

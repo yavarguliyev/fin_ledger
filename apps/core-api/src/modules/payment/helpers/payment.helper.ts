@@ -4,6 +4,7 @@ import { PaymentMethodStatus, PaymentStatus } from '@common/libs';
 import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
 import { EmitCompletedAnalyticsDto } from '../dtos/helper/emit-completed-analytics.dto';
 import { PaymentAnalyticsEventPayloadDto } from '../dtos/analytics/payment-analytics-event.dto';
+import { PaymentFailedEventPayloadDto } from '../dtos/analytics/payment-failed-event.dto';
 import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-payment-method.dto';
 import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
 import { AnalyticsHelper } from '../../analytics/helpers/analytics.helper';
@@ -32,6 +33,18 @@ export class PaymentHelper {
       paymentType: payment.type,
       timestamp: new Date().toISOString(),
       providerTransactionId: payment.providerChargeId ?? ''
+    };
+  }
+
+  public static failedEventPayload ({ payment }: PaymentRefDto): PaymentFailedEventPayloadDto {
+    return {
+      paymentId: payment.id,
+      userId: payment.userId,
+      amountMinor: payment.amountMinor,
+      currency: payment.currency,
+      status: PaymentStatus.FAILED,
+      provider: payment.provider,
+      providerChargeId: payment.providerChargeId
     };
   }
 
