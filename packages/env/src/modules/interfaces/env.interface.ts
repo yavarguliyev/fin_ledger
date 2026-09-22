@@ -30,10 +30,11 @@ export interface Environment {
     TITLE: string;
     DESCRIPTION: string;
     VERSION: string;
+    PATH: string;
   };
   CORS: {
-    ORIGIN: string;
     CREDENTIALS: boolean;
+    ORIGIN_SEPARATOR: ',';
   };
   LOGGING: {
     BOOTSTRAP_CONTEXT: 'Bootstrap';

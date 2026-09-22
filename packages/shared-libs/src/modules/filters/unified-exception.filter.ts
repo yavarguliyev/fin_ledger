@@ -8,7 +8,9 @@ import { CatchExceptionRecord } from '../interfaces/catch-exception-record.inter
 import { ExposedHttpErrorRecord } from '../interfaces/exposed-http-error-record.interface';
 import { MapExceptionRecord } from '../interfaces/map-exception-record.interface';
 import { JWT_ERROR_NAMES } from '../constants/auth/jwt-error-names.constant';
+import { ERROR_RESPONSES } from '../constants/errors/error-responses.constant';
 import { BaseHelper } from '../helpers/base.helper';
+import { CryptoHelper } from '../helpers/crypto.helper';
 import { MapExceptionDto } from '../dtos/filter/map-exception.dto';
 import { LogExceptionDto } from '../dtos/filter/log-exception.dto';
 import { ExceptionRefDto } from '../dtos/filter/exception-ref.dto';
@@ -22,7 +24,7 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<CatchExceptionRecord>();
-    const correlationId = request.correlationId || `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const correlationId = request.correlationId || CryptoHelper.uuid();
     const body = this.mapException({ exception, correlationId });
     this.logException({ exception, correlationId, request });
     response.status(this.resolveStatus({ exception })).json(body);
@@ -81,13 +83,13 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
           ? responsePayload
           : payload && 'message' in payload && typeof payload.message === 'string'
             ? payload.message
-            : 'Request failed';
+            : ERROR_RESPONSES.REQUEST_FAILED_MESSAGE;
 
       const details = payload && 'errors' in payload ? payload.errors : undefined;
 
       return {
         success: false,
-        error: { code: `HTTP_${status}`, message, ...(details !== undefined && { details }), retryable: status >= 500 },
+        error: { code: `${ERROR_RESPONSES.HTTP_CODE_PREFIX}${status}`, message, ...(details !== undefined && { details }), retryable: status >= 500 },
         correlationId
       };
     }
@@ -114,7 +116,7 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
 
     return {
       success: false,
-      error: { code: 'INTERNAL_ERROR', message: BaseHelper.errorResponse({ error: exception }).message, retryable: true },
+      error: { code: ERROR_RESPONSES.INTERNAL.CODE, message: ERROR_RESPONSES.INTERNAL.MESSAGE, retryable: true },
       correlationId
     };
   }

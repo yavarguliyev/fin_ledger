@@ -41,6 +41,9 @@ export * from './modules/dtos/module/client-id.dto';
 export * from './modules/dtos/module/service-client.dto';
 export * from './modules/dtos/pagination/paginated-request.dto';
 export * from './modules/dtos/pagination/paginated-response.dto';
+export * from './modules/dtos/rate-limit/rate-limit-context.dto';
+export * from './modules/dtos/rate-limit/rate-limit-options.dto';
+export * from './modules/dtos/rate-limit/rate-limit-request.dto';
 export * from './modules/dtos/resilience/circuit-breaker-options.dto';
 export * from './modules/dtos/resilience/record-failure.dto';
 export * from './modules/constants/messaging/action-events.constant';
@@ -52,7 +55,10 @@ export * from './modules/constants/audit/audit-redacted-keys.constant';
 export * from './modules/constants/betting/betting-types.constant';
 export * from './modules/constants/cache/cache-keys.constant';
 export * from './modules/constants/cache/cache-ttls.constant';
+export * from './modules/constants/rate-limit/rate-limits.constant';
+export * from './modules/constants/time/time-units.constant';
 export * from './modules/constants/errors/circuit-open-code.constant';
+export * from './modules/constants/errors/error-responses.constant';
 export * from './modules/constants/database/database-error-codes.constant';
 export * from './modules/constants/audit/extract-id-key.constant';
 export * from './modules/constants/errors/http-statuses.constant';
@@ -72,7 +78,9 @@ export * from './modules/constants/wallet/wallet-status.constant';
 export * from './modules/constants/betting/win-chance.constant';
 
 export * from './modules/decorators/audited.decorator';
+export * from './modules/decorators/auth-rate-limit.decorator';
 export * from './modules/decorators/params-query-and-headers.decorator';
+export * from './modules/decorators/user-rate-limit.decorator';
 
 export * from './modules/enums/base/base.enum';
 
@@ -86,6 +94,7 @@ export * from './modules/filters/unified-exception.filter';
 export * from './modules/helpers/audit.helper';
 export * from './modules/helpers/base.helper';
 export * from './modules/helpers/crypto.helper';
+export * from './modules/helpers/rate-limit.helper';
 
 export * from './modules/guards/resource-owner.guard';
 

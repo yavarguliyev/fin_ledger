@@ -1,5 +1,6 @@
 import { Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RawBodyRequest } from '@common/libs';
 
 import { WebhookService } from './webhook.service';
@@ -8,6 +9,7 @@ import { ProcessWebhookResponseDto } from './dtos/response/process-webhook-respo
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.WEBHOOK.key)
+@SkipThrottle()
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.WEBHOOK, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
 export class WebhookController {
   constructor (private readonly webhookService: WebhookService) {}

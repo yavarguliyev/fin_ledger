@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { Environment } from '@common/shared-libs';
 
+import { ENVIRONMENT_CONSTANTS } from '../../constants/environment/env.constant';
+
 export const EnvironmentVariablesSchema = z.object({
   NODE_ENV: z.enum(Environment, { message: 'NODE_ENV must be a valid Environment enum' }),
 
@@ -9,6 +11,11 @@ export const EnvironmentVariablesSchema = z.object({
     .int({ message: 'PORT must be an integer' })
     .min(0, { message: 'PORT must be at least 0' })
     .max(65535, { message: 'PORT must not exceed 65535' }),
+
+  ALLOWED_ORIGINS: z
+    .string({ message: 'ALLOWED_ORIGINS must be a string' })
+    .transform((value) => value.split(ENVIRONMENT_CONSTANTS.CORS.ORIGIN_SEPARATOR).map((origin) => origin.trim()).filter(Boolean))
+    .pipe(z.array(z.url({ message: 'ALLOWED_ORIGINS must list valid URLs' })).min(1, { message: 'ALLOWED_ORIGINS is required' })),
 
   FRONTEND_URL: z.coerce.string({ message: 'FRONTEND_URL must be a string' }).min(1, { message: 'FRONTEND_URL is required' }),
   EMAIL_FROM: z.string({ message: 'EMAIL_FROM must be a string' }).min(1, { message: 'EMAIL_FROM is required' }),

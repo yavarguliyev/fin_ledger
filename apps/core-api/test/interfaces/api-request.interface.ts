@@ -3,4 +3,5 @@ export interface ApiRequest {
   path: string;
   token?: string;
   body?: unknown;
+  clientIp?: string;
 }

@@ -106,17 +106,6 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - [ ] A 50 MB upload or 50 files get a 413/400 before any processing.
 - [ ] A `.png` that is really a text file is rejected.
 
-### API-P0-8 · No rate limiting
-
-**Problem.** Login, forgot-password, register, deposit and bet are open to brute force and flooding.
-(`helmet`, the 100kb body limit and `TRUST_PROXY` are done, so `req.ip` is the real client behind a proxy.)
-
-**Solution.** `@nestjs/throttler` with Redis storage, a strict tier for `auth/*` (e.g. 5/min per IP + email) and money
-routes (per user).
-
-**Verify.**
-- [ ] The 6th wrong login in a minute gets 429. Normal use of other routes is unaffected.
-
 ---
 
 ## P1 — Stuck, stale or lost state
@@ -358,7 +347,7 @@ lifecycle and timing, and per-user payment idempotency, plus drift = 0. A mutati
 **Still open.**
 - **CI not yet seen green.** The CI step is added but hasn't run on GitHub yet.
 - **Each fix adds a test.** Every remaining P0/P1 fix adds its integration test in the same change, money paths first:
-  webhook replay (`API-P0-1`), bet settlement (`API-P0-3`), upload limits (`API-P0-7`), rate limiting (`API-P0-8`).
+  webhook replay (`API-P0-1`), bet settlement (`API-P0-3`), upload limits (`API-P0-7`).
 
 **Verify.**
 - [ ] The CI run on GitHub shows the `Integration Tests` step green.
@@ -483,8 +472,8 @@ Every column of `users` (migration 003) checked against the code on 2026-09-22.
 | `deleted_at` | ✅ used | soft delete, restore and anonymize |
 | `last_login_at` | ⚠️ written, never shown | show it, with the IP, in the profile "Security" section (`API-F-6`) |
 | `terms_accepted_at` | ✅ used (2026-09-22) | registration requires `termsAccepted: true` (400 otherwise) and saves the time; covered by an integration test |
-| `failed_login_attempts`, `locked_until` | ❌ unused | account lockout: count failures, lock for N minutes after M tries, reset on success. Do it with rate limiting (`API-P0-8`) |
-| `last_login_ip` | ❌ never written | set it at login, using the real client IP behind the proxy (`trust proxy`, `API-P0-8`) |
+| `failed_login_attempts`, `locked_until` | ❌ unused | account lockout: count failures, lock for N minutes after M tries, reset on success. Complements the per-IP+email rate limit (done): stops a slow or distributed guess against one account |
+| `last_login_ip` | ❌ never written | set it at login, using `req.ip`, which is already the real client IP behind the proxy (`TRUST_PROXY`) |
 | `mfa_secret_encrypted`, `mfa_enabled_at`, `mfa_last_used_step` | ✅ used (2026-09-22) | two-factor authentication: `@common/mfa`, `/auth/mfa/*`, two-step login and the profile wizard |
 | `kyc_status` | ❌ seed only | KYC, `API-F-2` |
 | `date_of_birth`, `country_code` | ❌ never written | filled from verified KYC data. Enforce a minimum age of 18 and allowed countries (`API-F-2`) |

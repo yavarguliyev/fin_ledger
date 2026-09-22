@@ -35,5 +35,8 @@ jobs:
     - name: Type Check
       run: npm run typecheck
 
+    - name: Unit Tests
+      run: npm test
+
     - name: Integration Tests
       run: npm run test:integration

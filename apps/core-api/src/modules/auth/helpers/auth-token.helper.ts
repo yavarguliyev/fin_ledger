@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { CryptoHelper } from '@common/libs';
+import { CryptoHelper, TIME_UNITS } from '@common/libs';
 
 import { AUTH_TOKEN_CONSTANTS } from '../constants/tokens/auth-token.constant';
 import { ClaimedAuthTokenDto } from '../dtos/token/claimed-auth-token.dto';
@@ -12,7 +12,7 @@ import { RecordLinkTokenFailureDto } from '../dtos/helper/record-link-token-fail
 export class AuthTokenHelper {
   static async issue ({ authTokenRepository, userId, purpose }: IssueLinkTokenDto): Promise<string> {
     const token = CryptoHelper.randomToken({ bytes: AUTH_TOKEN_CONSTANTS.TOKEN_BYTES });
-    const expiresAt = new Date(Date.now() + AUTH_TOKEN_CONSTANTS.TTL_SECONDS[purpose] * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + AUTH_TOKEN_CONSTANTS.TTL_SECONDS[purpose] * TIME_UNITS.MS_PER_SECOND).toISOString();
 
     await authTokenRepository.issue({ userId, purpose, tokenHash: AuthTokenHelper.hash({ token }), expiresAt });
 

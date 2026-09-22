@@ -13,7 +13,8 @@
   "scripts": {
     "build": "nest build",
     "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -21,6 +22,7 @@
     "@nestjs/core": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
     "@nestjs/swagger": "^12.0.1",
+    "@nestjs/throttler": "^6.7.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^4.4.3"
@@ -28,9 +30,10 @@
   "devDependencies": {
     "@nestjs/cli": "^12.0.0",
     "@nestjs/testing": "^12.0.1",
+    "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.1.0",
-    "@types/express": "^5.0.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "ts-jest": "^29.4.12"
   }
 }

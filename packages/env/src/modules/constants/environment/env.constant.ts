@@ -31,11 +31,12 @@ export const ENVIRONMENT_CONSTANTS: Environment = {
   SWAGGER: {
     TITLE: 'Realtime Wallet Payments API',
     DESCRIPTION: 'Modular Monolith Payments API',
-    VERSION: '1.0'
+    VERSION: '1.0',
+    PATH: 'api-docs'
   },
   CORS: {
-    ORIGIN: '*',
-    CREDENTIALS: true
+    CREDENTIALS: true,
+    ORIGIN_SEPARATOR: ','
   },
   LOGGING: {
     BOOTSTRAP_CONTEXT: 'Bootstrap'

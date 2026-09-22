@@ -11,6 +11,10 @@ import { CacheKeyDto } from '../dtos/cache/cache-key.dto';
 import { CachePatternDto } from '../dtos/cache/cache-pattern.dto';
 import { CacheSetDto } from '../dtos/cache/cache-set.dto';
 import { CacheSetIfNotExistsDto } from '../dtos/cache/cache-set-if-not-exists.dto';
+import { RateLimitHitDto } from '../dtos/rate-limit/rate-limit-hit.dto';
+import { RateLimitHitRecord } from '../interfaces/rate-limit-hit-record.interface';
+import { RATE_LIMIT_SCRIPT } from '../constants/rate-limit/rate-limit-script.constant';
+import { RATE_LIMIT_KEYS } from '../constants/rate-limit/rate-limit-keys.constant';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly client: Redis;
@@ -68,6 +72,11 @@ export class RedisCacheProvider implements CacheProvider {
     const serialized = this.serialize({ value });
     const result = await this.client.set(key, serialized, 'EX', ttlSeconds, 'NX');
     return result === 'OK';
+  }
+
+  async hitRateLimit ({ key, ttlMs, limit, blockDurationMs }: RateLimitHitDto): Promise<RateLimitHitRecord> {
+    const [totalHits, timeToExpireMs, timeToBlockExpireMs] = (await this.client.eval(RATE_LIMIT_SCRIPT, 2, key, `${key}${RATE_LIMIT_KEYS.BLOCKED_SUFFIX}`, ttlMs, limit, blockDurationMs)) as [number, number, number];
+    return { totalHits, timeToExpireMs, timeToBlockExpireMs };
   }
 
   async disconnect (): Promise<void> {

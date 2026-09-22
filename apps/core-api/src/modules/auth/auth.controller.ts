@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionData, SessionGuard } from '@common/libs';
+import { AuthRateLimit, ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionData, SessionGuard, UserRateLimit } from '@common/libs';
 
 import { AuthService } from './auth.service';
 import { RegisterDto, RegisterSchema } from './dtos/request/register.dto';
@@ -28,11 +28,13 @@ import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant
 export class AuthController {
   constructor (private readonly authService: AuthService) {}
 
+  @AuthRateLimit()
   @Post('register')
   async register (@Body({ schema: RegisterSchema }) dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
   }
 
+  @AuthRateLimit()
   @Post('login')
   async login (@Body({ schema: LoginSchema }) dto: LoginDto): Promise<LoginResponseDto> {
     return this.authService.login(dto);
@@ -48,16 +50,19 @@ export class AuthController {
     return this.authService.getSession(dto);
   }
 
+  @AuthRateLimit()
   @Post('forgot-password')
   async forgotPassword (@Body({ schema: ForgotPasswordSchema }) dto: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
     return this.authService.forgotPassword(dto);
   }
 
+  @AuthRateLimit()
   @Post('reset-password')
   async resetPassword (@Body({ schema: ResetPasswordSchema }) dto: ResetPasswordDto): Promise<ResetPasswordResponseDto> {
     return this.authService.resetPassword(dto);
   }
 
+  @AuthRateLimit()
   @Post('verify-email')
   async verifyEmail (@Body({ schema: VerifyEmailSchema }) dto: VerifyEmailDto): Promise<SessionResponseDto> {
     return this.authService.verifyEmail(dto);
@@ -76,17 +81,20 @@ export class AuthController {
   }
 
   @UseGuards(SessionGuard)
+  @UserRateLimit()
   @Post('mfa/enable')
   async enableMfa (@Req() req: RequestContext, @Body({ schema: MfaCodeSchema }) dto: MfaCodeDto): Promise<MfaRecoveryCodesResponseDto> {
     return this.authService.enableMfa({ ...dto, userId: req.user.userId });
   }
 
   @UseGuards(SessionGuard)
+  @UserRateLimit()
   @Post('mfa/disable')
   async disableMfa (@Req() req: RequestContext, @Body({ schema: DisableMfaRequestSchema }) dto: DisableMfaRequestDto): Promise<MfaDisabledResponseDto> {
     return this.authService.disableMfa({ ...dto, userId: req.user.userId });
   }
 
+  @AuthRateLimit()
   @Post('mfa/verify')
   async verifyMfaLogin (@Body({ schema: VerifyMfaLoginSchema }) dto: VerifyMfaLoginDto): Promise<SessionResponseDto> {
     return this.authService.verifyMfaLogin(dto);

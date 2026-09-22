@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionGuard, RolesGuard, Roles, UserRoles } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionGuard, RolesGuard, Roles, UserRateLimit, UserRoles } from '@common/libs';
 
 import { PaymentService } from './payment.service';
 import { PaymentDto } from './dtos/payment/payment.dto';
@@ -17,11 +17,13 @@ export class PaymentController {
   constructor (private readonly paymentService: PaymentService) {}
 
   @Post('deposit')
+  @UserRateLimit()
   async requestDeposit (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
     return this.paymentService.deposit({ ...dto, userId: req.user.userId });
   }
 
   @Post('withdraw')
+  @UserRateLimit()
   async requestWithdrawal (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
     return this.paymentService.withdraw({ ...dto, userId: req.user.userId });
   }

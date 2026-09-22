@@ -1,7 +1,23 @@
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
+import { TEST_ORIGINS } from '../constants/test-origins.constant';
 import { ApiHelper } from '../helpers/api.helper';
 
 describe('HTTP hardening', () => {
+  const preflight = (origin: string): Promise<Response> =>
+    fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/auth/login`, {
+      method: 'OPTIONS',
+      headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' }
+    });
+
+  it('allows credentialed CORS only from the configured origins', async () => {
+    const allowed = await preflight(TEST_ORIGINS.FRONTEND);
+    expect(allowed.headers.get('access-control-allow-origin')).toBe(TEST_ORIGINS.FRONTEND);
+    expect(allowed.headers.get('access-control-allow-credentials')).toBe('true');
+
+    const foreign = await preflight(TEST_ORIGINS.FOREIGN);
+    expect(foreign.headers.get('access-control-allow-origin')).toBeNull();
+  });
+
   it('sends the helmet security headers', async () => {
     const { headers } = await ApiHelper.request({ method: 'POST', path: '/auth/login', body: {} });
 

@@ -14,6 +14,7 @@ import { CryptoHelper } from '@common/shared-libs';
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { TEST_IMAGES } from '../constants/test-images.constant';
+import { TEST_ORIGINS } from '../constants/test-origins.constant';
 import { IntegrationStack } from '../interfaces/integration-stack.interface';
 import { PortRef } from '../interfaces/port-ref.interface';
 import { WaitForApi } from '../interfaces/wait-for-api.interface';
@@ -52,7 +53,8 @@ export class IntegrationStackHelper {
       NODE_ENV: 'development',
       PORT: String(apiPort),
       HOST: '127.0.0.1',
-      FRONTEND_URL: 'http://localhost:4200',
+      FRONTEND_URL: TEST_ORIGINS.FRONTEND,
+      ALLOWED_ORIGINS: TEST_ORIGINS.FRONTEND,
       EMAIL_FROM: 'no-reply@core-api.test',
       JWT_PRIVATE_KEY: privateKey,
       JWT_PUBLIC_KEY: publicKey,
@@ -86,6 +88,7 @@ export class IntegrationStackHelper {
       STORAGE_FORCE_PATH_STYLE: 'true',
       STORAGE_ENSURE_BUCKET: 'false',
       PAYMENT_SIMULATION: 'true',
+      TRUST_PROXY: '1',
       MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64'),
       MFA_ISSUER: 'Integration Wallet'
     };

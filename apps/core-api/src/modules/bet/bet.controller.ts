@@ -9,6 +9,7 @@ import {
   Roles,
   RolesGuard,
   SessionGuard,
+  UserRateLimit,
   UserRoles
 } from '@common/libs';
 
@@ -28,6 +29,7 @@ export class BetController {
 
   @Post()
   @Roles({ roles: [UserRoles.USER] })
+  @UserRateLimit()
   async placeBet (@Req() req: RequestContext, @Body({ schema: PlaceBetRequestSchema }) dto: PlaceBetRequestDto): Promise<BetDto> {
     return this.betService.placeBet({ ...dto, userId: req.user.userId });
   }

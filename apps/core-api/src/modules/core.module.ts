@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { KafkaModule, ClientIds } from '@common/libs';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { KafkaModule, ClientIds, RateLimitHelper, REDIS_CACHE_PROVIDER, RedisCacheProvider, RedisThrottlerStorage } from '@common/libs';
 
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditModule } from './audit/audit.module';
@@ -16,10 +18,16 @@ import { UserModule } from './user/user.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { AdminModule } from './admin/admin.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { SharedModule } from '../shared/shared.module';
 
 @Module({
   imports: [
     KafkaModule.forRoot({ clientId: ClientIds.API_GATEWAY }),
+    ThrottlerModule.forRootAsync({
+      imports: [SharedModule],
+      inject: [REDIS_CACHE_PROVIDER],
+      useFactory: (redis: RedisCacheProvider) => RateLimitHelper.options({ storage: new RedisThrottlerStorage({ redis }) })
+    }),
     AdminModule,
     AnalyticsModule,
     AuditModule,
@@ -35,6 +43,7 @@ import { WebhookModule } from './webhook/webhook.module';
     WalletModule,
     UserModule,
     WebhookModule
-  ]
+  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }]
 })
 export class CoreModule {}
