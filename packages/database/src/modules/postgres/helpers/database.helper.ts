@@ -30,8 +30,7 @@ export class DatabaseHelper {
     const translation = TRANSLATIONS[error.code];
     if (!translation) return error;
 
-    const constraint = error.constraint ? `: ${error.constraint}` : '';
-    return new ApplicationError({ message: `${translation.message}${constraint}`, code: translation.code, statusCode: translation.status });
+    return new ApplicationError({ message: translation.message, code: translation.code, statusCode: translation.status, cause: error });
   }
 
   static registerPostgresTypeParsers (): void {

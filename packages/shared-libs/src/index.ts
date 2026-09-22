@@ -59,6 +59,7 @@ export * from './modules/constants/rate-limit/rate-limits.constant';
 export * from './modules/constants/time/time-units.constant';
 export * from './modules/constants/errors/circuit-open-code.constant';
 export * from './modules/constants/errors/error-responses.constant';
+export * from './modules/constants/errors/exception-log-defaults.constant';
 export * from './modules/constants/database/database-error-codes.constant';
 export * from './modules/constants/audit/extract-id-key.constant';
 export * from './modules/constants/errors/http-statuses.constant';

@@ -15,6 +15,7 @@ export * from './modules/dtos/provider/redis-config-ref.dto';
 export * from './modules/dtos/provider/serialize.dto';
 export * from './modules/dtos/rate-limit/rate-limit-hit.dto';
 export * from './modules/dtos/rate-limit/redis-throttler-storage-options.dto';
+export * from './modules/constants/connection/redis-defaults.constant';
 export * from './modules/constants/rate-limit/rate-limit-keys.constant';
 export * from './modules/constants/rate-limit/rate-limit-script.constant';
 

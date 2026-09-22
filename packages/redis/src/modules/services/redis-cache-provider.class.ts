@@ -15,6 +15,7 @@ import { RateLimitHitDto } from '../dtos/rate-limit/rate-limit-hit.dto';
 import { RateLimitHitRecord } from '../interfaces/rate-limit-hit-record.interface';
 import { RATE_LIMIT_SCRIPT } from '../constants/rate-limit/rate-limit-script.constant';
 import { RATE_LIMIT_KEYS } from '../constants/rate-limit/rate-limit-keys.constant';
+import { REDIS_DEFAULTS } from '../constants/connection/redis-defaults.constant';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly client: Redis;
@@ -60,7 +61,7 @@ export class RedisCacheProvider implements CacheProvider {
     let cursor = '0';
 
     do {
-      const [next, matchedKeys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      const [next, matchedKeys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', REDIS_DEFAULTS.SCAN_BATCH_SIZE);
       cursor = next;
       keys.push(...matchedKeys);
     } while (cursor !== '0');
@@ -93,7 +94,7 @@ export class RedisCacheProvider implements CacheProvider {
 
       return new Redis({
         sentinels: [...sentinel.sentinels],
-        name: sentinel.name ?? 'mymaster',
+        name: sentinel.name ?? REDIS_DEFAULTS.SENTINEL_MASTER_NAME,
         ...(sentinel.password != null && { password: sentinel.password }),
         ...(sentinel.db != null && { db: sentinel.db })
       });
