@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
 import { PaymentRequest } from '../../../core/interfaces/wallet/payment-request.interface';
-import { UuidHelper } from '../../../core/helpers/common/uuid.helper';
+import { BuildPaymentPayloadDto } from '../dtos/build-payment-payload.dto';
 
 @Injectable()
 export class DepositFormService {
@@ -53,14 +53,14 @@ export class DepositFormService {
     });
   }
 
-  buildPayload (amountMinor: number, currency: string): PaymentRequest {
+  buildPayload ({ amountMinor, currency, idempotencyKey }: BuildPaymentPayloadDto): PaymentRequest {
     const method = this.paymentMethods().find(m => m.id === this.selectedMethodId());
 
     return {
       amountMinor,
       currency,
       paymentMethodId: this.selectedMethodId() ?? undefined,
-      idempotencyKey: UuidHelper.generate(),
+      idempotencyKey,
       metadata: {
         destination: method?.type ?? 'bank_account',
         maskedAccount: method?.maskedAccount ?? '',

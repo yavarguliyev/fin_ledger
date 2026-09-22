@@ -1,10 +1,12 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 
+import { HttpRequestError } from '../../errors/http-request.error';
+
 export class HttpErrorHelper {
   static handleHttpError (error: HttpErrorResponse): Observable<never> {
     const errorMessage = HttpErrorHelper.extractErrorMessage(error);
-    return throwError(() => new Error(errorMessage));
+    return throwError(() => new HttpRequestError({ message: errorMessage, status: error.status }));
   }
 
   private static extractErrorMessage (error: HttpErrorResponse): string {

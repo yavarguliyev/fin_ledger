@@ -114,7 +114,7 @@ export class BettingComponent implements OnInit {
     }
 
     this.loading.set(true);
-    this.bettingService.placeBet(event, stake).subscribe({
+    this.bettingService.placeBet({ event, stakeMinor: stake }).subscribe({
       next: settled => {
         this.loadBets();
         this.announce(settled);

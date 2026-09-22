@@ -7,11 +7,11 @@ import { Router, RouterModule } from '@angular/router';
 import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { IdempotencyKeyService } from '../../core/services/idempotency-key.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethod } from '../../core/interfaces/payment-method/payment-method.interface';
-import { UuidHelper } from '../../core/helpers/common/uuid.helper';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 
@@ -26,6 +26,7 @@ export class WithdrawComponent implements OnInit {
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
   private readonly paymentMethodService = inject(PaymentMethodService);
+  private readonly idempotencyKeys = inject(IdempotencyKeyService);
   private readonly toast = inject(ToastService);
 
   readonly router = inject(Router);
@@ -75,14 +76,22 @@ export class WithdrawComponent implements OnInit {
 
     this.loading.set(true);
     const selectedMethod = this.paymentMethods().find(m => m.id === this.form.controls.paymentMethodId.value);
+    const amountMinor = this.amountMinor();
+    const currency = this.currency();
+    const paymentMethodId = this.form.controls.paymentMethodId.value ?? undefined;
 
-    this.paymentService
-      .withdraw({
-        amountMinor: this.amountMinor(),
-        currency: this.currency(),
-        paymentMethodId: this.form.controls.paymentMethodId.value ?? undefined,
-        idempotencyKey: UuidHelper.generate(),
-        metadata: { destination: selectedMethod?.type ?? 'bank_account', maskedAccount: selectedMethod?.maskedAccount ?? '' }
+    this.idempotencyKeys
+      .run({
+        scope: 'withdraw',
+        fingerprint: `${amountMinor}:${currency}:${paymentMethodId}`,
+        request: idempotencyKey =>
+          this.paymentService.withdraw({
+            amountMinor,
+            currency,
+            paymentMethodId,
+            idempotencyKey,
+            metadata: { destination: selectedMethod?.type ?? 'bank_account', maskedAccount: selectedMethod?.maskedAccount ?? '' }
+          })
       })
       .subscribe({
         next: () => {
