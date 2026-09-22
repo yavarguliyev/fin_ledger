@@ -1,6 +1,7 @@
 import { ProviderError, ProviderErrorCategory, StripeLikeError } from '@common/shared-libs';
 
 import { STRIPE_TYPE_CATEGORY } from '../../../constants/stripe/stripe-type-category.constant';
+import { STRIPE_ERROR_DEFAULTS } from '../../../constants/stripe/stripe-error-defaults.constant';
 import { ClassifyErrorDto } from '../../../dtos/adapter/classify-error.dto';
 
 export class StripeErrorMapper {
@@ -11,10 +12,12 @@ export class StripeErrorMapper {
     const name = candidate.type ?? (error as Error)?.constructor?.name ?? '';
     const category = STRIPE_TYPE_CATEGORY[name] ?? ProviderErrorCategory.UNKNOWN;
 
+    const code = candidate.decline_code ?? candidate.code;
+
     return new ProviderError({
-      message: candidate.message ?? 'Payment provider request failed',
+      message: candidate.message ?? STRIPE_ERROR_DEFAULTS.MESSAGE,
       category,
-      ...(candidate.code ? { code: candidate.code } : {})
+      ...(code ? { code } : {})
     });
   }
 }

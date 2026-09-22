@@ -1,5 +1,4 @@
 import { PaymentIntentCreateParams } from 'stripe';
-import { ProviderChargeStatus } from '@common/shared-libs';
 
 import { OperationResultDto } from '../../../dtos/adapter/operation-result.dto';
 import { BuildChargeParamsDto } from '../../../dtos/helper/build-charge-params.dto';
@@ -8,6 +7,7 @@ import { StripeChargeDto } from '../../../dtos/helper/stripe-charge.dto';
 import { StripePayoutDto } from '../../../dtos/helper/stripe-payout.dto';
 import { StripeRefundDto } from '../../../dtos/helper/stripe-refund.dto';
 import { StripeMethodHelper } from './stripe-method.helper';
+import { StripeIntentHelper } from './stripe-intent.helper';
 
 export class StripeOperationHelper {
   static async resolveCustomerForCharge ({ client, dto }: ResolveCustomerChargeDto): Promise<string | undefined> {
@@ -40,7 +40,7 @@ export class StripeOperationHelper {
     const params = StripeOperationHelper.buildChargeParams({ dto, customerId });
     const intent = await client.paymentIntents.create(params, { idempotencyKey: dto.idempotencyKey });
 
-    return { id: intent.id, status: intent.status === 'succeeded' ? ProviderChargeStatus.SUCCEEDED : ProviderChargeStatus.PENDING };
+    return StripeIntentHelper.toOperationResult({ intent });
   }
 
   static async createPayout ({ client, dto }: StripePayoutDto): Promise<string> {

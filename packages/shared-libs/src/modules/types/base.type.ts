@@ -39,7 +39,7 @@ export type ProviderHeaders = Record<string, string | string[] | undefined>;
 export type RabbitmqRegistry = Record<string, { key: (typeof RABBITMQ_KEYS)[number] }>;
 export type ShutdownHook = () => Promise<void> | void;
 export type StorageStrategy = (typeof STORAGE_STRATEGIES)[number];
-export type StripeLikeError = { type?: string; code?: string; message?: string; rawType?: string };
+export type StripeLikeError = { type?: string; code?: string; decline_code?: string; message?: string; rawType?: string };
 export type TranslationCode = (typeof TranslationCodes)[number];
 export type UnknownRecord = Record<string, unknown>;
 export type UserWalletStatus = (typeof WALLET_STATUS)[number];

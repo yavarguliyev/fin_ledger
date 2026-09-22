@@ -20,27 +20,6 @@ Last full review: 2026-09-22.
 
 ## P0 — Payment adapters move money wrongly
 
-### PKG-P0-1 · Stripe statuses are collapsed, so real outcomes are lost
-
-**Problem.**
-- `StripeOperationHelper.createCharge` maps every PaymentIntent status except `succeeded` to `PENDING`.
-- A decline (`requires_payment_method`) or `canceled` therefore looks pending.
-- A 3-D Secure charge (`requires_action`) can't be told apart from one that's still processing.
-
-**Solution.**
-- Map each status explicitly:
-  - `succeeded` → `SUCCEEDED`
-  - `processing` → `PENDING`
-  - `requires_action` / `requires_confirmation` → `REQUIRES_ACTION` (return `next_action` / client secret)
-  - `requires_payment_method` / `canceled` → `FAILED` with the decline code
-  - anything unknown → `INDETERMINATE`
-- Add `REQUIRES_ACTION` to `ProviderChargeStatus`.
-- How core-api reacts to these results is `API-P0-1`.
-
-**Verify.**
-- [ ] The contract suite covers every PaymentIntent status → expected result.
-- [ ] A declined test card returns `FAILED` with a code; a 3-D Secure card returns `REQUIRES_ACTION`.
-
 ### PKG-P0-2 · Withdrawals pay the platform, not the user *(needs a product decision)*
 
 **Problem.** `StripeOperationHelper.createPayout` calls `payouts.create` for any recipient not starting with `acct_`.

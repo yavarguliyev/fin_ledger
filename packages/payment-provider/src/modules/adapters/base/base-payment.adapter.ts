@@ -119,13 +119,18 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
 
     try {
       const res = await operation();
-      const isStr = typeof res === 'string';
-      const chargeId = isStr ? res : res.id;
-      const status = isStr ? ProviderChargeStatus.SUCCEEDED : (res.status ?? ProviderChargeStatus.SUCCEEDED);
+      const result = typeof res === 'string' ? { id: res, status: ProviderChargeStatus.SUCCEEDED } : res;
 
       this.breaker.recordSuccess();
 
-      return { chargeId, status, amount, currency: currency.toUpperCase() };
+      return {
+        chargeId: result.id,
+        status: result.status,
+        amount,
+        currency: currency.toUpperCase(),
+        ...(result.failure && { failure: result.failure, failureReason: result.failure.message }),
+        ...(result.clientSecret && { clientSecret: result.clientSecret })
+      };
     } catch (error: unknown) {
       const failure = this.classifyError({ error });
       this.breaker.recordFailure({ retryable: failure.retryable });

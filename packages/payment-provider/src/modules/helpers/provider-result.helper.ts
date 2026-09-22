@@ -6,6 +6,8 @@ import { NormalizeBrandDto } from '../dtos/helper/normalize-brand.dto';
 import { NotFoundMethodDto } from '../dtos/helper/not-found-method.dto';
 import { FailedMethodDto } from '../dtos/adapter/failed-method.dto';
 import { FailedOperationDto } from '../dtos/adapter/failed-operation.dto';
+import { DescribeFailureDto } from '../dtos/helper/describe-failure.dto';
+import { ProviderFailureDto } from '../dtos/operation/provider-failure.dto';
 import { MapVerifiedMethodDto } from '../dtos/adapter/map-verified-method.dto';
 import { SimulatedChargeDto } from '../dtos/adapter/simulated-charge.dto';
 import { BRAND_MAP } from '../constants/card/brand-map.constant';
@@ -42,13 +44,17 @@ export class ProviderResultHelper {
       amount,
       currency,
       failureReason: failure.message,
-      failure: {
-        code: failure.code,
-        category: failure.category,
-        message: failure.message,
-        retryable: failure.retryable,
-        indeterminate: failure.indeterminate
-      }
+      failure: ProviderResultHelper.describeFailure({ failure })
+    };
+  }
+
+  static describeFailure ({ failure }: DescribeFailureDto): ProviderFailureDto {
+    return {
+      code: failure.code,
+      category: failure.category,
+      message: failure.message,
+      retryable: failure.retryable,
+      indeterminate: failure.indeterminate
     };
   }
 

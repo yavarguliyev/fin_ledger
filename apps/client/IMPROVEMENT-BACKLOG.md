@@ -40,7 +40,7 @@ load it in an `APP_INITIALIZER`, and expose it through a `ConfigService`. Delete
 
 ### WEB-P1-1 · Deposits can't handle 3-D Secure or pending results
 
-**Problem.** `DepositComponent.confirm` knows only success or error. After `API-P0-1` / `PKG-P0-1`, a deposit can come
+**Problem.** `DepositComponent.confirm` knows only success or error. After `API-P0-1`, a deposit can come
 back `REQUIRES_ACTION` (3-D Secure) or `PROCESSING`, and the UI has no state for either.
 The client also sends `metadata` (masked account, holder) that the server shouldn't trust.
 After an unknown-outcome error (timeout, 5xx) the deposit may already have gone through, but the UI only shows an

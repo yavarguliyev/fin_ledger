@@ -63,6 +63,14 @@ describe('StripeErrorMapper', () => {
     expect(error.indeterminate).toBe(false);
   });
 
+  it('prefers the specific decline code over the generic card_declined', () => {
+    const error = StripeErrorMapper.toProviderError({
+      error: Object.assign(new Error('declined'), { type: 'StripeCardError', code: 'card_declined', decline_code: 'insufficient_funds' })
+    });
+
+    expect(error.code).toBe('insufficient_funds');
+  });
+
   it('treats a network failure as indeterminate so it is never auto-compensated', () => {
     const error = StripeErrorMapper.toProviderError({ error: Object.assign(new Error('timeout'), { type: 'StripeConnectionError' }) });
 

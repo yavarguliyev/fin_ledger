@@ -31,7 +31,8 @@ Last full review: 2026-09-22.
 - The payment is found only by `provider_charge_id`. That ID is stored *after* the charge call, so a crash in between
   leaves a charge no webhook can match.
 - `PaymentOperationHelper.executeDepositOperation` (the live deposit path) treats every non-`SUCCEEDED` result as
-  `FAILED`. A 3-D Secure or still-processing charge is failed even though the PSP may still take the money. (The adapter side of this, mapping Stripe statuses properly, is `PKG-P0-1`.)
+  `FAILED`. A 3-D Secure or still-processing charge is failed even though the PSP may still take the money. (The adapter
+  now reports `PENDING`, `REQUIRES_ACTION` with a `clientSecret`, and `FAILED` with the decline code; core-api must act on them.)
 
 **Solution.**
 - **One completion path.** Add `CompletePaymentUseCase` (credit wallet + ledger + `COMPLETED` + outbox, one transaction)
