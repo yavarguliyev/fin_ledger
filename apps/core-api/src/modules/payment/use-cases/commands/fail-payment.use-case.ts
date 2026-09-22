@@ -7,10 +7,6 @@ import { FailPaymentDto } from '../../dtos/input/fail-payment.dto';
 import { FailPaymentInTransactionDto } from '../../dtos/helper/fail-payment-in-transaction.dto';
 import { PaymentHelper } from '../../helpers/payment.helper';
 
-/**
- * The only way a payment becomes FAILED from the outside (webhook, reconciliation): the guarded status change and the
- * payment.failed event share one transaction. Returns null when the payment can no longer fail (already settled).
- */
 @Injectable()
 export class FailPaymentUseCase {
   constructor (

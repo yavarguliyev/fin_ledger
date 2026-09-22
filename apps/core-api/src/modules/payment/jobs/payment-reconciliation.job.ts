@@ -12,17 +12,12 @@ import { PAYMENT_FAILURE_REASONS } from '../constants/operations/payment-failure
 import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
 import { SettleReconciledPaymentDto } from '../dtos/helper/settle-reconciled-payment.dto';
 
-/**
- * Finishes deposits whose webhook never arrived: deposits left open longer than a threshold are looked up at the
- * provider (by charge ID, or by our payment ID in the charge metadata when no charge ID was stored) and completed or
- * failed through the same use cases as the webhook. Payments the provider never saw are failed; payments it still
- * reports as open are left alone.
- */
 @Injectable()
 export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(PaymentReconciliationJob.name);
   private readonly intervalMs: number;
   private readonly staleAfterMs: number;
+  private readonly actionExpiryMs: number;
   private intervalHandle: ReturnType<typeof setInterval> | null = null;
   private running = false;
   private stopped = false;
@@ -36,6 +31,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
   ) {
     this.intervalMs = configService.get<number>('PAYMENT_RECONCILE_INTERVAL_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_INTERVAL_MS;
     this.staleAfterMs = configService.get<number>('PAYMENT_RECONCILE_STALE_AFTER_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_STALE_AFTER_MS;
+    this.actionExpiryMs = configService.get<number>('PAYMENT_ACTION_EXPIRY_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_ACTION_EXPIRY_MS;
   }
 
   onApplicationBootstrap (): void {
@@ -53,14 +49,18 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
   async reconcileStalePayments (): Promise<void> {
     const payments = await this.paymentRepository.findStaleOpenDeposits({
       updatedBefore: new Date(Date.now() - this.staleAfterMs).toISOString(),
+      maxAttempts: PAYMENT_RECONCILIATION.MAX_ATTEMPTS,
       limit: PAYMENT_RECONCILIATION.BATCH_SIZE
     });
 
     for (const payment of payments) {
       if (this.stopped) return;
-      await this.reconcile({ payment }).catch((error: unknown) =>
-        this.logger.warn(`Reconciliation of payment ${payment.id} failed: ${BaseHelper.errorResponse({ error }).message}`)
-      );
+      const resolved = await this.reconcile({ payment }).catch((error: unknown) => {
+        this.logger.warn(`Reconciliation of payment ${payment.id} failed: ${BaseHelper.errorResponse({ error }).message}`);
+        return false;
+      });
+
+      if (!resolved) await this.recordUnresolved({ payment });
     }
   }
 
@@ -78,11 +78,22 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
     }
   }
 
-  private async reconcile ({ payment }: PaymentRefDto): Promise<void> {
-    if (!payment.provider) return;
+  private async recordUnresolved ({ payment }: PaymentRefDto): Promise<void> {
+    const updated = await this.paymentRepository.recordReconcileAttempt({ id: payment.id });
+    if (updated?.reconcileAttempts === PAYMENT_RECONCILIATION.MAX_ATTEMPTS) this.logger.error(`Payment ${payment.id} needs manual review: still unresolved after ${PAYMENT_RECONCILIATION.MAX_ATTEMPTS} reconciliation attempts`);
+  }
+
+  private async reconcile ({ payment }: PaymentRefDto): Promise<boolean> {
+    if (!payment.provider) return false;
 
     const provider = this.providerRegistry.require({ providerName: payment.provider, capability: PaymentCapability.CHARGE });
-    if (payment.providerChargeId) return this.settle({ payment, charge: await provider.retrieveCharge({ chargeId: payment.providerChargeId }) });
+    if (payment.providerChargeId) {
+      const chargeId = payment.providerChargeId;
+      const charge = await provider.retrieveCharge({ chargeId });
+      const abandoned = charge.status === ProviderChargeStatus.REQUIRES_ACTION && this.isActionExpired({ payment });
+
+      return this.settle({ payment, charge: abandoned ? await provider.cancelCharge({ chargeId }) : charge });
+    }
 
     const charge = await provider.findChargeByMetadata({ key: PAYMENT_METADATA_KEYS.PAYMENT_ID, value: payment.id });
     if (!charge) {
@@ -91,27 +102,32 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
         failureReason: PAYMENT_FAILURE_REASONS.NOT_FOUND_AT_PROVIDER,
         failureCode: PAYMENT_FAILURE_CODES.NOT_FOUND_AT_PROVIDER
       });
-      return;
+      return true;
     }
 
-    if (charge.status === ProviderChargeStatus.INDETERMINATE) return;
+    if (charge.status === ProviderChargeStatus.INDETERMINATE) return false;
 
     await this.paymentRepository.attachChargeId({ paymentId: payment.id, providerChargeId: charge.chargeId });
-    await this.settle({ payment, charge });
+    return this.settle({ payment, charge });
   }
 
-  private async settle ({ payment, charge }: SettleReconciledPaymentDto): Promise<void> {
+  private isActionExpired ({ payment }: PaymentRefDto): boolean {
+    return Date.now() - new Date(payment.createdAt).getTime() > this.actionExpiryMs;
+  }
+
+  private async settle ({ payment, charge }: SettleReconciledPaymentDto): Promise<boolean> {
     if (charge.status === ProviderChargeStatus.SUCCEEDED) {
       await this.completePayment.execute({ paymentId: payment.id });
-      return;
+      return true;
     }
 
-    if (charge.status === ProviderChargeStatus.FAILED) {
-      await this.failPayment.execute({
-        paymentId: payment.id,
-        ...(charge.failureReason && { failureReason: charge.failureReason }),
-        ...(charge.failure && { failureCode: charge.failure.code })
-      });
-    }
+    if (charge.status !== ProviderChargeStatus.FAILED) return false;
+
+    await this.failPayment.execute({
+      paymentId: payment.id,
+      ...(charge.failureReason && { failureReason: charge.failureReason }),
+      ...(charge.failure && { failureCode: charge.failure.code })
+    });
+    return true;
   }
 }

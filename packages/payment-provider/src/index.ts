@@ -43,6 +43,7 @@ export * from './modules/dtos/helper/simulate-charge.dto';
 export * from './modules/dtos/helper/simulate-retrieve-charge.dto';
 export * from './modules/dtos/helper/stripe-retrieve-charge.dto';
 export * from './modules/dtos/helper/stripe-find-intent.dto';
+export * from './modules/dtos/helper/operation-result-ref.dto';
 export * from './modules/dtos/module/payment-provider-module-options.dto';
 export * from './modules/dtos/operation/charge-payment.dto';
 export * from './modules/dtos/operation/create-setup-session.dto';
@@ -70,6 +71,7 @@ export * from './modules/constants/stripe/stripe-simulated-outcomes.constant';
 export * from './modules/constants/stripe/stripe-id-prefixes.constant';
 export * from './modules/constants/stripe/stripe-headers.constant';
 export * from './modules/constants/currency/three-decimal-currencies.constant';
+export * from './modules/constants/result/provider-result-defaults.constant';
 
 export * from './modules/adapters/stripe/helpers/stripe-amount.helper';
 export * from './modules/adapters/stripe/helpers/stripe-error.mapper.helper';

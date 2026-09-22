@@ -47,26 +47,6 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 
 ## P1 — Stuck, stale or lost state
 
-### API-P1-1 · Abandoned 3-D Secure deposits stay open, and unresolved payments aren't flagged
-
-**Done (2026-09-22).**
-- **Webhook replay:** `WebhookReplayJob` re-handles events still `RECEIVED` / `FAILED` after
-  `WEBHOOK_REPLAY_STALE_AFTER_MS`, through the same locked transaction as live deliveries, and leaves them `FAILED`
-  for manual review after `MAX_ATTEMPTS` (spec `webhook-inbox`).
-- **Payment reconciliation:** `PaymentReconciliationJob` looks up deposits left `PROCESSING` / `REQUIRES_ACTION`
-  longer than `PAYMENT_RECONCILE_STALE_AFTER_MS` at the provider (`retrieveCharge`) and completes them through
-  `CompletePaymentUseCase` or fails them through `FailPaymentUseCase` (spec `payment-reconciliation`).
-  Deposits without a stored charge ID are found by `metadata.paymentId` (Stripe search, ~40 s indexing delay, so the
-  threshold stays well above it); if the provider has none, the payment fails with `NOT_FOUND_AT_PROVIDER`.
-
-**Still open.**
-- **Abandoned 3-D Secure.** A `REQUIRES_ACTION` deposit the customer never authenticates stays open forever. After an
-  expiry, cancel the PaymentIntent and fail the payment.
-- **Manual review.** Count reconciliation attempts (needs a column) and flag payments that stay unresolved.
-
-**Verify.**
-- [ ] An unauthenticated 3-D Secure deposit is cancelled and failed after the expiry.
-
 ### API-P1-2 · A crash between charge and credit leaves a charged, uncredited deposit
 
 **Problem.** Deposits run synchronously in `PaymentOperationHelper.executeDepositOperation`: charge, then credit the
@@ -74,7 +54,7 @@ wallet. If the process dies between the two, Stripe has the money and the paymen
 finish it. (The unused in-memory deposit saga was deleted on 2026-09-22: it kept no state, so it couldn't survive this
 crash either.)
 
-**Solution (implemented 2026-09-22, not yet verified live).** `PaymentReconciliationJob` (`API-P1-1`) finds the
+**Solution (implemented 2026-09-22, not yet verified live).** `PaymentReconciliationJob` finds the
 crashed deposit (`PENDING`, no charge ID) by `metadata.paymentId` at Stripe and completes it through
 `CompletePaymentUseCase`. Simulation can't produce "charged but no ID stored", so this needs a scratch run against
 Stripe test mode.
@@ -103,47 +83,6 @@ Stripe test mode.
 - [ ] A balance read immediately after a bet shows the new balance, under 50 concurrent bets on one wallet.
 - [ ] `GET /payments/:id` shows `COMPLETED` immediately after the webhook.
 - [ ] Redis `MONITOR` shows no `SCAN` during a money operation.
-
-### API-P1-4 · Wallet/ledger drift checks exist but never run
-
-**Problem.** `v_ledger_balance_drift`, `v_wallet_ledger_drift` and `v_trial_balance` exist (migrations 005/006), but no
-code reads them. Drift would go unnoticed.
-
-**Solution.** Add a scheduled job (`PKG-P2-2`) that queries all three every few minutes, exports a `ledger_drift_rows`
-gauge, and alerts on anything non-zero or an unbalanced trial balance.
-
-**Verify.**
-- [ ] Manually corrupting one wallet balance in a test DB raises the alert within one cycle.
-
-### API-P1-5 · Bet settlement side effects run outside the transaction
-
-**Problem.**
-- **Not atomic:** the win notification is created after commit with `void …`, and a failure is only logged.
-- **Status set too early:** it's written as `SENT` straight away.
-- **Wrong amount formatting:** the text hard-codes `/100`, which is wrong for JPY (0 decimals) and KWD (3).
-
-**Solution.**
-- **Write it with the settlement:** emit a `BET_SETTLED` event through the outbox in the settlement transaction, and let
-  the notification consumer create the notification.
-- **Format amounts once:** use a shared currency-aware formatter (the backend equivalent of the client's `CurrencyHelper`).
-
-**Verify.**
-- [ ] A JPY win shows the right amount. With the notification consumer down, the notification appears once it's back.
-
-### API-P1-6 · Users can't be suspended, and a status change doesn't end live sessions
-
-**Problem.** Login and `SessionGuard` now require `status = ACTIVE`. The session snapshot in Redis carries `status`, and
-email verification moves `PENDING → ACTIVE`. But nothing can **suspend** or **reactivate** a user: no endpoint writes
-`SUSPENDED`, and changing the column directly in the DB leaves existing sessions (snapshot `ACTIVE`) working until they
-expire. Only anonymization (`CLOSED`) ends sessions today.
-
-**Solution.** Admin use cases `SuspendUserUseCase` / `ReactivateUserUseCase`, audited, with validated transitions
-(`ACTIVE ↔ SUSPENDED`; `CLOSED` stays terminal). Each one calls `SessionService.deleteUserSessions` in the same flow,
-and the client admin table gets the matching toggle.
-
-**Verify.**
-- [ ] Suspending a user makes their open session return 401 on the next request, and login returns "Invalid credentials".
-- [ ] Reactivating lets them log in again; a `CLOSED` user can't be reactivated.
 
 ---
 
@@ -248,7 +187,7 @@ Break the cycles with events rather than `forwardRef`. Controllers call use case
 **Solution.**
 - **Health:** `@nestjs/terminus` `/health/live` and `/health/ready` (DB, Redis, brokers).
 - **Metrics:** Prometheus metrics via `prom-client` (HTTP latency, DB pool gauges `PKG-P2-1`, outbox lag, DLQ depth,
-  drift `API-P1-4`).
+  ledger drift from `LedgerIntegrityJob`).
 - **Correlation IDs:** a request-ID middleware that stores the ID in AsyncLocalStorage and passes it into logs and outbox `trace_id`.
 - **Env reading:** fix the typed env read.
 
@@ -430,7 +369,7 @@ Every column of `users` (migration 003) checked against the code on 2026-09-22.
 | `id`, `email`, `display_name`, `role`, `created_at`, `updated_at` | ✅ used | `updated_at` is kept by its trigger |
 | `password_hash`, `password_algo` | ✅ used | login rehashes legacy bcrypt to argon2id |
 | `password_changed_at` | ✅ written | set on reset, invite and verify. Also set by the change-password flow (`API-F-6`) |
-| `status` | ✅ used | `PENDING → ACTIVE` on verification; login and session require `ACTIVE`. Suspend/reactivate is `API-P1-6` |
+| `status` | ✅ used | `PENDING → ACTIVE` on verification; login and session require `ACTIVE`. Admins suspend/reactivate via `POST /users/:userId/suspend|reactivate` (UI: `WEB-P1-4`) |
 | `is_email_verified`, `email_verified_at` | ✅ used | |
 | `profile_images_key`, `profile_images`, `profile_image_index` | ✅ used | the unchecked `profileImagesKey` issue is listed under "Reported earlier" below |
 | `deleted_at` | ✅ used | soft delete, restore and anonymize |

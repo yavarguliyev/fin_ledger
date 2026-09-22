@@ -31,12 +31,15 @@ async function bootstrap (): Promise<void> {
   app.useBodyParser('urlencoded', { limit: BODY_LIMIT, extended: true });
   app.enableVersioning({ type: VersioningType.URI, prefix: API_PREFIX });
   app.enableCors({ origin: allowedOrigins, credentials: CREDENTIALS });
+
   app.useGlobalPipes(
     new StandardSchemaValidationPipe({
       validateCustomDecorators: true,
-      exceptionFactory: (issues): BadRequestException => new BadRequestException({ message: ERROR_RESPONSES.VALIDATION_FAILED_MESSAGE, errors: issues })
+      exceptionFactory: (issues): BadRequestException =>
+        new BadRequestException({ message: ERROR_RESPONSES.VALIDATION_FAILED_MESSAGE, errors: issues })
     })
   );
+
   GracefulShutdown.register({ app, context: ClientIds.API_GATEWAY });
 
   if (environemnt === NODE_ENV) {

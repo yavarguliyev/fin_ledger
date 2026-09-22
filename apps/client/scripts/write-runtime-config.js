@@ -1,9 +1,3 @@
-/**
- * Writes the runtime config (config.json) into a built client, from environment variables, at deploy time.
- * The build itself stays environment-free, so one artifact can be pointed at any API.
- *
- *   API_URL=https://api.example.com/api/v1 STRIPE_PUBLISHABLE_KEY=pk_live_... node scripts/write-runtime-config.js [outputDir]
- */
 const fs = require('node:fs');
 const path = require('node:path');
 

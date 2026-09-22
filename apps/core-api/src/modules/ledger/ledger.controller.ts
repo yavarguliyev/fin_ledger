@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, SessionGuard, RequestContext, ParamsQueryAndHeaders } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, SessionGuard, RequestContext, ParamsQueryAndHeaders, Roles, RolesGuard, UserRoles } from '@common/libs';
 
 import { LedgerService } from './ledger.service';
 import { LedgerAccountDto } from './dtos/account/ledger-account.dto';
@@ -11,12 +11,24 @@ import { ListAccountEntriesRequestDto, ListAccountEntriesRequestSchema } from '.
 import { LedgerAccountAccessGuard } from './guards/ledger-account-access.guard';
 import { LedgerTransactionAccessGuard } from './guards/ledger-transaction-access.guard';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
+import { LedgerIntegrityJob } from './jobs/ledger-integrity.job';
+import { LedgerIntegrityReportDto } from './dtos/integrity/ledger-integrity-report.dto';
 
 @ApiTags(SHARED_CONSTANTS.LEDGER.key)
 @UseGuards(SessionGuard)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.LEDGER, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
 export class LedgerController {
-  constructor (private readonly ledgerService: LedgerService) {}
+  constructor (
+    private readonly ledgerService: LedgerService,
+    private readonly ledgerIntegrityJob: LedgerIntegrityJob
+  ) {}
+
+  @Get('integrity')
+  @UseGuards(RolesGuard)
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
+  async getIntegrity (): Promise<LedgerIntegrityReportDto> {
+    return this.ledgerIntegrityJob.check();
+  }
 
   @Get('accounts/:id')
   @UseGuards(LedgerAccountAccessGuard)

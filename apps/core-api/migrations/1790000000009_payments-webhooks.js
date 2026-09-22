@@ -36,6 +36,8 @@ export const up = pgm => {
     failure_code: { type: 'varchar(50)' },
     failure_reason: { type: 'text' },
 
+    reconcile_attempts: { type: 'smallint', notNull: true, default: 0, check: 'reconcile_attempts >= 0' },
+
     authorized_at: { type: 'timestamptz' },
     completed_at: { type: 'timestamptz' },
     failed_at: { type: 'timestamptz' },

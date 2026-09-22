@@ -7,6 +7,8 @@ import { GetImagesUseCase } from './use-cases/queries/get-images.use-case';
 import { DeleteImagesUseCase } from './use-cases/commands/delete-user-images.use-case';
 import { DeleteUserUseCase } from './use-cases/commands/delete-user.use-case';
 import { UpdateEmailVerificationUseCase } from './use-cases/commands/update-email-verification.use-case';
+import { ChangeUserStatusUseCase } from './use-cases/commands/change-user-status.use-case';
+import { ChangeUserStatusDto } from './dtos/input/change-user-status.dto';
 import { UserCreateUseCase } from './use-cases/commands/user-create.use-case';
 import { DeleteUserFromDbUseCase } from './use-cases/commands/delete-user-from-db.use-case';
 import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-case';
@@ -32,7 +34,8 @@ export class UserService {
     private readonly deleteUserFromDbUseCase: DeleteUserFromDbUseCase,
     private readonly updateEmailVerificationUseCase: UpdateEmailVerificationUseCase,
     private readonly userCreateUseCase: UserCreateUseCase,
-    private readonly anonymizeUserUseCase: AnonymizeUserUseCase
+    private readonly anonymizeUserUseCase: AnonymizeUserUseCase,
+    private readonly changeUserStatusUseCase: ChangeUserStatusUseCase
   ) {}
 
   async createUser (dto: UserCreateDto): Promise<UserCreateResponseDto> {
@@ -45,6 +48,10 @@ export class UserService {
 
   async uploadFiles (dto: UploadFilesDto): Promise<UploadFileResponse> {
     return this.uploadFilesUseCase.execute(dto);
+  }
+
+  async changeStatus (dto: ChangeUserStatusDto): Promise<UserDto> {
+    return this.changeUserStatusUseCase.execute(dto);
   }
 
   async updateEmailVerification (dto: UpdateEmailVerificationDto): Promise<UserDto> {

@@ -1,0 +1,4 @@
+export const PROVIDER_RESULT_DEFAULTS = {
+  UNKNOWN_AMOUNT: 0,
+  UNKNOWN_CURRENCY: ''
+} as const;

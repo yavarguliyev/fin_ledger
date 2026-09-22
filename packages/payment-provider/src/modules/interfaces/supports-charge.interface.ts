@@ -9,4 +9,5 @@ export interface SupportsCharge {
   refund(dto: RefundPaymentDto): Promise<ProviderChargeResultDto>;
   retrieveCharge(dto: RetrieveChargeDto): Promise<ProviderChargeResultDto>;
   findChargeByMetadata(dto: FindChargeByMetadataDto): Promise<ProviderChargeResultDto | null>;
+  cancelCharge(dto: RetrieveChargeDto): Promise<ProviderChargeResultDto>;
 }

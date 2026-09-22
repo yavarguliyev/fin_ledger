@@ -9,6 +9,8 @@ import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status
 import { PAYMENT_TRANSITIONS } from '../constants/status/payment-transitions.constant';
 import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
 import { FindStalePaymentsDto } from '../dtos/repository/find-stale-payments.dto';
+import { FindUnresolvedPaymentsDto } from '../dtos/repository/find-unresolved-payments.dto';
+import { EntityIdDto } from '../dtos/repository/entity-id.dto';
 import { AttachChargeIdDto } from '../dtos/repository/attach-charge-id.dto';
 
 @Injectable()
@@ -30,6 +32,7 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
         metadata: 'metadata',
         failureCode: 'failure_code',
         failureReason: 'failure_reason',
+        reconcileAttempts: 'reconcile_attempts',
         authorizedAt: 'authorized_at',
         completedAt: 'completed_at',
         failedAt: 'failed_at',
@@ -57,6 +60,7 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
       'metadata',
       'failureCode',
       'failureReason',
+      'reconcileAttempts',
       'authorizedAt',
       'completedAt',
       'failedAt',
@@ -73,14 +77,28 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
     return this.findOne({ where: { provider, provider_charge_id: providerChargeId }, ...(adapter && { adapter }) });
   }
 
-  async findStaleOpenDeposits ({ updatedBefore, limit }: FindStalePaymentsDto): Promise<PaymentDto[]> {
+  async findStaleOpenDeposits ({ updatedBefore, maxAttempts, limit }: FindStalePaymentsDto): Promise<PaymentDto[]> {
     const where: WhereCondition[] = [
       { field: 'status', operator: 'IN', value: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
       { field: 'type', operator: '=', value: PaymentType.DEPOSIT },
-      { field: 'updatedAt', operator: '<', value: updatedBefore }
+      { field: 'updatedAt', operator: '<', value: updatedBefore },
+      { field: 'reconcileAttempts', operator: '<', value: maxAttempts }
     ];
 
     return this.findAll({ where, orderBy: 'updated_at', orderDirection: 'ASC', limit });
+  }
+
+  async findUnresolved ({ minAttempts, limit }: FindUnresolvedPaymentsDto): Promise<PaymentDto[]> {
+    const where: WhereCondition[] = [
+      { field: 'status', operator: 'IN', value: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
+      { field: 'reconcileAttempts', operator: '>=', value: minAttempts }
+    ];
+
+    return this.findAll({ where, orderBy: 'created_at', orderDirection: 'ASC', limit });
+  }
+
+  async recordReconcileAttempt ({ id }: EntityIdDto): Promise<PaymentDto | null> {
+    return this.increment({ id, field: 'reconcileAttempts', amount: 1 });
   }
 
   async attachChargeId ({ paymentId, providerChargeId }: AttachChargeIdDto): Promise<PaymentDto | null> {

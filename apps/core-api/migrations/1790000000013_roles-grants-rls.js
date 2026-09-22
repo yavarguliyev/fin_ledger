@@ -26,9 +26,6 @@ export const up = pgm => {
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_readonly;
     GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO app_readwrite;
 
-    -- No DELETE for the application role except where the code really deletes:
-    -- the GDPR hard delete of a user without financial history, and that user's
-    -- notifications. Everything else is a soft delete or a reversing entry.
     GRANT DELETE ON users, notifications TO app_readwrite;
 
     ALTER DEFAULT PRIVILEGES IN SCHEMA public

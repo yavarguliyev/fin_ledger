@@ -6,6 +6,7 @@ export enum NotificationStatus {
 }
 
 export enum NotificationType {
+  BET_WON = 'BET_WON',
   INFO = 'INFO',
   PAYMENT_COMPLETED = 'PAYMENT_COMPLETED',
   PAYMENT_FAILED = 'PAYMENT_FAILED',

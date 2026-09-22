@@ -1,4 +1,5 @@
 export enum DomainEventType {
+  BET_SETTLED = 'bet.settled',
   NONE = 'none',
   NOTIFICATION_CREATED = 'notification.created',
   PAYMENT_COMPLETED = 'payment.completed',

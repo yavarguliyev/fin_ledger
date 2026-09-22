@@ -7,11 +7,6 @@ import { WebhookEventRepository } from '../repositories/webhook-event.repository
 import { ReplayWebhookEventDto } from '../dtos/step/replay-webhook-event.dto';
 import { WEBHOOK_REPLAY } from '../constants/jobs/webhook-replay.constant';
 
-/**
- * Re-handles webhook events whose handling failed (still RECEIVED or FAILED after a grace period), through the same
- * locked transaction as live deliveries, so a replay never double-applies an event. Gives up after MAX_ATTEMPTS and
- * leaves the event FAILED for manual review.
- */
 @Injectable()
 export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy {
   private readonly logger = new Logger(WebhookReplayJob.name);
@@ -73,7 +68,6 @@ export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy
     await this.webhookService.replayEvent({ event }).catch(async (error: unknown) => {
       const attempts = (event.attempts ?? 0) + 1;
       this.logger.warn(`Webhook ${event.provider}:${event.eventId} replay ${attempts} failed: ${BaseHelper.errorResponse({ error }).message}`);
-
       if (attempts >= WEBHOOK_REPLAY.MAX_ATTEMPTS) await this.webhookEventRepository.markHandled({ id: event.id, status: WebhookStatus.FAILED });
     });
   }

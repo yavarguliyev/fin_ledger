@@ -11,14 +11,14 @@ export const STRIPE_SIMULATED_OUTCOMES: Readonly<Record<string, SimulatedOutcome
 
 export const STRIPE_SIMULATED_RETRIEVALS: Readonly<Record<string, ProviderChargeStatus>> = {
   pi_simulated_succeeded: ProviderChargeStatus.SUCCEEDED,
-  pi_simulated_failed: ProviderChargeStatus.FAILED
+  pi_simulated_failed: ProviderChargeStatus.FAILED,
+  pi_simulated_requires_action: ProviderChargeStatus.REQUIRES_ACTION
 };
 
 export const STRIPE_SIMULATION = {
   CHARGE_PREFIX: 'ch',
   PAYOUT_PREFIX: 'po',
   REFUND_PREFIX: 're',
-  UNKNOWN_AMOUNT: 0,
-  UNKNOWN_CURRENCY: '',
+  CANCELED_CODE: 'canceled',
   CLIENT_SECRET_SUFFIX: '_secret_simulated'
 } as const;

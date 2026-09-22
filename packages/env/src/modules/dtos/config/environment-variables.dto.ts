@@ -85,7 +85,11 @@ export const EnvironmentVariablesSchema = z.object({
 
   PAYMENT_RECONCILE_INTERVAL_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_INTERVAL_MS must be a number' }).int().positive().optional(),
 
-  PAYMENT_RECONCILE_STALE_AFTER_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_STALE_AFTER_MS must be a number' }).int().nonnegative().optional()
+  PAYMENT_RECONCILE_STALE_AFTER_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_STALE_AFTER_MS must be a number' }).int().nonnegative().optional(),
+
+  PAYMENT_ACTION_EXPIRY_MS: z.coerce.number({ message: 'PAYMENT_ACTION_EXPIRY_MS must be a number' }).int().positive().optional(),
+
+  LEDGER_INTEGRITY_INTERVAL_MS: z.coerce.number({ message: 'LEDGER_INTEGRITY_INTERVAL_MS must be a number' }).int().positive().optional()
 });
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

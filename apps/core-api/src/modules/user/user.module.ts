@@ -10,6 +10,7 @@ import { GetImagesUseCase } from './use-cases/queries/get-images.use-case';
 import { DeleteImagesUseCase } from './use-cases/commands/delete-user-images.use-case';
 import { DeleteUserUseCase } from './use-cases/commands/delete-user.use-case';
 import { UpdateEmailVerificationUseCase } from './use-cases/commands/update-email-verification.use-case';
+import { ChangeUserStatusUseCase } from './use-cases/commands/change-user-status.use-case';
 import { SharedModule } from '../../shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
 import { WalletModule } from '../wallet/wallet.module';
@@ -32,7 +33,8 @@ import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-ca
     DeleteUserUseCase,
     DeleteUserFromDbUseCase,
     AnonymizeUserUseCase,
-    UpdateEmailVerificationUseCase
+    UpdateEmailVerificationUseCase,
+    ChangeUserStatusUseCase
   ],
   exports: [UserService, UserRepository]
 })

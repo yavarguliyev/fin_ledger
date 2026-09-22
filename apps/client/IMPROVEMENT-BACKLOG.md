@@ -41,7 +41,7 @@ changing the amount (seen in the WEB-P0-1 verification run).
 **Verify.**
 - [ ] 3-D Secure test card (`4000 0027 6000 3184`): the challenge appears, and after approval the payment is `COMPLETED`
       and the wallet balance updates without a reload.
-- [ ] Closing the tab mid-challenge leaves a payment the reconciliation job (`API-P1-1`) resolves.
+- [ ] Closing the tab mid-challenge leaves a payment the reconciliation job cancels and fails after `PAYMENT_ACTION_EXPIRY_MS`.
 
 ### WEB-P1-2 · Auth tokens are exposed to scripts, and expired sessions look logged in
 
@@ -77,6 +77,19 @@ changing the amount (seen in the WEB-P0-1 verification run).
 
 **Verify.**
 - [ ] Stopping and restarting the API: the stream reconnects by itself, and notifications created during the gap appear once.
+
+### WEB-P1-4 · Admins can't suspend or reactivate users from the UI
+
+**Problem.** The API has `POST /users/:userId/suspend` and `POST /users/:userId/reactivate` (GLOBAL_ADMIN, ADMIN;
+audited; suspending ends the user's sessions), but the admin user table has no control for them. The admin user list
+(`findAllWithWallets`) also doesn't return the account status (`status` there is the wallet status).
+
+**Solution.** Return `userStatus` from the admin user list, show it in the table, and add a Suspend / Reactivate action
+(confirm dialog) that calls the new endpoints and updates the row. Hide the action on the admin's own row and on
+`CLOSED` / `PENDING` users.
+
+**Verify.**
+- [ ] Suspending a user from the table logs them out on their next request; reactivating lets them log in again.
 
 ---
 

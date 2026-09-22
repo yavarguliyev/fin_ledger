@@ -7,10 +7,12 @@ import { NotFoundMethodDto } from '../dtos/helper/not-found-method.dto';
 import { FailedMethodDto } from '../dtos/adapter/failed-method.dto';
 import { FailedOperationDto } from '../dtos/adapter/failed-operation.dto';
 import { DescribeFailureDto } from '../dtos/helper/describe-failure.dto';
+import { OperationResultRefDto } from '../dtos/helper/operation-result-ref.dto';
 import { ProviderFailureDto } from '../dtos/operation/provider-failure.dto';
 import { MapVerifiedMethodDto } from '../dtos/adapter/map-verified-method.dto';
 import { SimulatedChargeDto } from '../dtos/adapter/simulated-charge.dto';
 import { BRAND_MAP } from '../constants/card/brand-map.constant';
+import { PROVIDER_RESULT_DEFAULTS } from '../constants/result/provider-result-defaults.constant';
 
 export class ProviderResultHelper {
   static normalizeBrand ({ brand }: NormalizeBrandDto): CardBrand {
@@ -45,6 +47,16 @@ export class ProviderResultHelper {
       currency,
       failureReason: failure.message,
       failure: ProviderResultHelper.describeFailure({ failure })
+    };
+  }
+
+  static fromOperation ({ result }: OperationResultRefDto): ProviderChargeResultDto {
+    return {
+      chargeId: result.id,
+      status: result.status,
+      amount: result.amount ?? PROVIDER_RESULT_DEFAULTS.UNKNOWN_AMOUNT,
+      currency: (result.currency ?? PROVIDER_RESULT_DEFAULTS.UNKNOWN_CURRENCY).toUpperCase(),
+      ...(result.failure && { failure: result.failure, failureReason: result.failure.message })
     };
   }
 

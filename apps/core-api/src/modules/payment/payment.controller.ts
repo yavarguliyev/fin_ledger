@@ -29,6 +29,12 @@ export class PaymentController {
     return this.paymentService.withdraw({ ...dto, userId: req.user.userId });
   }
 
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
+  @Get('unresolved')
+  async listUnresolved (): Promise<PaymentDto[]> {
+    return this.paymentService.listUnresolved();
+  }
+
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER] })
   @Get(':id')
   @UseGuards(PaymentAccessGuard)

@@ -8,6 +8,7 @@ import { CreateNotificationUseCase } from './use-cases/commands/create-notificat
 import { GetNotificationsUseCase } from './use-cases/queries/get-notifications.use-case';
 import { MarkNotificationReadUseCase } from './use-cases/commands/mark-notification-read.use-case';
 import { SharedModule } from '../../shared/shared.module';
+import { BetSettledConsumer } from './consumers/events/bet-settled.consumer';
 import { PaymentCompletedConsumer } from './consumers/events/payment-completed.consumer';
 import { PaymentFailedConsumer } from './consumers/events/payment-failed.consumer';
 import { UserRegisteredConsumer } from './consumers/events/user-registered.consumer';
@@ -24,6 +25,7 @@ import { WalletDebitedConsumer } from './consumers/events/wallet-debited.consume
     CreateNotificationUseCase,
     GetNotificationsUseCase,
     MarkNotificationReadUseCase,
+    BetSettledConsumer,
     PaymentCompletedConsumer,
     PaymentFailedConsumer,
     UserRegisteredConsumer,

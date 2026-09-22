@@ -6,6 +6,7 @@ import { PaymentRepository } from './repositories/payment.repository';
 import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawal.use-case';
 import { GetPaymentUseCase } from './use-cases/queries/get-payment.use-case';
+import { ListUnresolvedPaymentsUseCase } from './use-cases/queries/list-unresolved-payments.use-case';
 import { CompletePaymentUseCase } from './use-cases/commands/complete-payment.use-case';
 import { FailPaymentUseCase } from './use-cases/commands/fail-payment.use-case';
 import { PaymentReconciliationJob } from './jobs/payment-reconciliation.job';
@@ -25,7 +26,8 @@ import { PaymentMethodModule } from '../payment-methods/payment-method.module';
     CompletePaymentUseCase,
     FailPaymentUseCase,
     PaymentReconciliationJob,
-    GetPaymentUseCase
+    GetPaymentUseCase,
+    ListUnresolvedPaymentsUseCase
   ],
   exports: [PaymentService, PaymentRepository, CompletePaymentUseCase, FailPaymentUseCase]
 })

@@ -29,6 +29,7 @@ describe('Stripe simulation follows the Stripe test cards', () => {
 
   it('can leave a charge processing', () => {
     expect(simulate('pm_simulated_processing').status).toBe(ProviderChargeStatus.PENDING);
+    expect(simulate('pm_simulated_processing_other_test').status).toBe(ProviderChargeStatus.PENDING);
   });
 });
 
@@ -39,5 +40,15 @@ describe('Stripe simulation of charge lookups', () => {
     expect(retrieve('pi_simulated_succeeded_1')).toBe(ProviderChargeStatus.SUCCEEDED);
     expect(retrieve('pi_simulated_failed_1')).toBe(ProviderChargeStatus.FAILED);
     expect(retrieve('ch_anything')).toBe(ProviderChargeStatus.PENDING);
+  });
+});
+
+describe('Stripe simulation of cancellations', () => {
+  it('reports a cancelled charge as failed with the canceled code', () => {
+    expect(StripeSimulationHelper.cancelCharge({ dto: { chargeId: 'pi_simulated_requires_action_1' }, provider: 'stripe' })).toMatchObject({
+      status: ProviderChargeStatus.FAILED,
+      failure: { code: 'canceled' }
+    });
+    expect(StripeSimulationHelper.retrieveCharge({ dto: { chargeId: 'pi_simulated_requires_action_1' }, provider: 'stripe' }).status).toBe(ProviderChargeStatus.REQUIRES_ACTION);
   });
 });

@@ -28,6 +28,8 @@ export const PaymentSchema = z.object({
 
   failureReason: z.string({ message: 'Failure reason must be a string' }).nullable().optional(),
 
+  reconcileAttempts: z.number({ message: 'Reconcile attempts must be a number' }).int().optional(),
+
   metadata: z.record(z.string(), z.unknown(), { message: 'Metadata must be an object' }).optional(),
 
   createdAt: z.date({ message: 'Created at must be a valid date' }),

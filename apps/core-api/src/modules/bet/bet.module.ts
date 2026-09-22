@@ -9,11 +9,10 @@ import { GetBetsUseCase } from './use-cases/queries/get-bets.use-case';
 import { SharedModule } from '../../shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
 import { GameEventsModule } from '../game-events/game-events.module';
-import { NotificationModule } from '../notification/notification.module';
 import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
-  imports: [SharedModule, AuthModule, GameEventsModule, NotificationModule, WalletModule],
+  imports: [SharedModule, AuthModule, GameEventsModule, WalletModule],
   controllers: [BetController],
   providers: [BetService, BetRepository, PlaceBetUseCase, SettleBetUseCase, GetBetsUseCase],
   exports: [BetService, BetRepository]

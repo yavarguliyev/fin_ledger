@@ -53,6 +53,11 @@ export class StripeOperationHelper {
     return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
   }
 
+  static async cancelCharge ({ client, dto }: StripeRetrieveChargeDto): Promise<OperationResultDto> {
+    const intent = await client.paymentIntents.cancel(dto.chargeId);
+    return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
+  }
+
   static async findIntentId ({ client, dto }: StripeFindIntentDto): Promise<string | null> {
     const result = await client.paymentIntents.search({ query: `metadata['${dto.key}']:'${dto.value}'`, limit: 1 });
     return result.data[0]?.id ?? null;

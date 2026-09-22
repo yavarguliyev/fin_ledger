@@ -1,6 +1,7 @@
 export * from './modules/interfaces/authenticated-request.interface';
 export * from './modules/interfaces/category-traits.interface';
 export * from './modules/enums/common/provider-error-category.enum';
+export * from './modules/constants/common/currency-format.constant';
 export * from './modules/constants/crypto/crypto-defaults.constant';
 export * from './modules/constants/errors/category-traits.constant';
 export * from './modules/dtos/guard/resource-ownership.dto';

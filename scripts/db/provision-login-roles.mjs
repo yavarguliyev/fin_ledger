@@ -1,14 +1,3 @@
-/**
- * Creates or updates the API's database login, using the owner connection (DATABASE_URL).
- * Login roles and passwords are environment-specific, so they live here and not in migrations.
- *
- *   DATABASE_URL=postgres://owner@host/db DB_USERNAME=app_api DB_PASSWORD=... node scripts/db/provision-login-roles.mjs
- *
- * It reads the same DB_USERNAME / DB_PASSWORD the API connects with (APP_API_DB_USERNAME / APP_API_DB_PASSWORD override them).
- *
- * The login is a member of app_readwrite (created by migration 013): no table ownership, no DDL, no TRUNCATE,
- * DELETE only where granted. BYPASSRLS stays until row-level security is enforced per request (API-P0-5 step 2).
- */
 import pg from 'pg';
 
 const GROUP_ROLE = 'app_readwrite';

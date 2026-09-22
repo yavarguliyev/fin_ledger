@@ -13,11 +13,6 @@ import { PAYMENT_TRANSITIONS } from '../../constants/status/payment-transitions.
 import { PAYMENT_ERRORS } from '../../constants/errors/payment-errors.constant';
 import { PAYMENT_LABELS } from '../../constants/operations/payment-labels.constant';
 
-/**
- * The only way a payment becomes COMPLETED. Moving the money, the COMPLETED status and the outbox event
- * share one transaction behind a row lock, so a second completion (webhook, reconciliation, retry)
- * finds the payment already handled and changes nothing.
- */
 @Injectable()
 export class CompletePaymentUseCase {
   constructor (

@@ -119,3 +119,23 @@ describe('StripeOperationHelper.findIntentId', () => {
     expect(queries[0]).toBe("metadata['paymentId']:'0192f3a4-0000-7000-8000-000000000001'");
   });
 });
+
+describe('StripeOperationHelper.cancelCharge', () => {
+  it('cancels the PaymentIntent and reports it as a definitive failure', async () => {
+    const cancelled: string[] = [];
+    const client = {
+      paymentIntents: {
+        cancel: async (id: string): Promise<PaymentIntent> => {
+          cancelled.push(id);
+          return Promise.resolve(intentOf({ id, status: 'canceled', amount: 900, currency: 'usd' }));
+        }
+      }
+    } as unknown as Stripe;
+
+    await expect(StripeOperationHelper.cancelCharge({ client, dto: { chargeId: 'pi_abandoned' } })).resolves.toMatchObject({
+      status: ProviderChargeStatus.FAILED,
+      failure: { code: 'canceled', indeterminate: false }
+    });
+    expect(cancelled).toEqual(['pi_abandoned']);
+  });
+});

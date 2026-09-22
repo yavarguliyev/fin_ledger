@@ -11,6 +11,7 @@ import {
   UploadFileResponse,
   Roles,
   UserRoles,
+  UserStatus,
   RolesGuard,
   Audited,
   ParamsQueryAndHeaders
@@ -93,6 +94,20 @@ export class UserController {
   @Delete(':userId/from-db')
   async deleteUserFromDb (@ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
     return this.userService.deleteUserFromDb(dto);
+  }
+
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
+  @Audited({ action: 'USER_SUSPENDED', entityType: 'User', entityIdParam: 'userId' })
+  @Post(':userId/suspend')
+  async suspendUser (@Req() req: RequestContext, @ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<UserDto> {
+    return this.userService.changeStatus({ ...dto, actorId: req.user.userId, status: UserStatus.SUSPENDED });
+  }
+
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
+  @Audited({ action: 'USER_REACTIVATED', entityType: 'User', entityIdParam: 'userId' })
+  @Post(':userId/reactivate')
+  async reactivateUser (@Req() req: RequestContext, @ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<UserDto> {
+    return this.userService.changeStatus({ ...dto, actorId: req.user.userId, status: UserStatus.ACTIVE });
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR] })

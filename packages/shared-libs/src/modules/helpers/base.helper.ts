@@ -5,6 +5,7 @@ import { ErrorResponseDto } from '../dtos/helper/error-response.dto';
 import { FormatAmountDto } from '../dtos/helper/format-amount.dto';
 import { SetupSwaggerDto } from '../dtos/helper/setup-swagger.dto';
 import { ValidateLuhnDto } from '../dtos/helper/validate-luhn.dto';
+import { CURRENCY_FORMAT } from '../constants/common/currency-format.constant';
 
 export class BaseHelper {
   static errorResponse (params: ErrorResponseInputDto): ErrorResponseDto {
@@ -18,7 +19,8 @@ export class BaseHelper {
 
   static formatAmount (params: FormatAmountDto): string {
     const { amountMinor, currency } = params;
-    return `${(amountMinor / 100).toFixed(2)} ${currency}`;
+    const digits = new Intl.NumberFormat(CURRENCY_FORMAT.LOCALE, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? CURRENCY_FORMAT.DEFAULT_DIGITS;
+    return `${(amountMinor / CURRENCY_FORMAT.BASE ** digits).toFixed(digits)} ${currency}`;
   }
 
   static setupSwagger (params: SetupSwaggerDto): OpenAPIObject {

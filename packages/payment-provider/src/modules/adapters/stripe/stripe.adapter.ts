@@ -35,6 +35,8 @@ import { StripeSimulationHelper } from './helpers/stripe-simulation.helper';
 import { STRIPE_SIMULATION } from '../../constants/stripe/stripe-simulated-outcomes.constant';
 import { STRIPE_ERROR_DEFAULTS } from '../../constants/stripe/stripe-error-defaults.constant';
 import { STRIPE_HEADERS } from '../../constants/stripe/stripe-headers.constant';
+import { ProviderResultHelper } from '../../helpers/provider-result.helper';
+import { PROVIDER_RESULT_DEFAULTS } from '../../constants/result/provider-result-defaults.constant';
 
 @Injectable()
 export class StripeAdapter
@@ -82,23 +84,25 @@ export class StripeAdapter
 
   async charge (dto: ChargePaymentDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return Promise.resolve(StripeSimulationHelper.charge({ dto, provider: this.providerName }));
-    return this.stripeOperation({
-      prefix: STRIPE_SIMULATION.CHARGE_PREFIX,
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createCharge({ client: this.stripe!, dto })
-    });
+    const { amount, currency } = dto;
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.CHARGE_PREFIX, amount, currency, operation: async () => StripeOperationHelper.createCharge({ client: this.stripe!, dto }) });
   }
 
   async retrieveCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return Promise.resolve(StripeSimulationHelper.retrieveCharge({ dto, provider: this.providerName }));
-    const { CHARGE_PREFIX: prefix, UNKNOWN_AMOUNT: amount, UNKNOWN_CURRENCY: currency } = STRIPE_SIMULATION;
+    const { UNKNOWN_AMOUNT: amount, UNKNOWN_CURRENCY: currency } = PROVIDER_RESULT_DEFAULTS;
+    const prefix = STRIPE_SIMULATION.CHARGE_PREFIX;
     return this.executeOperation({ prefix, amount, currency, operation: async () => StripeOperationHelper.retrieveCharge({ client: this.stripe!, dto }) });
   }
 
   async findChargeByMetadata (dto: FindChargeByMetadataDto): Promise<ProviderChargeResultDto | null> {
     const intentId = this.stripe ? await StripeOperationHelper.findIntentId({ client: this.stripe, dto }) : null;
     return intentId ? this.retrieveCharge({ chargeId: intentId }) : null;
+  }
+
+  async cancelCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.cancelCharge({ dto, provider: this.providerName }));
+    return ProviderResultHelper.fromOperation({ result: await StripeOperationHelper.cancelCharge({ client: this.stripe, dto }) });
   }
 
   async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {
@@ -137,14 +141,10 @@ export class StripeAdapter
   private async stripeOperation ({ prefix, amount, currency, operation }: ExecuteOperationDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return this.buildSimulatedResult({ prefix, amount, currency });
 
-    return this.executeOperation({
-      prefix,
-      amount,
-      currency,
-      operation: async () => {
-        StripeAmountHelper.assertChargeable({ amountMinor: amount, currency });
-        return operation();
-      }
-    });
+    const chargeable = async (): ReturnType<typeof operation> => {
+      StripeAmountHelper.assertChargeable({ amountMinor: amount, currency });
+      return operation();
+    };
+    return this.executeOperation({ prefix, amount, currency, operation: chargeable });
   }
 }

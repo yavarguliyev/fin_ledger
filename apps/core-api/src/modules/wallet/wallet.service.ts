@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Cacheable, CacheEvict, REDIS_CACHE_PROVIDER, RedisCacheProvider } from '@common/libs';
+import { Injectable } from '@nestjs/common';
 
 import { CreateWalletUseCase } from './use-cases/commands/wallet/create-wallet.use-case';
 import { GetWalletUseCase } from './use-cases/queries/get-wallet.use-case';
@@ -27,10 +26,7 @@ import { UpdateWalletStatusDto } from './dtos/request/update-wallet-status.dto';
 
 @Injectable()
 export class WalletService {
-  protected readonly [REDIS_CACHE_PROVIDER]: RedisCacheProvider;
-
   constructor (
-    @Inject(REDIS_CACHE_PROVIDER) protected readonly redisCacheProvider: RedisCacheProvider,
     private readonly createWalletUseCase: CreateWalletUseCase,
     private readonly getWalletUseCase: GetWalletUseCase,
     private readonly getUserWalletsUseCase: GetUserWalletsUseCase,
@@ -44,16 +40,12 @@ export class WalletService {
     private readonly placeBetUseCase: PlaceBetUseCase,
     private readonly settleWinningsUseCase: SettleWinningsUseCase,
     private readonly updateWalletStatusUseCase: UpdateWalletStatusUseCase
-  ) {
-    this[REDIS_CACHE_PROVIDER] = redisCacheProvider;
-  }
+  ) {}
 
-  @Cacheable({ keyPrefix: 'wallet', ttlSeconds: 60 })
   async getWallet (dto: WalletIdRequestDto): Promise<WalletDto | null> {
     return this.getWalletUseCase.execute(dto);
   }
 
-  @Cacheable({ keyPrefix: 'wallet:user', ttlSeconds: 60 })
   async getUserWallets (dto: UserWalletsDto): Promise<WalletDto[]> {
     return this.getUserWalletsUseCase.execute(dto);
   }
@@ -66,47 +58,38 @@ export class WalletService {
     return this.getOpenableCurrenciesUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async openWallet (dto: OpenWalletDto): Promise<WalletDto> {
     return this.openWalletUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async createWallet (dto: CreateWalletDto): Promise<WalletDto> {
     return this.createWalletUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async creditWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.creditWalletUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async placeBet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.placeBetUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async settleWinnings (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.settleWinningsUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async reserveFunds (dto: FundsOperationDto): Promise<WalletDto> {
     return this.reserveFundsUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async releaseFunds (dto: FundsOperationDto): Promise<WalletDto> {
     return this.releaseFundsUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async captureReservedFunds (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     return this.captureReservedFundsUseCase.execute(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
   async updateWalletStatus (dto: UpdateWalletStatusDto): Promise<WalletDto> {
     return this.updateWalletStatusUseCase.execute(dto);
   }
