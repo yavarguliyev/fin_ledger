@@ -8,6 +8,7 @@ import { ProcessWebhookResponseDto } from './dtos/response/process-webhook-respo
 import { DispatchWebhookEventDto } from './dtos/step/dispatch-webhook-event.dto';
 import { WebhookEventRepository } from './repositories/webhook-event.repository';
 import { HandleClaimedEventDto } from './dtos/step/handle-claimed-event.dto';
+import { ReplayWebhookEventDto } from './dtos/step/replay-webhook-event.dto';
 import { WEBHOOK_HANDLED_STATUSES } from './constants/status/webhook-statuses.constant';
 import { WEBHOOK_ERRORS } from './constants/errors/webhook-errors.constant';
 
@@ -51,6 +52,19 @@ export class WebhookService {
     await this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.handleClaimed({ event: claimed, adapter }) });
 
     return { received: true, eventId };
+  }
+
+  async replayEvent ({ event }: ReplayWebhookEventDto): Promise<void> {
+    const claimed = await this.webhookEventRepository.claim({
+      eventId: event.eventId,
+      provider: event.provider,
+      eventType: event.eventType,
+      payload: event.payload,
+      signatureVerified: event.signatureVerified ?? false
+    });
+    if (!claimed) throw new InternalServerErrorException(WEBHOOK_ERRORS.CLAIM_FAILED);
+
+    await this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.handleClaimed({ event: claimed, adapter }) });
   }
 
   private async handleClaimed ({ event, adapter }: HandleClaimedEventDto): Promise<void> {

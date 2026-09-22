@@ -6,7 +6,7 @@ export const MarkWebhookEventSchema = z.object({
 
   status: z.enum(WebhookStatus, { message: 'Status must be a valid webhook status' }),
 
-  adapter: z.custom<DatabaseAdapter>()
+  adapter: z.custom<DatabaseAdapter>().optional()
 });
 
 export type MarkWebhookEventDto = z.infer<typeof MarkWebhookEventSchema>;

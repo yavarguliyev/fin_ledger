@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, WebhookStatus } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, WebhookStatus, WhereCondition } from '@common/libs';
 
 import { WebhookEventRecordDto } from '../dtos/webhook-event/webhook-event.dto';
 import { FindWebhookEventDto } from '../dtos/repository/find-webhook-event.dto';
 import { ClaimWebhookEventDto } from '../dtos/repository/claim-webhook-event.dto';
 import { MarkWebhookEventDto } from '../dtos/repository/mark-webhook-event.dto';
+import { FindStuckWebhookEventsDto } from '../dtos/repository/find-stuck-webhook-events.dto';
 
 @Injectable()
 export class WebhookEventRepository extends BaseExtendedRepository<WebhookEventRecordDto> {
@@ -44,6 +45,16 @@ export class WebhookEventRepository extends BaseExtendedRepository<WebhookEventR
   }
 
   async markHandled ({ id, status, adapter }: MarkWebhookEventDto): Promise<WebhookEventRecordDto | null> {
-    return this.update({ id, data: { status, ...(status === WebhookStatus.PROCESSED && { processedAt: new Date().toISOString() }) }, adapter });
+    return this.update({ id, data: { status, ...(status === WebhookStatus.PROCESSED && { processedAt: new Date().toISOString() }) }, ...(adapter && { adapter }) });
+  }
+
+  async findStuck ({ receivedBefore, maxAttempts, limit }: FindStuckWebhookEventsDto): Promise<WebhookEventRecordDto[]> {
+    const where: WhereCondition[] = [
+      { field: 'status', operator: 'IN', value: [WebhookStatus.RECEIVED, WebhookStatus.FAILED] },
+      { field: 'receivedAt', operator: '<', value: receivedBefore },
+      { field: 'attempts', operator: '<', value: maxAttempts }
+    ];
+
+    return this.findAll({ where, orderBy: 'received_at', orderDirection: 'ASC', limit });
   }
 }

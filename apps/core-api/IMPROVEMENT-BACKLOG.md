@@ -43,38 +43,25 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - [ ] A simulation of 1M bets at several odds shows a positive house edge equal to the configured margin.
 - [ ] (Sportsbook) Placing a bet leaves it `PENDING`; recording the event result settles every bet on it exactly once.
 
-### API-P0-5 · Row-level security is written but not enforced
-
-**Done (2026-09-22): least privilege.** The API no longer connects as the table owner. `npm run db:provision-roles`
-(owner connection) creates the `app_api` login, a member of `app_readwrite`: no ownership, no DDL or `TRUNCATE`,
-`DELETE` only on `users` and `notifications`. The integration stack runs the API as `app_api`
-(spec `database-privileges`). `app_api` still has `BYPASSRLS`, so the policies from migration 013 don't apply yet.
-
-**Still open: enforce the policies.**
-1. **Request-scoped user.** Keep the authenticated user (and role) in `AsyncLocalStorage`; the database adapter runs
-   `SELECT set_config('app.current_user_id', $1, true)` at the start of every transaction and wraps standalone queries
-   in one. That's `SET LOCAL`, which is safe behind PgBouncer.
-2. **Staff and system access.** Staff through an explicit policy (`app_current_role() IN (…)`); webhooks, consumers,
-   the outbox relay and jobs through a separate `app_worker` login with `BYPASSRLS`.
-3. **Drop `BYPASSRLS` from `app_api`.**
-
-**Verify.**
-- [ ] With the ownership guards (`ResourceOwnerGuard` children) temporarily removed, user B still can't read user A's rows.
-- [ ] Webhooks, consumers and the outbox relay still work as `app_worker`.
-
 ---
 
 ## P1 — Stuck, stale or lost state
 
 ### API-P1-1 · Nothing resumes payments stuck in REQUIRES_ACTION / PROCESSING / INDETERMINATE
 
-**Problem.** `PaymentOperationHelper` marks an unknown charge outcome `REQUIRES_ACTION` and returns 503; `PENDING`
-charges stay `PROCESSING` until a webhook arrives. Failed refund compensations end there too. Webhook events whose
-handling failed stay `RECEIVED` and rely on the PSP redelivering them. Nothing picks any of these up.
+**Done (2026-09-22): webhook replay.** `WebhookReplayJob` re-handles events still `RECEIVED` / `FAILED` after
+`WEBHOOK_REPLAY_STALE_AFTER_MS`, through the same locked transaction as live deliveries, and leaves them `FAILED` for
+manual review after `MAX_ATTEMPTS` (spec `webhook-inbox`).
 
-**Solution.** Run a reconciliation job every minute (on `@common/tasks`, `PKG-P2-2`). It reads payments open longer
-than a threshold, fetches the real PSP state (by `metadata.paymentId`), and finishes them through `CompletePaymentUseCase`.
-It also replays `RECEIVED` / `FAILED` webhook events older than a threshold. After N tries it flags them for manual review.
+**Still open: reconcile open payments.** `PaymentOperationHelper` marks an unknown charge outcome `REQUIRES_ACTION`
+and returns 503; `PENDING` charges stay `PROCESSING` until a webhook arrives; failed refund compensations end there
+too. If the webhook never comes, nothing finishes them.
+
+**Solution.**
+1. **Ask the provider.** Add `retrieveCharge` to the charge capability (Stripe: `paymentIntents.retrieve`, mapped by
+   `StripeIntentHelper`), and for payments without a stored charge ID, find it by `metadata.paymentId`.
+2. **Reconciliation job** (same pattern as `WebhookReplayJob`): payments open longer than a threshold are completed
+   through `CompletePaymentUseCase`, failed, or left open; after N tries they're flagged for manual review.
 
 **Verify.**
 - [ ] A simulated timeout after Stripe charged: within one cycle the payment is `COMPLETED` and credited once.
@@ -289,6 +276,25 @@ one-DTO-per-method convention. (`createUser` and `IdempotencyHelper.forPayment` 
 **Verify.** No method in `apps/core-api/src` takes more than one parameter, apart from framework-called signatures.
 
 ---
+
+### API-P2-9 · Row-level security is written but not enforced (moved from P0 on 2026-09-22)
+
+**Done (2026-09-22): least privilege.** The API no longer connects as the table owner. `npm run db:provision-roles`
+(owner connection) creates the `app_api` login, a member of `app_readwrite`: no ownership, no DDL or `TRUNCATE`,
+`DELETE` only on `users` and `notifications`. The integration stack runs the API as `app_api`
+(spec `database-privileges`). `app_api` still has `BYPASSRLS`, so the policies from migration 013 don't apply yet.
+
+**Still open: enforce the policies.**
+1. **Request-scoped user.** Keep the authenticated user (and role) in `AsyncLocalStorage`; the database adapter runs
+   `SELECT set_config('app.current_user_id', $1, true)` at the start of every transaction and wraps standalone queries
+   in one. That's `SET LOCAL`, which is safe behind PgBouncer.
+2. **Staff and system access.** Staff through an explicit policy (`app_current_role() IN (…)`); webhooks, consumers,
+   the outbox relay and jobs through a separate `app_worker` login with `BYPASSRLS`.
+3. **Drop `BYPASSRLS` from `app_api`.**
+
+**Verify.**
+- [ ] With the ownership guards (`ResourceOwnerGuard` children) temporarily removed, user B still can't read user A's rows.
+- [ ] Webhooks, consumers and the outbox relay still work as `app_worker`.
 
 ## P3 — Tests
 

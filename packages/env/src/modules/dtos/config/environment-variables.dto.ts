@@ -77,7 +77,11 @@ export const EnvironmentVariablesSchema = z.object({
 
   MFA_ENCRYPTION_KEY: z.string({ message: 'MFA_ENCRYPTION_KEY must be a string' }).min(1, { message: 'MFA_ENCRYPTION_KEY is required' }),
 
-  MFA_ISSUER: z.string({ message: 'MFA_ISSUER must be a string' }).optional()
+  MFA_ISSUER: z.string({ message: 'MFA_ISSUER must be a string' }).optional(),
+
+  WEBHOOK_REPLAY_INTERVAL_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_INTERVAL_MS must be a number' }).int().positive().optional(),
+
+  WEBHOOK_REPLAY_STALE_AFTER_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_STALE_AFTER_MS must be a number' }).int().nonnegative().optional()
 });
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

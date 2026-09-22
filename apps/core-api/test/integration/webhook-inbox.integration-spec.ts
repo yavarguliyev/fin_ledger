@@ -1,3 +1,5 @@
+import { setTimeout as sleep } from 'node:timers/promises';
+
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
@@ -65,6 +67,22 @@ describe('Webhook inbox', () => {
     await expect(eventRow('evt_inbox_crash')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
     await expect(paymentStatus(paymentId)).resolves.toBe('COMPLETED');
   });
+
+  it('replays a webhook whose handling failed, without a redelivery', async () => {
+    const paymentId = await pendingDeposit(failingAmount, 'inbox-replay');
+    await DbHelper.query({
+      sql: 'CREATE TRIGGER test_fail_wallet_transaction BEFORE INSERT ON wallet_transactions FOR EACH ROW EXECUTE FUNCTION test_fail_wallet_transaction()'
+    });
+
+    await expect(send('evt_inbox_replay', 'payment_intent.succeeded', paymentId)).resolves.toMatchObject({ status: 500 });
+    await DbHelper.query({ sql: 'DROP TRIGGER test_fail_wallet_transaction ON wallet_transactions' });
+
+    const deadline = Date.now() + 20_000;
+    while ((await paymentStatus(paymentId)) !== 'COMPLETED' && Date.now() < deadline) await sleep(500);
+
+    await expect(paymentStatus(paymentId)).resolves.toBe('COMPLETED');
+    await expect(eventRow('evt_inbox_replay')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
+  }, 30_000);
 
   it('does not apply a processed webhook again', async () => {
     const paymentId = await pendingDeposit(900, 'inbox-duplicate');
