@@ -4,15 +4,19 @@ import { Observable, tap, catchError } from 'rxjs';
 
 import { PaymentRequest } from '../interfaces/wallet/payment-request.interface';
 import { Payment } from '../interfaces/wallet/payment.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { WalletService } from './wallet.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
   private readonly walletService = inject(WalletService);
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   deposit (req: PaymentRequest): Observable<Payment> {
     return this.http.post<Payment>(`${this.apiUrl}/payments/deposit`, req).pipe(

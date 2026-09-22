@@ -10,14 +10,18 @@ import { UploadRequest } from '../interfaces/auth/upload-request.interface';
 import { Wallet } from '../interfaces/wallet/wallet.interface';
 import { WalletStatus } from '../types/wallet/wallet-status.type';
 import { AuthService } from './auth.service';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   updateProfile (request: UpdateProfileRequest): Observable<UpdateProfileResponse> {
     return this.http.patch<UpdateProfileResponse>(`${this.apiUrl}/users`, request).pipe(

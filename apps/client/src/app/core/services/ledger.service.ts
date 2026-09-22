@@ -5,12 +5,12 @@ import { Observable, tap, catchError } from 'rxjs';
 import { LedgerAccount } from '../interfaces/ledger/ledger-account.interface';
 import { LedgerEntry } from '../interfaces/ledger/ledger-entry.interface';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class LedgerService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
 
   private readonly accountSignal = signal<LedgerAccount | null>(null);
@@ -18,6 +18,10 @@ export class LedgerService {
 
   readonly account = computed(() => this.accountSignal());
   readonly entries = computed(() => this.entriesSignal());
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   getTransactionEntries (txId: string): Observable<LedgerEntry[]> {
     return this.http

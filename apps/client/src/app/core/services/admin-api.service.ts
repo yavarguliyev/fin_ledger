@@ -11,7 +11,7 @@ import { CreateUserResponse } from '../interfaces/admin/create-user-response.int
 import { UserWithWallet } from '../interfaces/admin/user-with-wallet.interface';
 import { DeleteUserResponse } from '../interfaces/admin/delete-user-response.interface';
 import { WalletStatus } from '../types/wallet/wallet-status.type';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({
@@ -20,8 +20,15 @@ import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 export class AdminApiService {
   private readonly http = inject(HttpClient);
   private readonly userService = inject(UserService);
-  private readonly baseUrl = `${environment.apiUrl}/admin`;
-  private readonly apiUrl = `${environment.apiUrl}/users`;
+  private readonly config = inject(AppConfigService);
+
+  private get baseUrl (): string {
+    return `${this.config.apiUrl}/admin`;
+  }
+
+  private get apiUrl (): string {
+    return `${this.config.apiUrl}/users`;
+  }
 
   createUser (dto: CreateUserDto): Observable<CreateUserResponse> {
     return this.http.post<CreateUserResponse>(this.apiUrl, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));

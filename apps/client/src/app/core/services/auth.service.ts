@@ -18,12 +18,12 @@ import { UpdateProfileResponse } from '../interfaces/auth/update-profile-respons
 import { ThemeService } from './theme.service';
 import { NotificationService } from './notification.service';
 import { WalletService } from './wallet.service';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly theme = inject(ThemeService);
@@ -43,23 +43,23 @@ export class AuthService {
   }
 
   register (dto: RegisterDto): Observable<RegisterResponse> {
-    return this.http.post<RegisterResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+    return this.http.post<RegisterResponse>(`${this.config.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   requestPasswordReset (email: string): Observable<{ message: string }> {
     return this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .post<{ message: string }>(`${this.config.apiUrl}/auth/forgot-password`, { email })
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   resetPassword (token: string, password: string): Observable<{ message: string }> {
     return this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, { token, password })
+      .post<{ message: string }>(`${this.config.apiUrl}/auth/reset-password`, { token, password })
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   verifyEmail (dto: VerifyEmailDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, dto).pipe(
+    return this.http.post<AuthResponse>(`${this.config.apiUrl}/auth/verify-email`, dto).pipe(
       tap(response => this.persist(response)),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
@@ -82,7 +82,7 @@ export class AuthService {
   login ({ email, password, rememberMe }: LoginDto): Observable<LoginResult> {
     const payload: LoginRequest = { email, password };
 
-    return this.http.post<LoginResult>(`${this.apiUrl}/auth/login`, payload).pipe(
+    return this.http.post<LoginResult>(`${this.config.apiUrl}/auth/login`, payload).pipe(
       tap(result => {
         const session = MfaHelper.sessionOf({ result });
         if (session) this.persist(session);
@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   verifyMfaLogin (dto: VerifyMfaLoginDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/mfa/verify`, dto).pipe(
+    return this.http.post<AuthResponse>(`${this.config.apiUrl}/auth/mfa/verify`, dto).pipe(
       tap(response => this.persist(response)),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
@@ -111,7 +111,7 @@ export class AuthService {
     this.loggingOutSignal.set(true);
     this.clearSession();
 
-    this.http.post(`${this.apiUrl}/auth/logout`, {}, { headers: { Authorization: `Bearer ${token}` } }).subscribe({
+    this.http.post(`${this.config.apiUrl}/auth/logout`, {}, { headers: { Authorization: `Bearer ${token}` } }).subscribe({
       next: () => this.loggingOutSignal.set(false),
       error: () => this.loggingOutSignal.set(false)
     });

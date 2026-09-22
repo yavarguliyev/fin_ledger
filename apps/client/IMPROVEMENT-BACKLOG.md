@@ -18,24 +18,6 @@ Last full review: 2026-09-22.
 
 ---
 
-## P0
-
-### WEB-P0-2 · Production builds point at localhost, and builds rewrite committed files
-
-**Problem.** Committed `environment.prod.ts` has `apiUrl: 'http://localhost:3000/api/v1'` and `wsUrl: 'wsUrl'`.
-- **Committed files rewritten:** `scripts/load-env.js` rewrites both committed environment files on every
-  `start`/`build`, so builds dirty git.
-- **Deploys ship localhost:** Netlify runs `npx ng build` without the script, so deploys use the committed localhost values.
-
-**Solution.** Stop generating source files. Serve a runtime `config.json` (written per environment at deploy time),
-load it in an `APP_INITIALIZER`, and expose it through a `ConfigService`. Delete `load-env.js` and the generated values.
-
-**Verify.**
-- [ ] `git status` is clean after `npm run build`.
-- [ ] The same build artifact talks to different APIs by changing only `config.json`.
-
----
-
 ## P1
 
 ### WEB-P1-1 · Deposits can't handle 3-D Secure or pending results

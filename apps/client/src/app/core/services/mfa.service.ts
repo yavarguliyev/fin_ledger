@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { MfaCodeDto } from '../dtos/auth/mfa-code.dto';
 import { DisableMfaDto } from '../dtos/auth/disable-mfa.dto';
@@ -12,8 +12,12 @@ import { MfaRecoveryCodes } from '../interfaces/auth/mfa-recovery-codes.interfac
 
 @Injectable({ providedIn: 'root' })
 export class MfaService {
-  private readonly apiUrl = `${environment.apiUrl}/auth/mfa`;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
+
+  private get apiUrl (): string {
+    return `${this.config.apiUrl}/auth/mfa`;
+  }
 
   getStatus (): Observable<MfaStatus> {
     return this.http.get<MfaStatus>(`${this.apiUrl}/status`).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));

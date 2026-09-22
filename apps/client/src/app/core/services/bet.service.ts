@@ -5,13 +5,17 @@ import { Observable, catchError } from 'rxjs';
 import { BetRequest } from '../interfaces/betting/bet-request.interface';
 import { Bet } from '../interfaces/betting/bet.interface';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class BetService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   getBets (page: number, limit: number): Observable<PaginatedResponse<Bet>> {
     return this.http

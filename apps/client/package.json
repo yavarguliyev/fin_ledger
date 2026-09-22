@@ -4,13 +4,14 @@
   "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "node scripts/load-env.js && ng serve",
-    "build": "node scripts/load-env.js && ng build --configuration=production",
-    "dev": "node scripts/load-env.js && ng serve --host 0.0.0.0 --port 4200",
+    "start": "ng serve",
+    "build": "ng build --configuration=production",
+    "dev": "ng serve --host 0.0.0.0 --port 4200",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "echo \"No client tests configured: add a \\\"test\\\" target to angular.json to enable them.\" && exit 0",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
-    "clean": "rm -rf dist .angular node_modules/.cache"
+    "clean": "rm -rf dist .angular node_modules/.cache",
+    "config:write": "node scripts/write-runtime-config.js"
   },
   "dependencies": {
     "@angular/animations": "21.1.0",

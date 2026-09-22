@@ -3,12 +3,12 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
 import { AppNotification } from '../interfaces/notification/app-notification.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private readonly apiUrl = `${environment.apiUrl}/notifications`;
+  private readonly config = inject(AppConfigService);
   private readonly notificationsSignal = signal<AppNotification[]>([]);
   private readonly http = inject(HttpClient);
   private readonly zone = inject(NgZone);
@@ -17,6 +17,10 @@ export class NotificationService {
 
   readonly notifications = computed(() => this.notificationsSignal());
   readonly unreadCount = computed(() => this.notificationsSignal().filter(n => n.status !== 'READ').length);
+
+  private get apiUrl (): string {
+    return `${this.config.apiUrl}/notifications`;
+  }
 
   markAllRead (): void {
     this.notificationsSignal().forEach(notification => {

@@ -6,13 +6,13 @@ import { Transaction } from '../interfaces/wallet/transaction.interface';
 import { WalletTransactionSummary } from '../interfaces/wallet/wallet-transaction-summary.interface';
 import { Wallet } from '../interfaces/wallet/wallet.interface';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.constant';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
 
   private readonly walletsSignal = signal<Wallet[]>([]);
@@ -22,6 +22,10 @@ export class WalletService {
   readonly wallets = computed(() => this.walletsSignal());
   readonly wallet = computed(() => this.walletsSignal().find(w => w.id === this.selectedIdSignal()) ?? this.walletsSignal()[0] ?? null);
   readonly transactions = computed(() => this.transactionsSignal());
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   loadWallets (): Observable<Wallet[]> {
     return this.http.get<Wallet[]>(`${this.apiUrl}/wallets`).pipe(

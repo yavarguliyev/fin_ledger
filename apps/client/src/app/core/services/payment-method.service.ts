@@ -3,14 +3,18 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 
 import { PaymentMethod } from '../interfaces/payment-method/payment-method.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { PaymentMethodStatus } from '../types/payment-method/payment-method-status.type';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentMethodService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   list (status?: PaymentMethodStatus): Observable<PaymentMethod[]> {
     const params = status ? `?status=${status}` : '';
