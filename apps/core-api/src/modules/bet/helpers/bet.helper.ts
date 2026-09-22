@@ -60,6 +60,9 @@ export class BetHelper {
 
     if (outcome.status === BetStatus.PENDING) throw new BadRequestException('Settlement outcome cannot be PENDING');
     if (outcome.status === BetStatus.LOST && outcome.payoutMinor !== 0) throw new BadRequestException('A lost bet pays nothing');
+    if (outcome.status === BetStatus.WON && outcome.payoutMinor !== Number(bet.potentialPayoutMinor)) {
+      throw new BadRequestException('A won bet pays exactly the potential payout');
+    }
     if (outcome.status === BetStatus.VOIDED && outcome.payoutMinor !== Number(bet.stakeMinor)) {
       throw new BadRequestException('A voided bet refunds exactly the stake');
     }

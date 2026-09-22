@@ -7,6 +7,7 @@ interface SettledBet {
   id: string;
   status: string;
   payoutMinor: number;
+  potentialPayoutMinor: number;
 }
 
 describe('Bet settlement', () => {
@@ -55,5 +56,47 @@ describe('Bet settlement', () => {
     await expect(winNotifications()).resolves.toEqual([
       { content: `Congratulations! You won ${(won.payoutMinor / 10 ** digits).toFixed(digits)} ${wallet?.currency} on Home.` }
     ]);
+  }, 60_000);
+
+  it('refuses an admin settlement that pays a winner more than the potential payout', async () => {
+    const [wallet] = await DbHelper.query<{ id: string }>({
+      sql: 'SELECT w.id FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
+      params: [email]
+    });
+    const [event] = await DbHelper.query<{ id: string }>({
+      sql: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
+    });
+    const player = await ApiHelper.login({ email });
+
+    const placed = await ApiHelper.request<SettledBet>({
+      method: 'POST',
+      path: '/bets',
+      token: player,
+      body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: 'settlement-admin-payout' }
+    });
+    expect(placed).toMatchObject({ status: 201 });
+
+    await DbHelper.query({
+      sql: "UPDATE bets SET status = 'PENDING', payout_minor = NULL, settled_at = NULL, settlement_ledger_transaction_id = NULL WHERE id = $1",
+      params: [placed.body.id]
+    });
+
+    const admin = await ApiHelper.login({ email: 'admin@seed.local' });
+    const settle = async (payoutMinor: number): Promise<number> =>
+      (
+        await ApiHelper.request({
+          method: 'POST',
+          path: `/bets/${placed.body.id}/settlement`,
+          token: admin,
+          body: { outcome: { status: 'WON', payoutMinor } }
+        })
+      ).status;
+
+    await expect(settle(placed.body.potentialPayoutMinor * 1000)).resolves.toBe(400);
+    await expect(
+      DbHelper.query({ sql: 'SELECT status, payout_minor FROM bets WHERE id = $1', params: [placed.body.id] })
+    ).resolves.toEqual([{ status: 'PENDING', payout_minor: null }]);
+
+    await expect(settle(placed.body.potentialPayoutMinor)).resolves.toBe(201);
   }, 60_000);
 });

@@ -30,7 +30,9 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
   every event priced above about 2.22.
 - **Events ignored:** the event's status and result play no part.
 - **Not a secure random source:** `Math.random` is predictable, which isn't acceptable for a game of chance.
-- **Loose admin settlement:** `POST /bets/:betId/settlement` lets an admin pass any outcome.
+- **Loose admin settlement:** `POST /bets/:betId/settlement` lets an admin pass any outcome. *(Fixed 2026-09-23:
+  a `WON` outcome must pay exactly `potentialPayoutMinor`; `LOST` and `VOIDED` were already checked. The rest of
+  this item is unchanged.)*
 
 **Solution** *(needs a product decision: sportsbook or instant game)*.
 - **Sportsbook:** bets stay `PENDING`. Settlement is driven by the event result (`API-P2-4`) and runs as a job over all
