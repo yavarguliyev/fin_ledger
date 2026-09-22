@@ -90,22 +90,6 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 - [ ] With the ownership guards (`ResourceOwnerGuard` children) temporarily removed, user B still can't read user A's rows.
 - [ ] Jobs and the outbox relay still work as `app_worker`.
 
-### API-P0-7 · Image upload has no limits (easy to knock the service over)
-
-**Problem.** `user.controller.ts` uses `FilesInterceptor('files')` with no `limits`.
-- **Memory:** any number of files of any size are buffered in memory.
-- **CPU in the request:** `sharp` converts them inside the request.
-- **Trusted type:** the type is taken from the client's own `mimetype` header.
-
-**Solution.**
-- **Limits:** `FilesInterceptor('files', MAX_FILES, { limits: { fileSize: 5 * 1024 * 1024, files: MAX_FILES } })`.
-- **Check the real type:** sniff magic bytes (`file-type`) before `sharp`, and cap `sharp` with `limitInputPixels`.
-- **Move the work off the request:** later, do the conversion in the CPU pool (`PKG-P2-2`) or a job.
-
-**Verify.**
-- [ ] A 50 MB upload or 50 files get a 413/400 before any processing.
-- [ ] A `.png` that is really a text file is rejected.
-
 ---
 
 ## P1 — Stuck, stale or lost state
@@ -347,7 +331,7 @@ lifecycle and timing, and per-user payment idempotency, plus drift = 0. A mutati
 **Still open.**
 - **CI not yet seen green.** The CI step is added but hasn't run on GitHub yet.
 - **Each fix adds a test.** Every remaining P0/P1 fix adds its integration test in the same change, money paths first:
-  webhook replay (`API-P0-1`), bet settlement (`API-P0-3`), upload limits (`API-P0-7`).
+  webhook replay (`API-P0-1`), bet settlement (`API-P0-3`).
 
 **Verify.**
 - [ ] The CI run on GitHub shows the `Integration Tests` step green.

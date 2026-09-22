@@ -6,8 +6,6 @@ import { UserRepository } from '../../repositories/user.repository';
 import { ImageActionDto } from '../../dtos/helper/image-action.dto';
 
 export abstract class UserBaseCase<TInput, TOutput> {
-  protected readonly webCompatibleFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
   @Inject(UserRepository)
   protected readonly userRepository!: UserRepository;
 

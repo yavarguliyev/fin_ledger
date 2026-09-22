@@ -5,6 +5,7 @@ import {
   ENVIRONMENT_CONSTANTS,
   SessionGuard,
   RequestContext,
+  IMAGE_UPLOAD_LIMITS,
   UploadFile,
   FileUrlsResponse,
   UploadFileResponse,
@@ -48,7 +49,11 @@ export class UserController {
   }
 
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor(IMAGE_UPLOAD_LIMITS.FIELD_NAME, IMAGE_UPLOAD_LIMITS.MAX_FILES, {
+      limits: { fileSize: IMAGE_UPLOAD_LIMITS.MAX_FILE_SIZE_BYTES, files: IMAGE_UPLOAD_LIMITS.MAX_FILES }
+    })
+  )
   async uploadFiles (@Req() req: RequestContext, @UploadedFiles() files: UploadFile[]): Promise<UploadFileResponse> {
     return this.userService.uploadFiles({ userId: req.user.userId, files });
   }

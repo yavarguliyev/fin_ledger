@@ -2,8 +2,8 @@ import { z } from 'zod';
 
 import { UploadFile } from '../../interfaces/upload-file.interface';
 
-export const ConvertToWebFormatSchema = z.object({
+export const NormalizeImageSchema = z.object({
   file: z.custom<UploadFile>()
 });
 
-export type ConvertToWebFormatDto = z.infer<typeof ConvertToWebFormatSchema>;
+export type NormalizeImageDto = z.infer<typeof NormalizeImageSchema>;

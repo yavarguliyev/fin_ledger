@@ -10,12 +10,7 @@ export class UploadFilesUseCase extends UserBaseCase<UploadFilesDto, UploadFileR
     const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
-    const processedFiles = await Promise.all(
-      files.map(async file => {
-        if (this.webCompatibleFormats.includes(file.mimetype)) return file;
-        return StorageHelper.convertToWebFormat({ file });
-      })
-    );
+    const processedFiles = await Promise.all(files.map(file => StorageHelper.normalizeImage({ file })));
 
     return this.storageService.uploadFiles({ key: `user-${userId}`, files: processedFiles });
   }
