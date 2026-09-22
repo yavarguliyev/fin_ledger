@@ -5,8 +5,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { createRequiredValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
-import { HttpError } from '../../core/models/base.model';
+import { HttpError } from '../../core/interfaces/http/http-error.interface';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 
 @Component({
   selector: 'app-reset-password',
@@ -29,8 +29,8 @@ export class ResetPasswordComponent implements OnInit {
   readonly token = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    password: this.fb.control('', { validators: [createRequiredValidator(), createMinLengthValidator(6)], nonNullable: false }),
-    confirmPassword: this.fb.control('', { validators: [createRequiredValidator(), createMinLengthValidator(6)], nonNullable: false })
+    password: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)], nonNullable: false }),
+    confirmPassword: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)], nonNullable: false })
   });
 
   get passwordControl (): FormControl<string | null> {

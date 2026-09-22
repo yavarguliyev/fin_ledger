@@ -5,7 +5,7 @@ import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, SessionGuard } from '@com
 import { GameEventsService } from './game-events.service';
 import { GameEventDto } from './dtos/game-event/game-event.dto';
 import { ListGameEventsDto, ListGameEventsSchema } from './dtos/request/list-game-events.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.GAME_EVENTS.key)
 @UseGuards(SessionGuard)

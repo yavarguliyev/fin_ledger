@@ -102,24 +102,6 @@ export class S3StorageStrategy extends BaseStrategy {
     }
   }
 
-  override async getTotalUsage (): Promise<number> {
-    try {
-      let totalSize = 0;
-      let continuationToken: string | undefined;
-
-      do {
-        const command = new ListObjectsV2Command({ Bucket: this.bucketName, ContinuationToken: continuationToken });
-        const response = await this.client.send(command);
-        if (response.Contents) totalSize += response.Contents.reduce((sum, obj) => sum + (obj.Size || 0), 0);
-        continuationToken = response.NextContinuationToken;
-      } while (continuationToken);
-
-      return totalSize;
-    } catch {
-      return 0;
-    }
-  }
-
   private normalizeEndpoint ({ endpoint }: EndpointDto): string | undefined {
     if (!endpoint || !endpoint.trim()) return undefined;
     const trimmed = endpoint.trim();

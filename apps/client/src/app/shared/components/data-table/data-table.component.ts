@@ -5,9 +5,11 @@ import { RouterLink } from '@angular/router';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { ToggleComponent } from '../toggle/toggle.component';
 import { ActionIconsComponent } from '../action-icons/action-icons';
-import { PaginationConfig } from '../../../core/models/base.model';
-import { ActionIconsConfig, DataTableConfig, TableColumn } from '../../../core/models/data-table.model';
-import { getCellValue, formatCellValue, getBadgeClass, getAlignmentClass, getToggleChecked, getActionConfig } from './data-table.util';
+import { PaginationConfig } from '../../../core/interfaces/ui/pagination-config.interface';
+import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-config.interface';
+import { DataTableConfig } from '../../../core/interfaces/ui/data-table-config.interface';
+import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
+import { DataTableHelper } from './helpers/data-table.helper';
 
 @Component({
   selector: 'app-data-table',
@@ -76,27 +78,27 @@ export class DataTableComponent<T = unknown> {
   }
 
   getCellValue (row: T, column: TableColumn<T>): unknown {
-    return getCellValue(row, column);
+    return DataTableHelper.getCellValue(row, column);
   }
 
   formatCellValue (value: unknown, row: T, column: TableColumn<T>): string {
-    return formatCellValue(value, row, column);
+    return DataTableHelper.formatCellValue(value, row, column);
   }
 
   getBadgeClass (value: unknown, row: T, column: TableColumn<T>): string {
-    return getBadgeClass(value, row, column);
+    return DataTableHelper.getBadgeClass(value, row, column);
   }
 
   getAlignmentClass (column: TableColumn<T>): string {
-    return getAlignmentClass(column);
+    return DataTableHelper.getAlignmentClass(column);
   }
 
   getToggleChecked (column: TableColumn<T>, row: T): boolean {
-    return getToggleChecked(column, row);
+    return DataTableHelper.getToggleChecked(column, row);
   }
 
   getActionConfig (column: TableColumn<T>): ActionIconsConfig {
-    return getActionConfig(column);
+    return DataTableHelper.getActionConfig(column);
   }
 
   onFilterChange (event: Event): void {

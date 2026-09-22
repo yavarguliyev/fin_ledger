@@ -2,10 +2,11 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
-import { LedgerAccount, LedgerEntry } from '../models/ledger.model';
-import { PaginatedResponse } from '../models/base.model';
+import { LedgerAccount } from '../interfaces/ledger/ledger-account.interface';
+import { LedgerEntry } from '../interfaces/ledger/ledger-entry.interface';
+import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../helpers/http-error.helper';
+import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class LedgerService {
@@ -21,13 +22,13 @@ export class LedgerService {
   getTransactionEntries (txId: string): Observable<LedgerEntry[]> {
     return this.http
       .get<LedgerEntry[]>(`${this.apiUrl}/ledgers/transactions/${txId}/entries`)
-      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   getAccount (accountId: string): Observable<LedgerAccount> {
     return this.http.get<LedgerAccount>(`${this.apiUrl}/ledgers/accounts/${accountId}`).pipe(
       tap(account => this.accountSignal.set(account)),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
@@ -38,7 +39,7 @@ export class LedgerService {
       })
       .pipe(
         tap(response => this.entriesSignal.set(response.data)),
-        catchError((error: HttpErrorResponse) => handleHttpError(error))
+        catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
       );
   }
 }

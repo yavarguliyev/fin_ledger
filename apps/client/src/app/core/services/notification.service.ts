@@ -2,9 +2,9 @@ import { Injectable, signal, computed, inject, NgZone } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
-import { AppNotification } from '../models/notification.model';
+import { AppNotification } from '../interfaces/notification/app-notification.interface';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../helpers/http-error.helper';
+import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -27,7 +27,7 @@ export class NotificationService {
   getNotifications (limit = 20): Observable<AppNotification[]> {
     return this.http.get<AppNotification[]>(`${this.apiUrl}`, { params: { limit: limit.toString() } }).pipe(
       tap(notifications => this.notificationsSignal.set(notifications)),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
@@ -45,7 +45,7 @@ export class NotificationService {
         const updated = current.map(n => (n.id === notificationId ? updatedNotification : n));
         this.notificationsSignal.set(updated);
       }),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 

@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 
 import { InfrastructureError } from '../errors/infrastructure.error';
 import { CircuitBreakerOptionsDto } from '../dtos/resilience/circuit-breaker-options.dto';
-import { CIRCUIT_OPEN_CODE } from '../constants/circuit-open-code.constant';
+import { CIRCUIT_OPEN_CODE } from '../constants/errors/circuit-open-code.constant';
 import { RecordFailureDto } from '../dtos/resilience/record-failure.dto';
 
 export class CircuitBreaker {

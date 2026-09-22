@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 
 import { NotificationService } from '../../core/services/notification.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
-import { AppNotification } from '../../core/models/notification.model';
+import { AppNotification } from '../../core/interfaces/notification/app-notification.interface';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { PaginationConfig } from '../../core/models/base.model';
+import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 
 @Component({
   selector: 'app-notifications',

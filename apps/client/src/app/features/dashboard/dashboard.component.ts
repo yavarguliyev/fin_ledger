@@ -5,17 +5,20 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Transaction, WalletTransactionSummary } from '../../core/models/wallet.model';
+import { Transaction } from '../../core/interfaces/wallet/transaction.interface';
+import { WalletTransactionSummary } from '../../core/interfaces/wallet/wallet-transaction-summary.interface';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
-import { getDashboardTableColumns, typeIcon, typeClass, formatType, statusClass } from './dashboard.util';
-import { formatCurrency } from '../../core/helpers/currency.helper';
-import { isStaffRole } from '../../core/helpers/role.helper';
-import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
+import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
+import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
+import { RoleHelper } from '../../core/helpers/auth/role.helper';
+import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
+import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
+import { DashboardHelper } from './helpers/dashboard.helper';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,10 +31,10 @@ export class DashboardComponent implements OnInit {
   private readonly walletService = inject(WalletService);
   private readonly notif = inject(NotificationService);
 
-  readonly typeIcon = typeIcon;
-  readonly typeClass = typeClass;
-  readonly formatType = formatType;
-  readonly statusClass = statusClass;
+  readonly typeIcon = (value: string): string => TransactionHelper.typeIcon(value);
+  readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
+  readonly formatType = (value: string): string => TransactionHelper.formatType(value);
+  readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
 
   readonly loading = signal(true);
   readonly wallet = computed(() => this.walletService.wallet());
@@ -39,14 +42,14 @@ export class DashboardComponent implements OnInit {
   readonly recentTx = signal<Transaction[]>([]);
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
   readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
+  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
 
   readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
     title: 'Recent Activity',
-    columns: getDashboardTableColumns(this.wallet()?.currency ?? 'USD'),
+    columns: DashboardHelper.getDashboardTableColumns(this.wallet()?.currency ?? 'USD'),
     emptyMessage: 'No transactions yet',
     headerAction: { label: 'View all', link: '/wallet' }
   }));
@@ -57,14 +60,14 @@ export class DashboardComponent implements OnInit {
       stats: [
         {
           label: 'Total Deposits',
-          value: formatCurrency(summary.totalDepositsMinor, summary.currency),
+          value: CurrencyHelper.formatCurrency(summary.totalDepositsMinor, summary.currency),
           icon: '📥',
           trend: '+12%',
           toneClass: 'bg-success/10 text-success'
         },
         {
           label: 'Total Withdrawals',
-          value: formatCurrency(summary.totalWithdrawalsMinor, summary.currency),
+          value: CurrencyHelper.formatCurrency(summary.totalWithdrawalsMinor, summary.currency),
           icon: '📤',
           trend: '-4%',
           toneClass: 'bg-danger/10 text-danger'
@@ -72,7 +75,7 @@ export class DashboardComponent implements OnInit {
         { label: 'Bets Placed', value: String(summary.betsCount), icon: '🎯', trend: '+8%', toneClass: 'bg-primary/10 text-primary' },
         {
           label: 'Total Winnings',
-          value: formatCurrency(summary.totalWinningsMinor, summary.currency),
+          value: CurrencyHelper.formatCurrency(summary.totalWinningsMinor, summary.currency),
           icon: '🏆',
           trend: '+22%',
           toneClass: 'bg-warning/10 text-warning'

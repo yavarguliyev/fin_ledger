@@ -2,7 +2,7 @@ import { Inject, Injectable, InternalServerErrorException, OnModuleDestroy, OnMo
 import { DATABASE_CONFIG } from '@common/shared-libs';
 
 import { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
-import { DATABASE_ADAPTER_MAP } from '../../constants/database.constant';
+import { DATABASE_ADAPTER_MAP } from '../../constants/adapter/database.constant';
 import { DatabaseConfig } from '../../interfaces/database-config.interface';
 import { AddConnectionDto } from '../../dtos/service/add-connection.dto';
 import { ConnectionNameDto } from '../../dtos/service/connection-name.dto';
@@ -21,7 +21,6 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   }
 
   getWriteConnection = ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter => this.getConnection({ name });
-  getConnectionNames = (): string[] => Array.from(this.adapters.keys());
 
   getConnection ({ name }: ConnectionNameDto = {}): DatabaseAdapter {
     if (!name && this.defaultAdapter) return this.defaultAdapter;

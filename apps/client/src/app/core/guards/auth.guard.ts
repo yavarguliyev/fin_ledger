@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth.service';
-import { UserRole } from '../models/base.model';
+import { UserRole } from '../types/auth/user-role.type';
 
 export const guestGuard: CanActivateFn = (): boolean => {
   const auth = inject(AuthService);

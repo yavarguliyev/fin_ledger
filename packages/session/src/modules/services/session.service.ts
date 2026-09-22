@@ -6,7 +6,7 @@ import type { StringValue } from 'ms';
 import { CacheProvider } from '@common/redis';
 import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
-import { AUTH_CONSTANTS } from '../constants/auth.constant';
+import { AUTH_CONSTANTS } from '../constants/auth/auth.constant';
 import { SessionHelper } from '../helpers/session.helper';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { SessionData } from '../interfaces/session-data.interface';

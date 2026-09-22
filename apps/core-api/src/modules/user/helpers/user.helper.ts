@@ -1,5 +1,5 @@
 import { UserReferenceDto } from '../dtos/helper/user-reference.dto';
-import { USER_CONSTANTS } from '../constants/user.constant';
+import { USER_CONSTANTS } from '../constants/anonymization/user.constant';
 
 export class UserHelper {
   static isAnonymized ({ user }: UserReferenceDto): boolean {

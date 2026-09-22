@@ -1,6 +1,6 @@
 import { ProviderError, ProviderErrorCategory, StripeLikeError } from '@common/shared-libs';
 
-import { STRIPE_TYPE_CATEGORY } from '../../../constants/stripe-type-category.constant';
+import { STRIPE_TYPE_CATEGORY } from '../../../constants/stripe/stripe-type-category.constant';
 import { ClassifyErrorDto } from '../../../dtos/adapter/classify-error.dto';
 
 export class StripeErrorMapper {

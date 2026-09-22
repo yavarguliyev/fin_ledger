@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap, map } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { GameEvent } from '../models/wallet.model';
+import { GameEvent } from '../interfaces/betting/game-event.interface';
 
 @Injectable({ providedIn: 'root' })
 export class GameEventsService {

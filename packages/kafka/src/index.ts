@@ -14,28 +14,21 @@ export * from './modules/dtos/helper/parse-kafka-headers.dto';
 export * from './modules/dtos/helper/resolve-brokers.dto';
 export * from './modules/dtos/helper/run-compensations.dto';
 export * from './modules/dtos/helper/subscribe-to-topics.dto';
-export * from './modules/dtos/metrics/calculate-total-messages.dto';
-export * from './modules/dtos/metrics/messages-per-second.dto';
-export * from './modules/dtos/metrics/replicated-partitions.dto';
 export * from './modules/dtos/service/kafka-publish.dto';
 export * from './modules/decorators/kafka-publish.decorator';
 export * from './modules/decorators/kafka-subscribe.decorator';
 export * from './modules/decorators/workflow-step.decorator';
-
 
 export * from './modules/helpers/kafka.helper';
 
 export * from './modules/interfaces/consumer-config-payload.interface';
 export * from './modules/interfaces/kafka-config-payload.interface';
 export * from './modules/interfaces/kafka-message-record.interface';
-export * from './modules/interfaces/kafka-metrics-record.interface';
 export * from './modules/interfaces/kafka-subscriber-metadata-record.interface';
-export * from './modules/interfaces/workflow-orchestrator-record.interface';
 export * from './modules/interfaces/workflow-run-record.interface';
 export * from './modules/interfaces/workflow-step.interface';
 
 export * from './modules/services/kafka-consumer.service';
-export * from './modules/services/kafka-metrics.service';
 export * from './modules/services/kafka.service';
 
 export * from './modules/workflow/workflow-orchestrator.service';

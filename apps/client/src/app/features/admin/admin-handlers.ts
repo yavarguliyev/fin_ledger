@@ -1,9 +1,11 @@
 import { Signal } from '@angular/core';
 
-import { AdminUser, DashboardStats } from '../../core/models/admin.model';
+import { AdminUser } from '../../core/interfaces/admin/admin-user.interface';
+import { DashboardStats } from '../../core/interfaces/admin/dashboard-stats.interface';
 import { AdminApiService } from '../../core/services/admin-api.service';
 import { ToastService } from '../../core/services/toast.service';
-import { HttpError, UserRole } from '../../core/models/base.model';
+import { HttpError } from '../../core/interfaces/http/http-error.interface';
+import { UserRole } from '../../core/types/auth/user-role.type';
 
 export class AdminHandlers {
   constructor (

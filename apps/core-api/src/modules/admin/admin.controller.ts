@@ -2,7 +2,7 @@ import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ENVIRONMENT_CONSTANTS, SessionGuard, RolesGuard, Roles, UserRoles } from '@common/libs';
 
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 import { AdminService } from './admin.service';
 import { AdminDashboardDto } from './dtos/dashboard/admin-dashboard.dto';
 

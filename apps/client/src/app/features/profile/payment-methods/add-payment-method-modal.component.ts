@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PaymentMethod, ProviderOption } from '../../../core/models/payment-method.model';
+import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
+import { ProviderOption } from '../../../core/interfaces/payment-method/provider-option.interface';
 
 @Component({
   selector: 'app-add-payment-method-modal',

@@ -25,7 +25,7 @@ import { UserImagesRequestDto, UserImagesRequestSchema } from './dtos/request/us
 import { UserCreateResponseDto } from './dtos/response/user-create-response.dto';
 import { UserUpdateRecordDto } from './dtos/response/user-update-response.dto';
 import { DeleteUserResponseDto } from './dtos/response/delete-user-response.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.USER.key)
 @ApiBearerAuth('bearer')

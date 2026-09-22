@@ -18,7 +18,7 @@ import { CreateSetupSessionRequestDto, CreateSetupSessionRequestSchema } from '.
 import { ConfirmSetupSessionRequestDto, ConfirmSetupSessionRequestSchema } from './dtos/request/confirm-setup-session-request.dto';
 import { ListPaymentMethodsRequestDto, ListPaymentMethodsRequestSchema } from './dtos/request/list-payment-methods-request.dto';
 import { PaymentMethodIdRequestDto, PaymentMethodIdRequestSchema } from './dtos/request/payment-method-id-request.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT_METHOD.key)
 @ApiBearerAuth('bearer')

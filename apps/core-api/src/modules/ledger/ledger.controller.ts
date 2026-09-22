@@ -8,7 +8,7 @@ import { LedgerEntryResponseDto } from './dtos/entry/ledger-entry-response.dto';
 import { GetLedgerAccountDto, GetLedgerAccountSchema } from './dtos/request/get-ledger-account.dto';
 import { GetTransactionEntriesDto, GetTransactionEntriesSchema } from './dtos/request/get-transaction-entries.dto';
 import { ListAccountEntriesRequestDto, ListAccountEntriesRequestSchema } from './dtos/request/list-account-entries-request.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.LEDGER.key)
 @UseGuards(SessionGuard)

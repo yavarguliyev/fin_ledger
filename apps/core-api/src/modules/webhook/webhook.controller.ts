@@ -5,7 +5,7 @@ import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RawBodyRequest } from '@c
 import { WebhookService } from './webhook.service';
 import { HandleWebhookRequestDto, HandleWebhookRequestSchema } from './dtos/request/handle-webhook-request.dto';
 import { ProcessWebhookResponseDto } from './dtos/response/process-webhook-response.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.WEBHOOK.key)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.WEBHOOK, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })

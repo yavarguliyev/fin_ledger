@@ -1,8 +1,9 @@
 import { Injectable, signal, computed } from '@angular/core';
 
-import { uuid } from '../helpers/uuid.helper';
-import { Toast, ConfirmToast } from '../models/style.model';
-import { ToastType } from '../models/base.model';
+import { ConfirmToast } from '../interfaces/ui/confirm-toast.interface';
+import { Toast } from '../interfaces/ui/toast.interface';
+import { ToastType } from '../types/ui/toast-type.type';
+import { UuidHelper } from '../helpers/common/uuid.helper';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -13,7 +14,7 @@ export class ToastService {
   readonly confirmToast = computed(() => this.confirmToastSignal());
 
   show (message: string, type: ToastType = 'info'): void {
-    const id = uuid();
+    const id = UuidHelper.generate();
     this.toastsSignal.update(list => [...list, { id, type, message }]);
     setTimeout(() => this.dismiss(id), 5000);
   }
@@ -43,7 +44,7 @@ export class ToastService {
   }
 
   confirm (message: string, onConfirm: () => void, onCancel?: () => void): void {
-    const id = uuid();
+    const id = UuidHelper.generate();
     this.confirmToastSignal.set({
       id,
       message,

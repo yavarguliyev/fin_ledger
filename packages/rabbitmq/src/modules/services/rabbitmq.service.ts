@@ -6,7 +6,7 @@ import { ClientIds, ServiceClientDto, UnknownRecord, BaseHelper } from '@common/
 import { RabbitmqPublishDto } from '../dtos/service/rabbitmq-publish.dto';
 import { RabbitmqSubscribeDto } from '../dtos/service/rabbitmq-subscribe.dto';
 import { HandleMessageDto } from '../dtos/step/handle-message.dto';
-import { RABBITMQ_CONSTANTS } from '../constants/rabbitmq.constant';
+import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit, OnModuleDestroy {

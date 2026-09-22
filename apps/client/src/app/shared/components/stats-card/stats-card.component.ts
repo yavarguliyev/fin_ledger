@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { StatCard } from '../../../core/models/base.model';
+import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
 
 @Component({
   selector: 'app-stats-card',

@@ -2,12 +2,13 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
-import { Wallet, Transaction, WalletTransactionSummary } from '../models/wallet.model';
-import { PaginatedResponse } from '../models/base.model';
+import { Transaction } from '../interfaces/wallet/transaction.interface';
+import { WalletTransactionSummary } from '../interfaces/wallet/wallet-transaction-summary.interface';
+import { Wallet } from '../interfaces/wallet/wallet.interface';
+import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../helpers/http-error.helper';
-
-const SELECTED_WALLET_KEY = 'selected_wallet_id';
+import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.constant';
+import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
@@ -25,7 +26,7 @@ export class WalletService {
   loadWallets (): Observable<Wallet[]> {
     return this.http.get<Wallet[]>(`${this.apiUrl}/wallets`).pipe(
       tap(wallets => this.walletsSignal.set(wallets)),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
@@ -40,27 +41,27 @@ export class WalletService {
         this.walletsSignal.update(wallets => [...wallets, wallet]);
         this.selectWallet(wallet.id);
       }),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
   getOpenableCurrencies (): Observable<string[]> {
     return this.http
       .get<string[]>(`${this.apiUrl}/wallets/currencies`)
-      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   getWallet (walletId: string): Observable<Wallet> {
     return this.http.get<Wallet>(`${this.apiUrl}/wallets/${walletId}`).pipe(
       tap(fresh => this.walletsSignal.update(wallets => wallets.map(wallet => (wallet.id === fresh.id ? fresh : wallet)))),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
   getSummary (walletId: string): Observable<WalletTransactionSummary[]> {
     return this.http
       .get<WalletTransactionSummary[]>(`${this.apiUrl}/wallet-transactions/${walletId}/summary`)
-      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   getTransactions (walletId: string, page: number, limit: number): Observable<PaginatedResponse<Transaction>> {
@@ -70,7 +71,7 @@ export class WalletService {
       })
       .pipe(
         tap(response => this.transactionsSignal.set(response.data)),
-        catchError((error: HttpErrorResponse) => handleHttpError(error))
+        catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
       );
   }
 

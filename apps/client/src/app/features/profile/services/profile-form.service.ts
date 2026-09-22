@@ -1,8 +1,8 @@
 import { Injectable, signal, inject } from '@angular/core';
 
 import { WalletService } from '../../../core/services/wallet.service';
-import { ShowMoreConfig } from '../../../core/models/base.model';
-import { VisibleImages } from '../../../core/models/auth.model';
+import { ShowMoreConfig } from '../../../core/interfaces/ui/show-more-config.interface';
+import { VisibleImages } from '../../../core/interfaces/auth/visible-images.interface';
 
 @Injectable()
 export class ProfileFormService {

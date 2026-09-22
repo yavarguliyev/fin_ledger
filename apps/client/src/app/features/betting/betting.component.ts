@@ -8,12 +8,13 @@ import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaginationConfig } from '../../core/models/base.model';
+import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
-import { ShowMoreConfig } from '../../core/models/base.model';
-import { Bet, GameEvent } from '../../core/models/wallet.model';
-import { formatCurrency, toMinor } from '../../core/helpers/currency.helper';
-import { createRequiredValidator, createMinValidator } from '../../core/helpers/validators.helper';
+import { ShowMoreConfig } from '../../core/interfaces/ui/show-more-config.interface';
+import { Bet } from '../../core/interfaces/betting/bet.interface';
+import { GameEvent } from '../../core/interfaces/betting/game-event.interface';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 
 @Component({
   selector: 'app-betting',
@@ -40,12 +41,12 @@ export class BettingComponent implements OnInit {
   readonly currency = computed(() => this.bettingService.currency());
 
   readonly form = this.fb.group({
-    stake: this.fb.control<number | null>(null, { validators: [createRequiredValidator(), createMinValidator(1)], nonNullable: false })
+    stake: this.fb.control<number | null>(null, { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)], nonNullable: false })
   });
 
   readonly stakeMinor = computed(() => {
     const value = this.stakeValue();
-    return value && value > 0 ? toMinor(value, this.currency()) : 0;
+    return value && value > 0 ? CurrencyHelper.toMinor(value, this.currency()) : 0;
   });
 
   readonly potentialWin = computed(() => {
@@ -129,7 +130,7 @@ export class BettingComponent implements OnInit {
   }
 
   private announce (bet: Bet): void {
-    if (bet.status === 'WON') return this.toast.success(`Bet won! You collected ${formatCurrency(bet.payoutMinor ?? 0, bet.currency)}.`);
+    if (bet.status === 'WON') return this.toast.success(`Bet won! You collected ${CurrencyHelper.formatCurrency(bet.payoutMinor ?? 0, bet.currency)}.`);
     if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');
 
     return this.toast.success('Bet placed!');

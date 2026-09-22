@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PaymentMethod } from '../../../core/models/payment-method.model';
+import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
 import { AddPaymentMethodModalComponent } from './add-payment-method-modal.component';
-import { getPaymentMethodLabel } from './utils/payment-method.util';
+import { PaymentMethodHelper } from './helpers/payment-method.helper';
 
 @Component({
   selector: 'app-payment-methods',
@@ -27,7 +27,7 @@ export class PaymentMethodsComponent implements OnInit {
   }
 
   getTypeLabel (method: PaymentMethod): string {
-    return getPaymentMethodLabel(method);
+    return PaymentMethodHelper.getPaymentMethodLabel(method);
   }
 
   openAddModal (): void {

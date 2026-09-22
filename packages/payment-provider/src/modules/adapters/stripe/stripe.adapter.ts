@@ -23,7 +23,7 @@ import { SupportsMethodVault } from '../../interfaces/supports-method-vault.inte
 import { SupportsPayout } from '../../interfaces/supports-payout.interface';
 import { SupportsWebhooks } from '../../interfaces/supports-webhooks.interface';
 import { StripeErrorMapper } from './helpers/stripe-error.mapper.helper';
-import { STRIPE_CLIENT_OPTIONS } from '../../constants/stripe-client-options.constant';
+import { STRIPE_CLIENT_OPTIONS } from '../../constants/stripe/stripe-client-options.constant';
 import { StripeAmountHelper } from './helpers/stripe-amount.helper';
 import { StripeWebhookHelper } from './helpers/stripe-webhook.helper';
 import { StripeMethodHelper } from './helpers/stripe-method.helper';

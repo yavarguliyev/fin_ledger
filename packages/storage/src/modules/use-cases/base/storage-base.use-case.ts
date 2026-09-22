@@ -1,5 +1,4 @@
 import { Inject, NotFoundException } from '@nestjs/common';
-import { StorageType } from '@common/shared-libs';
 
 import { BaseStrategy } from '../../strategies/base/base.strategy';
 import { ObjectKeyDto } from '../../dtos/strategy/object-key.dto';
@@ -9,8 +8,6 @@ import { FileSelectionDto } from '../../dtos/service/file-selection.dto';
 import { TargetFilesDto } from '../../dtos/step/target-files.dto';
 
 export abstract class StorageBaseUseCase {
-  protected abstract readonly storageType: StorageType;
-
   @Inject(BaseStrategy)
   protected readonly storageStrategy!: BaseStrategy;
 

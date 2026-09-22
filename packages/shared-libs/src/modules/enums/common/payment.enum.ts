@@ -6,10 +6,10 @@ export enum PaymentMethodStatus {
 }
 
 export enum PaymentMethodType {
+  APPLE_PAY = 'APPLE_PAY',
   BANK_ACCOUNT = 'BANK_ACCOUNT',
   CREDIT_CARD = 'CREDIT_CARD',
   DEBIT_CARD = 'DEBIT_CARD',
-  APPLE_PAY = 'APPLE_PAY',
   GOOGLE_PAY = 'GOOGLE_PAY'
 }
 
@@ -39,11 +39,11 @@ export enum PaymentCapability {
 }
 
 export enum CardBrand {
-  VISA = 'visa',
-  MASTERCARD = 'mastercard',
   AMEX = 'amex',
   DISCOVER = 'discover',
-  UNKNOWN = 'unknown'
+  MASTERCARD = 'mastercard',
+  UNKNOWN = 'unknown',
+  VISA = 'visa'
 }
 
 export enum DigitalWalletType {
@@ -52,21 +52,15 @@ export enum DigitalWalletType {
 }
 
 export enum ProviderChargeStatus {
-  SUCCEEDED = 'succeeded',
-  PENDING = 'pending',
   FAILED = 'failed',
   INDETERMINATE = 'indeterminate',
-  REQUIRES_ACTION = 'requires_action'
-}
-
-export enum WithdrawalReviewStatus {
-  PENDING_REVIEW = 'PENDING_REVIEW',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  PENDING = 'pending',
+  REQUIRES_ACTION = 'requires_action',
+  SUCCEEDED = 'succeeded'
 }
 
 export enum PaymentProvider {
-  STRIPE = 'stripe',
+  ADYEN = 'adyen',
   PAYPAL = 'paypal',
-  ADYEN = 'adyen'
+  STRIPE = 'stripe'
 }

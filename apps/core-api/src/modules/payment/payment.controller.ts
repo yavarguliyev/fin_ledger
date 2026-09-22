@@ -6,7 +6,7 @@ import { PaymentService } from './payment.service';
 import { PaymentDto } from './dtos/payment/payment.dto';
 import { RequestPaymentDto, RequestPaymentSchema } from './dtos/request/request-payment.dto';
 import { PaymentIdRequestDto, PaymentIdRequestSchema } from './dtos/request/payment-id-request.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT.key)
 @UseGuards(SessionGuard, RolesGuard)

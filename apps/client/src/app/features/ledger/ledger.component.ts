@@ -8,12 +8,12 @@ import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { DataTableConfig } from '../../core/models/data-table.model';
-import { PaginationConfig } from '../../core/models/base.model';
-import { LedgerEntry } from '../../core/models/ledger.model';
-import { getLedgerTableColumns } from './ledger.util';
-import { isStaffRole } from '../../core/helpers/role.helper';
-import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
+import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
+import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
+import { LedgerEntry } from '../../core/interfaces/ledger/ledger-entry.interface';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
+import { RoleHelper } from '../../core/helpers/auth/role.helper';
+import { LedgerHelper } from './helpers/ledger.helper';
 
 @Component({
   selector: 'app-ledger',
@@ -30,7 +30,7 @@ export class LedgerComponent implements OnInit {
   readonly account = computed(() => this.ledgerService.account());
   readonly entries = computed(() => this.ledgerService.entries());
   readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
+  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -38,7 +38,7 @@ export class LedgerComponent implements OnInit {
 
   readonly tableConfig = computed<DataTableConfig<LedgerEntry>>(() => ({
     title: 'Entries',
-    columns: getLedgerTableColumns(),
+    columns: LedgerHelper.getLedgerTableColumns(),
     emptyMessage: 'No entries'
   }));
 

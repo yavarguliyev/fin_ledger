@@ -11,11 +11,11 @@ import { ProfileFormService } from './services/profile-form.service';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaymentMethodsComponent } from './payment-methods/payment-methods.component';
-import { ShowMoreConfig } from '../../core/models/base.model';
-import { maskEmail } from '../../core/helpers/mask-email.helper';
-import { DateUtil } from '../../core/helpers/date.helper';
-import { createRequiredValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
-import { watchFormChanges, handleProfileSave } from './helpers/profile-form.helper';
+import { ShowMoreConfig } from '../../core/interfaces/ui/show-more-config.interface';
+import { EmailHelper } from '../../core/helpers/auth/email.helper';
+import { DateHelper } from '../../core/helpers/common/date.helper';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { ProfileFormHelper } from './helpers/profile-form.helper';
 
 @Component({
   selector: 'app-profile',
@@ -42,16 +42,15 @@ export class ProfileComponent implements OnInit {
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
   readonly email = computed(() => this.auth.currentUser()?.email ?? '');
   readonly role = computed(() => this.auth.currentUser()?.role ?? 'USER');
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
   readonly canManagePayments = computed(() => this.auth.currentUser()?.role === 'USER');
-  readonly maskedEmail = computed(() => maskEmail(this.email()));
-  readonly memberSince = computed(() => DateUtil.formatDate(this.createdAt()));
+  readonly maskedEmail = computed(() => EmailHelper.maskEmail(this.email()));
+  readonly memberSince = computed(() => DateHelper.formatDate(this.createdAt()));
   readonly visibleImages = computed(() => this.formService.getVisibleImages(this.imageService.imageUrls()));
   readonly showMoreConfig = computed<ShowMoreConfig>(() => this.formService.getShowMoreConfig(this.imageService.imageUrls().length));
 
   readonly profileForm = this.fb.group({
     displayName: this.fb.nonNullable.control(this.auth.currentUser()?.displayName ?? '', {
-      validators: [createRequiredValidator(), createMinLengthValidator(3)]
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(3)]
     })
   });
 
@@ -86,7 +85,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit (): void {
     this.formService.setInitialValue(this.auth.currentUser()?.displayName ?? '');
     this.formService.loadMemberSince(createdAt => this.createdAt.set(createdAt));
-    watchFormChanges(this.profileForm, this.formService);
+    ProfileFormHelper.watchFormChanges(this.profileForm, this.formService);
 
     this.imageService.loadImageUrls();
     this.formService.resetImagesPage();
@@ -98,7 +97,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    const updateData = handleProfileSave(this.profileForm);
+    const updateData = ProfileFormHelper.handleProfileSave(this.profileForm);
     if (!updateData) return;
 
     this.isSaving.set(true);

@@ -3,12 +3,17 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, tap } from 'rxjs';
 
-import { AuthResponse, AuthUser, LoginRequest, RegisterDto, SessionData, UpdateProfileResponse } from '../models/auth.model';
+import { AuthResponse } from '../interfaces/auth/auth-response.interface';
+import { AuthUser } from '../interfaces/auth/auth-user.interface';
+import { LoginRequest } from '../interfaces/auth/login-request.interface';
+import { RegisterDto } from '../interfaces/auth/register-dto.interface';
+import { SessionData } from '../interfaces/auth/session-data.interface';
+import { UpdateProfileResponse } from '../interfaces/auth/update-profile-response.interface';
 import { ThemeService } from './theme.service';
 import { NotificationService } from './notification.service';
 import { WalletService } from './wallet.service';
 import { environment } from '../../../environments/environment';
-import { handleHttpError } from '../helpers/http-error.helper';
+import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -32,25 +37,25 @@ export class AuthService {
   }
 
   register (dto: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   requestPasswordReset (email: string): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email })
-      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   resetPassword (token: string, password: string): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, { token, password })
-      .pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   verifyEmail (token: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, { token, password }).pipe(
       tap(response => this.persist(response)),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
@@ -77,7 +82,7 @@ export class AuthService {
         if (rememberMe) localStorage.setItem('remembered_email', email);
         else localStorage.removeItem('remembered_email');
       }),
-      catchError((error: HttpErrorResponse) => handleHttpError(error))
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 

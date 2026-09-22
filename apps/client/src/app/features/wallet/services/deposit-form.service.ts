@@ -1,9 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
-import { PaymentMethod } from '../../../core/models/payment-method.model';
-import { PaymentRequest } from '../../../core/models/wallet.model';
-import { uuid } from '../../../core/helpers/uuid.helper';
+import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
+import { PaymentRequest } from '../../../core/interfaces/wallet/payment-request.interface';
+import { UuidHelper } from '../../../core/helpers/common/uuid.helper';
 
 @Injectable()
 export class DepositFormService {
@@ -60,7 +60,7 @@ export class DepositFormService {
       amountMinor,
       currency,
       paymentMethodId: this.selectedMethodId() ?? undefined,
-      idempotencyKey: uuid(),
+      idempotencyKey: UuidHelper.generate(),
       metadata: {
         destination: method?.type ?? 'bank_account',
         maskedAccount: method?.maskedAccount ?? '',

@@ -1,7 +1,7 @@
 import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ShowMoreConfig } from '../../../core/models/base.model';
+import { ShowMoreConfig } from '../../../core/interfaces/ui/show-more-config.interface';
 
 @Component({
   selector: 'app-show-more',

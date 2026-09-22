@@ -5,7 +5,7 @@ import { BuildAuditEventDto } from '../dtos/audit/build-audit-event.dto';
 import { ResolveEntityIdDto } from '../dtos/audit/resolve-entity-id.dto';
 import { AuditRequestRefDto } from '../dtos/audit/audit-request-ref.dto';
 import { RedactDto } from '../dtos/audit/redact.dto';
-import { AUDIT_REDACTED_KEYS } from '../constants/audit-redacted-keys.constant';
+import { AUDIT_REDACTED_KEYS } from '../constants/audit/audit-redacted-keys.constant';
 import { UnknownRecord } from '../types/base.type';
 
 export class AuditHelper {

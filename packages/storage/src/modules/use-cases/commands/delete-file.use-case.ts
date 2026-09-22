@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { StorageType } from '@common/shared-libs';
 
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import { DeleteResult } from '../../interfaces/delete-result.interface';
@@ -8,8 +7,6 @@ import { FileSelectionDto } from '../../dtos/service/file-selection.dto';
 
 @Injectable()
 export class DeleteFileUseCase extends StorageBaseUseCase {
-  protected readonly storageType: StorageType = StorageType.DELETE;
-
   async execute (dto: ObjectKeyDto): Promise<DeleteResult> {
     await this.ensureExists(dto);
     await this.storageStrategy.delete(dto);

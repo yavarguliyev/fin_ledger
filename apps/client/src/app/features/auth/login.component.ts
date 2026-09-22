@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { createRequiredValidator, createEmailValidator, createMinLengthValidator } from '../../core/helpers/validators.helper';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 
 @Component({
   selector: 'app-login',
@@ -24,8 +24,8 @@ export class LoginComponent implements OnInit {
   readonly showPassword = signal(false);
 
   readonly form = this.fb.group({
-    email: this.fb.control('', { validators: [createRequiredValidator(), createEmailValidator()], nonNullable: false }),
-    password: this.fb.control('', { validators: [createRequiredValidator(), createMinLengthValidator(6)], nonNullable: false }),
+    email: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()], nonNullable: false }),
+    password: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)], nonNullable: false }),
     remember: this.fb.control(false, { nonNullable: false })
   });
 

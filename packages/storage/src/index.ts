@@ -17,7 +17,6 @@ export * from './modules/helpers/storage.helper';
 
 export * from './modules/interfaces/delete-result.interface';
 export * from './modules/interfaces/file-url-response.interface';
-export * from './modules/interfaces/file-url-result.interface';
 export * from './modules/interfaces/file-url-results.interface';
 export * from './modules/interfaces/file-urls-response.interface';
 export * from './modules/interfaces/storage-module-options.interface';

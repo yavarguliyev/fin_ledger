@@ -3,18 +3,16 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, map, catchError } from 'rxjs';
 
 import { UserService } from './user.service';
-import {
-  AdminDashboard,
-  BackendAdminDashboard,
-  BackendUserWithWallet,
-  CreateUserDto,
-  CreateUserResponse,
-  UserWithWallet
-} from '../models/admin.model';
-import { DeleteUserResponse } from '../models/admin.model';
-import { WalletStatus } from '../models/base.model';
-import { handleHttpError } from '../helpers/http-error.helper';
+import { AdminDashboard } from '../interfaces/admin/admin-dashboard.interface';
+import { BackendAdminDashboard } from '../interfaces/admin/backend-admin-dashboard.interface';
+import { BackendUserWithWallet } from '../interfaces/admin/backend-user-with-wallet.interface';
+import { CreateUserDto } from '../interfaces/admin/create-user-dto.interface';
+import { CreateUserResponse } from '../interfaces/admin/create-user-response.interface';
+import { UserWithWallet } from '../interfaces/admin/user-with-wallet.interface';
+import { DeleteUserResponse } from '../interfaces/admin/delete-user-response.interface';
+import { WalletStatus } from '../types/wallet/wallet-status.type';
 import { environment } from '../../../environments/environment';
+import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({
   providedIn: 'root'
@@ -26,7 +24,7 @@ export class AdminApiService {
   private readonly apiUrl = `${environment.apiUrl}/users`;
 
   createUser (dto: CreateUserDto): Observable<CreateUserResponse> {
-    return this.http.post<CreateUserResponse>(this.apiUrl, dto).pipe(catchError((error: HttpErrorResponse) => handleHttpError(error)));
+    return this.http.post<CreateUserResponse>(this.apiUrl, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
   updateWalletStatus (walletId: string, status: WalletStatus): Observable<unknown> {

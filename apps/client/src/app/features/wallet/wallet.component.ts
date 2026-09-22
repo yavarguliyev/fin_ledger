@@ -4,19 +4,21 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
-import { Wallet, Transaction } from '../../core/models/wallet.model';
+import { Transaction } from '../../core/interfaces/wallet/transaction.interface';
+import { Wallet } from '../../core/interfaces/wallet/wallet.interface';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { DataTableConfig, TableColumn } from '../../core/models/data-table.model';
-import { PaginationConfig } from '../../core/models/base.model';
-import { DateUtil } from '../../core/helpers/date.helper';
-import { typeIcon, typeClass, formatType, statusClass } from '../../core/helpers/transaction.helper';
-import { getWalletTableColumns, exportTransactionsToCsv, getTransactionFilterOptions } from './wallet.util';
-import { isStaffRole } from '../../core/helpers/role.helper';
-import { ALL_RECORDS_SCOPE } from '../../core/constants/app.constants';
+import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
+import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
+import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
+import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { WalletSwitcherComponent } from './wallet-switcher.component';
+import { RoleHelper } from '../../core/helpers/auth/role.helper';
+import { DateHelper } from '../../core/helpers/common/date.helper';
+import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
+import { WalletHelper } from './helpers/wallet.helper';
 
 @Component({
   selector: 'app-wallet',
@@ -32,7 +34,7 @@ export class WalletComponent implements OnInit {
   readonly wallet = computed(() => this.walletService.wallet());
   readonly allTx = signal<Transaction[]>([]);
   readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => isStaffRole(this.auth.currentUser()?.role));
+  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -46,17 +48,16 @@ export class WalletComponent implements OnInit {
     return transactions.filter(tx => tx.type === filter);
   });
 
-  readonly DateUtil = DateUtil;
-  readonly typeIcon = typeIcon;
-  readonly typeClass = typeClass;
-  readonly formatType = formatType;
-  readonly statusClass = statusClass;
+  readonly typeIcon = (value: string): string => TransactionHelper.typeIcon(value);
+  readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
+  readonly formatType = (value: string): string => TransactionHelper.formatType(value);
+  readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
 
   readonly total = computed(() => (this.wallet() ? this.wallet()!.availableBalanceMinor + this.wallet()!.reservedBalanceMinor : 0));
-  readonly lastUpdated = computed(() => (this.wallet() ? DateUtil.formatRelative(this.wallet()!.updatedAt) : '—'));
+  readonly lastUpdated = computed(() => (this.wallet() ? DateHelper.formatRelative(this.wallet()!.updatedAt) : '—'));
 
   readonly paginationConfig = computed<PaginationConfig>(() => ({
     currentPage: this.currentPage(),
@@ -67,9 +68,9 @@ export class WalletComponent implements OnInit {
 
   readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
     title: 'Transaction History',
-    columns: getWalletTableColumns(),
+    columns: WalletHelper.getWalletTableColumns(),
     showFilters: true,
-    filterOptions: getTransactionFilterOptions(),
+    filterOptions: WalletHelper.getTransactionFilterOptions(),
     showExport: true,
     exportLabel: 'Export CSV',
     emptyMessage: 'No transactions'
@@ -80,7 +81,7 @@ export class WalletComponent implements OnInit {
   }
 
   onExportClick (): void {
-    exportTransactionsToCsv(this.allTx());
+    WalletHelper.exportTransactionsToCsv(this.allTx());
   }
 
   onFilterChange (filterValue: string): void {

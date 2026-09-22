@@ -4,13 +4,13 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 
 import { WalletService } from '../../core/services/wallet.service';
-import { fromMinor, toMinor } from '../../core/helpers/currency.helper';
 import { PaymentService } from '../../core/services/payment.service';
 import { ToastService } from '../../core/services/toast.service';
 import { DepositFormService } from './services/deposit-form.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { createMaxValidator, createMinValidator, createRequiredValidator } from '../../core/helpers/validators.helper';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 
 @Component({
   selector: 'app-deposit',
@@ -32,15 +32,15 @@ export class DepositComponent implements OnInit {
   readonly success = signal(false);
 
   readonly termsControl = this.fb.nonNullable.control(false);
-  readonly amountMinor = computed(() => toMinor(this.amountControl.value, this.currency()));
+  readonly amountMinor = computed(() => CurrencyHelper.toMinor(this.amountControl.value, this.currency()));
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
 
   readonly amountControl = this.fb.nonNullable.control(0, {
-    validators: [createRequiredValidator(), createMinValidator(1), createMaxValidator(10000)]
+    validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1), ValidatorsHelper.createMaxValidator(10000)]
   });
 
   setAmount (minor: number): void {
-    this.amountControl.setValue(fromMinor(minor, this.currency()));
+    this.amountControl.setValue(CurrencyHelper.fromMinor(minor, this.currency()));
   }
 
   ngOnInit (): void {

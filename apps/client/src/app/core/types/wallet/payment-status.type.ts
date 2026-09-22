@@ -1,0 +1,1 @@
+export type PaymentStatus = 'CANCELLED' | 'COMPENSATED' | 'COMPLETED' | 'FAILED' | 'PENDING' | 'PROCESSING' | 'REQUIRES_ACTION';

@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { UserRoles } from '@common/shared-libs';
 
-import { ROLES_KEY } from '../constants/roles-key.constant';
+import { ROLES_KEY } from '../constants/auth/roles-key.constant';
 import { RequestContext } from '../interfaces/request-context.interface';
 
 @Injectable()

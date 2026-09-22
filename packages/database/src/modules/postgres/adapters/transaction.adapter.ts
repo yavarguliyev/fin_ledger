@@ -17,8 +17,6 @@ export class TransactionAdapter extends CommonAdapter implements DatabaseAdapter
     this.client = client;
   }
 
-  isConnected = (): boolean => true;
-
   async connect (): Promise<void> {}
   async disconnect (): Promise<void> {}
 

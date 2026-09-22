@@ -5,7 +5,7 @@ import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, ParamsQueryAndHeaders, Rol
 import { AuditService } from './audit.service';
 import { AuditLogDto } from './dtos/audit/audit-log.dto';
 import { ListAuditLogsDto, ListAuditLogsSchema } from './dtos/request/list-audit-logs.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.AUDIT_LOG.key)
 @UseGuards(SessionGuard, RolesGuard)

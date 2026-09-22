@@ -1,7 +1,7 @@
 import type { ProviderErrorInputDto } from '../dtos/errors/provider-error.dto';
 import type { ProviderErrorCategoryRefDto } from '../dtos/errors/provider-error-category.dto';
 import { ProviderErrorCategory } from '../enums/common/provider-error-category.enum';
-import { CATEGORY_TRAITS } from '../constants/category-traits.constant';
+import { CATEGORY_TRAITS } from '../constants/errors/category-traits.constant';
 
 export class ProviderError extends Error {
   readonly category: ProviderErrorCategory;

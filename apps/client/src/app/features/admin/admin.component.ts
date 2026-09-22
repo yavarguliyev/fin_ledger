@@ -7,14 +7,19 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { UserDetailModalComponent } from './user-detail-modal.component';
 import { CreateUserModalComponent } from './create-user-modal.component';
-import { DataTableConfig } from '../../core/models/data-table.model';
-import { StatCard, PaginationConfig, HttpError } from '../../core/models/base.model';
-import { AdminUser, CreateUserResponse, DashboardStats, UserData } from '../../core/models/admin.model';
+import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
+import { HttpError } from '../../core/interfaces/http/http-error.interface';
+import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
+import { StatCard } from '../../core/interfaces/ui/stat-card.interface';
+import { AdminUser } from '../../core/interfaces/admin/admin-user.interface';
+import { CreateUserResponse } from '../../core/interfaces/admin/create-user-response.interface';
+import { DashboardStats } from '../../core/interfaces/admin/dashboard-stats.interface';
+import { UserData } from '../../core/interfaces/admin/user-data.interface';
 import { AdminApiService } from '../../core/services/admin-api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { getAdminTableColumns, formatCurrencyCompact } from './admin.util';
 import { AdminHandlers } from './admin-handlers';
+import { AdminHelper } from './helpers/admin.helper';
 
 @Component({
   selector: 'app-admin',
@@ -44,7 +49,6 @@ export class AdminComponent implements OnInit {
   readonly createUserModalComponent = viewChild(CreateUserModalComponent);
 
   readonly isGlobalAdmin = computed(() => this.authService.currentUser()?.role === 'GLOBAL_ADMIN');
-
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
   readonly totalItems = computed(() => this.allUsers().length);
@@ -69,7 +73,7 @@ export class AdminComponent implements OnInit {
     return definitions.map(({ label, icon, value }) => ({
       label,
       icon,
-      value: value == null ? (label === 'Total Volume' ? '$0' : '0') : label === 'Total Volume' ? formatCurrencyCompact(value) : String(value)
+      value: value == null ? (label === 'Total Volume' ? '$0' : '0') : label === 'Total Volume' ? AdminHelper.formatCurrencyCompact(value) : String(value)
     }));
   });
 
@@ -80,7 +84,7 @@ export class AdminComponent implements OnInit {
     emptyMessage: 'No users',
     showCreateButton: this.isGlobalAdmin(),
     onCreateClick: this.openCreateModal.bind(this),
-    columns: getAdminTableColumns(
+    columns: AdminHelper.getAdminTableColumns(
       this.handlers.onStatusToggle.bind(this.handlers),
       this.handlers.onEmailVerificationToggle.bind(this.handlers),
       this.handlers.onDeletedToggle.bind(this.handlers),

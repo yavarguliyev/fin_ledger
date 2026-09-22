@@ -13,7 +13,7 @@ import { AuthResponseDto } from './dtos/response/auth-response.dto';
 import { ForgotPasswordResponseDto } from './dtos/response/forgot-password-response.dto';
 import { ResetPasswordResponseDto } from './dtos/response/reset-password-response.dto';
 import { SessionResponseDto } from './dtos/response/session-response.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.AUTH.key)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.AUTH, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })

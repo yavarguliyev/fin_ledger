@@ -17,7 +17,7 @@ import { BetDto } from './dtos/bet/bet.dto';
 import { PlaceBetRequestDto, PlaceBetRequestSchema } from './dtos/request/place-bet-request.dto';
 import { ListBetsRequestDto, ListBetsRequestSchema } from './dtos/request/list-bets-request.dto';
 import { SettleBetDto, SettleBetSchema } from './dtos/request/settle-bet.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.BET.key)
 @UseGuards(SessionGuard, RolesGuard)

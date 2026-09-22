@@ -5,7 +5,7 @@ import { UserIdRequestDto } from '../../dtos/request/user-id-request.dto';
 import { DeleteUserResponseDto } from '../../dtos/response/delete-user-response.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
 import { UserHelper } from '../../helpers/user.helper';
-import { USER_CONSTANTS } from '../../constants/user.constant';
+import { USER_CONSTANTS } from '../../constants/anonymization/user.constant';
 
 @Injectable()
 export class AnonymizeUserUseCase extends UserBaseCase<UserIdRequestDto, DeleteUserResponseDto> {

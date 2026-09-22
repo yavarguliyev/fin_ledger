@@ -5,7 +5,7 @@ import { AuthService } from '../core/services/auth.service';
 import { ThemeService } from '../core/services/theme.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ProfileImageService } from '../core/services/profile-image.service';
-import { NavItem } from '../core/models/style.model';
+import { NavItem } from '../core/interfaces/ui/nav-item.interface';
 
 @Component({
   selector: 'app-shell',

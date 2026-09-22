@@ -4,7 +4,7 @@ import { BaseHelper, RABBITMQ_SERVICE } from '@common/shared-libs';
 
 import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
-import { RABBITMQ_CONSTANTS } from '../constants/rabbitmq.constant';
+import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
 
 @Injectable()
 export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleDestroy {

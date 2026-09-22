@@ -1,19 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import {
-  createRequiredValidator,
-  createEmailValidator,
-  createMinLengthValidator,
-  createMaxLengthValidator,
-  createPatternValidator,
-  createRequiredTrueValidator
-} from '../../core/helpers/validators.helper';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
-import { matchPassword } from '../../core/helpers/password.helper';
+import { PasswordHelper } from '../../core/helpers/forms/password.helper';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 
 @Component({
   selector: 'app-register',
@@ -35,18 +28,18 @@ export class RegisterComponent {
   readonly form = this.fb.group(
     {
       displayName: this.fb.control('', {
-        validators: [createRequiredValidator(), createMinLengthValidator(3), createMaxLengthValidator(50)],
+        validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(3), ValidatorsHelper.createMaxLengthValidator(50)],
         nonNullable: false
       }),
-      email: this.fb.control('', { validators: [createRequiredValidator(), createEmailValidator()], nonNullable: false }),
+      email: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()], nonNullable: false }),
       password: this.fb.control('', {
-        validators: [createRequiredValidator(), createMinLengthValidator(8), createPatternValidator(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)],
+        validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(8), ValidatorsHelper.createPatternValidator(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)],
         nonNullable: false
       }),
-      confirmPassword: this.fb.control('', { validators: [createRequiredValidator()], nonNullable: false }),
-      terms: this.fb.control(false, { validators: [createRequiredTrueValidator()], nonNullable: false })
+      confirmPassword: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator()], nonNullable: false }),
+      terms: this.fb.control(false, { validators: [ValidatorsHelper.createRequiredTrueValidator()], nonNullable: false })
     },
-    { validators: matchPassword }
+    { validators: (control: AbstractControl): ValidationErrors | null => PasswordHelper.matchPassword(control) }
   );
 
   get displayNameControl (): FormControl<string | null> {

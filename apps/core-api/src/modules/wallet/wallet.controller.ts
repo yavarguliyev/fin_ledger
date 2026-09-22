@@ -8,7 +8,7 @@ import { OpenWalletRequestDto, OpenWalletRequestSchema } from './dtos/request/op
 import { WalletIdRequestDto, WalletIdRequestSchema } from './dtos/request/wallet-id-request.dto';
 import { UpdateWalletStatusDto, UpdateWalletStatusSchema } from './dtos/request/update-wallet-status.dto';
 import { WalletAccessGuard } from './guards/wallet-access.guard';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.WALLET.key)
 @UseGuards(SessionGuard, RolesGuard)

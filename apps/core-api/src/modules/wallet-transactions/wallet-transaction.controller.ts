@@ -11,7 +11,7 @@ import {
   Roles
 } from '@common/libs';
 
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 import { WalletTransactionRecordDto } from './dtos/transaction/wallet-transaction-record.dto';
 import { WalletTransactionSummaryDto } from './dtos/summary/wallet-transaction-summary.dto';
 import { WalletTransactionService } from './wallet-transaction.service';

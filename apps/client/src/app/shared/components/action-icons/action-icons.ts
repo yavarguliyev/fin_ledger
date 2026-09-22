@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { ActionIconsConfig } from '../../../core/models/data-table.model';
+import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-config.interface';
 
 @Component({
   selector: 'app-action-icons',

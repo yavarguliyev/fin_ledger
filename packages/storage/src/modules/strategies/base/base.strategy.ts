@@ -9,5 +9,4 @@ export abstract class BaseStrategy {
   abstract delete(dto: ObjectKeyDto): Promise<void>;
   abstract exists(dto: ObjectKeyDto): Promise<boolean>;
   abstract listByPrefix(dto: ObjectPrefixDto): Promise<string[]>;
-  abstract getTotalUsage(): Promise<number>;
 }

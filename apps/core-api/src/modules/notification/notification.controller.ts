@@ -7,7 +7,7 @@ import { NotificationService } from './notification.service';
 import { NotificationDto } from './dtos/notification/notification.dto';
 import { ListNotificationsRequestDto, ListNotificationsRequestSchema } from './dtos/request/list-notifications-request.dto';
 import { MarkNotificationReadRequestDto, MarkNotificationReadRequestSchema } from './dtos/request/mark-notification-read-request.dto';
-import { SHARED_CONSTANTS } from '../../shared/constants/shared.constant';
+import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.NOTIFICATION.key)
 @UseGuards(SessionGuard)

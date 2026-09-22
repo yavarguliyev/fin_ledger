@@ -5,7 +5,7 @@ import { ForceExitDto } from '../dtos/lifecycle/force-exit.dto';
 import { GracefulShutdownDto } from '../dtos/lifecycle/graceful-shutdown.dto';
 import { RunShutdownDto } from '../dtos/lifecycle/run-shutdown.dto';
 import { ShutdownContextDto } from '../dtos/lifecycle/shutdown-context.dto';
-import { SHUTDOWN_DEFAULTS } from '../constants/shutdown-defaults.constant';
+import { SHUTDOWN_DEFAULTS } from '../constants/app/shutdown-defaults.constant';
 import { ErrorResponseInputDto } from '../dtos/helper/error-response-input.dto';
 
 export class GracefulShutdown {

@@ -1,8 +1,8 @@
 import { PaymentCapability, ProviderChargeStatus } from '@common/shared-libs';
 
 import { ProviderContractOptionsDto } from '../modules/dtos/testing/provider-contract-options.dto';
-import { CHARGE_INPUT } from '../modules/constants/charge-input.constant';
-import { REQUIRED_METHODS } from '../modules/constants/required-methods.constant';
+import { CHARGE_INPUT } from '../modules/constants/testing/charge-input.constant';
+import { REQUIRED_METHODS } from '../modules/constants/testing/required-methods.constant';
 
 const describeCapabilities = ({ create, expectedCapabilities }: ProviderContractOptionsDto): void => {
   it('declares a provider name and at least one capability', () => {

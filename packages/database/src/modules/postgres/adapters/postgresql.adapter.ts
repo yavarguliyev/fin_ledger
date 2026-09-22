@@ -24,8 +24,6 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
     this.config = config;
   }
 
-  isConnected = (): boolean => this.pool !== null;
-
   async onModuleDestroy (): Promise<void> {
     await this.disconnect();
   }

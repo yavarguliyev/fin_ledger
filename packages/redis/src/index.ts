@@ -16,17 +16,13 @@ export * from './modules/dtos/provider/serialize.dto';
 export * from './modules/decorators/cache-evict.decorator';
 export * from './modules/decorators/cacheable.decorator';
 
-
 export * from './modules/helpers/cache.helper';
 
-export * from './modules/interfaces/cache-entry.interface';
 export * from './modules/interfaces/cache-provider.interface';
 export * from './modules/interfaces/get-cached-key.interface';
 export * from './modules/interfaces/redis-cache-config.interface';
 export * from './modules/interfaces/redis-sentinel-config.interface';
 
-export * from './modules/services/in-memory-cache-provider.class';
 export * from './modules/services/redis-cache-provider.class';
-export * from './modules/services/redis.service';
 
 export * from './modules/redis.module';

@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import * as bcrypt from 'bcryptjs';
 
 import { SessionData } from '../interfaces/session-data.interface';
-import { ARGON2_OPTIONS } from '../constants/argon2-options.constant';
+import { ARGON2_OPTIONS } from '../constants/password/argon2-options.constant';
 import { HashDto } from '../dtos/helper/hash.dto';
 import { CompareDto } from '../dtos/helper/compare.dto';
 import { PasswordHashDto } from '../dtos/helper/password-hash.dto';

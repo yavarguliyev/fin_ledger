@@ -1,7 +1,7 @@
 import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-import { PaginationConfig } from '../../../core/models/base.model';
+import { PaginationConfig } from '../../../core/interfaces/ui/pagination-config.interface';
 
 @Component({
   selector: 'app-pagination',

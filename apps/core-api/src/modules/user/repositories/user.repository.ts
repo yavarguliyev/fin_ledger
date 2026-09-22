@@ -7,7 +7,7 @@ import { UpdateUserRecordDto } from '../dtos/repository/update-user-record.dto';
 import { UserIdRequestDto } from '../dtos/request/user-id-request.dto';
 import { AnonymizeUserRecordDto } from '../dtos/repository/anonymize-user-record.dto';
 import { AnonymizationBlockersDto, AnonymizationBlockersSchema } from '../dtos/repository/anonymization-blockers.dto';
-import { USER_CONSTANTS } from '../constants/user.constant';
+import { USER_CONSTANTS } from '../constants/anonymization/user.constant';
 
 @Injectable()
 export class UserRepository extends BaseExtendedRepository<UserDto> {

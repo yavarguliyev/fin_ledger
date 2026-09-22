@@ -5,15 +5,15 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 
 import { WalletService } from '../../core/services/wallet.service';
-import { fromMinor, toMinor } from '../../core/helpers/currency.helper';
 import { PaymentService } from '../../core/services/payment.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaymentMethod } from '../../core/models/payment-method.model';
-import { uuid } from '../../core/helpers/uuid.helper';
-import { createRequiredValidator, createMinValidator, createMaxValidator, createRequiredTrueValidator } from '../../core/helpers/validators.helper';
+import { PaymentMethod } from '../../core/interfaces/payment-method/payment-method.interface';
+import { UuidHelper } from '../../core/helpers/common/uuid.helper';
+import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 
 @Component({
   selector: 'app-withdraw',
@@ -38,16 +38,16 @@ export class WithdrawComponent implements OnInit {
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
 
   readonly form = this.fb.group({
-    amount: this.fb.control<number | null>(null, { validators: [createRequiredValidator(), createMinValidator(1)] }),
-    paymentMethodId: this.fb.control<string>('', { validators: [createRequiredValidator()] }),
-    terms: this.fb.control<boolean>(false, { validators: [createRequiredTrueValidator()] })
+    amount: this.fb.control<number | null>(null, { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)] }),
+    paymentMethodId: this.fb.control<string>('', { validators: [ValidatorsHelper.createRequiredValidator()] }),
+    terms: this.fb.control<boolean>(false, { validators: [ValidatorsHelper.createRequiredTrueValidator()] })
   });
 
   private readonly formValues = toSignal(this.form.valueChanges, { initialValue: this.form.value });
   private readonly formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
 
   readonly isValid = computed(() => this.formStatus() === 'VALID');
-  readonly amountMinor = computed(() => toMinor(this.formValues().amount ?? 0, this.currency()));
+  readonly amountMinor = computed(() => CurrencyHelper.toMinor(this.formValues().amount ?? 0, this.currency()));
 
   get amountControl (): typeof this.form.controls.amount {
     return this.form.controls.amount;
@@ -81,7 +81,7 @@ export class WithdrawComponent implements OnInit {
         amountMinor: this.amountMinor(),
         currency: this.currency(),
         paymentMethodId: this.form.controls.paymentMethodId.value ?? undefined,
-        idempotencyKey: uuid(),
+        idempotencyKey: UuidHelper.generate(),
         metadata: { destination: selectedMethod?.type ?? 'bank_account', maskedAccount: selectedMethod?.maskedAccount ?? '' }
       })
       .subscribe({
@@ -102,8 +102,8 @@ export class WithdrawComponent implements OnInit {
       const wallet = this.walletService.wallet();
       if (!wallet) return;
 
-      const maxAmount = fromMinor(wallet.availableBalanceMinor, wallet.currency);
-      this.amountControl.setValidators([createRequiredValidator(), createMinValidator(1), createMaxValidator(maxAmount)]);
+      const maxAmount = CurrencyHelper.fromMinor(wallet.availableBalanceMinor, wallet.currency);
+      this.amountControl.setValidators([ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1), ValidatorsHelper.createMaxValidator(maxAmount)]);
       this.amountControl.updateValueAndValidity();
     });
   }

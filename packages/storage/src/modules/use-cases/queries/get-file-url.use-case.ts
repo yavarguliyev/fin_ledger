@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { StorageType } from '@common/shared-libs';
 
 import { StorageBaseUseCase } from '../base/storage-base.use-case';
 import { FileUrlResponse } from '../../interfaces/file-url-response.interface';
@@ -14,8 +13,6 @@ const DEFAULT_EXPIRES_IN = 3600;
 
 @Injectable()
 export class GetFileUrlUseCase extends StorageBaseUseCase {
-  protected readonly storageType: StorageType = StorageType.GET;
-
   async execute ({ key, expiresIn = DEFAULT_EXPIRES_IN }: DownloadUrlDto): Promise<FileUrlResponse> {
     await this.ensureExists({ key });
     const url = await this.storageStrategy.getDownloadUrl({ key, expiresIn });

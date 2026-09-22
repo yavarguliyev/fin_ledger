@@ -50,5 +50,3 @@ export const shorthands = {
 
   idempotency_key: { type: 'varchar(255)', notNull: true }
 };
-
-export default shorthands;

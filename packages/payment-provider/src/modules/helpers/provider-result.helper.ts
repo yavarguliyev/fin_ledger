@@ -9,7 +9,7 @@ import { FailedMethodDto } from '../dtos/adapter/failed-method.dto';
 import { FailedOperationDto } from '../dtos/adapter/failed-operation.dto';
 import { MapVerifiedMethodDto } from '../dtos/adapter/map-verified-method.dto';
 import { SimulatedChargeDto } from '../dtos/adapter/simulated-charge.dto';
-import { BRAND_MAP } from '../constants/brand-map.constant';
+import { BRAND_MAP } from '../constants/card/brand-map.constant';
 
 export class ProviderResultHelper {
   static normalizeBrand ({ brand }: NormalizeBrandDto): CardBrand {

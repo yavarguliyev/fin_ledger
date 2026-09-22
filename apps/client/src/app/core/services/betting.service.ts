@@ -4,9 +4,12 @@ import { Observable, tap } from 'rxjs';
 import { BetService } from './bet.service';
 import { WalletService } from './wallet.service';
 import { GameEventsService } from './game-events.service';
-import { Bet, GameEvent, BetRequest, Wallet } from '../models/wallet.model';
-import { PaginatedResponse } from '../models/base.model';
-import { uuid } from '../helpers/uuid.helper';
+import { BetRequest } from '../interfaces/betting/bet-request.interface';
+import { Bet } from '../interfaces/betting/bet.interface';
+import { GameEvent } from '../interfaces/betting/game-event.interface';
+import { Wallet } from '../interfaces/wallet/wallet.interface';
+import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
+import { UuidHelper } from '../helpers/common/uuid.helper';
 
 @Injectable({ providedIn: 'root' })
 export class BettingService {
@@ -44,7 +47,7 @@ export class BettingService {
     const walletId = this.walletService.wallet()?.id;
     if (!walletId) throw new Error('Wallet not found');
 
-    const request: BetRequest = { walletId, eventId: event.id, selection: event.label, stakeMinor, idempotencyKey: uuid() };
+    const request: BetRequest = { walletId, eventId: event.id, selection: event.label, stakeMinor, idempotencyKey: UuidHelper.generate() };
     return this.betService.placeBet(request).pipe(tap(() => this.walletService.getWallet(walletId).subscribe()));
   }
 }

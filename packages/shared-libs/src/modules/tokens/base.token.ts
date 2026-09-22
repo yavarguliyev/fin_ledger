@@ -1,5 +1,4 @@
 export const AUDITED_METADATA = Symbol('AUDITED_METADATA');
-export const CACHE_PROVIDER = Symbol('CACHE_PROVIDER');
 export const DATABASE_CONFIG = Symbol('DATABASE_CONFIG');
 export const EMAIL_SERVICE = Symbol('EMAIL_SERVICE');
 export const KAFKA_CLIENT_ID = Symbol('KAFKA_CLIENT_ID');
@@ -11,5 +10,4 @@ export const RABBITMQ_SERVICE = Symbol('RABBITMQ_SERVICE');
 export const REDIS_CACHE_PROVIDER = Symbol('REDIS_CACHE_PROVIDER');
 export const SMS_SERVICE = Symbol('SMS_SERVICE');
 export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
-export const WORKFLOW_ORCHESTRATOR = Symbol('WORKFLOW_ORCHESTRATOR');
 export const WORKFLOW_STEP_METADATA = Symbol('WORKFLOW_STEP_METADATA');

@@ -1,8 +1,5 @@
 export enum PaymentOperation {
-  CHARGE = 'charge',
-  PAYOUT = 'payout',
-  REFUND = 'refund',
-  REVERSAL = 'reversal'
+  REFUND = 'refund'
 }
 
 export class IdempotencyHelper {

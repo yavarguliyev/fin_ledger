@@ -1,7 +1,7 @@
 import { DatabaseError, types } from 'pg';
 import { ApplicationError, InfrastructureError } from '@common/shared-libs';
 
-import { TRANSLATIONS } from '../../constants/database-error.constant';
+import { TRANSLATIONS } from '../../constants/errors/database-error.constant';
 import { BuildSetClause } from '../../interfaces/build-set-clause.interface';
 import { BuildSetClauseInputDto } from '../../dtos/helper/build-set-clause.dto';
 import { BuildReturningClauseDto } from '../../dtos/helper/build-returning-clause.dto';

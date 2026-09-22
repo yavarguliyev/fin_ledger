@@ -6,7 +6,7 @@ import { DomainError } from '../errors/domain.error';
 import { InfrastructureError } from '../errors/infrastructure.error';
 import { CatchExceptionRecord } from '../interfaces/catch-exception-record.interface';
 import { MapExceptionRecord } from '../interfaces/map-exception-record.interface';
-import { JWT_ERROR_NAMES } from '../constants/jwt-error-names.constant';
+import { JWT_ERROR_NAMES } from '../constants/auth/jwt-error-names.constant';
 import { BaseHelper } from '../helpers/base.helper';
 import { MapExceptionDto } from '../dtos/filter/map-exception.dto';
 import { LogExceptionDto } from '../dtos/filter/log-exception.dto';
