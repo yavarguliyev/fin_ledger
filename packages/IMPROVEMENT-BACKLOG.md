@@ -29,6 +29,8 @@ That moves money from the platform balance to **the platform's own bank account*
 - **Connect transfer:** each user has a connected account, and we `transfers.create` to it.
 - **Refund to source:** capped at the net deposited amount.
 - **Manual/ops:** withdrawal creates a review task.
+- **Failure webhooks (core-api):** a `FAILED` payout webhook must release the reserved funds in the same transaction
+  as the status change (today the handler only sets `FAILED`).
 
 **Verify.**
 - [ ] A test-mode withdrawal shows funds going to the user's destination in the Stripe dashboard.

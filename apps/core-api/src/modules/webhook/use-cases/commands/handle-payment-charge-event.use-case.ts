@@ -15,10 +15,10 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
   @Inject(CompletePaymentUseCase)
   private readonly completePayment!: CompletePaymentUseCase;
 
-  async execute ({ provider, payload, status }: HandlePaymentChargeEventDto): Promise<void> {
+  async execute ({ provider, payload, status, adapter }: HandlePaymentChargeEventDto): Promise<void> {
     const object = ChargeEventHelper.objectOf({ payload });
     const providerChargeId = ChargeEventHelper.chargeIdOf({ object });
-    const payment = await this.findPayment({ provider, providerChargeId, paymentId: ChargeEventHelper.paymentIdOf({ object }) });
+    const payment = await this.findPayment({ provider, providerChargeId, paymentId: ChargeEventHelper.paymentIdOf({ object }), adapter });
 
     if (!payment) {
       this.logger.warn(`Payment not found for provider charge ID: ${providerChargeId}`);
@@ -28,11 +28,11 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
     const chargeIdToStore = !payment.providerChargeId && providerChargeId ? { providerChargeId } : {};
 
     if (status === PaymentStatus.COMPLETED) {
-      await this.completePayment.execute({ paymentId: payment.id, ...chargeIdToStore });
+      await this.completePayment.execute({ paymentId: payment.id, ...chargeIdToStore, adapter });
       return;
     }
 
-    const updated = await this.paymentRepository.updatePaymentStatus({ paymentId: payment.id, status, ...chargeIdToStore });
+    const updated = await this.paymentRepository.updatePaymentStatus({ paymentId: payment.id, status, ...chargeIdToStore, adapter });
     if (!updated) {
       this.logger.warn(`Ignored ${status} for payment ${payment.id}: already ${payment.status}`);
       return;
@@ -52,14 +52,15 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
         status,
         provider,
         providerChargeId
-      }
+      },
+      adapter
     });
   }
 
-  private async findPayment ({ provider, providerChargeId, paymentId }: FindChargePaymentDto): Promise<PaymentDto | null> {
-    const byId = paymentId ? await this.paymentRepository.findById({ id: paymentId }) : null;
+  private async findPayment ({ provider, providerChargeId, paymentId, adapter }: FindChargePaymentDto): Promise<PaymentDto | null> {
+    const byId = paymentId ? await this.paymentRepository.findById({ id: paymentId, adapter }) : null;
     if (byId && String(byId.provider) === provider) return byId;
 
-    return providerChargeId ? this.paymentRepository.findByProviderChargeId({ provider, providerChargeId }) : null;
+    return providerChargeId ? this.paymentRepository.findByProviderChargeId({ provider, providerChargeId, adapter }) : null;
   }
 }

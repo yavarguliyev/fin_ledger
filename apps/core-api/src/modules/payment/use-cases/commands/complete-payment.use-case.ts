@@ -28,6 +28,8 @@ export class CompletePaymentUseCase {
   ) {}
 
   async execute (dto: CompletePaymentDto): Promise<PaymentDto> {
+    if (dto.adapter) return this.complete({ ...dto, adapter: dto.adapter });
+
     return this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.complete({ ...dto, adapter }) });
   }
 

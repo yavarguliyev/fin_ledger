@@ -22,26 +22,6 @@ Last full review: 2026-09-22.
 
 ## P0 — Money correctness, security, availability
 
-### API-P0-1 · Webhook handling isn't atomic
-
-**Done (2026-09-22).** `CompletePaymentUseCase` is the only way a payment becomes `COMPLETED` (deposit credit or
-withdrawal capture + status + outbox event, one transaction behind a row lock). `PAYMENT_TRANSITIONS` guards every
-status update in SQL (`status = ANY(allowed)`), so a late `FAILED` can't overwrite `COMPLETED`. Webhook `succeeded`
-events go through the same use case; replays credit nothing twice (integration spec `payment-completion`).
-Deposits keep `PENDING` (→ `PROCESSING`) and `REQUIRES_ACTION` charges open, store the charge ID and return the
-3-D Secure `clientSecret`; declines store the decline code (integration spec `payment-open-results`).
-Charges carry `metadata.paymentId`; webhooks look the payment up by it first (UUID and provider checked), then by
-charge ID, and never overwrite a stored charge ID.
-
-**Still open.**
-- **Atomic webhook handling.** The webhook row is recorded `PROCESSED` before the handler runs, and the handler's
-  status update and outbox insert (for `FAILED`) run outside one transaction.
-- **Withdrawal failure webhook.** A `FAILED` webhook for a withdrawal doesn't release the reserved funds
-  (depends on the withdrawal model, `PKG-P0-2`).
-
-**Verify.**
-- [ ] A crash between recording the webhook and handling it leaves the event retryable, not `PROCESSED`.
-
 ### API-P0-3 · Bet outcomes ignore the odds, so the house loses money at higher odds
 
 **Problem.** `PlaceBetUseCase` settles every bet **immediately** after placing it. `BetHelper.resolveOutcome` decides
@@ -86,12 +66,13 @@ with `Math.random() < WIN_CHANCE` (0.45) whatever the odds or the game event.
 
 ### API-P1-1 · Nothing resumes payments stuck in REQUIRES_ACTION / PROCESSING / INDETERMINATE
 
-**Problem.** `ChargePaymentStep` sets `REQUIRES_ACTION` on an unknown outcome and throws. Failed refund compensations
-end there too. Nothing ever picks them up.
+**Problem.** `PaymentOperationHelper` marks an unknown charge outcome `REQUIRES_ACTION` and returns 503; `PENDING`
+charges stay `PROCESSING` until a webhook arrives. Failed refund compensations end there too. Webhook events whose
+handling failed stay `RECEIVED` and rely on the PSP redelivering them. Nothing picks any of these up.
 
 **Solution.** Run a reconciliation job every minute (on `@common/tasks`, `PKG-P2-2`). It reads payments open longer
 than a threshold, fetches the real PSP state (by `metadata.paymentId`), and finishes them through `CompletePaymentUseCase`.
-After N tries it flags them for manual review.
+It also replays `RECEIVED` / `FAILED` webhook events older than a threshold. After N tries it flags them for manual review.
 
 **Verify.**
 - [ ] A simulated timeout after Stripe charged: within one cycle the payment is `COMPLETED` and credited once.
@@ -106,7 +87,7 @@ crash either.)
 
 **Solution.** Recover crashed deposits with the reconciliation job
 (`API-P1-1`), which finds `PENDING`/`PROCESSING` payments older than a threshold and finishes them through
-`CompletePaymentUseCase` (`API-P0-1`).
+`CompletePaymentUseCase`.
 
 **Verify.**
 - [ ] Killing the API right after a successful charge: within one reconciliation cycle the wallet is credited exactly once.
@@ -207,7 +188,7 @@ and the client admin table gets the matching toggle.
 - **`inbox_messages`** `(consumer, message_id, processed_at)`, primary key `(consumer, message_id)`, for idempotent consumers (`PKG-P1-2`).
 - **`jobs`** for `@common/tasks` (`PKG-P2-2`).
 - **Outbox:** add `outbox_events.destination` (`PKG-P1-4`) and drop the `FAILED` outbox status (`PKG-P1-3`).
-- **`payment_status_history`** `(payment_id, from_status, to_status, source, created_at)`, written by the state machine (`API-P0-1`).
+- **`payment_status_history`** `(payment_id, from_status, to_status, source, created_at)`, written by the state machine (`PAYMENT_TRANSITIONS` / `updatePaymentStatus`).
 - **`payment_methods.currency`** for payout destinations (with currency routing, `PKG-P3-1`).
 - **Immutable wallet transactions:** `trg_wallet_transactions_immutable` blocks only DELETE. Block UPDATE too, except the
   columns the state machine may change.
@@ -321,7 +302,7 @@ lifecycle and timing, and per-user payment idempotency, plus drift = 0. A mutati
 **Still open.**
 - **CI not yet seen green.** The CI step is added but hasn't run on GitHub yet.
 - **Each fix adds a test.** Every remaining P0/P1 fix adds its integration test in the same change, money paths first:
-  webhook replay (`API-P0-1`), bet settlement (`API-P0-3`).
+  bet settlement (`API-P0-3`).
 
 **Verify.**
 - [ ] The CI run on GitHub shows the `Integration Tests` step green.
@@ -364,7 +345,7 @@ realistic to build in-house.
 - **Flow:**
   1. `POST /kyc/sessions` creates a provider session.
   2. The client opens the provider's hosted page or SDK.
-  3. A signed webhook moves `kyc_status` through a validated state machine (reuse the `API-P0-1` pattern), and fills
+  3. A signed webhook moves `kyc_status` through a validated state machine (reuse the `PAYMENT_TRANSITIONS` pattern), and fills
      in `date_of_birth`/`country_code` from the verified data.
 - **Enforcement:** withdrawals need `APPROVED`. Optionally, so do deposits above a threshold. An age check of 18+
   runs on the verified date of birth.

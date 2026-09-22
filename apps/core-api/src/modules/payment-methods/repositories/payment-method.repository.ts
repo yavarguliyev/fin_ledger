@@ -78,16 +78,16 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethodDto> {
     return this.findOne({ where: { id, user_id: userId } });
   }
 
-  async findByProviderMethodId ({ provider, providerMethodId }: FindByProviderMethodIdDto): Promise<PaymentMethodDto | null> {
-    return this.findOne({ where: { provider, provider_method_id: providerMethodId } });
+  async findByProviderMethodId ({ provider, providerMethodId, adapter }: FindByProviderMethodIdDto): Promise<PaymentMethodDto | null> {
+    return this.findOne({ where: { provider, provider_method_id: providerMethodId }, ...(adapter && { adapter }) });
   }
 
   async createPaymentMethod (data: Partial<PaymentMethodDto>): Promise<PaymentMethodDto | null> {
     return this.create({ data });
   }
 
-  async updateStatus ({ id, status }: UpdatePaymentMethodStatusDto): Promise<PaymentMethodDto | null> {
-    return this.update({ id, data: { status, verifiedAt: status === PaymentMethodStatus.VERIFIED ? new Date() : null } });
+  async updateStatus ({ id, status, adapter }: UpdatePaymentMethodStatusDto): Promise<PaymentMethodDto | null> {
+    return this.update({ id, data: { status, verifiedAt: status === PaymentMethodStatus.VERIFIED ? new Date() : null }, ...(adapter && { adapter }) });
   }
 
   async markRemoved ({ id }: PaymentMethodIdRequestDto): Promise<PaymentMethodDto | null> {

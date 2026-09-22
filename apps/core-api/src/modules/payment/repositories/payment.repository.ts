@@ -67,8 +67,8 @@ export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
     return this.findOne({ where: { user_id: userId, idempotency_key: idempotencyKey } });
   }
 
-  async findByProviderChargeId ({ provider, providerChargeId }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
-    return this.findOne({ where: { provider, provider_charge_id: providerChargeId } });
+  async findByProviderChargeId ({ provider, providerChargeId, adapter }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { provider, provider_charge_id: providerChargeId }, ...(adapter && { adapter }) });
   }
 
   async createPayment (dto: InternalPaymentRecordDto): Promise<PaymentDto | null> {
