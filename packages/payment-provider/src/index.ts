@@ -39,6 +39,7 @@ export * from './modules/dtos/helper/stripe-refund.dto';
 export * from './modules/dtos/helper/verify-stripe-webhook.dto';
 export * from './modules/dtos/helper/describe-failure.dto';
 export * from './modules/dtos/helper/stripe-intent.dto';
+export * from './modules/dtos/helper/simulate-charge.dto';
 export * from './modules/dtos/module/payment-provider-module-options.dto';
 export * from './modules/dtos/operation/charge-payment.dto';
 export * from './modules/dtos/operation/create-setup-session.dto';
@@ -60,6 +61,7 @@ export * from './modules/constants/stripe/stripe-client-options.constant';
 export * from './modules/constants/stripe/stripe-type-category.constant';
 export * from './modules/constants/stripe/stripe-error-defaults.constant';
 export * from './modules/constants/stripe/stripe-intent-status.constant';
+export * from './modules/constants/stripe/stripe-simulated-outcomes.constant';
 export * from './modules/constants/currency/three-decimal-currencies.constant';
 
 export * from './modules/adapters/stripe/helpers/stripe-amount.helper';
@@ -68,6 +70,7 @@ export * from './modules/adapters/stripe/helpers/stripe-method.helper';
 export * from './modules/adapters/stripe/helpers/stripe-webhook.helper';
 export * from './modules/adapters/stripe/helpers/stripe-operation.helper';
 export * from './modules/adapters/stripe/helpers/stripe-intent.helper';
+export * from './modules/adapters/stripe/helpers/stripe-simulation.helper';
 
 export * from './modules/helpers/provider-config.helper';
 export * from './modules/helpers/provider-result.helper';
@@ -81,6 +84,7 @@ export * from './modules/interfaces/supports-hosted-setup.interface';
 export * from './modules/interfaces/supports-method-vault.interface';
 export * from './modules/interfaces/supports-payout.interface';
 export * from './modules/interfaces/supports-webhooks.interface';
+export * from './modules/interfaces/simulated-outcome.interface';
 
 export * from './modules/registry/payment-provider.registry';
 

@@ -8,6 +8,7 @@ import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { IdempotencyKeyService } from '../../core/services/idempotency-key.service';
 import { ToastService } from '../../core/services/toast.service';
+import { DEPOSIT_MESSAGES } from '../../core/constants/wallet/deposit-messages.constant';
 import { DepositFormService } from './services/deposit-form.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
@@ -81,10 +82,16 @@ export class DepositComponent implements OnInit {
         request: idempotencyKey => this.paymentService.deposit(this.formService.buildPayload({ amountMinor, currency, idempotencyKey }))
       })
       .subscribe({
-        next: () => {
+        next: payment => {
           this.loading.set(false);
+
+          if (payment.status !== 'COMPLETED') {
+            this.toast.info(payment.status === 'REQUIRES_ACTION' ? DEPOSIT_MESSAGES.REQUIRES_ACTION : DEPOSIT_MESSAGES.OPEN);
+            return;
+          }
+
           this.success.set(true);
-          this.toast.success('Deposit completed successfully!');
+          this.toast.success(DEPOSIT_MESSAGES.COMPLETED);
         },
         error: (err: Error) => {
           this.loading.set(false);

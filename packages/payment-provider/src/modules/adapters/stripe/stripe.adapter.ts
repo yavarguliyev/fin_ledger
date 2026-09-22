@@ -29,6 +29,8 @@ import { StripeWebhookHelper } from './helpers/stripe-webhook.helper';
 import { StripeMethodHelper } from './helpers/stripe-method.helper';
 import { StripeOperationHelper } from './helpers/stripe-operation.helper';
 import { ExecuteOperationDto } from '../../dtos/adapter/execute-operation.dto';
+import { StripeSimulationHelper } from './helpers/stripe-simulation.helper';
+import { STRIPE_SIMULATION } from '../../constants/stripe/stripe-simulated-outcomes.constant';
 
 @Injectable()
 export class StripeAdapter
@@ -37,13 +39,7 @@ export class StripeAdapter
 {
   readonly providerName = PaymentProvider.STRIPE;
 
-  readonly capabilities = [
-    PaymentCapability.CHARGE,
-    PaymentCapability.PAYOUT,
-    PaymentCapability.METHOD_VAULT,
-    PaymentCapability.HOSTED_SETUP,
-    PaymentCapability.WEBHOOKS
-  ] as const;
+  readonly capabilities = [PaymentCapability.CHARGE, PaymentCapability.PAYOUT, PaymentCapability.METHOD_VAULT, PaymentCapability.HOSTED_SETUP, PaymentCapability.WEBHOOKS] as const;
 
   private static readonly SIGNATURE_HEADER = 'stripe-signature';
 
@@ -83,8 +79,10 @@ export class StripeAdapter
   }
 
   async charge (dto: ChargePaymentDto): Promise<ProviderChargeResultDto> {
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.charge({ dto, provider: this.providerName }));
+
     return this.stripeOperation({
-      prefix: 'ch',
+      prefix: STRIPE_SIMULATION.CHARGE_PREFIX,
       amount: dto.amount,
       currency: dto.currency,
       operation: async () => StripeOperationHelper.createCharge({ client: this.stripe!, dto })

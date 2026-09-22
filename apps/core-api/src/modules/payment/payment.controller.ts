@@ -4,6 +4,7 @@ import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionGu
 
 import { PaymentService } from './payment.service';
 import { PaymentDto } from './dtos/payment/payment.dto';
+import { PaymentResultDto } from './dtos/payment/payment-result.dto';
 import { RequestPaymentDto, RequestPaymentSchema } from './dtos/request/request-payment.dto';
 import { PaymentIdRequestDto, PaymentIdRequestSchema } from './dtos/request/payment-id-request.dto';
 import { PaymentAccessGuard } from './guards/payment-access.guard';
@@ -18,13 +19,13 @@ export class PaymentController {
 
   @Post('deposit')
   @UserRateLimit()
-  async requestDeposit (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
+  async requestDeposit (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentResultDto> {
     return this.paymentService.deposit({ ...dto, userId: req.user.userId });
   }
 
   @Post('withdraw')
   @UserRateLimit()
-  async requestWithdrawal (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentDto> {
+  async requestWithdrawal (@Req() req: RequestContext, @Body({ schema: RequestPaymentSchema }) dto: RequestPaymentDto): Promise<PaymentResultDto> {
     return this.paymentService.withdraw({ ...dto, userId: req.user.userId });
   }
 

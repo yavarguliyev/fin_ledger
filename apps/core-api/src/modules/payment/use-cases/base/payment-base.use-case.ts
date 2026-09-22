@@ -17,6 +17,7 @@ import { PaymentMethodRepository } from '../../../payment-methods/repositories/p
 import { WalletService } from '../../../wallet/wallet.service';
 import { ProcessPaymentDto } from '../../dtos/input/process-payment.dto';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
+import { PaymentResultDto } from '../../dtos/payment/payment-result.dto';
 import { PaymentAnalyticsEventPayloadDto } from '../../dtos/analytics/payment-analytics-event.dto';
 import { PaymentHelper } from '../../helpers/payment.helper';
 import { PaymentOperationHelper } from '../../helpers/payment-operation.helper';
@@ -59,7 +60,7 @@ export abstract class PaymentBaseUseCase {
     return Promise.resolve(eventPayload);
   }
 
-  async execute (dto: ProcessPaymentDto): Promise<PaymentDto> {
+  async execute (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
     const { userId } = dto;
 
     const existing = await this.paymentRepository.findByIdempotencyKey({ userId, idempotencyKey: dto.idempotencyKey });
@@ -101,7 +102,7 @@ export abstract class PaymentBaseUseCase {
     return payment;
   }
 
-  private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentDto> {
+  private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentResultDto> {
     const base = {
       payment,
       dto,

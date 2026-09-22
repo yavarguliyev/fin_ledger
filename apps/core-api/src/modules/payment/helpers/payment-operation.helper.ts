@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ApplicationError, PaymentOperation, PaymentStatus, ProviderChargeStatus } from '@common/libs';
 
 import { ExecuteDepositOperationDto } from '../dtos/helper/execute-deposit-operation.dto';
@@ -7,6 +7,9 @@ import { MarkIndeterminateDto } from '../dtos/helper/mark-indeterminate.dto';
 import { FailWithdrawalDto } from '../dtos/helper/fail-withdrawal.dto';
 import { IdempotencyHelper } from './idempotency.helper';
 import { PaymentDto } from '../dtos/payment/payment.dto';
+import { PaymentResultDto } from '../dtos/payment/payment-result.dto';
+import { KeepPaymentOpenDto } from '../dtos/helper/keep-payment-open.dto';
+import { OPEN_PAYMENT_STATUS } from '../constants/status/open-payment-status.constant';
 import { PAYMENT_ERRORS } from '../constants/errors/payment-errors.constant';
 import { PAYMENT_FAILURE_REASONS } from '../constants/operations/payment-failure-reasons.constant';
 import { PAYMENT_LABELS } from '../constants/operations/payment-labels.constant';
@@ -21,7 +24,15 @@ export class PaymentOperationHelper {
     });
   }
 
-  public static async executeDepositOperation (options: ExecuteDepositOperationDto): Promise<PaymentDto> {
+  private static async keepOpen ({ paymentRepository, paymentId, charge, status }: KeepPaymentOpenDto): Promise<PaymentResultDto> {
+    const updated = await paymentRepository.updatePaymentStatus({ paymentId, status, providerChargeId: charge.chargeId });
+    const payment = updated ?? (await paymentRepository.findById({ id: paymentId }));
+    if (!payment) throw new NotFoundException(PAYMENT_ERRORS.NOT_FOUND);
+
+    return { ...payment, ...(charge.clientSecret && { clientSecret: charge.clientSecret }) };
+  }
+
+  public static async executeDepositOperation (options: ExecuteDepositOperationDto): Promise<PaymentResultDto> {
     const { payment, dto, method, provider, paymentRepository, completePayment } = options;
 
     const charge = await provider.charge({
@@ -37,9 +48,17 @@ export class PaymentOperationHelper {
       throw new ApplicationError(PAYMENT_ERRORS.DEPOSIT_OUTCOME_PENDING);
     }
 
+    const openStatus = OPEN_PAYMENT_STATUS[charge.status];
+    if (openStatus) return PaymentOperationHelper.keepOpen({ paymentRepository, paymentId: payment.id, charge, status: openStatus });
+
     if (charge.status !== ProviderChargeStatus.SUCCEEDED) {
       const failureReason = charge.failureReason ?? PAYMENT_FAILURE_REASONS.CHARGE_DECLINED;
-      await paymentRepository.updatePaymentStatus({ paymentId: payment.id, status: PaymentStatus.FAILED, failureReason });
+      await paymentRepository.updatePaymentStatus({
+        paymentId: payment.id,
+        status: PaymentStatus.FAILED,
+        failureReason,
+        ...(charge.failure && { failureCode: charge.failure.code })
+      });
       throw new BadRequestException(failureReason);
     }
 

@@ -22,17 +22,16 @@ Last full review: 2026-09-22.
 
 ## P0 — Money correctness, security, availability
 
-### API-P0-1 · Open payment results are failed, and webhook handling isn't atomic
+### API-P0-1 · Webhooks can miss payments, and webhook handling isn't atomic
 
 **Done (2026-09-22).** `CompletePaymentUseCase` is the only way a payment becomes `COMPLETED` (deposit credit or
 withdrawal capture + status + outbox event, one transaction behind a row lock). `PAYMENT_TRANSITIONS` guards every
 status update in SQL (`status = ANY(allowed)`), so a late `FAILED` can't overwrite `COMPLETED`. Webhook `succeeded`
 events go through the same use case; replays credit nothing twice (integration spec `payment-completion`).
+Deposits keep `PENDING` (→ `PROCESSING`) and `REQUIRES_ACTION` charges open, store the charge ID and return the
+3-D Secure `clientSecret`; declines store the decline code (integration spec `payment-open-results`).
 
 **Still open.**
-- **Charge step fails open results.** `PaymentOperationHelper.executeDepositOperation` still treats every
-  non-`SUCCEEDED` charge as `FAILED`. `PENDING` / `REQUIRES_ACTION` (the adapter now returns them, with a
-  `clientSecret` for 3-D Secure) must keep the payment open and return the next action to the client (`WEB-P1-1`).
 - **Match by our own ID.** Send `metadata.paymentId` to the PSP and look payments up by it first. The charge ID is
   stored only after the charge call, so a crash in between leaves a charge no webhook can match.
 - **Atomic webhook handling.** The webhook row is recorded `PROCESSED` before the handler runs, and the handler's
@@ -41,7 +40,6 @@ events go through the same use case; replays credit nothing twice (integration s
   (depends on the withdrawal model, `PKG-P0-2`).
 
 **Verify.**
-- [ ] A 3-D Secure test card (`4000 0027 6000 3184`) ends `REQUIRES_ACTION`, then `COMPLETED` after authentication.
 - [ ] A webhook for a charge whose ID was never stored still finds the payment by `metadata.paymentId`.
 - [ ] A crash between recording the webhook and handling it leaves the event retryable, not `PROCESSED`.
 

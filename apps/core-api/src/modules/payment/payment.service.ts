@@ -5,6 +5,7 @@ import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawa
 import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-case';
 import { GetPaymentUseCase } from './use-cases/queries/get-payment.use-case';
 import { PaymentDto } from './dtos/payment/payment.dto';
+import { PaymentResultDto } from './dtos/payment/payment-result.dto';
 import { ProcessPaymentDto } from './dtos/input/process-payment.dto';
 import { PaymentIdRequestDto } from './dtos/request/payment-id-request.dto';
 
@@ -22,12 +23,12 @@ export class PaymentService {
   }
 
   @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
-  async deposit (dto: ProcessPaymentDto): Promise<PaymentDto> {
+  async deposit (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
     return this.requestDepositUseCase.execute(dto);
   }
 
   @CacheEvict({ keyPrefix: ['wallet'], isPattern: true })
-  async withdraw (dto: ProcessPaymentDto): Promise<PaymentDto> {
+  async withdraw (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
     return this.requestWithdrawalUseCase.execute(dto);
   }
 

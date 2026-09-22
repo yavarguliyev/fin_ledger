@@ -40,8 +40,10 @@ load it in an `APP_INITIALIZER`, and expose it through a `ConfigService`. Delete
 
 ### WEB-P1-1 · Deposits can't handle 3-D Secure or pending results
 
-**Problem.** `DepositComponent.confirm` knows only success or error. After `API-P0-1`, a deposit can come
-back `REQUIRES_ACTION` (3-D Secure) or `PROCESSING`, and the UI has no state for either.
+**Problem.** The API now returns deposits as `REQUIRES_ACTION` (with a `clientSecret` for 3-D Secure) or
+`PROCESSING`. `DepositComponent` only shows an info toast for them (stopgap, 2026-09-22); it never runs the 3-D Secure
+challenge, so those deposits stay open until they expire. An idempotent retry returns the payment without the
+`clientSecret`, so the API must also be able to re-issue it (e.g. `GET /payments/:id/next-action`).
 The client also sends `metadata` (masked account, holder) that the server shouldn't trust.
 After an unknown-outcome error (timeout, 5xx) the deposit may already have gone through, but the UI only shows an
 error toast. `IdempotencyKeyService` keeps the key so a retry is safe, but the user isn't told to check before
@@ -55,7 +57,8 @@ changing the amount (seen in the WEB-P0-1 verification run).
 - **Metadata:** drop the client `metadata`; the server derives it.
 
 **Verify.**
-- [ ] 3-D Secure test card: the challenge appears, and after approval the wallet balance updates without a reload.
+- [ ] 3-D Secure test card (`4000 0027 6000 3184`): the challenge appears, and after approval the payment is `COMPLETED`
+      and the wallet balance updates without a reload.
 - [ ] Closing the tab mid-challenge leaves a payment the reconciliation job (`API-P1-1`) resolves.
 
 ### WEB-P1-2 · Auth tokens are exposed to scripts, and expired sessions look logged in
