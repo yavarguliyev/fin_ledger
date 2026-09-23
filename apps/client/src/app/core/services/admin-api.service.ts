@@ -46,6 +46,14 @@ export class AdminApiService {
     return this.userService.anonymizeUser(userId);
   }
 
+  suspendUser (userId: string): Observable<unknown> {
+    return this.userService.suspendUser(userId);
+  }
+
+  reactivateUser (userId: string): Observable<unknown> {
+    return this.userService.reactivateUser(userId);
+  }
+
   updateEmailVerification (userId: string, isEmailVerified: boolean): Observable<unknown> {
     return this.userService.updateEmailVerification(userId, isEmailVerified);
   }
@@ -69,7 +77,8 @@ export class AdminApiService {
       availableBalanceMinor: backendUser.available_balance_minor,
       reservedBalanceMinor: backendUser.reserved_balance_minor,
       currency: backendUser.currency,
-      status: (backendUser.status?.toLowerCase() as 'active' | 'suspended' | 'closed' | null) ?? null
+      status: (backendUser.status?.toLowerCase() as 'active' | 'suspended' | 'closed' | null) ?? null,
+      userStatus: backendUser.user_status
     };
   }
 }

@@ -1,5 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import { AuthTokenPurpose, PostgresService, OutboxRepository, SessionHelper } from '@common/libs';
+import { AuthTokenPurpose, PostgresService, SessionHelper, RequestScope } from '@common/libs';
 
 import { AuthRepository } from '../../repositories/auth.repository';
 import { AuthTokenRepository } from '../../repositories/auth-token.repository';
@@ -19,19 +19,18 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterRe
     private readonly authRepository: AuthRepository,
     private readonly authTokenRepository: AuthTokenRepository,
     private readonly ledgerService: LedgerService,
-    private readonly walletService: WalletService,
-    private readonly outboxRepository: OutboxRepository
+    private readonly walletService: WalletService
   ) {
     super();
   }
 
   async execute (dto: RegisterDto): Promise<RegisterResponseDto> {
-    const existingUser = await this.authRepository.findByEmailAny(dto.email);
+    const existingUser = await this.authRepository.findByEmailAny({ email: dto.email });
     if (existingUser) throw new ConflictException('Email already exists');
 
     const passwordHash = await SessionHelper.hash({ password: dto.password });
 
-    const { user } = await this.postgresService.getWriteConnection().transaction({
+    const { user } = await RequestScope.runSystem(() => this.postgresService.getWriteConnection().transaction({
       callback: async tx => {
         return AuthHelper.createUserWalletAndLedger({
           dto,
@@ -43,7 +42,7 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterRe
           walletService: this.walletService
         });
       }
-    });
+    }));
 
     const token = await AuthTokenHelper.issue({ authTokenRepository: this.authTokenRepository, userId: user.id, purpose: AuthTokenPurpose.EMAIL_VERIFICATION });
     const verificationUrl = `${this.frontendUrl}/auth/verify-email?token=${token}`;
@@ -56,6 +55,7 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterRe
       body: 'Click the link below to verify your email. This link will expire in 24 hours.',
       url: verificationUrl,
       action: 'email',
+      userId: user.id,
       publishEmailVerification: this.publishEmailVerification.bind(this)
     });
 

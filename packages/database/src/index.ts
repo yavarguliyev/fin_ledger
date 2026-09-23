@@ -1,3 +1,4 @@
+export * from './modules/constants/adapter/connections.constant';
 export * from './modules/dtos/adapter/adapter-config.dto';
 export * from './modules/dtos/adapter/query-rows.dto';
 export * from './modules/dtos/adapter/query.dto';
@@ -24,10 +25,14 @@ export * from './modules/dtos/helper/build-set-clause.dto';
 export * from './modules/dtos/helper/database-error.dto';
 export * from './modules/dtos/helper/updated-at-clause.dto';
 export * from './modules/dtos/module/database-async-options.dto';
+export * from './modules/dtos/inbox/inbox-lookup.dto';
+export * from './modules/dtos/inbox/inbox-message.dto';
 export * from './modules/dtos/outbox/create-event.dto';
-export * from './modules/dtos/outbox/find-pending-batch.dto';
+export * from './modules/dtos/outbox/claim-pending-batch.dto';
+export * from './modules/dtos/outbox/outbox-backoff.dto';
 export * from './modules/dtos/outbox/next-aggregate-version.dto';
 export * from './modules/dtos/outbox/outbox-event-id.dto';
+export * from './modules/dtos/outbox/reschedule-failed-event.dto';
 export * from './modules/dtos/query/find-with-pagination.dto';
 export * from './modules/dtos/query/query-options.dto';
 export * from './modules/dtos/query/query-with-adapter.dto';
@@ -56,7 +61,10 @@ export * from './modules/interfaces/database-adapter.interface';
 export * from './modules/interfaces/database-config.interface';
 export * from './modules/interfaces/join-clause.interface';
 export * from './modules/interfaces/outbox-base-fields.interface';
+export * from './modules/interfaces/outbox-claimed-event.interface';
+export * from './modules/interfaces/outbox-reschedule-result.interface';
 export * from './modules/interfaces/query-pagination-options-results.interface';
+export * from './modules/interfaces/pool-stats.interface';
 export * from './modules/interfaces/query-result.interface';
 export * from './modules/interfaces/translation.interface';
 
@@ -64,7 +72,13 @@ export * from './modules/postgres/adapters/common.adapter';
 export * from './modules/postgres/adapters/postgresql.adapter';
 export * from './modules/postgres/adapters/transaction.adapter';
 
+export * from './modules/constants/inbox/inbox.constant';
+export * from './modules/constants/pool/pool.constant';
+export * from './modules/constants/outbox/outbox.constant';
+
 export * from './modules/postgres/helpers/database.helper';
+export * from './modules/postgres/helpers/outbox.helper';
+export * from './modules/postgres/helpers/pool.helper';
 
 export * from './modules/postgres/query-builder/base-builder';
 export * from './modules/postgres/query-builder/builder';
@@ -73,6 +87,7 @@ export * from './modules/postgres/query-builder/where-builder';
 
 export * from './modules/postgres/repositories/base-extended.repository';
 export * from './modules/postgres/repositories/base.repository';
+export * from './modules/postgres/repositories/inbox.repository';
 export * from './modules/postgres/repositories/outbox.repository';
 
 export * from './modules/postgres/services/postgres.service';

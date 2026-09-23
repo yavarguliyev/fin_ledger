@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { BadRequestException, Logger, StandardSchemaValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { BaseHelper, ClientIds, ENVIRONMENT_CONSTANTS, ERROR_RESPONSES, GracefulShutdown } from '@common/libs';
+import { BaseHelper, ClientIds, ENVIRONMENT_CONSTANTS, Environment, ERROR_RESPONSES, GracefulShutdown } from '@common/libs';
 import helmet from 'helmet';
 
 import { AppModule } from './app.module';
@@ -19,7 +19,7 @@ async function bootstrap (): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
   const configService = app.get(ConfigService);
 
-  const environemnt = configService.get<number>('NODE_ENV') ?? NODE_ENV;
+  const environment = configService.get<Environment>('NODE_ENV') ?? NODE_ENV;
   const port = configService.get<number>('PORT') ?? DEFAULT_PORT;
   const host = configService.get<string>('HOST') ?? DEFAULT_HOST;
   const trustProxy = configService.getOrThrow<number>('TRUST_PROXY');
@@ -42,7 +42,7 @@ async function bootstrap (): Promise<void> {
 
   GracefulShutdown.register({ app, context: ClientIds.API_GATEWAY });
 
-  if (environemnt === NODE_ENV) {
+  if (environment !== Environment.Production) {
     const options = { title: TITLE, description: DESCRIPTION, version: VERSION, path: PATH };
     BaseHelper.setupSwagger({ app, options });
   }

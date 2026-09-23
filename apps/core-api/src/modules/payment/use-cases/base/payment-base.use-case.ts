@@ -1,10 +1,5 @@
 import { BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
 import {
-  AnalyticsEventTopic,
-  EXTRACT_ID_KEY,
-  KAFKA_SERVICE,
-  KafkaPublish,
-  KafkaService,
   PaymentCapability,
   PaymentProviderRegistry,
   PaymentStatus,
@@ -18,7 +13,6 @@ import { WalletService } from '../../../wallet/wallet.service';
 import { ProcessPaymentDto } from '../../dtos/input/process-payment.dto';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
 import { PaymentResultDto } from '../../dtos/payment/payment-result.dto';
-import { PaymentAnalyticsEventPayloadDto } from '../../dtos/analytics/payment-analytics-event.dto';
 import { PaymentHelper } from '../../helpers/payment.helper';
 import { PaymentOperationHelper } from '../../helpers/payment-operation.helper';
 import { WalletHelper } from '../../../wallet/helpers/wallet.helper';
@@ -45,20 +39,8 @@ export abstract class PaymentBaseUseCase {
   @Inject(PaymentProviderRegistry)
   protected readonly providerRegistry!: PaymentProviderRegistry;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
 
   protected abstract validateWallet(dto: ValidateWalletDto): void;
-
-  @KafkaPublish({ topic: AnalyticsEventTopic.PAYMENT_COMPLETED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'paymentId' }) })
-  protected async publishPaymentCompleted (eventPayload: PaymentAnalyticsEventPayloadDto): Promise<PaymentAnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
-  }
-
-  @KafkaPublish({ topic: AnalyticsEventTopic.PAYMENT_FAILED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'paymentId' }) })
-  protected async publishPaymentFailed (eventPayload: PaymentAnalyticsEventPayloadDto): Promise<PaymentAnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
-  }
 
   async execute (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
     const { userId } = dto;
@@ -79,12 +61,6 @@ export abstract class PaymentBaseUseCase {
 
     const payment = await this.createPaymentRecord({ wallet: userWallet, dto, provider: method.provider });
     const updated = await this.dispatchPaymentOperation({ payment, dto, userWallet, method });
-
-    PaymentHelper.emitCompletedAnalytics({
-      payment: updated,
-      publishPaymentCompleted: payload => this.publishPaymentCompleted(payload),
-      publishPaymentFailed: payload => this.publishPaymentFailed(payload)
-    });
 
     return updated;
   }

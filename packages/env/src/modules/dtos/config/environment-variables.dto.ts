@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Environment } from '@common/shared-libs';
+import { Environment, MailTransportKind, SmsTransportKind } from '@common/shared-libs';
 
 import { ENVIRONMENT_CONSTANTS } from '../../constants/environment/env.constant';
 
@@ -19,6 +19,16 @@ export const EnvironmentVariablesSchema = z.object({
 
   FRONTEND_URL: z.coerce.string({ message: 'FRONTEND_URL must be a string' }).min(1, { message: 'FRONTEND_URL is required' }),
   EMAIL_FROM: z.string({ message: 'EMAIL_FROM must be a string' }).min(1, { message: 'EMAIL_FROM is required' }),
+  MAIL_TRANSPORT: z.enum(MailTransportKind, { message: 'MAIL_TRANSPORT must be a valid MailTransportKind enum' }).default(MailTransportKind.CONSOLE),
+  SMTP_HOST: z.string({ message: 'SMTP_HOST must be a string' }).optional(),
+  SMTP_PORT: z.coerce.number({ message: 'SMTP_PORT must be a number' }).int().positive().optional(),
+  SMTP_USER: z.string({ message: 'SMTP_USER must be a string' }).optional(),
+  SMTP_PASSWORD: z.string({ message: 'SMTP_PASSWORD must be a string' }).optional(),
+  SMS_TRANSPORT: z.enum(SmsTransportKind, { message: 'SMS_TRANSPORT must be a valid SmsTransportKind enum' }).default(SmsTransportKind.CONSOLE),
+  SMS_FROM: z.string({ message: 'SMS_FROM must be a string' }).optional(),
+  TWILIO_ACCOUNT_SID: z.string({ message: 'TWILIO_ACCOUNT_SID must be a string' }).optional(),
+  TWILIO_AUTH_TOKEN: z.string({ message: 'TWILIO_AUTH_TOKEN must be a string' }).optional(),
+  TWILIO_API_BASE: z.url({ message: 'TWILIO_API_BASE must be a valid URL' }).optional(),
   HOST: z.string({ message: 'HOST must be a string' }).default('0.0.0.0'),
 
   TRUST_PROXY: z.coerce
@@ -38,6 +48,17 @@ export const EnvironmentVariablesSchema = z.object({
   DB_NAME: z.string({ message: 'DB_NAME must be a string' }).min(1, { message: 'DB_NAME is required' }),
   DB_HOST: z.string({ message: 'DB_HOST must be a string' }).min(1, { message: 'DB_HOST is required' }),
   DB_PORT: z.coerce.number({ message: 'DB_PORT must be a number' }),
+  DB_ACQUIRE_TIMEOUT: z.coerce.number({ message: 'DB_ACQUIRE_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_PRIMARY_POOL_MAX: z.coerce.number({ message: 'DB_PRIMARY_POOL_MAX must be a number' }).int().positive().optional(),
+  DB_STATEMENT_TIMEOUT: z.coerce.number({ message: 'DB_STATEMENT_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_IDLE_IN_TRANSACTION_TIMEOUT: z.coerce.number({ message: 'DB_IDLE_IN_TRANSACTION_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_MAX_LIFETIME_SECONDS: z.coerce.number({ message: 'DB_MAX_LIFETIME_SECONDS must be a number' }).int().positive().optional(),
+  DB_APPLICATION_NAME: z.string({ message: 'DB_APPLICATION_NAME must be a string' }).optional(),
+  DB_WORKER_USERNAME: z.string({ message: 'DB_WORKER_USERNAME must be a string' }).optional(),
+  DB_WORKER_PASSWORD: z.string({ message: 'DB_WORKER_PASSWORD must be a string' }).optional(),
+  RETENTION_INTERVAL_MS: z.coerce.number({ message: 'RETENTION_INTERVAL_MS must be a number' }).int().positive().optional(),
+  RETENTION_OUTBOX_DAYS: z.coerce.number({ message: 'RETENTION_OUTBOX_DAYS must be a number' }).int().positive().optional(),
+  RETENTION_WEBHOOK_DAYS: z.coerce.number({ message: 'RETENTION_WEBHOOK_DAYS must be a number' }).int().positive().optional(),
 
   REDIS_HOST: z.string({ message: 'REDIS_HOST must be a string' }).min(1, { message: 'REDIS_HOST is required' }),
   REDIS_PORT: z.coerce.number({ message: 'REDIS_PORT must be a number' }),

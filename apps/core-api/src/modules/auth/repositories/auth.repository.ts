@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, DatabaseAdapter, PasswordAlgorithm } from '@common/libs';
+import { BaseRepository, PostgresService, PasswordAlgorithm } from '@common/libs';
 
+import { FindByEmailDto } from '../dtos/repository/find-by-email.dto';
 import { AuthDto } from '../dtos/auth/auth.dto';
 import { CreateAuthUserDto } from '../dtos/repository/create-auth-user.dto';
 
@@ -56,12 +57,12 @@ export class AuthRepository extends BaseRepository<AuthDto> {
     ];
   }
 
-  async findByEmail (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
-    return this.findOne({ where: { email, isEmailVerified: true, deletedAt: null }, adapter });
+  async findByEmail ({ email, adapter }: FindByEmailDto): Promise<AuthDto | null> {
+    return this.findOne({ where: { email, isEmailVerified: true, deletedAt: null }, ...(adapter && { adapter }) });
   }
 
-  async findByEmailAny (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
-    return this.findOne({ where: { email }, adapter });
+  async findByEmailAny ({ email, adapter }: FindByEmailDto): Promise<AuthDto | null> {
+    return this.findOne({ where: { email }, ...(adapter && { adapter }) });
   }
 
   async createUser ({ email, passwordHash, role, displayName, termsAcceptedAt, adapter }: CreateAuthUserDto): Promise<AuthDto | null> {

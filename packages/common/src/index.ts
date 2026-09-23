@@ -1,3 +1,5 @@
+export * from './modules/helpers/database-config.helper';
+
 export * from './modules/infrastructure.module';
 
 export * from '@common/database';

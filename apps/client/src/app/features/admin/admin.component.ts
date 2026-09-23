@@ -49,6 +49,7 @@ export class AdminComponent implements OnInit {
   readonly createUserModalComponent = viewChild(CreateUserModalComponent);
 
   readonly isGlobalAdmin = computed(() => this.authService.currentUser()?.role === 'GLOBAL_ADMIN');
+  readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
   readonly totalItems = computed(() => this.allUsers().length);
@@ -60,22 +61,7 @@ export class AdminComponent implements OnInit {
     availablePageSizes: [10, 25, 50, 100]
   }));
 
-  readonly stats = computed<StatCard[]>(() => {
-    const stats = this.dashboardStats();
-
-    const definitions = [
-      { label: 'Total Users', icon: '👥', value: stats?.totalUsers },
-      { label: 'Active Wallets', icon: '👛', value: stats?.activeWallets },
-      { label: 'Total Volume', icon: '💰', value: stats?.totalVolumeMinor },
-      { label: 'Pending', icon: '⏳', value: stats?.pending }
-    ];
-
-    return definitions.map(({ label, icon, value }) => ({
-      label,
-      icon,
-      value: value == null ? (label === 'Total Volume' ? '$0' : '0') : label === 'Total Volume' ? AdminHelper.formatCurrencyCompact(value) : String(value)
-    }));
-  });
+  readonly stats = computed<StatCard[]>(() => AdminHelper.buildStatCards(this.dashboardStats()));
 
   readonly tableConfig = computed<DataTableConfig<AdminUser>>(() => ({
     title: 'User Management',
@@ -90,7 +76,9 @@ export class AdminComponent implements OnInit {
       this.handlers.onDeletedToggle.bind(this.handlers),
       this.handlers.onView.bind(this.handlers),
       this.handlers.onAnonymize.bind(this.handlers),
-      this.isGlobalAdmin()
+      this.isGlobalAdmin(),
+      this.handlers.onAccountStatusToggle.bind(this.handlers),
+      this.currentUserId()
     )
   }));
 

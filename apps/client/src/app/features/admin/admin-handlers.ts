@@ -6,6 +6,7 @@ import { AdminApiService } from '../../core/services/admin-api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { HttpError } from '../../core/interfaces/http/http-error.interface';
 import { UserRole } from '../../core/types/auth/user-role.type';
+import { AccountStatusHelper } from './helpers/account-status.helper';
 
 export class AdminHandlers {
   constructor (
@@ -97,6 +98,21 @@ export class AdminHandlers {
     });
   }
 
+  onAccountStatusToggle (userId: string, suspend: boolean): void {
+    const user = this.allUsers().find(u => u.id === userId);
+    if (!user || !AccountStatusHelper.confirm({ email: user.email, suspend })) return;
+
+    const request = suspend ? this.adminApi.suspendUser(userId) : this.adminApi.reactivateUser(userId);
+
+    request.subscribe({
+      next: () => {
+        this.updateUsers(users => users.map(u => (u.id === userId ? { ...u, userStatus: suspend ? 'SUSPENDED' : 'ACTIVE' } : u)));
+        this.toast.success(`Account ${suspend ? 'suspended' : 'reactivated'}`);
+      },
+      error: (err: HttpError) => this.toast.error(err?.error?.message ?? err?.message ?? `Failed to ${suspend ? 'suspend' : 'reactivate'} user`)
+    });
+  }
+
   loadDashboardData (): void {
     this.adminApi.getDashboardData().subscribe({
       next: dashboard => {
@@ -110,7 +126,7 @@ export class AdminHandlers {
           const status = user.status ?? 'ACTIVE';
           const currency = user.currency ?? 'USD';
 
-          return { id, name, email, role, status, balance, currency, walletId, isEmailVerified, deletedAt };
+          return { id, name, email, role, status, userStatus: user.userStatus, balance, currency, walletId, isEmailVerified, deletedAt };
         });
 
         this.updateUsers(() => users);

@@ -1,7 +1,7 @@
 import { Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
-import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RawBodyRequest } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RawBodyRequest, RequestScope } from '@common/libs';
 
 import { WebhookService } from './webhook.service';
 import { HandleWebhookRequestDto, HandleWebhookRequestSchema } from './dtos/request/handle-webhook-request.dto';
@@ -20,6 +20,6 @@ export class WebhookController {
     @Req() req: RawBodyRequest,
     @ParamsQueryAndHeaders({ schema: HandleWebhookRequestSchema }) dto: HandleWebhookRequestDto
   ): Promise<ProcessWebhookResponseDto> {
-    return this.webhookService.processWebhook({ ...dto, req });
+    return RequestScope.runSystem(() => this.webhookService.processWebhook({ ...dto, req }));
   }
 }

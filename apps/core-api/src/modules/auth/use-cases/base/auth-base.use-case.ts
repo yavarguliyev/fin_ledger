@@ -1,6 +1,6 @@
 import { Inject, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, SessionService } from '@common/libs';
+import { DatabaseAdapter, EmailTemplateType, OutboxDestination, OutboxRepository, SendEmailDto, SessionService } from '@common/libs';
 
 export abstract class AuthBaseUseCase<TInput, TOutput> {
   @Inject(ConfigService)
@@ -9,8 +9,8 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
   @Inject(SessionService)
   protected readonly sessionService!: SessionService;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
+  @Inject(OutboxRepository)
+  protected readonly outboxRepository!: OutboxRepository;
 
   protected get frontendUrl (): string {
     return this.configService.get<string>('FRONTEND_URL')!;
@@ -18,14 +18,25 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
 
   protected abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
-  protected async publishEmailVerification (eventPayload: SendEmailDto): Promise<SendEmailDto> {
-    return Promise.resolve(eventPayload);
+  protected async publishEmailVerification (eventPayload: SendEmailDto, userId: string, adapter?: DatabaseAdapter): Promise<SendEmailDto> {
+    await this.recordEmailEvent({ eventType: EmailTemplateType.EMAIL_VERIFICATION, eventPayload, userId, ...(adapter && { adapter }) });
+    return eventPayload;
   }
 
-  @KafkaPublish({ topic: EmailTemplateType.PASSWORD_RESET, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
-  protected async publishPasswordReset (eventPayload: SendEmailDto): Promise<SendEmailDto> {
-    return Promise.resolve(eventPayload);
+  protected async publishPasswordReset (eventPayload: SendEmailDto, userId: string, adapter?: DatabaseAdapter): Promise<SendEmailDto> {
+    await this.recordEmailEvent({ eventType: EmailTemplateType.PASSWORD_RESET, eventPayload, userId, ...(adapter && { adapter }) });
+    return eventPayload;
+  }
+
+  private async recordEmailEvent ({ eventType, eventPayload, userId, adapter }: { eventType: EmailTemplateType; eventPayload: SendEmailDto; userId: string; adapter?: DatabaseAdapter }): Promise<void> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
   }
 
   protected extractBearerToken (authorization?: string): string {

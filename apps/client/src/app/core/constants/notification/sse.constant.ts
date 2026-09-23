@@ -1,0 +1,6 @@
+export const SSE_RECONNECT = {
+  BASE_DELAY_MS: 1_000,
+  MAX_DELAY_MS: 30_000,
+  JITTER_RATIO: 0.25,
+  CATCH_UP_LIMIT: 50
+} as const;

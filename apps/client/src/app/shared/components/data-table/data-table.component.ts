@@ -97,6 +97,10 @@ export class DataTableComponent<T = unknown> {
     return DataTableHelper.getToggleChecked(column, row);
   }
 
+  getToggleDisabled (column: TableColumn<T>, row: T): boolean {
+    return DataTableHelper.getToggleDisabled(column, row);
+  }
+
   getActionConfig (column: TableColumn<T>): ActionIconsConfig {
     return DataTableHelper.getActionConfig(column);
   }

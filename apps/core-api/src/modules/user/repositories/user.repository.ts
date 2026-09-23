@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles, UserWalletStatus } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles, UserStatus, UserWalletStatus } from '@common/libs';
 
 import { UserDto } from '../dtos/user/user.dto';
 import { UserWithWalletDto } from '../dtos/user/user-with-wallet.dto';
@@ -94,6 +94,7 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
       'users.email',
       'users.displayName',
       'users.role',
+      'users.status',
       'users.isEmailVerified',
       'users.deletedAt',
       'users.createdAt',
@@ -134,6 +135,7 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
       email: row['users.email'] as string,
       display_name: row['users.displayName'] as string,
       role: row['users.role'] as string,
+      user_status: row['users.status'] as UserStatus,
       wallet_id: (row['wallets.id'] as string | null) ?? null,
       is_email_verified: row['users.isEmailVerified'] as boolean,
       deleted_at: (row['users.deletedAt'] as string | null) ?? null,

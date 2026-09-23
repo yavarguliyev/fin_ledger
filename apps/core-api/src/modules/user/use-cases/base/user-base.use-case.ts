@@ -1,6 +1,6 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, SessionService, StorageService } from '@common/libs';
+import { DatabaseAdapter, EmailTemplateType, OutboxDestination, OutboxRepository, SendEmailDto, SessionService, StorageService } from '@common/libs';
 
 import { UserRepository } from '../../repositories/user.repository';
 import { ImageActionDto } from '../../dtos/helper/image-action.dto';
@@ -18,14 +18,22 @@ export abstract class UserBaseCase<TInput, TOutput> {
   @Inject(StorageService)
   protected readonly storageService!: StorageService;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
+  @Inject(OutboxRepository)
+  protected readonly outboxRepository!: OutboxRepository;
 
   abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
-  protected async publishEmailVerification (eventPayload: SendEmailDto): Promise<SendEmailDto> {
-    return Promise.resolve(eventPayload);
+  protected async publishEmailVerification (eventPayload: SendEmailDto, userId: string, adapter?: DatabaseAdapter): Promise<SendEmailDto> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType: EmailTemplateType.EMAIL_VERIFICATION,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
+
+    return eventPayload;
   }
 
   protected async handleImageAction (dto: ImageActionDto): Promise<void> {

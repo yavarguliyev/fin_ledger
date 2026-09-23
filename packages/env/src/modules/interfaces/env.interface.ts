@@ -12,6 +12,7 @@ export interface Environment {
     AUTH: 'auth';
     BET: 'bets';
     GAME_EVENTS: 'game-events';
+    HEALTH: 'health';
     LEDGER: 'ledgers';
     METRICS: 'metrics';
     NOTIFICATION: 'notifications';

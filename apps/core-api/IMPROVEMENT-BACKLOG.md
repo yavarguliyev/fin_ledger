@@ -43,6 +43,29 @@ Stripe test mode.
 
 ---
 
+### API-P1-4 · Two analytics events have consumers but no producer *(needs a product decision)*
+
+**Found 2026-09-23** while moving payment analytics into the completing transaction (`PKG-P1-4`).
+
+`PaymentHelper.emitCompletedAnalytics` returned early unless the payment was `COMPLETED`, then always passed
+`isCompleted: true` — so `publishPaymentFailed` was **unreachable** and `AnalyticsEventTopic.PAYMENT_FAILED` has never
+been published. `AnalyticsPaymentFailedHandler` subscribes to that topic and has therefore never run. The same is true
+of the wallet side: `AnalyticsWalletDebitedHandler` subscribes to `WALLET_DEBITED`, which only fires on a debit path
+that the analytics emit never reached either.
+
+**Done.** `AnalyticsEventTopic.PAYMENT_COMPLETED` is now written to `outbox_events` (destination `KAFKA`) inside the
+same transaction that marks the payment `COMPLETED`, next to the existing `DomainEventType.PAYMENT_COMPLETED` row, so
+it can no longer be lost between commit and publish. The unreachable `emitCompletedAnalytics` /
+`emitKafkaPaymentAnalytics` / `emitKafkaWalletAnalytics` chain and its DTOs were deleted.
+
+**Decide.** Either emit `PAYMENT_FAILED` (and confirm `WALLET_DEBITED` fires) from the paths that own those outcomes,
+or delete the two consumers. Right now they are handlers that can never be called.
+
+**Verify.**
+- [ ] Whichever way it goes: no Kafka topic has a consumer with no producer, and no producer with no consumer.
+
+
+
 ## P2 — Schema and structure
 
 ### API-P2-1 · Replace Postgres ENUM types with `text` + CHECK constraints
@@ -71,9 +94,10 @@ Stripe test mode.
 - **`provider_customers`**:
   - `(user_id, provider, provider_customer_id)`, with `unique(provider, user_id)` and `unique(provider, provider_customer_id)`.
   - The Stripe adapter currently searches customers by email or creates a new guest customer per charge (`PKG-P3-2`).
-- **`inbox_messages`** `(consumer, message_id, processed_at)`, primary key `(consumer, message_id)`, for idempotent consumers (`PKG-P1-2`).
+
 - **`jobs`** for `@common/tasks` (`PKG-P2-2`).
-- **Outbox:** add `outbox_events.destination` (`PKG-P1-4`) and drop the `FAILED` outbox status (`PKG-P1-3`).
+- **Outbox:** drop the `FAILED` outbox status, which nothing writes now that the relay reschedules to `PENDING` or
+  `DEAD`. (`destination` was added in migration 017.)
 - **`payment_status_history`** `(payment_id, from_status, to_status, source, created_at)`, written by the state machine (`PAYMENT_TRANSITIONS` / `updatePaymentStatus`).
 - **`payment_methods.currency`** for payout destinations (with currency routing, `PKG-P3-1`).
 - **Immutable wallet transactions:** `trg_wallet_transactions_immutable` blocks only DELETE. Block UPDATE too, except the
@@ -138,26 +162,26 @@ Break the cycles with events rather than `forwardRef`. Controllers call use case
 - [ ] Build, typecheck, lint and tests pass.
 - [ ] Every route still answers the same (Swagger diff shows no change).
 
-### API-P2-6 · Health, metrics and bootstrap
+### API-P2-6 · Metrics breadth left
 
-**Problem.**
-- **No real metrics:** `GET /metrics` returns `'hello'`.
-- **No health checks:** there's no health or readiness endpoint.
-- **Env bugs in `main.ts`:** it reads `NODE_ENV` with `get<number>`, the variable is misspelled `environemnt`, and
-  Swagger is gated on a string comparison.
-- **No request IDs:** there's no request/correlation ID, although `outbox_events.trace_id` exists.
+**Done 2026-09-23.** `/health/live` and `/health/ready` (terminus; readiness pings Postgres and reports pool gauges).
+`/metrics` serves `prom-client` output — default process metrics plus `db_pool_connections_{total,idle,waiting}` and
+`outbox_events_{pending,dead}`. `main.ts` read `NODE_ENV` with `get<number>` into a variable spelled `environemnt` and
+compared it to the *default*, so Swagger mounted whenever those matched rather than outside production; it now reads
+`Environment` and gates on `!== Production`. **The old `/metrics` was unreachable anyway** — `MetricsController` never
+declared `version`, so the versioned router never mapped it; both it and the new health routes declare `V1` now.
+Correlation IDs: `CorrelationIdMiddleware` honours an incoming `x-correlation-id` or issues one, echoes it on the
+response, and puts it in `RequestScope` (AsyncLocalStorage) — `OutboxRepository.createEvent` reads it from there, so
+every event a request writes carries its `trace_id`. Covered by `health-metrics` and `correlation-id` specs.
 
-**Solution.**
-- **Health:** `@nestjs/terminus` `/health/live` and `/health/ready` (DB, Redis, brokers).
-- **Metrics:** Prometheus metrics via `prom-client` (HTTP latency, DB pool gauges `PKG-P2-1`, outbox lag, DLQ depth,
-  ledger drift from `LedgerIntegrityJob`).
-- **Correlation IDs:** a request-ID middleware that stores the ID in AsyncLocalStorage and passes it into logs and outbox `trace_id`.
-- **Env reading:** fix the typed env read.
+`RequestScope` is also what `API-P2-9` uses for `app.current_user_id`, so there is one request store, not two.
+
+**Still open.**
+- **More gauges:** HTTP latency, DLQ depth (`RabbitmqService.queueDepth`), ledger drift from `LedgerIntegrityJob`.
+- **Readiness breadth:** the check covers Postgres only; Redis and the brokers are not checked yet.
 
 **Verify.**
-- [ ] `/health/ready` fails when Postgres is stopped.
-- [ ] `/metrics` scrapes in Prometheus format.
-- [ ] One request's ID appears in its logs and in its outbox rows.
+- [ ] `/health/ready` also fails when Redis or a broker is down, and `/metrics` carries the gauges above.
 
 ### API-P2-7 · Session policy
 
@@ -171,33 +195,35 @@ refresh token revokes the whole family), and a "log out all devices" endpoint. T
 - [ ] The access token expires after 15 min and refresh works.
 - [ ] Replaying an old refresh token logs out every session of that user.
 
-### API-P2-8 · Last positional-parameter methods
+### API-P2-9 · Row-level security: PgBouncer is the one thing left
 
-`AuthRepository.findByEmail` and `findByEmailAny` still take positional arguments `(email, adapter?)`, against the
-one-DTO-per-method convention. (`createUser` and `IdempotencyHelper.forPayment` were converted on 2026-09-22.)
+**Done 2026-09-23 — the policies are enforced.** `app_api` is created `NOBYPASSRLS`, so the policies from migration
+013 now apply to it. A request's user reaches the database through `RequestScope` (AsyncLocalStorage, shared with the
+correlation ID from `API-P2-6`): `SessionGuard` puts the user id in the scope, and the adapter issues
+`set_config('app.current_user_id', …, true)` at the start of every transaction **and wraps standalone queries in one**,
+because a bare `pool.query` carries no GUC and would have returned zero rows.
 
-**Verify.** No method in `apps/core-api/src` takes more than one parameter, apart from framework-called signatures.
+System work runs as a second login, `app_worker` (`BYPASSRLS`), provisioned by `npm run db:provision-roles` alongside
+`app_api`. Nothing had to thread a connection through the repositories: background entry points wrap themselves in
+`RequestScope.runSystem(...)` — the three jobs, the Kafka and RabbitMQ handlers, the outbox relay poll, webhook
+ingestion and registration (which creates a wallet before any session exists) — and `PostgresService` hands back the
+worker adapter while that scope is active. Staff reach every row through a `*_staff_access` policy keyed on
+`app_current_role()` (migration 018, revertible).
 
----
+Covered by `apps/core-api/test/integration/rls.integration-spec.ts`: `app_api` really has no bypass, an owner reads
+their own wallet, another user's wallet is invisible **even when asked for by id**, an unset actor returns nothing at
+all (fails closed), and staff see every row. The whole suite passes with the bypass gone, which is what exercises the
+system paths.
 
-### API-P2-9 · Row-level security is written but not enforced (moved from P0 on 2026-09-22)
-
-**Done (2026-09-22): least privilege.** The API no longer connects as the table owner. `npm run db:provision-roles`
-(owner connection) creates the `app_api` login, a member of `app_readwrite`: no ownership, no DDL or `TRUNCATE`,
-`DELETE` only on `users` and `notifications`. The integration stack runs the API as `app_api`
-(spec `database-privileges`). `app_api` still has `BYPASSRLS`, so the policies from migration 013 don't apply yet.
-
-**Still open: enforce the policies.**
-1. **Request-scoped user.** Keep the authenticated user (and role) in `AsyncLocalStorage`; the database adapter runs
-   `SELECT set_config('app.current_user_id', $1, true)` at the start of every transaction and wraps standalone queries
-   in one. That's `SET LOCAL`, which is safe behind PgBouncer.
-2. **Staff and system access.** Staff through an explicit policy (`app_current_role() IN (…)`); webhooks, consumers,
-   the outbox relay and jobs through a separate `app_worker` login with `BYPASSRLS`.
-3. **Drop `BYPASSRLS` from `app_api`.**
+**Still open.**
+- **PgBouncer:** `SET LOCAL` is safe in transaction mode, which is what this uses — but the pooler is still not in
+  front. Needed before more than two API instances (`PKG-P2-1`).
+- **Cost:** a standalone read by an authenticated user is now `BEGIN`/`set_config`/query/`COMMIT`. That is the price of
+  enforcing RLS without session-level pooling; measure it under the k6 run in `PKG-P2-1` before scaling out.
 
 **Verify.**
-- [ ] With the ownership guards (`ResourceOwnerGuard` children) temporarily removed, user B still can't read user A's rows.
-- [ ] Webhooks, consumers and the outbox relay still work as `app_worker`.
+- [x] With the ownership guards removed, user B still can't read user A's rows.
+- [x] Webhooks, consumers and the outbox relay still work as `app_worker`.
 
 ## P3 — Tests
 

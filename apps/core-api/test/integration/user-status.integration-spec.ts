@@ -32,6 +32,26 @@ describe('Suspending and reactivating users', () => {
     await expect(login()).resolves.toMatchObject({ status: 201 });
   });
 
+  it('shows the account status in the admin user list so the table can act on it', async () => {
+    const dashboard = (): ReturnType<typeof ApiHelper.request<{ users: { id: string; user_status: string; status: string | null }[] }>> =>
+      ApiHelper.request<{ users: { id: string; user_status: string; status: string | null }[] }>({ method: 'GET', path: '/admin/dashboard', token: admin });
+
+    const before = await dashboard();
+    const listed = before.body?.users.find(user => user.id === userId);
+
+    expect(listed?.user_status).toBe('ACTIVE');
+
+    await expect(changeStatus('suspend')).resolves.toMatchObject({ status: 201 });
+
+    const after = await dashboard();
+    const suspended = after.body?.users.find(user => user.id === userId);
+
+    expect(suspended?.user_status).toBe('SUSPENDED');
+    expect(suspended?.status).not.toBe('SUSPENDED');
+
+    await expect(changeStatus('reactivate')).resolves.toMatchObject({ status: 201 });
+  });
+
   it('never reactivates a closed account', async () => {
     await DbHelper.query({ sql: "UPDATE users SET status = 'CLOSED' WHERE id = $1", params: [userId] });
 

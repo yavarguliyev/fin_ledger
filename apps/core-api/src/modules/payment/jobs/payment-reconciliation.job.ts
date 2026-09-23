@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, PaymentCapability, PaymentProviderRegistry, ProviderChargeStatus } from '@common/libs';
+import { BaseHelper, PaymentCapability, PaymentProviderRegistry, ProviderChargeStatus , RequestScope } from '@common/libs';
 
 import { PaymentRepository } from '../repositories/payment.repository';
 import { CompletePaymentUseCase } from '../use-cases/commands/complete-payment.use-case';
@@ -35,7 +35,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
   }
 
   onApplicationBootstrap (): void {
-    this.intervalHandle = setInterval(() => void this.tick(), this.intervalMs);
+    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.tick()), this.intervalMs);
     this.intervalHandle.unref();
   }
 

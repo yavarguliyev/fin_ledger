@@ -1,0 +1,4 @@
+export const MAIL_CONSTANTS = {
+  SMTP_DEFAULT_PORT: 587,
+  SMTP_SECURE_PORT: 465
+} as const;

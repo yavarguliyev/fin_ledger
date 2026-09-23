@@ -4,3 +4,8 @@ export enum OutboxStatus {
   PENDING = 'PENDING',
   PUBLISHED = 'PUBLISHED'
 }
+
+export enum OutboxDestination {
+  KAFKA = 'KAFKA',
+  RABBITMQ = 'RABBITMQ'
+}

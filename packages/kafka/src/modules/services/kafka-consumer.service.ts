@@ -10,6 +10,11 @@ import { RegisterSubscriberDto } from '../dtos/consumer/register-subscriber.dto'
 import { SubscriberInstanceDto } from '../dtos/consumer/subscriber-instance.dto';
 import { KafkaMessagePayloadDto } from '../dtos/consumer/kafka-message-payload.dto';
 import { KafkaHelper } from '../helpers/kafka.helper';
+import { DispatchHelper } from '../helpers/dispatch.helper';
+import { RetryHelper } from '../helpers/retry.helper';
+import { TopicHelper } from '../helpers/topic.helper';
+import { KafkaService } from './kafka.service';
+import { InboxRepository } from '@common/database';
 
 @Injectable()
 export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
@@ -21,7 +26,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     @Inject(KAFKA_CLIENT_ID)
     private readonly clientId: ClientIds,
     private readonly configService: ConfigService,
-    private readonly discoveryService: DiscoveryService
+    private readonly discoveryService: DiscoveryService,
+    private readonly kafkaService: KafkaService,
+    private readonly inboxRepository: InboxRepository
   ) {
     this.clientId = clientId;
     this.logger = new Logger(`${KafkaConsumerService.name}:${this.clientId}`);
@@ -56,23 +63,34 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     for (const { methodName, options } of metadata) this.registerSingleSubscriber({ instance, methodName, options });
   }
 
+  private groupId (): string {
+    return this.configService.get<string>('KAFKA_CONSUMER_GROUP_ID') || `${this.clientId}-consumer-group`;
+  }
+
+  private consumedTopics (): string[] {
+    return Array.from(this.subscribers.keys()).flatMap(topic => [topic, TopicHelper.retryTopic({ topic })]);
+  }
+
+  private deadLetterTopics (): string[] {
+    return Array.from(this.subscribers.keys()).map(topic => TopicHelper.deadLetterTopic({ topic }));
+  }
+
   private async subscribeToTopics (): Promise<void> {
     if (!this.consumer) return;
-    await KafkaHelper.subscribeToTopics({ consumer: this.consumer, topics: Array.from(this.subscribers.keys()) });
+    await KafkaHelper.subscribeToTopics({ consumer: this.consumer, topics: this.consumedTopics() });
   }
 
   private async handleMessage ({ payload }: KafkaMessagePayloadDto): Promise<void> {
     const { topic, partition, message } = payload;
-    const handlers = this.subscribers.get(topic);
+    const originTopic = TopicHelper.originTopic({ topic });
+    const handlers = this.subscribers.get(originTopic);
     if (!handlers || handlers.length === 0) return;
 
-    try {
-      for (const handler of handlers) {
-        await handler(KafkaHelper.buildKafkaMessage({ topic, partition, message }));
-      }
-    } catch (error) {
-      this.logger.error(`Failed to handle message from topic ${topic}: ${BaseHelper.errorResponse({ error }).message}`);
-    }
+    if (TopicHelper.isRetryTopic({ topic })) await RetryHelper.waitUntilDue({ message });
+
+    const record = KafkaHelper.buildKafkaMessage({ topic: originTopic, partition, message });
+
+    await DispatchHelper.runAll({ handlers, record, payload, send: message => this.kafkaService.send(message), consumerGroup: this.groupId(), inboxRepository: this.inboxRepository, logger: this.logger });
   }
 
   private registerSingleSubscriber ({ instance, methodName, options }: RegisterSubscriberDto): void {
@@ -95,12 +113,12 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
       port: this.configService.get<number>('KAFKA_BROKER_PORT')
     });
 
-    const groupId = this.configService.get<string>('KAFKA_CONSUMER_GROUP_ID') || `${this.clientId}-consumer-group`;
+    const groupId = this.groupId();
     const kafka = new Kafka(KafkaHelper.createKafkaConfig({ clientId: this.clientId, brokers }));
     this.consumer = kafka.consumer(KafkaHelper.createConsumerConfig({ groupId }));
 
     await this.consumer.connect();
-    await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: Array.from(this.subscribers.keys()), logger: this.logger });
+    await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: [...this.consumedTopics(), ...this.deadLetterTopics()], logger: this.logger });
     await this.subscribeToTopics();
 
     try {

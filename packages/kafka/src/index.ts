@@ -1,3 +1,8 @@
+export * from './modules/constants/messaging/consumer.constant';
+
+export * from './modules/decorators/kafka-publish.decorator';
+export * from './modules/decorators/kafka-subscribe.decorator';
+
 export * from './modules/dtos/consumer/kafka-message-payload.dto';
 export * from './modules/dtos/consumer/register-subscriber.dto';
 export * from './modules/dtos/consumer/subscriber-instance.dto';
@@ -13,10 +18,15 @@ export * from './modules/dtos/helper/parse-kafka-headers.dto';
 export * from './modules/dtos/helper/resolve-brokers.dto';
 export * from './modules/dtos/helper/subscribe-to-topics.dto';
 export * from './modules/dtos/service/kafka-publish.dto';
-export * from './modules/decorators/kafka-publish.decorator';
-export * from './modules/decorators/kafka-subscribe.decorator';
+export * from './modules/dtos/service/kafka-send.dto';
+export * from './modules/dtos/step/dispatch.dto';
+export * from './modules/dtos/step/park.dto';
+export * from './modules/dtos/step/topic-name.dto';
 
+export * from './modules/helpers/dispatch.helper';
 export * from './modules/helpers/kafka.helper';
+export * from './modules/helpers/retry.helper';
+export * from './modules/helpers/topic.helper';
 
 export * from './modules/interfaces/consumer-config-payload.interface';
 export * from './modules/interfaces/kafka-config-payload.interface';

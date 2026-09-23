@@ -25,6 +25,8 @@ export class IntegrationStackHelper {
   private static readonly JWT_ISSUER = 'core-api-integration';
   private static readonly READY_TIMEOUT_MS = 90_000;
   private static readonly APP_DB_USERNAME = 'app_api';
+  private static readonly APP_WORKER_USERNAME = 'app_worker';
+  private static readonly RABBITMQ_HTTP_PORT = 15_672;
 
   static async start (): Promise<IntegrationStack> {
     const [kafkaPort, apiPort] = await Promise.all([IntegrationStackHelper.freePort(), IntegrationStackHelper.freePort()]);
@@ -45,7 +47,14 @@ export class IntegrationStackHelper {
 
     const appDbPassword = CryptoHelper.randomToken({ bytes: 16 });
     execFileSync(process.execPath, [path.join(IntegrationStackHelper.REPO_ROOT, 'scripts/db/provision-login-roles.mjs')], {
-      env: { ...process.env, DATABASE_URL: databaseUrl, APP_API_DB_USERNAME: IntegrationStackHelper.APP_DB_USERNAME, APP_API_DB_PASSWORD: appDbPassword },
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseUrl,
+        APP_API_DB_USERNAME: IntegrationStackHelper.APP_DB_USERNAME,
+        APP_API_DB_PASSWORD: appDbPassword,
+        APP_WORKER_DB_USERNAME: IntegrationStackHelper.APP_WORKER_USERNAME,
+        APP_WORKER_DB_PASSWORD: appDbPassword
+      },
       stdio: 'pipe'
     });
     const appDatabaseUrl = `postgres://${IntegrationStackHelper.APP_DB_USERNAME}:${appDbPassword}@${postgres.getHost()}:${postgres.getPort()}/${postgres.getDatabase()}`;
@@ -72,6 +81,8 @@ export class IntegrationStackHelper {
       DB_HOST: postgres.getHost(),
       DB_PORT: String(postgres.getPort()),
       DB_USERNAME: IntegrationStackHelper.APP_DB_USERNAME,
+      DB_WORKER_USERNAME: IntegrationStackHelper.APP_WORKER_USERNAME,
+      DB_WORKER_PASSWORD: appDbPassword,
       DB_PASSWORD: appDbPassword,
       DB_NAME: postgres.getDatabase(),
       DB_DATABASE: postgres.getDatabase(),
@@ -116,6 +127,8 @@ export class IntegrationStackHelper {
     process.env[TEST_ENV_KEYS.DATABASE_URL] = databaseUrl;
     process.env[TEST_ENV_KEYS.APP_DATABASE_URL] = appDatabaseUrl;
     process.env[TEST_ENV_KEYS.KAFKA_BROKERS] = `127.0.0.1:${kafkaPort}`;
+    process.env[TEST_ENV_KEYS.RABBITMQ_URL] = rabbitmq.getAmqpUrl();
+    process.env[TEST_ENV_KEYS.RABBITMQ_MANAGEMENT_URL] = `http://${rabbitmq.getHost()}:${rabbitmq.getMappedPort(IntegrationStackHelper.RABBITMQ_HTTP_PORT)}`;
     process.env[TEST_ENV_KEYS.REDIS_URL] = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
 
     return { api, containers: [postgres, redis, rabbitmq, kafka], workDir };

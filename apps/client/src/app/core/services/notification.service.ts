@@ -5,6 +5,8 @@ import { Observable, tap, catchError } from 'rxjs';
 import { AppNotification } from '../interfaces/notification/app-notification.interface';
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
+import { SSE_RECONNECT } from '../constants/notification/sse.constant';
+import { NotificationMergeHelper } from '../helpers/notification/notification-merge.helper';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -14,6 +16,9 @@ export class NotificationService {
   private readonly zone = inject(NgZone);
 
   private eventSource: EventSource | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempt = 0;
+  private stopped = false;
 
   readonly notifications = computed(() => this.notificationsSignal());
   readonly unreadCount = computed(() => this.notificationsSignal().filter(n => n.status !== 'READ').length);
@@ -35,11 +40,44 @@ export class NotificationService {
     );
   }
 
+  private catchUp (): void {
+    this.http
+      .get<AppNotification[]>(`${this.apiUrl}`, { params: { limit: SSE_RECONNECT.CATCH_UP_LIMIT.toString() } })
+      .subscribe({
+        next: fetched => this.zone.run(() => this.notificationsSignal.set(NotificationMergeHelper.merge({ current: this.notificationsSignal(), incoming: fetched }))),
+        error: () => undefined
+      });
+  }
+
   disconnectSSE (): void {
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
+    this.stopped = true;
+
+    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
+    this.reconnectAttempt = 0;
+
+    this.closeStream();
+  }
+
+  private closeStream (): void {
+    if (!this.eventSource) return;
+
+    this.eventSource.close();
+    this.eventSource = null;
+  }
+
+  private scheduleReconnect (): void {
+    this.closeStream();
+
+    if (this.stopped || this.reconnectTimer) return;
+
+    this.reconnectAttempt += 1;
+
+    const delay = NotificationMergeHelper.backoffMs({ attempt: this.reconnectAttempt });
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!this.stopped) this.openStream();
+    }, delay);
   }
 
   markAsRead (notificationId: string): Observable<AppNotification> {
@@ -56,18 +94,31 @@ export class NotificationService {
   connectSSE (): void {
     if (this.eventSource) return;
 
+    this.stopped = false;
+    this.reconnectAttempt = 0;
+    this.openStream();
+  }
+
+  private openStream (): void {
     const token = localStorage.getItem('access_token');
     if (!token) return;
 
     this.eventSource = new EventSource(`${this.apiUrl}/stream?token=${encodeURIComponent(token)}`);
+
+    this.eventSource.onopen = (): void => {
+      const reconnected = this.reconnectAttempt > 0;
+      this.reconnectAttempt = 0;
+
+      if (reconnected) this.catchUp();
+    };
+
     this.eventSource.onmessage = (event: MessageEvent): void => {
       this.zone.run(() => {
         const notification = JSON.parse(event.data as string) as AppNotification;
-        const current = this.notificationsSignal();
-        this.notificationsSignal.set([notification, ...current]);
+        this.notificationsSignal.set(NotificationMergeHelper.merge({ current: this.notificationsSignal(), incoming: [notification] }));
       });
     };
 
-    this.eventSource.onerror = (): void => this.disconnectSSE();
+    this.eventSource.onerror = (): void => this.scheduleReconnect();
   }
 }

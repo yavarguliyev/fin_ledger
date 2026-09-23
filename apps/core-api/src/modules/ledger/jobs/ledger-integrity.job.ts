@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper } from '@common/libs';
+import { BaseHelper , RequestScope } from '@common/libs';
 
 import { LedgerBalanceDriftRepository } from '../repositories/ledger-balance-drift.repository';
 import { WalletLedgerDriftRepository } from '../repositories/wallet-ledger-drift.repository';
@@ -25,7 +25,7 @@ export class LedgerIntegrityJob implements OnApplicationBootstrap, OnModuleDestr
   }
 
   onApplicationBootstrap (): void {
-    this.intervalHandle = setInterval(() => void this.tick(), this.intervalMs);
+    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.tick()), this.intervalMs);
     this.intervalHandle.unref();
   }
 

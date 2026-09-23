@@ -14,6 +14,7 @@ export const ENVIRONMENT_CONSTANTS: Environment = {
     AUTH: 'auth',
     BET: 'bets',
     GAME_EVENTS: 'game-events',
+    HEALTH: 'health',
     LEDGER: 'ledgers',
     METRICS: 'metrics',
     NOTIFICATION: 'notifications',

@@ -4,6 +4,7 @@ import { Kafka, Producer, logLevel } from 'kafkajs';
 import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_TOPICS } from '@common/shared-libs';
 
 import { KafkaPublishDto } from '../dtos/service/kafka-publish.dto';
+import { KafkaSendDto } from '../dtos/service/kafka-send.dto';
 import { KafkaHelper } from '../helpers/kafka.helper';
 
 @Injectable()
@@ -46,13 +47,17 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   }
 
   async publish ({ payload, topic, key }: KafkaPublishDto): Promise<void> {
-    if (!this.producer) throw new InternalServerErrorException('Kafka producer not initialized');
-
     try {
-      await this.producer.send({ topic, messages: [{ key: key ?? null, value: JSON.stringify(payload) }] });
+      await this.send({ topic, payload, key: key ?? null });
     } catch (error) {
       this.logger.warn(`Kafka publish failed: ${BaseHelper.errorResponse({ error }).message}`);
     }
+  }
+
+  async send ({ topic, payload, key, headers }: KafkaSendDto): Promise<void> {
+    if (!this.producer) throw new InternalServerErrorException('Kafka producer not initialized');
+
+    await this.producer.send({ topic, messages: [{ key: key ?? null, value: JSON.stringify(payload), ...(headers && { headers }) }] });
   }
 
   private resolveBrokers (): string[] {

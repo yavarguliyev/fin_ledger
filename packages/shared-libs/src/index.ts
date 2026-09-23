@@ -1,3 +1,7 @@
+export * from './modules/middlewares/correlation-id.middleware';
+export * from './modules/constants/http/correlation.constant';
+export * from './modules/interfaces/request-scope-store.interface';
+export * from './modules/context/request-scope';
 export * from './modules/interfaces/authenticated-request.interface';
 export * from './modules/interfaces/category-traits.interface';
 export * from './modules/enums/common/provider-error-category.enum';

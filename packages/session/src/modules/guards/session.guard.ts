@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CanActivate, ExecutionContext } from '@nestjs/common';
-import { UserStatus } from '@common/shared-libs';
+import { RequestScope, UserStatus } from '@common/shared-libs';
 
 import { SessionService } from '../services/session.service';
 import { ExpressReqFields } from '../interfaces/express-req-fields.interface';
@@ -22,6 +22,9 @@ export class SessionGuard implements CanActivate {
     if (session.status !== UserStatus.ACTIVE) throw new UnauthorizedException('Your account is not active');
 
     request.user = session;
+
+    const scope = RequestScope.current();
+    if (scope) scope.actorId = session.userId;
 
     return true;
   }

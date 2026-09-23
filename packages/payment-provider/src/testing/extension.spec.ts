@@ -24,7 +24,7 @@ class PayoutOnlyAdapter extends BasePaymentAdapter implements SupportsPayout, Su
   }
 
   constructWebhookEvent (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
-    return Promise.resolve(this.simulateWebhook(dto));
+    return Promise.resolve().then(() => this.simulateWebhook(dto));
   }
 
   async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {

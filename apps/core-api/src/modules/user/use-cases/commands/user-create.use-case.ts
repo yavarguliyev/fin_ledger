@@ -39,6 +39,7 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
       body: `You have been invited as ${user.role}. Please verify your email`,
       action: 'email',
       url: invitationUrl,
+      userId: user.id,
       publishEmailVerification: this.publishEmailVerification.bind(this)
     });
 

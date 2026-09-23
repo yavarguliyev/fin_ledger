@@ -62,34 +62,20 @@ changing the amount (seen in the WEB-P0-1 verification run).
 - [ ] An expired session redirects to login on first navigation, not after a failed call.
 - [ ] A session outlives access-token expiry without re-login.
 
-### WEB-P1-3 · Live notifications stop after the first network blip
+### WEB-P1-3 · Reconnect is built; the live stop/restart check is left
 
-**Problem.**
-- **No reconnect:** `NotificationService.connectSSE` sets `onerror = disconnectSSE`. One dropped connection ends live
-  updates until a page reload.
-- **Gaps and duplicates:** events sent while the stream was disconnected are never fetched, and nothing de-duplicates them.
+**Done 2026-09-23.** `NotificationService` no longer ends the stream on the first error. `onerror` now schedules a
+reconnect through `NotificationMergeHelper.backoffMs` (exponential with jitter, capped at `MAX_DELAY_MS`), `onopen`
+resets the attempt counter and, when it was a reconnect, re-fetches the list so anything sent during the gap appears.
+Merging is by ID with the freshly fetched copy winning, so a notification that arrived live and again on catch-up shows
+once. `disconnectSSE()` sets a stopped flag and clears the pending timer, so logout ends the stream for good instead of
+racing a reconnect. Covered by `notification-merge.helper.spec.ts` (de-duplication, gap catch-up, backoff bounds), run
+by the new `npm test -w apps/client`.
 
-**Solution.**
-- **Reconnect:** with exponential backoff and jitter.
-- **Catch up:** on reconnect, re-fetch notifications since the last seen ID/time (`Last-Event-ID` support on the API).
-- **De-duplicate:** by ID when merging.
-- **Disconnect on logout.**
+**Note.** The stream still carries the access token in the URL — that is `WEB-P1-2`, not this item.
 
-**Verify.**
-- [ ] Stopping and restarting the API: the stream reconnects by itself, and notifications created during the gap appear once.
-
-### WEB-P1-4 · Admins can't suspend or reactivate users from the UI
-
-**Problem.** The API has `POST /users/:userId/suspend` and `POST /users/:userId/reactivate` (GLOBAL_ADMIN, ADMIN;
-audited; suspending ends the user's sessions), but the admin user table has no control for them. The admin user list
-(`findAllWithWallets`) also doesn't return the account status (`status` there is the wallet status).
-
-**Solution.** Return `userStatus` from the admin user list, show it in the table, and add a Suspend / Reactivate action
-(confirm dialog) that calls the new endpoints and updates the row. Hide the action on the admin's own row and on
-`CLOSED` / `PENDING` users.
-
-**Verify.**
-- [ ] Suspending a user from the table logs them out on their next request; reactivating lets them log in again.
+**Verify (needs the running stack, so it is yours to run).**
+- [ ] Stop and restart the API: the stream reconnects by itself, and notifications created during the gap appear once.
 
 ---
 
@@ -155,9 +141,12 @@ are repeated across routes, guards and components (`isUser` is computed in three
 
 ### WEB-P3-1 · No tests
 
-**Problem.** `npm test` only echoes a message.
+**Problem.** ~~`npm test` only echoes a message.~~ A runner now exists: `npm test -w apps/client` runs ts-jest
+(`apps/client/jest.config.js`), matching the rest of the monorepo rather than Vitest/Karma, and `tsconfig.json` no
+longer excludes `*.spec.ts`. One spec exists (`notification-merge.helper.spec.ts`, from `WEB-P1-3`). The money paths
+below are still uncovered.
 
-**Solution.** Add the Angular test runner (Vitest or Karma) and cover the money paths first:
+**Solution.** Cover the money paths:
 - `CurrencyHelper` (JPY/KWD)
 - the deposit/withdraw state machine (`WEB-P1-1`)
 - `IdempotencyKeyService` (reuse on unknown outcome, fresh key on success, 4xx, or a changed fingerprint)

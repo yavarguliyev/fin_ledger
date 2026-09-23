@@ -1,8 +1,9 @@
-import { PaymentCapability, ProviderChargeStatus } from '@common/shared-libs';
+import { PaymentCapability, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
 
 import { ProviderContractOptionsDto } from '../modules/dtos/testing/provider-contract-options.dto';
 import { CHARGE_INPUT } from '../modules/constants/testing/charge-input.constant';
 import { REQUIRED_METHODS } from '../modules/constants/testing/required-methods.constant';
+import { MALFORMED_PAYLOADS } from '../modules/constants/testing/malformed-payloads.constant';
 
 const describeCapabilities = ({ create, expectedCapabilities }: ProviderContractOptionsDto): void => {
   it('declares a provider name and at least one capability', () => {
@@ -71,9 +72,46 @@ const describeBehaviour = ({ create }: ProviderContractOptionsDto): void => {
   });
 };
 
+const describeWebhookParsing = ({ create }: ProviderContractOptionsDto): void => {
+  it('refuses a webhook body that is not a JSON object instead of treating it as empty', async () => {
+    const provider = create();
+    if (!provider.supports({ capability: PaymentCapability.WEBHOOKS })) return;
+
+    const hooks = provider as unknown as { constructWebhookEvent: (dto: { payload: string; signature: string }) => Promise<unknown> };
+
+    for (const payload of MALFORMED_PAYLOADS) {
+      await expect(hooks.constructWebhookEvent({ payload, signature: '' })).rejects.toThrow();
+    }
+  });
+};
+
+const describeErrorClassification = ({ create }: ProviderContractOptionsDto): void => {
+  it('classifies every error category into a retryable and indeterminate pair', () => {
+    create();
+
+    Object.values(ProviderErrorCategory).forEach(category => {
+      const error = new ProviderError({ message: `probe ${category}`, category });
+
+      expect(error.category).toBe(category);
+      expect(error.code).toBeTruthy();
+      expect(typeof error.retryable).toBe('boolean');
+      expect(typeof error.indeterminate).toBe('boolean');
+    });
+  });
+
+  it('treats an indeterminate category as the one case a caller must not retry blindly', () => {
+    const indeterminate = Object.values(ProviderErrorCategory).filter(category => ProviderError.isIndeterminate({ category }));
+
+    expect(indeterminate.length).toBeGreaterThan(0);
+    indeterminate.forEach(category => expect(new ProviderError({ message: 'probe', category }).indeterminate).toBe(true));
+  });
+};
+
 export const runProviderContractTests = (options: ProviderContractOptionsDto): void => {
   describe(`${options.name} payment provider contract`, () => {
     describeCapabilities(options);
     describeBehaviour(options);
+    describeWebhookParsing(options);
+    describeErrorClassification(options);
   });
 };

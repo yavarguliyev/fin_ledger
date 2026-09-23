@@ -15,7 +15,11 @@ export const CacheEvict = (options: CacheEvictOptionsDto): MethodDecorator => {
       if (!provider) return result;
 
       if (options.isPattern === true) {
-        await Promise.all(options.keyPrefix.map(keyPrefix => CacheHelper.tryEvictCache({ provider, keyPrefix: `${keyPrefix}:*`, isPattern: true })));
+        const scope = options.scope?.(args);
+
+        await Promise.all(
+          options.keyPrefix.map(keyPrefix => CacheHelper.tryEvictCache({ provider, keyPrefix: scope ? `${keyPrefix}:${scope}:*` : `${keyPrefix}:*`, isPattern: true }))
+        );
       } else {
         const targetMethod = options.targetMethodName || currentMethodName;
         const evictionArgs = options.targetMethodName ? [args[0]] : args;

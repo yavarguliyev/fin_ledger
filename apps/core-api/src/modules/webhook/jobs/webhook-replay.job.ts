@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, WebhookStatus } from '@common/libs';
+import { BaseHelper, WebhookStatus , RequestScope } from '@common/libs';
 
 import { WebhookService } from '../webhook.service';
 import { WebhookEventRepository } from '../repositories/webhook-event.repository';
@@ -26,7 +26,7 @@ export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy
   }
 
   onApplicationBootstrap (): void {
-    this.intervalHandle = setInterval(() => void this.tick(), this.intervalMs);
+    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.tick()), this.intervalMs);
     this.intervalHandle.unref();
   }
 

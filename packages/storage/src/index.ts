@@ -1,3 +1,6 @@
+export * from './modules/constants/cache/storage-cache.constant';
+export * from './modules/helpers/storage-cache.helper';
+
 export * from './modules/constants/errors/storage-errors.constant';
 export * from './modules/constants/image/image-formats.constant';
 export * from './modules/constants/image/image-upload-limits.constant';

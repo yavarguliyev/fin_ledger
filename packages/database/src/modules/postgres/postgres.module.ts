@@ -9,6 +9,7 @@ export class PostgresModule {
   static forRootAsync (options: DatabaseAsyncOptionsDto): DynamicModule {
     return {
       module: PostgresModule,
+      global: true,
       providers: [
         {
           provide: DATABASE_CONFIG,

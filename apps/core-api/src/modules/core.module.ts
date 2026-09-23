@@ -16,6 +16,8 @@ import { PaymentMethodModule } from './payment-methods/payment-method.module';
 import { WalletModule } from './wallet/wallet.module';
 import { UserModule } from './user/user.module';
 import { MetricsModule } from './metrics/metrics.module';
+import { HealthModule } from './health/health.module';
+import { RetentionModule } from './retention/retention.module';
 import { AdminModule } from './admin/admin.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { SharedModule } from '../shared/shared.module';
@@ -33,6 +35,8 @@ import { SharedModule } from '../shared/shared.module';
     AuditModule,
     EmailModule,
     MetricsModule,
+    HealthModule,
+    RetentionModule,
     AuthModule,
     BetModule,
     GameEventsModule,

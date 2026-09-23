@@ -34,7 +34,7 @@ export class S3StorageStrategy extends BaseStrategy {
   constructor (@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
     super();
 
-    this.clientId = options.clientId || ClientIds.DEAFULT;
+    this.clientId = options.clientId || ClientIds.DEFAULT;
     this.logger = new Logger(`${S3StorageStrategy.name}:${this.clientId}`);
 
     if (!options.s3) throw new BadRequestException('S3 configuration is missing');

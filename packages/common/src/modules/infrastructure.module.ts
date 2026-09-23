@@ -5,27 +5,18 @@ import { DatabaseConfig, DatabaseModule, OutboxRepository } from '@common/databa
 import { KafkaModule } from '@common/kafka';
 import { OutboxPublisherService, RabbitmqModule } from '@common/rabbitmq';
 import { RedisModule } from '@common/redis';
-import { UnifiedExceptionFilter, ClientIdDto, DatabaseType } from '@common/shared-libs';
+import { UnifiedExceptionFilter, ClientIdDto } from '@common/shared-libs';
 import { PaymentProviderModule } from '@common/payment-provider';
 import { SmsModule } from '@common/sms';
+
+import { DatabaseConfigHelper } from './helpers/database-config.helper';
 
 @Module({
   providers: [{ provide: APP_FILTER, useClass: UnifiedExceptionFilter }]
 })
 export class InfrastructureModule {
   static forRoot ({ clientId }: ClientIdDto): DynamicModule {
-    const dbConfigFactory = (configService: ConfigService): DatabaseConfig => ({
-      host: configService.get<string>('DB_HOST', 'localhost'),
-      port: configService.get<number>('DB_PORT', 5432) ?? 5432,
-      username: configService.get<string>('DB_USERNAME') ?? '',
-      password: configService.get<string>('DB_PASSWORD') ?? '',
-      database: configService.get<string>('DB_NAME') ?? configService.get<string>('DB_DATABASE') ?? '',
-      type: DatabaseType.POSTGRESQL,
-      ssl: configService.get<string>('DB_SSL') === 'true',
-      connectionLimit: configService.get<number>('DB_CONNECTION_LIMIT', 10) ?? 10,
-      minLimit: configService.get<number>('DB_MIN_LIMIT', 2) ?? 2,
-      connectionTimeoutMillis: configService.get<number>('DB_CONNECTION_TIMEOUT', 5000) ?? 5000
-    });
+    const dbConfigFactory = (configService: ConfigService): DatabaseConfig => DatabaseConfigHelper.fromEnv({ configService, ...(clientId && { clientId }) });
 
     const databaseOptions = {
       inject: [ConfigService] as [typeof ConfigService],

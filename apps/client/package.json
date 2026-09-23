@@ -8,7 +8,7 @@
     "build": "ng build --configuration=production",
     "dev": "ng serve --host 0.0.0.0 --port 4200",
     "lint": "eslint \"src/**/*.ts\"",
-    "test": "echo \"No client tests configured: add a \\\"test\\\" target to angular.json to enable them.\" && exit 0",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "clean": "rm -rf dist .angular node_modules/.cache",
     "config:write": "node scripts/write-runtime-config.js"
@@ -28,9 +28,11 @@
     "@angular/build": "^21.1.0",
     "@angular/cli": "^21.1.0",
     "@angular/compiler-cli": "^21.1.0",
+    "@types/jest": "^30.0.0",
     "autoprefixer": "^10.5.4",
     "postcss": "^8.5.24",
     "tailwindcss": "^3.4.17",
+    "ts-jest": "^29.4.12",
     "typescript": "^5.9.3"
   }
 }

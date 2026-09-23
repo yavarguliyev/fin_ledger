@@ -2,12 +2,10 @@ import { BadRequestException } from '@nestjs/common';
 import { PaymentMethodStatus, PaymentStatus } from '@common/libs';
 
 import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
-import { EmitCompletedAnalyticsDto } from '../dtos/helper/emit-completed-analytics.dto';
 import { PaymentAnalyticsEventPayloadDto } from '../dtos/analytics/payment-analytics-event.dto';
 import { PaymentFailedEventPayloadDto } from '../dtos/analytics/payment-failed-event.dto';
 import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-payment-method.dto';
 import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
-import { AnalyticsHelper } from '../../analytics/helpers/analytics.helper';
 
 export class PaymentHelper {
   public static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {
@@ -48,10 +46,4 @@ export class PaymentHelper {
     };
   }
 
-  public static emitCompletedAnalytics ({ payment, publishPaymentCompleted, publishPaymentFailed }: EmitCompletedAnalyticsDto): void {
-    if (payment.status !== PaymentStatus.COMPLETED) return;
-
-    const payload = PaymentHelper.completedEventPayload({ payment });
-    void AnalyticsHelper.emitKafkaPaymentAnalytics({ ...payload, isCompleted: true, publishPaymentCompleted, publishPaymentFailed });
-  }
 }

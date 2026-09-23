@@ -4,6 +4,7 @@ import { RabbitmqService, RABBITMQ_SERVICE, UnknownRecord, DomainEventType, Noti
 import { NotificationService } from '../../notification.service';
 import { EventTitleDto } from '../../dtos/notification/event-title.dto';
 import { NotificationHelper } from '../../helpers/notification.helper';
+import { NOTIFICATION_QUEUE } from '../../constants/messaging/notification-queue.constant';
 
 export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements OnModuleInit {
   @Inject(RABBITMQ_SERVICE)
@@ -31,6 +32,7 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
 
   protected async subscribe (): Promise<void> {
     await this.rabbitmqService.subscribe({
+      queue: `${NOTIFICATION_QUEUE.PREFIX}.${this.eventType}`,
       routingKey: this.eventType,
       handler: async message => {
       const payload = message as TPayload;

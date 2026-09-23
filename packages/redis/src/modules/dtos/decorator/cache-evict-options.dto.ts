@@ -6,7 +6,9 @@ export const CacheEvictOptionsSchema = z.object({
 
   targetMethodName: z.string().optional(),
 
-  isPattern: z.boolean().optional()
+  isPattern: z.boolean().optional(),
+
+  scope: z.custom<(args: unknown[]) => string>().optional()
 });
 
 export type CacheEvictOptionsDto = z.infer<typeof CacheEvictOptionsSchema>;

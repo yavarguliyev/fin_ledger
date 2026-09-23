@@ -23,7 +23,7 @@ export class RedisCacheProvider implements CacheProvider {
   private readonly clientId: ClientIds;
 
   constructor ({ config }: RedisConfigRefDto) {
-    this.clientId = config.clientId || ClientIds.DEAFULT;
+    this.clientId = config.clientId || ClientIds.DEFAULT;
     this.logger = new Logger(`${RedisCacheProvider.name}:${this.clientId}`);
     this.client = this.createClient({ config });
     this.client.on('error', (error: Error) => this.logger.warn(`Redis connection error: ${BaseHelper.errorResponse({ error }).message}`));

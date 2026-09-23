@@ -21,7 +21,7 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<ForgotPasswordDto, Fo
   async execute ({ email }: ForgotPasswordDto): Promise<ForgotPasswordResponseDto> {
     const response = { status: true, message: 'If an account exists for this email, a password reset link has been sent.' };
 
-    const user = await this.authRepository.findByEmail(email);
+    const user = await this.authRepository.findByEmail({ email });
     if (!user) return response;
 
     const token = await AuthTokenHelper.issue({ authTokenRepository: this.authTokenRepository, userId: user.id, purpose: AuthTokenPurpose.PASSWORD_RESET });
@@ -35,6 +35,7 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<ForgotPasswordDto, Fo
       body: `Click the link below to reset your password. This link will expire in 15 minutes.`,
       url: resetUrl,
       action: 'password_reset',
+      userId: user.id,
       publishPasswordReset: this.publishPasswordReset.bind(this)
     });
 

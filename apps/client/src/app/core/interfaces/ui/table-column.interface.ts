@@ -14,5 +14,6 @@ export interface TableColumn<T = unknown> {
   mobileVisible?: boolean;
   toggleCallback?: (value: boolean, row: T) => void;
   getToggleValue?: (row: T) => boolean;
+  toggleDisabled?: (row: T) => boolean;
   actions?: ActionConfig<T>;
 }

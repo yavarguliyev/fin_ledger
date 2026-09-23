@@ -10,4 +10,5 @@ export * from '../common/game.enum';
 export * from '../common/notification.enum';
 export * from '../common/outbox.enum';
 export * from '../common/payment.enum';
+export * from '../common/sms.enum';
 export * from '../common/wallet.enum';

@@ -19,7 +19,7 @@ export class LoginUseCase extends AuthBaseUseCase<LoginDto, LoginResponseDto> {
   }
 
   async execute (dto: LoginDto): Promise<LoginResponseDto> {
-    const user = await this.authRepository.findByEmail(dto.email);
+    const user = await this.authRepository.findByEmail({ email: dto.email });
     if (!user) return SessionHelper.rejectWithDummyHash({ password: dto.password });
 
     await SessionHelper.compare({ password: dto.password, passwordHash: user.passwordHash });

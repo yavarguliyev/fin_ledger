@@ -25,7 +25,6 @@ import { ProviderConfigHelper } from '../../helpers/provider-config.helper';
 
 export abstract class BasePaymentAdapter implements PaymentProviderCore {
   protected readonly logger: Logger;
-  protected readonly paymentMethods = new Map<string, ProviderMethodResultDto>();
   protected readonly breaker: CircuitBreaker;
 
   abstract readonly providerName: PaymentProvider;
@@ -41,8 +40,6 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
   }
 
   verifyPaymentMethod ({ paymentMethodToken }: VerifyPaymentMethodDto): Promise<ProviderMethodResultDto> {
-    const existing = this.paymentMethods.get(paymentMethodToken);
-    if (existing) return Promise.resolve(existing);
     return Promise.resolve(ProviderResultHelper.buildNotFoundResult({ token: paymentMethodToken, provider: this.providerName }));
   }
 
@@ -61,11 +58,18 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
   }
 
   protected parseRawPayload ({ payload }: RawPayloadDto): Record<string, unknown> {
+    const raw = typeof payload === 'string' ? payload : payload.toString('utf-8');
+
     try {
-      const raw = typeof payload === 'string' ? payload : payload.toString('utf-8');
-      return JSON.parse(raw) as Record<string, unknown>;
-    } catch {
-      return {};
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new SyntaxError('payload is not a JSON object');
+
+      return parsed as Record<string, unknown>;
+    } catch (error) {
+      throw new ProviderError({
+        message: `${this.providerName} webhook payload is not valid JSON: ${BaseHelper.errorResponse({ error }).message}`,
+        category: ProviderErrorCategory.INVALID_REQUEST
+      });
     }
   }
 

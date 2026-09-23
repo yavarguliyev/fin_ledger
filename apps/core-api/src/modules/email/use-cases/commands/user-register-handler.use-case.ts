@@ -10,7 +10,7 @@ export class UserRegisterHandler extends EmailBaseHandler<SendEmailDto> {
   }
 
   @KafkaSubscribe({ topic: EmailTemplateType.EMAIL_VERIFICATION })
-  override handle (message: KafkaMessageRecord<SendEmailDto>): void {
-    super.handle(message);
+  override async handle (message: KafkaMessageRecord<SendEmailDto>): Promise<void> {
+    await super.handle(message);
   }
 }

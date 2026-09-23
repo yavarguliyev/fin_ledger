@@ -65,6 +65,14 @@ export class UserService {
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
+  suspendUser (userId: string): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/suspend`, {}).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+  }
+
+  reactivateUser (userId: string): Observable<unknown> {
+    return this.http.post(`${this.apiUrl}/users/${userId}/reactivate`, {}).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+  }
+
   updateEmailVerification (userId: string, isEmailVerified: boolean): Observable<unknown> {
     return this.http
       .patch(`${this.apiUrl}/users/${userId}/email-verification`, { isEmailVerified })

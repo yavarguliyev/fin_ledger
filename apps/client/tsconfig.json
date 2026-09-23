@@ -6,7 +6,11 @@
     "outDir": "./dist/out-tsc",
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "moduleResolution": "bundler",
     "useDefineForClassFields": false,
     "importHelpers": true,
@@ -37,16 +41,33 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/app/*"],
-      "@core/*": ["./src/app/core/*"],
-      "@shared/*": ["./src/app/shared/*"],
-      "@features/*": ["./src/app/features/*"],
-      "@env/*": ["./src/environments/*"]
+      "@/*": [
+        "./src/app/*"
+      ],
+      "@core/*": [
+        "./src/app/core/*"
+      ],
+      "@shared/*": [
+        "./src/app/shared/*"
+      ],
+      "@features/*": [
+        "./src/app/features/*"
+      ],
+      "@env/*": [
+        "./src/environments/*"
+      ]
     }
   },
-  "files": ["src/main.ts"],
-  "include": ["src/**/*.ts", "src/**/*.html"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts", "node_modules", "dist"],
+  "files": [
+    "src/main.ts"
+  ],
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

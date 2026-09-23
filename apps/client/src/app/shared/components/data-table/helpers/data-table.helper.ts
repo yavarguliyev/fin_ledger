@@ -18,6 +18,10 @@ export class DataTableHelper {
     return value === 'active' || value === 'ACTIVE' || value === true;
   }
 
+  static getToggleDisabled<T> (column: TableColumn<T>, row: T): boolean {
+    return column.toggleDisabled ? column.toggleDisabled(row) : false;
+  }
+
   static getActionConfig<T> (column: TableColumn<T>): ActionIconsConfig {
     return {
       view: column.actions?.view ?? false,

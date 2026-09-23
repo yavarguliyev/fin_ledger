@@ -87,6 +87,7 @@
                     <div class="flex justify-center">
                       <app-toggle
                         [checked]="getToggleChecked(col, row)"
+                        [disabled]="getToggleDisabled(col, row)"
                         (toggleChange)="onToggleChange(col, row, $event)"
                       />
                     </div>

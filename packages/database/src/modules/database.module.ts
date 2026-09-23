@@ -8,6 +8,7 @@ export class DatabaseModule {
   static forRootAsync (options: DatabaseAsyncOptionsDto): DynamicModule {
     return {
       module: DatabaseModule,
+      global: true,
       imports: [PostgresModule.forRootAsync({ ...options, clientId: options.clientId! })],
       exports: [PostgresModule]
     };

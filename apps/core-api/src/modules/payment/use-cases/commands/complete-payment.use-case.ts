@@ -1,5 +1,5 @@
 import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { DomainEventType, OutboxRepository, PaymentStatus, PaymentType, PostgresService } from '@common/libs';
+import { AnalyticsEventTopic, DomainEventType, OutboxDestination, OutboxRepository, PaymentStatus, PaymentType, PostgresService } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { WalletService } from '../../../wallet/wallet.service';
@@ -44,11 +44,15 @@ export class CompletePaymentUseCase {
     });
     if (!completed) throw new InternalServerErrorException(PAYMENT_ERRORS.STATUS_UPDATE_FAILED);
 
+    const payload = PaymentHelper.completedEventPayload({ payment: completed });
+
+    await this.outboxRepository.createEvent({ aggregateType: 'Payment', aggregateId: paymentId, eventType: DomainEventType.PAYMENT_COMPLETED, payload, adapter });
     await this.outboxRepository.createEvent({
       aggregateType: 'Payment',
       aggregateId: paymentId,
-      eventType: DomainEventType.PAYMENT_COMPLETED,
-      payload: PaymentHelper.completedEventPayload({ payment: completed }),
+      eventType: AnalyticsEventTopic.PAYMENT_COMPLETED,
+      payload,
+      destination: OutboxDestination.KAFKA,
       adapter
     });
 

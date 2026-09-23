@@ -5,7 +5,14 @@ describe('BettingHelper', () => {
   const margin = BETTING_DRAW.DEFAULT_MARGIN;
   const expectedEdge = margin / (1 + margin);
   const bets = 1_000_000;
-  const tolerance = 0.01;
+  const sigmas = 5;
+
+  const samplingTolerance = (odds: number): number => {
+    const winChance = (1 - expectedEdge) / odds;
+    const variancePerBet = odds ** 2 * winChance * (1 - winChance);
+
+    return sigmas * Math.sqrt(variancePerBet / bets);
+  };
 
   it.each([1.5, 2, 3, 5, 10])('keeps a positive house edge at odds %s over a million bets', odds => {
     let returned = 0;
@@ -17,8 +24,7 @@ describe('BettingHelper', () => {
     const edge = 1 - returned / bets;
 
     expect(edge).toBeGreaterThan(0);
-    expect(edge).toBeCloseTo(expectedEdge, 2);
-    expect(Math.abs(edge - expectedEdge)).toBeLessThan(tolerance);
+    expect(Math.abs(edge - expectedEdge)).toBeLessThan(samplingTolerance(odds));
   }, 120_000);
 
   it.each([
