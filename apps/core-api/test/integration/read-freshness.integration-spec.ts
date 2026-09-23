@@ -73,4 +73,22 @@ describe('Money reads right after writes', () => {
     await expect(ApiHelper.request({ method: 'GET', path: `/payments/${deposit.body.id}`, token })).resolves.toMatchObject({ body: { status: 'COMPLETED' } });
     await expect(readBalance()).resolves.toBe(await storedBalance());
   });
+
+  it('lists a notification stored outside the API without waiting for a cache to expire', async () => {
+    const listed = async (): Promise<string[]> => {
+      const response = await ApiHelper.request<{ id: string }[]>({ method: 'GET', path: '/notifications', token });
+      return response.body.map(notification => notification.id);
+    };
+
+    const before = await listed();
+
+    const [stored] = await DbHelper.query<{ id: string }>({
+      sql: `INSERT INTO notifications (user_id, type, title, content, status, sent_at)
+            SELECT id, 'INFO', 'Read freshness', 'Stored straight into the table', 'SENT', now() FROM users WHERE email = $1 RETURNING id`,
+      params: [email]
+    });
+
+    expect(before).not.toContain(stored?.id);
+    await expect(listed()).resolves.toContain(stored?.id);
+  });
 });

@@ -41,28 +41,6 @@ Stripe test mode.
 **Verify.**
 - [ ] Killing the API right after a successful charge: within one reconciliation cycle the wallet is credited exactly once.
 
-### API-P1-3 · Cached money data can be stale, and each write clears every user's cache
-
-**Problem.**
-- **Cleared too early:** `@CacheEvict` on `WalletService` runs when the method returns. For callers that pass an
-  `adapter` (place bet, settle, deposit credit), that's **inside the still-open transaction**, so a concurrent read
-  re-caches the old balance for 60s.
-- **Clears everyone:** eviction uses the pattern `wallet*` (a Redis `SCAN`), so every money movement wipes every user's
-  wallet cache, at O(keys) Redis cost.
-- **Never cleared:** `payment` (180s), `ledger:*` (120–600s), `wallet:transaction*`, `bet:list` and
-  `payment-method*` are cached but not cleared when they change, e.g. a webhook completing a payment.
-
-**Solution.**
-- **Don't cache money:** wallet balance, payment status, ledger entries. A primary-key read is cheap.
-- **Clear after commit:** if caching is kept, clear exact keys *after commit* (an `afterCommit` hook on the transaction
-  adapter), never by pattern.
-- **Keep caching where it's safe:** `game-events`, currencies.
-
-**Verify.**
-- [ ] A balance read immediately after a bet shows the new balance, under 50 concurrent bets on one wallet.
-- [ ] `GET /payments/:id` shows `COMPLETED` immediately after the webhook.
-- [ ] Redis `MONITOR` shows no `SCAN` during a money operation.
-
 ---
 
 ## P2 — Schema and structure

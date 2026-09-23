@@ -209,6 +209,10 @@ workers scale independently.
   is enough: Kafka alone covers both, since per-key ordering is what notifications need.
 - **Leftover folders.** `apps/gateway` and `apps/services` are empty. Delete them or give them a purpose.
 - **Typo.** `ClientIds.DEAFULT` → `DEFAULT`.
+- **Pattern cache eviction.** `StorageService` evicts with `isPattern: true`, so `invalidatePattern` runs a Redis
+  `SCAN` over the whole keyspace and drops every user's signed file URLs whenever anyone uploads or deletes one
+  (found closing `API-P1-3`, which removed the last such eviction in core-api). Evict the exact keys the change
+  touches, or drop the 23-hour URL cache.
 
 **Verify.** Build, typecheck, lint and tests pass; nothing references removed names.
 
