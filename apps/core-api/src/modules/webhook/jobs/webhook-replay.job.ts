@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, WebhookStatus , RequestScope } from '@common/libs';
+import { BaseHelper, WebhookStatus, RequestScope } from '@common/libs';
 
 import { WebhookService } from '../webhook.service';
 import { WebhookEventRepository } from '../repositories/webhook-event.repository';

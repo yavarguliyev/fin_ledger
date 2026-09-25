@@ -29,6 +29,12 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
     this.config = config;
   }
 
+  poolStats (): PoolStats {
+    if (!this.pool) return { totalCount: 0, idleCount: 0, waitingCount: 0 };
+    const { totalCount, idleCount, waitingCount } = this.pool;
+    return { totalCount, idleCount, waitingCount };
+  }
+
   async onModuleDestroy (): Promise<void> {
     await this.disconnect();
   }
@@ -82,14 +88,6 @@ export class PostgreSQLAdapter extends CommonAdapter implements DatabaseAdapter,
 
   async transaction<R> ({ callback, actor }: TransactionDto<R>): Promise<R> {
     return this.transactionWithRetry({ callback, retries: 1, ...(actor && { actor }) });
-  }
-
-  poolStats (): PoolStats {
-    if (!this.pool) return { totalCount: 0, idleCount: 0, waitingCount: 0 };
-
-    const { totalCount, idleCount, waitingCount } = this.pool;
-
-    return { totalCount, idleCount, waitingCount };
   }
 
   async transactionWithRetry<R> ({ callback, retries = 3, actor }: TransactionWithRetryDto<R>): Promise<R> {

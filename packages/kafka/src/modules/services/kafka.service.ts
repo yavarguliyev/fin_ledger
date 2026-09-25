@@ -37,8 +37,10 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     });
 
     this.producer = kafka.producer({ maxInFlightRequests: 1, idempotent: true, transactionTimeout: 30000 });
+
     await this.producer.connect();
     await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: KAFKA_TOPICS, logger: this.logger });
+
     this.logger.log(`Kafka producer initialized for ${this.clientId}`);
   }
 
@@ -56,7 +58,6 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   async send ({ topic, payload, key, headers }: KafkaSendDto): Promise<void> {
     if (!this.producer) throw new InternalServerErrorException('Kafka producer not initialized');
-
     await this.producer.send({ topic, messages: [{ key: key ?? null, value: JSON.stringify(payload), ...(headers && { headers }) }] });
   }
 

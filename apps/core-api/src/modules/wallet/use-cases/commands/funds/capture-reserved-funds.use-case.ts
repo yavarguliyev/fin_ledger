@@ -7,11 +7,6 @@ import { WalletOperationDto } from '../../../dtos/input/wallet-operation.dto';
 import { WalletOperationResultDto } from '../../../dtos/transaction/wallet-operation-result.dto';
 import { WalletOperationInTransactionDto } from '../../../dtos/input/wallet-operation-in-transaction.dto';
 
-/**
- * Turns a reservation into a real debit. Release and debit share one transaction so
- * the funds are never spendable in between: otherwise a bet placed in that window
- * could make the debit fail after the provider had already paid the money out.
- */
 @Injectable()
 export class CaptureReservedFundsUseCase {
   constructor (
@@ -22,15 +17,12 @@ export class CaptureReservedFundsUseCase {
 
   async execute (input: WalletOperationDto): Promise<WalletOperationResultDto> {
     if (input.adapter) return this.capture({ ...input, adapter: input.adapter });
-
     return this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.capture({ ...input, adapter }) });
   }
 
   private async capture (input: WalletOperationInTransactionDto): Promise<WalletOperationResultDto> {
     const { walletId, amountMinor, adapter } = input;
-
     await this.releaseFundsUseCase.execute({ walletId, amountMinor, adapter });
-
     return this.debitWalletUseCase.execute(input);
   }
 }

@@ -105,18 +105,22 @@ or delete the two consumers. Right now they are handlers that can never be calle
 
 **Verify.** Each change: migration up/down from zero, plus a test of its code against a real DB.
 
-### API-P2-3 · Tables that only grow
+### API-P2-3 · Partitioning, once the tables are big enough
 
-**Problem.** `outbox_events`, `webhook_events`, `audit_log`, `notifications` and `ledger_entries` have no retention or partitioning.
+**Done 2026-09-23 — retention.** `RetentionJob` deletes `PUBLISHED` outbox rows past `RETENTION_OUTBOX_DAYS`
+(default 7) and `PROCESSED` webhooks past `RETENTION_WEBHOOK_DAYS` (default 90), on `RETENTION_INTERVAL_MS`
+(default hourly). It runs in `RequestScope.runSystem(...)`, so it goes through the `app_worker` login: migration 018
+grants `DELETE` on `outbox_events` and `webhook_events` to `app_worker_group` only, and
+`retention.integration-spec.ts` asserts the **API login is refused those deletes** — history cannot be removed by a
+request path. Unpublished and unprocessed rows are never touched, however old.
 
-**Solution.**
-- **Retention jobs:** delete `PUBLISHED` outbox rows older than 7 days and processed webhooks older than 90 days,
-  as the worker role (the API role has no DELETE).
-- **Partitioning:** monthly partitions on `created_at` for `audit_log` and `ledger_entries` once they pass a few million rows.
+**Still open.**
+- **Partitioning:** monthly partitions on `created_at` for `audit_log` and `ledger_entries`, once they pass a few
+  million rows. Not worth the migration yet.
 
 **Verify.**
-- [ ] After the job, no `PUBLISHED` outbox rows older than the window remain.
-- [ ] `EXPLAIN` of the common queries still uses indexes and partition pruning.
+- [x] After the job, no `PUBLISHED` outbox rows older than the window remain.
+- [ ] `EXPLAIN` of the common queries still uses indexes and partition pruning *(once partitioned)*.
 
 ### API-P2-4 · Game events have no lifecycle
 

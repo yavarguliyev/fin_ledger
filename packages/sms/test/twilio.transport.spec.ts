@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'node:http';
 import { AddressInfo } from 'node:net';
 
-import { TwilioTransport } from '../modules/transports/twilio.transport';
+import { TwilioTransport } from '../src/modules/transports/twilio.transport';
 
 interface CapturedRequest {
   url: string;
@@ -18,6 +18,7 @@ describe('TwilioTransport', () => {
   let server: Server;
   let baseUrl: string;
   let status = 201;
+
   const requests: CapturedRequest[] = [];
 
   beforeAll(async () => {
@@ -60,7 +61,6 @@ describe('TwilioTransport', () => {
 
   it('raises when the provider rejects the message', async () => {
     status = 401;
-
     await expect(new TwilioTransport({ accountSid: ACCOUNT_SID, authToken: AUTH_TOKEN, from: FROM, baseUrl }).send(SMS)).rejects.toThrow('401');
   });
 });

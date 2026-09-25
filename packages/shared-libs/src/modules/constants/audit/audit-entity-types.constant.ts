@@ -1,1 +1,1 @@
-export const AUDIT_ENTITY_TYPES = ['Bet', 'PaymentMethod', 'User', 'Wallet'] as const;
+export const AUDIT_ENTITY_TYPES = ['Bet', 'GameEvent', 'PaymentMethod', 'User', 'Wallet'] as const;

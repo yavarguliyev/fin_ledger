@@ -20,7 +20,6 @@ export class RequestScope {
 
   static runSystem<T> (callback: () => T): T {
     const correlationId = RequestScope.correlationId() ?? CryptoHelper.uuid();
-
     return RequestScope.storage.run({ correlationId, system: true }, callback);
   }
 

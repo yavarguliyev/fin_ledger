@@ -7,6 +7,7 @@ import { DbHelper } from '../helpers/db.helper';
 
 describe('Two-factor authentication setup', () => {
   const email = 'player15@seed.local';
+
   let token = '';
   let secret = '';
   let firstRecoveryCodes: string[] = [];
@@ -16,7 +17,13 @@ describe('Two-factor authentication setup', () => {
     const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: '/auth/mfa/setup', token });
     secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
 
-    const enabled = await ApiHelper.request<{ recoveryCodes: string[] }>({ method: 'POST', path: '/auth/mfa/enable', token, body: { code: generateSync({ secret }) } });
+    const enabled = await ApiHelper.request<{ recoveryCodes: string[] }>({
+      method: 'POST',
+      path: '/auth/mfa/enable',
+      token,
+      body: { code: generateSync({ secret }) }
+    });
+
     return enabled.body.recoveryCodes;
   };
 
@@ -49,7 +56,10 @@ describe('Two-factor authentication setup', () => {
   });
 
   it('rejects a wrong code and enables with a correct one, returning 10 recovery codes once', async () => {
-    await expect(ApiHelper.request({ method: 'POST', path: '/auth/mfa/enable', token, body: { code: '000000' } })).resolves.toMatchObject({ status: 400 });
+    await expect(ApiHelper.request({ method: 'POST', path: '/auth/mfa/enable', token, body: { code: '000000' } })).resolves.toMatchObject({
+      status: 400
+    });
+
     await expect(status()).resolves.toMatchObject({ body: { enabled: false, pending: true } });
 
     const code = generateSync({ secret });
@@ -61,13 +71,16 @@ describe('Two-factor authentication setup', () => {
     await expect(status()).resolves.toMatchObject({ body: { enabled: true, pending: false } });
     await expect(ApiHelper.request({ method: 'POST', path: '/auth/mfa/setup', token })).resolves.toMatchObject({ status: 409 });
 
-    const disable = (body: Record<string, string>): Promise<{ status: number }> => ApiHelper.request({ method: 'POST', path: '/auth/mfa/disable', token, body });
+    const disable = (body: Record<string, string>): Promise<{ status: number }> =>
+      ApiHelper.request({ method: 'POST', path: '/auth/mfa/disable', token, body });
+
     await expect(disable({ password: 'Wrong#Pass2026', code: generateSync({ secret }) })).resolves.toMatchObject({ status: 401 });
     await expect(disable({ password: SEED_PASSWORD, code })).resolves.toMatchObject({ status: 400 });
   });
 
   it('turns off with a recovery code, clears everything, and retires the old codes', async () => {
-    const disable = (code: string): Promise<{ status: number }> => ApiHelper.request({ method: 'POST', path: '/auth/mfa/disable', token, body: { password: SEED_PASSWORD, code } });
+    const disable = (code: string): Promise<{ status: number }> =>
+      ApiHelper.request({ method: 'POST', path: '/auth/mfa/disable', token, body: { password: SEED_PASSWORD, code } });
     const [usedCode, unusedCode] = firstRecoveryCodes as [string, string];
 
     await expect(disable(usedCode)).resolves.toMatchObject({ status: 201 });
@@ -90,19 +103,23 @@ describe('Two-factor authentication setup', () => {
 
 describe('Two-factor login', () => {
   const email = 'player16@seed.local';
+
   let secret = '';
   let recoveryCodes: string[] = [];
 
   const loginStep = (): Promise<{ status: number; body: { mfaRequired?: boolean; challengeToken?: string; accessToken?: string } }> =>
     ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: SEED_PASSWORD } });
+
   const challenge = async (): Promise<string> => (await loginStep()).body.challengeToken as string;
   const verify = (challengeToken: string, code: string): Promise<{ status: number; body: { accessToken?: string } }> =>
     ApiHelper.request({ method: 'POST', path: '/auth/mfa/verify', body: { challengeToken, code } });
+
   const tokenRow = (challengeToken: string): Promise<Array<{ failed_attempts: number; revoked: boolean; used: boolean }>> =>
     DbHelper.query({
       sql: 'SELECT failed_attempts, revoked_at IS NOT NULL AS revoked, used_at IS NOT NULL AS used FROM auth_tokens WHERE token_hash = $1',
       params: [CryptoHelper.sha256({ value: challengeToken })]
     });
+
   const nextWindowCode = (): string => generateSync({ secret, epoch: Math.floor(Date.now() / 1000) + 30 });
 
   beforeAll(async () => {
@@ -110,7 +127,13 @@ describe('Two-factor login', () => {
     const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: '/auth/mfa/setup', token });
     secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
 
-    const enabled = await ApiHelper.request<{ recoveryCodes: string[] }>({ method: 'POST', path: '/auth/mfa/enable', token, body: { code: generateSync({ secret }) } });
+    const enabled = await ApiHelper.request<{ recoveryCodes: string[] }>({
+      method: 'POST',
+      path: '/auth/mfa/enable',
+      token,
+      body: { code: generateSync({ secret }) }
+    });
+
     recoveryCodes = enabled.body.recoveryCodes;
   });
 
@@ -132,6 +155,7 @@ describe('Two-factor login', () => {
     const code = nextWindowCode();
     const signedIn = await verify(challengeToken, code);
     expect(signedIn.status).toBe(201);
+
     await expect(ApiHelper.request({ path: '/wallets', token: signedIn.body.accessToken as string })).resolves.toMatchObject({ status: 200 });
     await expect(
       DbHelper.query({ sql: "SELECT last_login_at > now() - interval '1 minute' AS recent FROM users WHERE email = $1", params: [email] })

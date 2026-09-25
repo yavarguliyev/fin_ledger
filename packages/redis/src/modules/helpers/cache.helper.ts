@@ -39,13 +39,8 @@ export class CacheHelper {
           return `user:${(arg.user as { userId: string }).userId}`;
         }
 
-        if (arg === null || arg === undefined) {
-          return String(arg);
-        }
-
-        if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') {
-          return String(arg);
-        }
+        if (arg === null || arg === undefined) return String(arg);
+        if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') return String(arg);
 
         try {
           return JSON.stringify(arg);

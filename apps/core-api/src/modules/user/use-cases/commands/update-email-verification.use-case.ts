@@ -19,6 +19,7 @@ export class UpdateEmailVerificationUseCase extends UserBaseCase<UpdateEmailVeri
         ...(isEmailVerified && user.status === UserStatus.PENDING && { status: UserStatus.ACTIVE })
       }
     });
+
     if (!updatedUser) throw new NotFoundException('Failed to update email verification status');
     if (!isEmailVerified) await this.sessionService.deleteUserSessions({ userId });
 

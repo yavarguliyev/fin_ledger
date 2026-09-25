@@ -28,7 +28,7 @@ export class IntegrationStackHelper {
   private static readonly APP_WORKER_USERNAME = 'app_worker';
   private static readonly RABBITMQ_HTTP_PORT = 15_672;
 
-  static async start (): Promise<IntegrationStack> {
+  static async start(): Promise<IntegrationStack> {
     const [kafkaPort, apiPort] = await Promise.all([IntegrationStackHelper.freePort(), IntegrationStackHelper.freePort()]);
     const redisPassword = CryptoHelper.randomToken({ bytes: 12 });
 
@@ -40,10 +40,14 @@ export class IntegrationStackHelper {
     ]);
 
     const databaseUrl = postgres.getConnectionUri();
-    execFileSync(path.join(IntegrationStackHelper.REPO_ROOT, 'node_modules/.bin/node-pg-migrate'), ['up', '--migrations-dir', path.join(IntegrationStackHelper.APP_DIR, 'migrations')], {
-      env: { ...process.env, DATABASE_URL: databaseUrl, SEED_PASSWORD },
-      stdio: 'pipe'
-    });
+    execFileSync(
+      path.join(IntegrationStackHelper.REPO_ROOT, 'node_modules/.bin/node-pg-migrate'),
+      ['up', '--migrations-dir', path.join(IntegrationStackHelper.APP_DIR, 'migrations')],
+      {
+        env: { ...process.env, DATABASE_URL: databaseUrl, SEED_PASSWORD },
+        stdio: 'pipe'
+      }
+    );
 
     const appDbPassword = CryptoHelper.randomToken({ bytes: 16 });
     execFileSync(process.execPath, [path.join(IntegrationStackHelper.REPO_ROOT, 'scripts/db/provision-login-roles.mjs')], {
@@ -57,6 +61,7 @@ export class IntegrationStackHelper {
       },
       stdio: 'pipe'
     });
+
     const appDatabaseUrl = `postgres://${IntegrationStackHelper.APP_DB_USERNAME}:${appDbPassword}@${postgres.getHost()}:${postgres.getPort()}/${postgres.getDatabase()}`;
 
     const { publicKey, privateKey } = CryptoHelper.generateRsaKeyPair();
@@ -115,7 +120,12 @@ export class IntegrationStackHelper {
       MFA_ISSUER: 'Integration Wallet'
     };
 
-    const api = spawn(process.execPath, [path.join(IntegrationStackHelper.APP_DIR, 'dist/main.js')], { cwd: workDir, env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const api = spawn(process.execPath, [path.join(IntegrationStackHelper.APP_DIR, 'dist/main.js')], {
+      cwd: workDir,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
     const logs: string[] = [];
     api.stdout?.on('data', (chunk: Buffer) => logs.push(chunk.toString()));
     api.stderr?.on('data', (chunk: Buffer) => logs.push(chunk.toString()));
@@ -128,13 +138,15 @@ export class IntegrationStackHelper {
     process.env[TEST_ENV_KEYS.APP_DATABASE_URL] = appDatabaseUrl;
     process.env[TEST_ENV_KEYS.KAFKA_BROKERS] = `127.0.0.1:${kafkaPort}`;
     process.env[TEST_ENV_KEYS.RABBITMQ_URL] = rabbitmq.getAmqpUrl();
-    process.env[TEST_ENV_KEYS.RABBITMQ_MANAGEMENT_URL] = `http://${rabbitmq.getHost()}:${rabbitmq.getMappedPort(IntegrationStackHelper.RABBITMQ_HTTP_PORT)}`;
+    process.env[TEST_ENV_KEYS.RABBITMQ_MANAGEMENT_URL] =
+      `http://${rabbitmq.getHost()}:${rabbitmq.getMappedPort(IntegrationStackHelper.RABBITMQ_HTTP_PORT)}`;
+
     process.env[TEST_ENV_KEYS.REDIS_URL] = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
 
     return { api, containers: [postgres, redis, rabbitmq, kafka], workDir };
   }
 
-  static async stop ({ api, containers, workDir }: IntegrationStack): Promise<void> {
+  static async stop({ api, containers, workDir }: IntegrationStack): Promise<void> {
     if (api.exitCode === null) {
       api.kill('SIGTERM');
       await Promise.race([once(api, 'exit'), sleep(15_000)]);
@@ -144,7 +156,7 @@ export class IntegrationStackHelper {
     rmSync(workDir, { recursive: true, force: true });
   }
 
-  private static async startKafka ({ port }: PortRef): Promise<StartedTestContainer> {
+  private static async startKafka({ port }: PortRef): Promise<StartedTestContainer> {
     return new GenericContainer(TEST_IMAGES.KAFKA)
       .withEnvironment({
         KAFKA_NODE_ID: '1',
@@ -164,7 +176,7 @@ export class IntegrationStackHelper {
       .start();
   }
 
-  private static async waitForApi ({ url, api, logs }: WaitForApi): Promise<void> {
+  private static async waitForApi({ url, api, logs }: WaitForApi): Promise<void> {
     const deadline = Date.now() + IntegrationStackHelper.READY_TIMEOUT_MS;
 
     while (Date.now() < deadline) {
@@ -174,6 +186,7 @@ export class IntegrationStackHelper {
         () => true,
         () => false
       );
+
       if (ready) return;
 
       await sleep(500);
@@ -182,7 +195,7 @@ export class IntegrationStackHelper {
     throw new Error(`core-api did not become ready in time:\n${logs.join('')}`);
   }
 
-  private static async freePort (): Promise<number> {
+  private static async freePort(): Promise<number> {
     const server = createServer();
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');

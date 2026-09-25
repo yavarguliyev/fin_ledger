@@ -45,7 +45,11 @@ export class WebhookEventRepository extends BaseExtendedRepository<WebhookEventR
   }
 
   async markHandled ({ id, status, adapter }: MarkWebhookEventDto): Promise<WebhookEventRecordDto | null> {
-    return this.update({ id, data: { status, ...(status === WebhookStatus.PROCESSED && { processedAt: new Date().toISOString() }) }, ...(adapter && { adapter }) });
+    return this.update({
+      id,
+      data: { status, ...(status === WebhookStatus.PROCESSED && { processedAt: new Date().toISOString() }) },
+      ...(adapter && { adapter })
+    });
   }
 
   async findStuck ({ receivedBefore, maxAttempts, limit }: FindStuckWebhookEventsDto): Promise<WebhookEventRecordDto[]> {

@@ -35,19 +35,19 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
       queue: `${NOTIFICATION_QUEUE.PREFIX}.${this.eventType}`,
       routingKey: this.eventType,
       handler: async message => {
-      const payload = message as TPayload;
-      const userId = await this.getUserId(payload);
+        const payload = message as TPayload;
+        const userId = await this.getUserId(payload);
 
-      await NotificationHelper.handleEvent({
-        title: this.title,
-        notificationType: this.notificationType,
-        logger: this.logger,
-        payload,
-        eventType: this.eventType,
-        ...(userId && { userId }),
-        content: await this.getContent(payload),
-        notificationService: this.notificationService
-      });
+        await NotificationHelper.handleEvent({
+          title: this.title,
+          notificationType: this.notificationType,
+          logger: this.logger,
+          payload,
+          eventType: this.eventType,
+          ...(userId && { userId }),
+          content: await this.getContent(payload),
+          notificationService: this.notificationService
+        });
       }
     });
   }

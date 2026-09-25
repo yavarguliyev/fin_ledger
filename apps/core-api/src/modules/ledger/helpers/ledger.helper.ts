@@ -8,9 +8,7 @@ export class LedgerHelper {
     const { wallet, systemAccountId, amountMinor, referenceValue, isDebit } = params;
     const baseEntry = { amountMinor, currency: wallet.currency, ...(referenceValue && { reference: referenceValue }) };
 
-    const [walletEntryType, systemEntryType] = isDebit
-      ? [EntryType.DEBIT, EntryType.CREDIT]
-      : [EntryType.CREDIT, EntryType.DEBIT];
+    const [walletEntryType, systemEntryType] = isDebit ? [EntryType.DEBIT, EntryType.CREDIT] : [EntryType.CREDIT, EntryType.DEBIT];
 
     const walletEntry = {
       accountId: wallet.ledgerAccountId!,

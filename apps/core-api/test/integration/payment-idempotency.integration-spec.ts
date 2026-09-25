@@ -43,7 +43,9 @@ describe('Payment idempotency keys', () => {
     expect(secondDeposit.body.userId).not.toBe(firstDeposit.body.userId);
     expect(retry.body.id).toBe(firstDeposit.body.id);
 
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM payments WHERE idempotency_key = $1', params: [idempotencyKey] })).resolves.toEqual([{ count: 2 }]);
+    await expect(
+      DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM payments WHERE idempotency_key = $1', params: [idempotencyKey] })
+    ).resolves.toEqual([{ count: 2 }]);
   });
 
   it('keeps the wallets and the ledger in agreement', async () => {

@@ -46,7 +46,6 @@ export class AuditHelper {
 
     return entries.reduce<UnknownRecord>((accumulator, [key, value]) => {
       accumulator[key] = AUDIT_REDACTED_KEYS.includes(key) ? '[redacted]' : value;
-
       return accumulator;
     }, {});
   }
@@ -57,19 +56,16 @@ export class AuditHelper {
     if (typeof fromParam === 'string') return fromParam;
 
     const id = (result as UnknownRecord | null)?.['id'];
-
     return typeof id === 'string' ? id : undefined;
   }
 
   private static firstIp ({ request }: AuditRequestRefDto): string | undefined {
     const candidate = (AuditHelper.header({ request, name: 'x-forwarded-for' }) ?? request.ip)?.split(',')[0]?.trim();
-
     return candidate && candidate.length > 0 ? candidate : undefined;
   }
 
   private static header ({ request, name }: AuditHeaderDto): string | undefined {
     const value = request.headers[name];
-
     return Array.isArray(value) ? value[0] : value;
   }
 }

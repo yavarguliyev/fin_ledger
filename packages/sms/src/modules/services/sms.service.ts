@@ -14,7 +14,6 @@ export class SmsService {
   private readonly clientId: ClientIds;
   private readonly from: string;
   private readonly transport: SmsTransport;
-
   private readonly configService: ConfigService;
 
   constructor ({ configService, clientId }: ServiceClientDto) {
@@ -37,7 +36,6 @@ export class SmsService {
 
   private resolveTransport (): SmsTransport {
     const kind = this.configService.get<SmsTransportKind>('SMS_TRANSPORT') ?? SmsTransportKind.CONSOLE;
-
     if (kind !== SmsTransportKind.TWILIO) return new ConsoleSmsTransport(this.logger);
 
     const baseUrl = this.configService.get<string>('TWILIO_API_BASE');

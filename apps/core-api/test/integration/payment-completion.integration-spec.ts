@@ -9,12 +9,17 @@ interface Wallet {
 
 describe('Payment completion', () => {
   const email = 'player23@seed.local';
+
   let token: string;
   let methodId: string;
   let wallet: Wallet;
 
   const balance = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ balance: number }>({ sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1', params: [wallet.id] });
+    const [row] = await DbHelper.query<{ balance: number }>({
+      sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1',
+      params: [wallet.id]
+    });
+
     return row?.balance ?? 0;
   };
 
@@ -28,6 +33,7 @@ describe('Payment completion', () => {
             FROM payments p WHERE p.id = $1`,
       params: [paymentId]
     });
+
     return row;
   };
 
@@ -68,6 +74,7 @@ describe('Payment completion', () => {
     });
 
     expect(deposit.status).toBe(201);
+
     await webhook('payment_intent.succeeded', deposit.body.providerChargeId);
     await webhook('payment_intent.succeeded', deposit.body.providerChargeId);
 
@@ -81,6 +88,7 @@ describe('Payment completion', () => {
             VALUES ('completion-webhook', (SELECT id FROM users WHERE email = $1), $2, $3, 'DEPOSIT', 4000, $4, 'PROCESSING', 'stripe', 'pi_integration_processing') RETURNING id`,
       params: [email, wallet.id, methodId, wallet.currency]
     });
+
     const before = await balance();
 
     await webhook('payment_intent.succeeded', 'pi_integration_processing');
@@ -96,7 +104,6 @@ describe('Payment completion', () => {
     });
 
     await webhook('payment_intent.payment_failed', payment?.provider_charge_id as string);
-
     await expect(records(payment?.id as string)).resolves.toEqual(oneCompletion);
   });
 
@@ -106,6 +113,7 @@ describe('Payment completion', () => {
             VALUES ('completion-metadata', (SELECT id FROM users WHERE email = $1), $2, $3, 'DEPOSIT', 1200, $4, 'PENDING', 'stripe') RETURNING id`,
       params: [email, wallet.id, methodId, wallet.currency]
     });
+
     const paymentId = payment?.id as string;
     const before = await balance();
 
@@ -119,6 +127,7 @@ describe('Payment completion', () => {
     await expect(DbHelper.query({ sql: 'SELECT provider_charge_id FROM payments WHERE id = $1', params: [paymentId] })).resolves.toEqual([
       { provider_charge_id: 'pi_never_stored' }
     ]);
+
     await expect(balance()).resolves.toBe(before + 1200);
   });
 

@@ -1,8 +1,8 @@
 import { BadRequestException, UnsupportedMediaTypeException } from '@nestjs/common';
 import sharp from 'sharp';
 
-import { StorageHelper } from '../modules/helpers/storage.helper';
-import { IMAGE_FORMATS } from '../modules/constants/image/image-formats.constant';
+import { StorageHelper } from '../src/modules/helpers/storage.helper';
+import { IMAGE_FORMATS } from '../src/modules/constants/image/image-formats.constant';
 
 const image = (format: 'jpeg' | 'png' | 'tiff', size = 8): Promise<Buffer> =>
   sharp({ create: { width: size, height: size, channels: 3, background: { r: 200, g: 100, b: 50 } } })
@@ -16,6 +16,7 @@ describe('StorageHelper.normalizeImage', () => {
 
     expect(result.mimetype).toBe(IMAGE_FORMATS.MIME_TYPES.jpeg);
     expect(result.originalname).toBe(`avatar${IMAGE_FORMATS.EXTENSIONS.jpeg}`);
+
     await expect(sharp(result.buffer).metadata()).resolves.toMatchObject({ format: 'jpeg' });
   });
 
@@ -31,6 +32,7 @@ describe('StorageHelper.normalizeImage', () => {
       .withExif({ IFD0: { Copyright: 'secret-location' } })
       .jpeg()
       .toBuffer();
+
     const result = await StorageHelper.normalizeImage({ file: { buffer: withExif, mimetype: 'image/jpeg', originalname: 'photo.jpg' } });
 
     const { exif } = await sharp(result.buffer).metadata();
@@ -39,7 +41,6 @@ describe('StorageHelper.normalizeImage', () => {
 
   it('rejects a text file that claims to be a PNG', async () => {
     const file = { buffer: Buffer.from('this is not an image'), mimetype: 'image/png', originalname: 'fake.png' };
-
     await expect(StorageHelper.normalizeImage({ file })).rejects.toBeInstanceOf(UnsupportedMediaTypeException);
   });
 

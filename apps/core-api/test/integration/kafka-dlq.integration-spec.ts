@@ -16,6 +16,7 @@ interface ParkedMessage {
 describe('Kafka retry and dead-letter handling', () => {
   let topic: string;
   let inboxRepository: InboxRepository;
+
   const logger = new Logger('KafkaDlqSpec');
   const parked: ParkedMessage[] = [];
 
@@ -40,7 +41,12 @@ describe('Kafka retry and dead-letter handling', () => {
 
   const record = { topic: '', partition: 0, value: { probe: true }, key: 'probe-key', timestamp: String(Date.now()) };
 
-  const context = (): { send: (message: KafkaSendDto) => Promise<void>; consumerGroup: string; inboxRepository: InboxRepository; logger: Logger } => ({
+  const context = (): {
+    send: (message: KafkaSendDto) => Promise<void>;
+    consumerGroup: string;
+    inboxRepository: InboxRepository;
+    logger: Logger;
+  } => ({
     send,
     consumerGroup: CONSUMER_GROUP,
     inboxRepository,
@@ -48,7 +54,10 @@ describe('Kafka retry and dead-letter handling', () => {
   });
 
   beforeAll(() => {
-    const connection = { query: async ({ sql, params }: { sql: string; params?: unknown[] }) => ({ rows: await DbHelper.query({ sql, ...(params && { params }) }) }) };
+    const connection = {
+      query: async ({ sql, params }: { sql: string; params?: unknown[] }) => ({ rows: await DbHelper.query({ sql, ...(params && { params }) }) })
+    };
+
     inboxRepository = new InboxRepository({ getConnection: () => connection } as never);
   });
 
@@ -64,11 +73,13 @@ describe('Kafka retry and dead-letter handling', () => {
 
   it('runs every handler even when one of them keeps throwing', async () => {
     const calls: string[] = [];
-    const failing = function failing (): Promise<void> {
+
+    const failing = function failing(): Promise<void> {
       calls.push('failing');
       return Promise.reject(new Error('handler always throws'));
     };
-    const healthy = function healthy (): Promise<void> {
+
+    const healthy = function healthy(): Promise<void> {
       calls.push('healthy');
       return Promise.resolve();
     };
@@ -80,13 +91,14 @@ describe('Kafka retry and dead-letter handling', () => {
   });
 
   it('moves an exhausted message to the retry topic, then to the dead-letter topic, with headers', async () => {
-    const failing = function failing (): Promise<void> {
+    const failing = function failing(): Promise<void> {
       return Promise.reject(new Error('handler always throws'));
     };
 
     await DispatchHelper.run({ handler: failing, record: { ...record, topic }, payload: payloadFor({ source: topic }), ...context() });
 
     const [toRetry] = parked;
+
     expect(toRetry?.topic).toBe(TopicHelper.retryTopic({ topic }));
     expect(toRetry?.headers[KAFKA_CONSUMER.ATTEMPTS_HEADER]).toBe('1');
     expect(toRetry?.headers[KAFKA_CONSUMER.TOPIC_HEADER]).toBe(topic);
@@ -113,6 +125,7 @@ describe('Kafka retry and dead-letter handling', () => {
     });
 
     const [toDeadLetter] = parked;
+
     expect(toDeadLetter?.topic).toBe(TopicHelper.deadLetterTopic({ topic }));
     expect(toDeadLetter?.headers[KAFKA_CONSUMER.ATTEMPTS_HEADER]).toBe('2');
     expect(toDeadLetter?.headers[KAFKA_CONSUMER.OFFSET_HEADER]).toBe('42');
@@ -120,7 +133,8 @@ describe('Kafka retry and dead-letter handling', () => {
 
   it('does not run a handler twice when the same message is redelivered', async () => {
     let handled = 0;
-    const counting = function counting (): Promise<void> {
+
+    const counting = function counting(): Promise<void> {
       handled += 1;
       return Promise.resolve();
     };
@@ -135,7 +149,7 @@ describe('Kafka retry and dead-letter handling', () => {
   });
 
   it('records the message against the consumer that handled it', async () => {
-    const counting = function counting (): Promise<void> {
+    const counting = function counting(): Promise<void> {
       return Promise.resolve();
     };
 

@@ -28,7 +28,26 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
     return eventPayload;
   }
 
-  private async recordEmailEvent ({ eventType, eventPayload, userId, adapter }: { eventType: EmailTemplateType; eventPayload: SendEmailDto; userId: string; adapter?: DatabaseAdapter }): Promise<void> {
+  protected extractBearerToken (authorization?: string): string {
+    if (!authorization?.startsWith('Bearer ')) throw new UnauthorizedException('Missing or invalid Authorization header');
+
+    const token = authorization.slice(7).trim();
+    if (!token) throw new UnauthorizedException('Missing session token');
+
+    return token;
+  }
+
+  private async recordEmailEvent ({
+    eventType,
+    eventPayload,
+    userId,
+    adapter
+  }: {
+    eventType: EmailTemplateType;
+    eventPayload: SendEmailDto;
+    userId: string;
+    adapter?: DatabaseAdapter;
+  }): Promise<void> {
     await this.outboxRepository.createEvent({
       aggregateType: 'User',
       aggregateId: userId,
@@ -37,18 +56,5 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
       destination: OutboxDestination.KAFKA,
       ...(adapter && { adapter })
     });
-  }
-
-  protected extractBearerToken (authorization?: string): string {
-    if (!authorization?.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid Authorization header');
-    }
-
-    const token = authorization.slice(7).trim();
-    if (!token) {
-      throw new UnauthorizedException('Missing session token');
-    }
-
-    return token;
   }
 }

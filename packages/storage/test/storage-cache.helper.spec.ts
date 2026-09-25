@@ -1,7 +1,7 @@
 import { CacheHelper } from '@common/redis';
 
-import { StorageCacheHelper } from '../modules/helpers/storage-cache.helper';
-import { STORAGE_CACHE } from '../modules/constants/cache/storage-cache.constant';
+import { StorageCacheHelper } from '../src/modules/helpers/storage-cache.helper';
+import { STORAGE_CACHE } from '../src/modules/constants/cache/storage-cache.constant';
 
 const PREFIX = 'storage:file-urls';
 const OWNER = 'users/alice/profile';
@@ -17,7 +17,7 @@ describe('StorageCacheHelper', () => {
     expect(StorageCacheHelper.scopeOf([])).toBe(STORAGE_CACHE.UNSCOPED);
   });
 
-  it('builds keys that one owner\'s eviction pattern matches and another owner\'s does not', () => {
+  it("builds keys that one owner's eviction pattern matches and another owner's does not", () => {
     const ownerKey = CacheHelper.buildCacheKey({ prefix: PREFIX, method: 'get', args: [{ key: OWNER }], scope: OWNER });
     const otherKey = CacheHelper.buildCacheKey({ prefix: PREFIX, method: 'get', args: [{ key: OTHER }], scope: OTHER });
 

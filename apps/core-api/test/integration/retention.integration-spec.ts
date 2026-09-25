@@ -24,9 +24,10 @@ describe('Retention of append-only tables', () => {
 
   beforeAll(async () => {
     const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users LIMIT 1' });
-    aggregateId = user?.id as string;
 
+    aggregateId = user?.id as string;
     app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
+
     await app.connect();
   });
 
@@ -58,7 +59,6 @@ describe('Retention of append-only tables', () => {
     });
 
     await DbHelper.query({ sql: RETENTION.DELETE_OUTBOX_SQL, params: [OUTBOX_DAYS] });
-
     await expect(DbHelper.query({ sql: 'SELECT id FROM outbox_events WHERE id = $1', params: [pending?.id] })).resolves.toHaveLength(1);
   });
 

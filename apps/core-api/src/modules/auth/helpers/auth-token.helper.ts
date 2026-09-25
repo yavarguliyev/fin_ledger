@@ -22,14 +22,12 @@ export class AuthTokenHelper {
   static async claim ({ authTokenRepository, token, purposes, adapter }: ClaimLinkTokenDto): Promise<ClaimedAuthTokenDto> {
     const claimed = await authTokenRepository.claim({ tokenHash: AuthTokenHelper.hash({ token }), purposes, ...(adapter && { adapter }) });
     if (!claimed) throw new BadRequestException('This link is invalid, has expired or has already been used');
-
     return claimed;
   }
 
   static async peek ({ authTokenRepository, token, purposes }: PeekLinkTokenDto): Promise<ClaimedAuthTokenDto> {
     const active = await authTokenRepository.findActive({ tokenHash: AuthTokenHelper.hash({ token }), purposes });
     if (!active) throw new BadRequestException('This link is invalid, has expired or has already been used');
-
     return active;
   }
 

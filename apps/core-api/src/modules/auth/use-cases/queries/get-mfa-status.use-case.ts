@@ -14,7 +14,6 @@ export class GetMfaStatusUseCase extends AuthBaseUseCase<MfaUserDto, MfaStatusRe
   async execute ({ userId }: MfaUserDto): Promise<MfaStatusResponseDto> {
     const user = await this.authRepository.findById({ id: userId });
     if (!user) throw new NotFoundException('User not found');
-
     return { enabled: user.mfaEnabledAt !== null, pending: user.mfaEnabledAt === null && user.mfaSecretEncrypted !== null };
   }
 }

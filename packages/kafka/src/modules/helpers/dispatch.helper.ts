@@ -50,7 +50,8 @@ export class DispatchHelper {
         headers: RetryHelper.headers({ payload, handlerName, attempt, lastError })
       });
 
-      if (exhausted) logger.error(`${handlerName} gave up on a message from ${originTopic} after ${attempt} attempts, parked in ${target}: ${lastError}`);
+      if (exhausted)
+        logger.error(`${handlerName} gave up on a message from ${originTopic} after ${attempt} attempts, parked in ${target}: ${lastError}`);
       else logger.warn(`${handlerName} failed on ${originTopic} (attempt ${attempt}), moved to ${target}: ${lastError}`);
     } catch (error) {
       logger.error(`Could not move a failed message off ${originTopic}: ${BaseHelper.errorResponse({ error }).message}`);

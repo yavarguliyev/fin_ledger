@@ -29,7 +29,12 @@ export class DatabaseHelper {
     if (!this.isDatabaseError({ error }) || !(error instanceof DatabaseError) || !error.code) return error;
 
     if (this.RETRYABLE_CODES.has(error.code)) {
-      return new InfrastructureError({ message: `Database is temporarily unavailable (${error.code})`, code: 'DATABASE_UNAVAILABLE', retryable: true, httpStatus: 503 });
+      return new InfrastructureError({
+        message: `Database is temporarily unavailable (${error.code})`,
+        code: 'DATABASE_UNAVAILABLE',
+        retryable: true,
+        httpStatus: 503
+      });
     }
 
     const translation = TRANSLATIONS[error.code];

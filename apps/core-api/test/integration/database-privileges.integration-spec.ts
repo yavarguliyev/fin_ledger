@@ -9,10 +9,11 @@ const INSUFFICIENT_PRIVILEGE = '42501';
 describe('API database login', () => {
   const app = new Pool({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
 
-  const denied = async (sql: string): Promise<unknown> => app.query(sql).then(
-    () => 'allowed',
-    (error: { code?: string }) => error.code
-  );
+  const denied = async (sql: string): Promise<unknown> =>
+    app.query(sql).then(
+      () => 'allowed',
+      (error: { code?: string }) => error.code
+    );
 
   afterAll(async () => {
     await app.end();

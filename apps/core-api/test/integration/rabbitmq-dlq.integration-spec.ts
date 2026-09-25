@@ -4,8 +4,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import type { ConfigService } from '@nestjs/config';
 import amqp from 'amqplib';
 import type { ChannelModel } from 'amqplib';
-import { RabbitmqService, QueueHelper, RABBITMQ_TOPOLOGY } from '@common/rabbitmq';
-import { ClientIds, CryptoHelper } from '@common/shared-libs';
+import { RabbitmqService, QueueHelper, RABBITMQ_TOPOLOGY, ClientIds, CryptoHelper } from '@common/libs';
 
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
@@ -21,13 +20,11 @@ describe('RabbitMQ retry and dead-letter topology', () => {
   let routingKey: string;
 
   const url = (): string => process.env[TEST_ENV_KEYS.RABBITMQ_URL] as string;
-
   const configService = { get: (key: string) => (key === 'RABBITMQ_URL' ? url() : undefined) } as unknown as ConfigService;
 
   const startService = async (): Promise<RabbitmqService> => {
     const started = new RabbitmqService({ configService, clientId: ClientIds.DEFAULT });
     await started.onModuleInit();
-
     return started;
   };
 
@@ -72,12 +69,9 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
   const waitForDelivery = async ({ delivered }: { delivered: unknown[] }): Promise<unknown[]> => {
     const deadline = Date.now() + RECONNECT_WAIT_MS;
-
     while (delivered.length === 0 && Date.now() < deadline) await sleep(DELIVERY_POLL_MS);
-
     return delivered;
   };
-
 
   const dropConnection = async ({ target }: { target: RabbitmqService }): Promise<void> => {
     const { connection } = target as unknown as { connection: ChannelModel };
@@ -98,7 +92,6 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
     return false;
   };
-
 
   const runCli = (args: string[]): string =>
     execFileSync(process.execPath, [DLQ_CLI, ...args], { env: { ...process.env, RABBITMQ_URL: url() }, encoding: 'utf8' });
@@ -142,11 +135,11 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
   it('moves a failing message onto the retry ladder instead of dropping it', async () => {
     const consumer = await startService();
+
     await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
-
     await service.publish({ payload: { probe: true }, routingKey });
-
     await expect(waitForDepth({ target: QueueHelper.retryQueue({ queue, attempt: 1 }), expected: 1 })).resolves.toBe(1);
+
     expect(await service.queueDepth({ queue: QueueHelper.deadLetterQueue({ queue }) })).toBe(0);
 
     await consumer.onModuleDestroy();
@@ -154,17 +147,17 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
   it('replays a dead-lettered message back to its queue exactly once', async () => {
     const consumer = await startService();
-    await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
 
+    await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
     await seedWithAttempts({ attempt: RABBITMQ_TOPOLOGY.RETRY_DELAYS_MS.length });
     await expect(waitForDepth({ target: QueueHelper.deadLetterQueue({ queue }), expected: 1 })).resolves.toBe(1);
-
     await consumer.onModuleDestroy();
 
     const replayed = await service.replayDeadLetters({ queue });
-    expect(replayed).toBe(1);
 
+    expect(replayed).toBe(1);
     expect(await service.queueDepth({ queue: QueueHelper.deadLetterQueue({ queue }) })).toBe(0);
+
     await expect(waitForDepth({ target: queue, expected: 1 })).resolves.toBe(1);
     await expect(service.replayDeadLetters({ queue })).resolves.toBe(0);
   });
@@ -186,28 +179,24 @@ describe('RabbitMQ retry and dead-letter topology', () => {
     await sleep(DELIVERY_POLL_MS);
 
     const publisher = await startService();
+
     await publisher.publish({ payload: { probe: true }, routingKey });
-
     await expect(waitForDelivery({ delivered })).resolves.toEqual([{ probe: true }]);
-
     await publisher.onModuleDestroy();
     await consumer.onModuleDestroy();
   });
 
   it('parks a message in the dead-letter queue once the ladder is exhausted', async () => {
     const consumer = await startService();
+
     await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
-
     await seedWithAttempts({ attempt: RABBITMQ_TOPOLOGY.RETRY_DELAYS_MS.length });
-
     await expect(waitForDepth({ target: QueueHelper.deadLetterQueue({ queue }), expected: 1 })).resolves.toBe(1);
-
     await consumer.onModuleDestroy();
   });
 
   it('uses a strictly growing delay for each rung of the retry ladder', () => {
     const delays = RABBITMQ_TOPOLOGY.RETRY_DELAYS_MS.map((_, index) => QueueHelper.retryDelay({ attempt: index + 1 }));
-
     expect(delays).toEqual([...delays].sort((first, second) => first - second));
     expect(new Set(delays).size).toBe(delays.length);
   });
@@ -227,10 +216,9 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
     await dropConnection({ target: consumer });
     await expect(waitUntilUsable({ target: consumer })).resolves.toBe(true);
-
     await service.publish({ payload: { probe: true }, routingKey });
-
     await expect(waitForDepth({ target: queue, expected: 0 })).resolves.toBe(0);
+
     expect(delivered).toEqual([{ probe: true }]);
 
     await consumer.onModuleDestroy();
@@ -238,14 +226,14 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
   it('replays a dead-lettered message back to its queue exactly once', async () => {
     const consumer = await startService();
-    await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
 
+    await consumer.subscribe({ queue, routingKey, handler: () => Promise.reject(new Error('handler always throws')) });
     await seedWithAttempts({ attempt: RABBITMQ_TOPOLOGY.RETRY_DELAYS_MS.length });
     await expect(waitForDepth({ target: QueueHelper.deadLetterQueue({ queue }), expected: 1 })).resolves.toBe(1);
     await consumer.onModuleDestroy();
-
     await expect(service.replayDeadLetters({ queue })).resolves.toBe(1);
     await expect(waitForDepth({ target: queue, expected: 1 })).resolves.toBe(1);
+
     expect(await service.queueDepth({ queue: QueueHelper.deadLetterQueue({ queue }) })).toBe(0);
 
     await expect(service.replayDeadLetters({ queue })).resolves.toBe(0);
@@ -254,20 +242,24 @@ describe('RabbitMQ retry and dead-letter topology', () => {
 
   it('reports every rung of a queue through the dlq CLI', async () => {
     const consumer = await startService();
+
     await consumer.subscribe({ queue, routingKey, handler: () => Promise.resolve() });
     await consumer.onModuleDestroy();
-
     await service.publish({ payload: { probe: true }, routingKey });
     await expect(waitForDepth({ target: queue, expected: 1 })).resolves.toBe(1);
 
     const reported = runCli(['depth', queue]);
-    const rows = reported.trim().split('\n').map(row => row.split('\t'));
+    const rows = reported
+      .trim()
+      .split('\n')
+      .map(row => row.split('\t'));
 
     expect(rows.map(([name]) => name)).toEqual([
       queue,
       ...RABBITMQ_TOPOLOGY.RETRY_DELAYS_MS.map((_, index) => QueueHelper.retryQueue({ queue, attempt: index + 1 })),
       QueueHelper.deadLetterQueue({ queue })
     ]);
+
     expect(rows[0]?.[1]).toBe('1');
   });
 });

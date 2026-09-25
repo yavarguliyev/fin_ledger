@@ -12,9 +12,7 @@ export class GracefulShutdown {
   static register (params: GracefulShutdownDto): void {
     const context = GracefulShutdown.toContext(params);
     const signals = params.signals ?? [...SHUTDOWN_DEFAULTS.SIGNALS];
-
     signals.forEach(signal => process.once(signal, () => void GracefulShutdown.run({ context, signal })));
-
     if (params.handleFatalErrors === false) return;
     GracefulShutdown.registerFatalErrorHandlers(context);
   }
@@ -55,7 +53,6 @@ export class GracefulShutdown {
     try {
       const closed = await GracefulShutdown.closeApp(context);
       if (!closed) return GracefulShutdown.forceExit({ logger, exitCode, reason: `shutdown exceeded ${timeoutMs}ms` });
-
       logger.log?.('Shutdown complete');
     } catch (error) {
       logger.error?.(`Shutdown failed: ${GracefulShutdown.describe({ error: error })}`);
@@ -91,7 +88,6 @@ export class GracefulShutdown {
   private static forceExit (params: ForceExitDto): never {
     const { logger, exitCode, reason } = params;
     logger.warn?.(`Forcing exit: ${reason}`);
-
     return process.exit(exitCode);
   }
 

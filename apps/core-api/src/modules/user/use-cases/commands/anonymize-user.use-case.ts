@@ -13,11 +13,13 @@ export class AnonymizeUserUseCase extends UserBaseCase<UserIdRequestDto, DeleteU
     const { userId } = dto;
 
     const user = await this.userRepository.findById({ id: userId });
+
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
     if (user.role !== String(UserRoles.USER)) throw new BadRequestException('Only player accounts can be anonymized');
     if (UserHelper.isAnonymized({ user })) throw new ConflictException('User is already anonymized');
 
     const { balanceMinor, openPayments, openBets } = await this.userRepository.findAnonymizationBlockers(dto);
+
     if (balanceMinor !== 0) throw new ConflictException('User still holds funds. Pay out the balance before anonymizing.');
     if (openPayments > 0) throw new ConflictException('User has payments in progress. Wait for them to finish before anonymizing.');
     if (openBets > 0) throw new ConflictException('User has unsettled bets. Settle them before anonymizing.');

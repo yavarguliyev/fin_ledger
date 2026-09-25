@@ -32,7 +32,7 @@ export type HttpStatus = (typeof HttpStatuses)[number];
 export type JoinClauseTypes = (typeof JOIN_CLAUSE_TYPES)[number];
 export type MessageHandler<T = unknown> = (payload: T) => Promise<void> | void;
 export type ModuleRegistry = Record<string, { key: (typeof MODULES_KEYS)[number] }>;
-type Operators = (typeof OPERATORS)[number];
+export type Operators = (typeof OPERATORS)[number];
 export type OrderDirection = (typeof ORDER_DIRECTIONS)[number];
 export type PaginationShape = { page: z.ZodDefault<z.ZodCoercedNumber>; limit: z.ZodDefault<z.ZodCoercedNumber> };
 export type ProviderHeaders = Record<string, string | string[] | undefined>;

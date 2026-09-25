@@ -34,11 +34,6 @@ export class TotpService {
     return generateSecret();
   }
 
-  async buildEnrollment ({ secret, accountName }: BuildEnrollmentDto): Promise<TotpEnrollmentDto> {
-    const otpauthUri = generateURI({ issuer: this.issuer, label: accountName, secret });
-    return { otpauthUri, qrCodeDataUrl: await toDataURL(otpauthUri) };
-  }
-
   verify ({ secret, code, lastUsedStep }: VerifyTotpDto): TotpVerificationDto {
     const token = code.replace(/\s/g, '');
     if (!TotpService.CODE_PATTERN.test(token)) return { valid: false };
@@ -56,5 +51,10 @@ export class TotpService {
 
   decryptSecret ({ encrypted }: EncryptedSecretDto): string {
     return CryptoHelper.decrypt({ encrypted, key: this.encryptionKey });
+  }
+
+  async buildEnrollment ({ secret, accountName }: BuildEnrollmentDto): Promise<TotpEnrollmentDto> {
+    const otpauthUri = generateURI({ issuer: this.issuer, label: accountName, secret });
+    return { otpauthUri, qrCodeDataUrl: await toDataURL(otpauthUri) };
   }
 }

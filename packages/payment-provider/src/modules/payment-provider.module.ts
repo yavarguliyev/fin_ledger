@@ -18,7 +18,6 @@ export class PaymentProviderModule {
       useFactory: (...instances: IPaymentProvider[]): PaymentProviderRegistry => {
         const registry = new PaymentProviderRegistry();
         instances.forEach(provider => registry.register({ provider }));
-
         return registry;
       },
       inject: adapters

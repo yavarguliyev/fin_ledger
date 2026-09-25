@@ -13,6 +13,7 @@ describe('Payment reconciliation', () => {
             FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
       params: [email, key, status, chargeId, amount, ageHours, attempts]
     });
+
     return row?.id as string;
   };
 
@@ -24,6 +25,7 @@ describe('Payment reconciliation', () => {
             FROM payments p WHERE p.id = $1`,
       params: [paymentId]
     });
+
     return row as { status: string; credits: number; failedEvents: number };
   };
 
@@ -32,6 +34,7 @@ describe('Payment reconciliation', () => {
       sql: 'SELECT w.available_balance_minor::int AS balance FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
       params: [email]
     });
+
     return row?.balance ?? 0;
   };
 
@@ -61,6 +64,7 @@ describe('Payment reconciliation', () => {
     const timedOut = await staleDeposit('reconcile-timed-out', 'REQUIRES_ACTION', null, 800);
 
     const deadline = Date.now() + 20_000;
+
     while (Date.now() < deadline) {
       const [a, b] = await Promise.all([state(neverCharged), state(timedOut)]);
       if (a.status === 'FAILED' && b.status === 'FAILED') break;
@@ -69,9 +73,10 @@ describe('Payment reconciliation', () => {
 
     await expect(state(neverCharged)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
     await expect(state(timedOut)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-    await expect(DbHelper.query({ sql: 'SELECT DISTINCT failure_code FROM payments WHERE id = ANY($1)', params: [[neverCharged, timedOut]] })).resolves.toEqual([
-      { failure_code: 'NOT_FOUND_AT_PROVIDER' }
-    ]);
+
+    await expect(
+      DbHelper.query({ sql: 'SELECT DISTINCT failure_code FROM payments WHERE id = ANY($1)', params: [[neverCharged, timedOut]] })
+    ).resolves.toEqual([{ failure_code: 'NOT_FOUND_AT_PROVIDER' }]);
   }, 30_000);
 
   it('cancels and fails a 3-D Secure deposit the customer abandoned, but keeps a recent one open', async () => {
@@ -82,7 +87,10 @@ describe('Payment reconciliation', () => {
     while ((await state(abandoned)).status !== 'FAILED' && Date.now() < deadline) await sleep(500);
 
     await expect(state(abandoned)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-    await expect(DbHelper.query({ sql: 'SELECT failure_code FROM payments WHERE id = $1', params: [abandoned] })).resolves.toEqual([{ failure_code: 'canceled' }]);
+    await expect(DbHelper.query({ sql: 'SELECT failure_code FROM payments WHERE id = $1', params: [abandoned] })).resolves.toEqual([
+      { failure_code: 'canceled' }
+    ]);
+
     await expect(state(recent)).resolves.toEqual({ status: 'REQUIRES_ACTION', credits: 0, failedEvents: 0 });
   }, 30_000);
 
@@ -91,7 +99,10 @@ describe('Payment reconciliation', () => {
     const flagged = await staleDeposit('reconcile-flagged', 'PROCESSING', 'pi_still_open_flagged', 510, 1, 20);
 
     const attempts = async (paymentId: string): Promise<number | undefined> => {
-      const [row] = await DbHelper.query<{ attempts: number }>({ sql: 'SELECT reconcile_attempts AS attempts FROM payments WHERE id = $1', params: [paymentId] });
+      const [row] = await DbHelper.query<{ attempts: number }>({
+        sql: 'SELECT reconcile_attempts AS attempts FROM payments WHERE id = $1',
+        params: [paymentId]
+      });
       return row?.attempts;
     };
 

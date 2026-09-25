@@ -1,4 +1,3 @@
-
 import { WhereBuilder } from './where-builder';
 import { JoinBuilder } from './join-builder';
 import { AggregateBuilder } from './aggregate-builder';
@@ -78,7 +77,9 @@ export class Builder<T> extends BaseBuilder {
     const values = Object.values(data);
     const columns = keys.map(key => this.mapColumn({ column: key }));
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
-    const returning = (returningColumns ?? (keys as K[])).map(column => `${this.mapColumn({ column: String(column) })} AS "${String(column)}"`).join(', ');
+    const returning = (returningColumns ?? (keys as K[]))
+      .map(column => `${this.mapColumn({ column: String(column) })} AS "${String(column)}"`)
+      .join(', ');
 
     return {
       query: `

@@ -17,7 +17,6 @@ export class FailPaymentUseCase {
 
   async execute (dto: FailPaymentDto): Promise<PaymentDto | null> {
     if (dto.adapter) return this.fail({ ...dto, adapter: dto.adapter });
-
     return this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.fail({ ...dto, adapter }) });
   }
 
@@ -30,6 +29,7 @@ export class FailPaymentUseCase {
       ...(providerChargeId && { providerChargeId }),
       adapter
     });
+
     if (!failed) return null;
 
     await this.outboxRepository.createEvent({

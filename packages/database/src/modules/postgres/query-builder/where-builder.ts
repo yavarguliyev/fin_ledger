@@ -81,9 +81,6 @@ export class WhereBuilder extends BaseBuilder {
       paramIndex++;
     }
 
-    return {
-      conditions,
-      paramIndex
-    };
+    return { conditions, paramIndex };
   }
 }

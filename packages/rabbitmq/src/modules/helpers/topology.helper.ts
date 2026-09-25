@@ -20,6 +20,7 @@ export class TopologyHelper {
         deadLetterExchange: RABBITMQ_CONSTANTS.RABBITMQ_DLX_EXCHANGE.key,
         deadLetterRoutingKey: queue
       });
+
       await channel.bindQueue(retryQueue, RABBITMQ_CONSTANTS.RABBITMQ_DLX_EXCHANGE.key, retryQueue);
     }
 

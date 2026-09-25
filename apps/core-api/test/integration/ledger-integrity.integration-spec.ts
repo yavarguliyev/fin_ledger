@@ -28,7 +28,10 @@ describe('Ledger integrity check', () => {
   afterAll(async () => DbHelper.close());
 
   it('reports a clean ledger as healthy', async () => {
-    await expect(report()).resolves.toMatchObject({ status: 200, body: { driftedAccounts: 0, driftedWallets: 0, unbalancedCurrencies: [], healthy: true } });
+    await expect(report()).resolves.toMatchObject({
+      status: 200,
+      body: { driftedAccounts: 0, driftedWallets: 0, unbalancedCurrencies: [], healthy: true }
+    });
   });
 
   it('detects a wallet balance that no longer matches its ledger account', async () => {

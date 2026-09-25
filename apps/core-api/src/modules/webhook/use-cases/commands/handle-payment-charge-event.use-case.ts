@@ -47,7 +47,6 @@ export class HandlePaymentChargeEventUseCase extends WebhookBaseUseCase<HandlePa
   private async findPayment ({ provider, providerChargeId, paymentId, adapter }: FindChargePaymentDto): Promise<PaymentDto | null> {
     const byId = paymentId ? await this.paymentRepository.findById({ id: paymentId, adapter }) : null;
     if (byId && String(byId.provider) === provider) return byId;
-
     return providerChargeId ? this.paymentRepository.findByProviderChargeId({ provider, providerChargeId, adapter }) : null;
   }
 }

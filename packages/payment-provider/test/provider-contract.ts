@@ -1,9 +1,9 @@
 import { PaymentCapability, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
 
-import { ProviderContractOptionsDto } from '../modules/dtos/testing/provider-contract-options.dto';
-import { CHARGE_INPUT } from '../modules/constants/testing/charge-input.constant';
-import { REQUIRED_METHODS } from '../modules/constants/testing/required-methods.constant';
-import { MALFORMED_PAYLOADS } from '../modules/constants/testing/malformed-payloads.constant';
+import { ProviderContractOptionsDto } from '../src/modules/dtos/testing/provider-contract-options.dto';
+import { CHARGE_INPUT } from '../src/modules/constants/testing/charge-input.constant';
+import { REQUIRED_METHODS } from '../src/modules/constants/testing/required-methods.constant';
+import { MALFORMED_PAYLOADS } from '../src/modules/constants/testing/malformed-payloads.constant';
 
 const describeCapabilities = ({ create, expectedCapabilities }: ProviderContractOptionsDto): void => {
   it('declares a provider name and at least one capability', () => {

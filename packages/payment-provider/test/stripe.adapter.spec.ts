@@ -1,13 +1,12 @@
 import { ConfigService } from '@nestjs/config';
 import { ProviderErrorCategory, PaymentCapability } from '@common/shared-libs';
 
-import { StripeAdapter } from '../modules/adapters/stripe/stripe.adapter';
-import { StripeAmountHelper } from '../modules/adapters/stripe/helpers/stripe-amount.helper';
-import { StripeErrorMapper } from '../modules/adapters/stripe/helpers/stripe-error.mapper.helper';
+import { StripeAdapter } from '../src/modules/adapters/stripe/stripe.adapter';
+import { StripeAmountHelper } from '../src/modules/adapters/stripe/helpers/stripe-amount.helper';
+import { StripeErrorMapper } from '../src/modules/adapters/stripe/helpers/stripe-error.mapper.helper';
 import { runProviderContractTests } from './provider-contract';
 
 const configOf = (values: Record<string, string>): ConfigService => ({ get: (key: string) => values[key] }) as unknown as ConfigService;
-
 const simulated = (): ConfigService => configOf({ NODE_ENV: 'development', PAYMENT_SIMULATION: 'true' });
 
 runProviderContractTests({
@@ -54,7 +53,8 @@ describe('StripeAdapter configuration', () => {
 });
 
 describe('StripeErrorMapper', () => {
-  const classify = (type: string): ProviderErrorCategory => StripeErrorMapper.toProviderError({ error: Object.assign(new Error('x'), { type }) }).category;
+  const classify = (type: string): ProviderErrorCategory =>
+    StripeErrorMapper.toProviderError({ error: Object.assign(new Error('x'), { type }) }).category;
 
   it('treats a declined card as a definitive failure', () => {
     const error = StripeErrorMapper.toProviderError({ error: Object.assign(new Error('declined'), { type: 'StripeCardError' }) });

@@ -22,16 +22,6 @@ export class SessionHelper {
     return !passwordHash.startsWith('$argon2');
   }
 
-  private static async verify ({ password, passwordHash }: CompareDto): Promise<boolean> {
-    if (SessionHelper.isLegacyHash({ passwordHash })) return bcrypt.compare(password, passwordHash);
-
-    try {
-      return await argon2.verify(passwordHash, password);
-    } catch {
-      return false;
-    }
-  }
-
   static async compare (dto: CompareDto): Promise<void> {
     const isMatch = await SessionHelper.verify(dto);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
@@ -40,7 +30,6 @@ export class SessionHelper {
   static async rejectWithDummyHash ({ password }: HashDto): Promise<never> {
     SessionHelper.dummyPasswordHash ??= SessionHelper.hash({ password: CryptoHelper.uuid() });
     await SessionHelper.verify({ password, passwordHash: await SessionHelper.dummyPasswordHash });
-
     throw new UnauthorizedException('Invalid credentials');
   }
 
@@ -71,5 +60,15 @@ export class SessionHelper {
     const parsed = parseInt(expiry, 10);
     if (!isNaN(parsed) && expiry === parsed.toString()) return parsed;
     return 604800;
+  }
+
+  private static async verify ({ password, passwordHash }: CompareDto): Promise<boolean> {
+    if (SessionHelper.isLegacyHash({ passwordHash })) return bcrypt.compare(password, passwordHash);
+
+    try {
+      return await argon2.verify(passwordHash, password);
+    } catch {
+      return false;
+    }
   }
 }

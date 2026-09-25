@@ -19,7 +19,11 @@ export class BaseHelper {
 
   static formatAmount (params: FormatAmountDto): string {
     const { amountMinor, currency } = params;
-    const digits = new Intl.NumberFormat(CURRENCY_FORMAT.LOCALE, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? CURRENCY_FORMAT.DEFAULT_DIGITS;
+
+    const digits =
+      new Intl.NumberFormat(CURRENCY_FORMAT.LOCALE, { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ??
+      CURRENCY_FORMAT.DEFAULT_DIGITS;
+
     return `${(amountMinor / CURRENCY_FORMAT.BASE ** digits).toFixed(digits)} ${currency}`;
   }
 

@@ -143,5 +143,4 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     if (!this.channel) throw new InternalServerErrorException('RabbitMQ channel not initialized');
     return this.channel;
   }
-
 }

@@ -19,6 +19,7 @@ describe('Webhook inbox', () => {
       sql: 'SELECT status, attempts, processed_at IS NOT NULL AS processed FROM webhook_events WHERE provider = $1 AND event_id = $2',
       params: ['stripe', eventId]
     });
+
     return row;
   };
 
@@ -34,6 +35,7 @@ describe('Webhook inbox', () => {
             FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
       params: [email, key, amount]
     });
+
     return row?.id as string;
   };
 
@@ -42,6 +44,7 @@ describe('Webhook inbox', () => {
       sql: `CREATE OR REPLACE FUNCTION test_fail_wallet_transaction() RETURNS trigger AS $$
             BEGIN IF NEW.amount_minor = ${failingAmount} THEN RAISE EXCEPTION 'simulated crash while handling a webhook'; END IF; RETURN NEW; END $$ LANGUAGE plpgsql`
     });
+
     await DbHelper.query({
       sql: 'CREATE TRIGGER test_fail_wallet_transaction BEFORE INSERT ON wallet_transactions FOR EACH ROW EXECUTE FUNCTION test_fail_wallet_transaction()'
     });
@@ -55,14 +58,13 @@ describe('Webhook inbox', () => {
 
   it('leaves a webhook whose handling failed retryable, and applies it once on redelivery', async () => {
     const paymentId = await pendingDeposit(failingAmount, 'inbox-crash');
-
     const failed = await send('evt_inbox_crash', 'payment_intent.succeeded', paymentId);
+
     expect(failed.status).toBe(500);
+
     await expect(eventRow('evt_inbox_crash')).resolves.toEqual({ status: 'RECEIVED', attempts: 1, processed: false });
     await expect(paymentStatus(paymentId)).resolves.toBe('PENDING');
-
     await DbHelper.query({ sql: 'DROP TRIGGER test_fail_wallet_transaction ON wallet_transactions' });
-
     await expect(send('evt_inbox_crash', 'payment_intent.succeeded', paymentId)).resolves.toMatchObject({ status: 200 });
     await expect(eventRow('evt_inbox_crash')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
     await expect(paymentStatus(paymentId)).resolves.toBe('COMPLETED');
@@ -70,6 +72,7 @@ describe('Webhook inbox', () => {
 
   it('replays a webhook whose handling failed, without a redelivery', async () => {
     const paymentId = await pendingDeposit(failingAmount, 'inbox-replay');
+
     await DbHelper.query({
       sql: 'CREATE TRIGGER test_fail_wallet_transaction BEFORE INSERT ON wallet_transactions FOR EACH ROW EXECUTE FUNCTION test_fail_wallet_transaction()'
     });
@@ -91,7 +94,12 @@ describe('Webhook inbox', () => {
     await send('evt_inbox_duplicate', 'payment_intent.succeeded', paymentId);
 
     await expect(eventRow('evt_inbox_duplicate')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM wallet_transactions w JOIN payments p ON p.ledger_transaction_id = w.ledger_transaction_id WHERE p.id = $1', params: [paymentId] })).resolves.toEqual([{ count: 1 }]);
+    await expect(
+      DbHelper.query({
+        sql: 'SELECT count(*)::int AS count FROM wallet_transactions w JOIN payments p ON p.ledger_transaction_id = w.ledger_transaction_id WHERE p.id = $1',
+        params: [paymentId]
+      })
+    ).resolves.toEqual([{ count: 1 }]);
   });
 
   it('marks event types we do not handle as ignored', async () => {

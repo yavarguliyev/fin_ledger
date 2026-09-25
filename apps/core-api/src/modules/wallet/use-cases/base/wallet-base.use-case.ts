@@ -55,24 +55,6 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
     return this.recordWalletAnalytics({ eventType: AnalyticsEventTopic.WALLET_DEBITED, eventPayload, ...(adapter && { adapter }) });
   }
 
-  private async publishWalletAnalytics ({ eventPayload, adapter }: { eventPayload: AnalyticsEventPayloadDto; adapter: DatabaseAdapter }): Promise<void> {
-    if (this.currentDomainEventType === DomainEventType.WALLET_CREDITED) await this.publishWalletCredited(eventPayload, adapter);
-    else await this.publishWalletDebited(eventPayload, adapter);
-  }
-
-  private async recordWalletAnalytics ({ eventType, eventPayload, adapter }: { eventType: AnalyticsEventTopic; eventPayload: AnalyticsEventPayloadDto; adapter?: DatabaseAdapter }): Promise<AnalyticsEventPayloadDto> {
-    await this.outboxRepository.createEvent({
-      aggregateType: 'Wallet',
-      aggregateId: eventPayload.walletId,
-      eventType,
-      payload: { ...eventPayload },
-      destination: OutboxDestination.KAFKA,
-      ...(adapter && { adapter })
-    });
-
-    return eventPayload;
-  }
-
   protected async processWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
     const { adapter, walletId } = dto;
     if (!walletId) throw new BadRequestException('Wallet ID is required');
@@ -111,5 +93,37 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
     });
 
     return { wallet: result.wallet, ledgerTransactionId: result.ledgerTransactionId };
+  }
+
+  private async publishWalletAnalytics ({
+    eventPayload,
+    adapter
+  }: {
+    eventPayload: AnalyticsEventPayloadDto;
+    adapter: DatabaseAdapter;
+  }): Promise<void> {
+    if (this.currentDomainEventType === DomainEventType.WALLET_CREDITED) await this.publishWalletCredited(eventPayload, adapter);
+    else await this.publishWalletDebited(eventPayload, adapter);
+  }
+
+  private async recordWalletAnalytics ({
+    eventType,
+    eventPayload,
+    adapter
+  }: {
+    eventType: AnalyticsEventTopic;
+    eventPayload: AnalyticsEventPayloadDto;
+    adapter?: DatabaseAdapter;
+  }): Promise<AnalyticsEventPayloadDto> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'Wallet',
+      aggregateId: eventPayload.walletId,
+      eventType,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
+
+    return eventPayload;
   }
 }

@@ -7,7 +7,7 @@ import { ApiResponse } from '../interfaces/api-response.interface';
 import { LoginRequest } from '../interfaces/login-request.interface';
 
 export class ApiHelper {
-  static async request<T = unknown> ({ method = 'GET', path, token, body, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<ApiResponse<T>> {
+  static async request<T = unknown>({ method = 'GET', path, token, body, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<ApiResponse<T>> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json', 'X-Forwarded-For': clientIp };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -21,14 +21,13 @@ export class ApiHelper {
     return { status: response.status, headers: response.headers, body: (text ? JSON.parse(text) : null) as T };
   }
 
-  static randomIp (): string {
+  static randomIp(): string {
     return `10.${[...CryptoHelper.randomBytes({ bytes: 3 })].join('.')}`;
   }
 
-  static async login ({ email, password = SEED_PASSWORD }: LoginRequest): Promise<string> {
+  static async login({ email, password = SEED_PASSWORD }: LoginRequest): Promise<string> {
     const response = await ApiHelper.request<{ accessToken: string }>({ method: 'POST', path: '/auth/login', body: { email, password } });
     if (response.status !== 201) throw new Error(`Login failed for ${email}: HTTP ${response.status}`);
-
     return response.body.accessToken;
   }
 }

@@ -26,9 +26,15 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
     const user = await this.userRepository.create({
       data: { email, displayName, role, passwordHash, passwordChangedAt: new Date().toISOString(), isEmailVerified: false }
     });
+
     if (!user) throw new ConflictException('Failed to create user');
 
-    const token = await AuthTokenHelper.issue({ authTokenRepository: this.authTokenRepository, userId: user.id, purpose: AuthTokenPurpose.ACCOUNT_INVITE });
+    const token = await AuthTokenHelper.issue({
+      authTokenRepository: this.authTokenRepository,
+      userId: user.id,
+      purpose: AuthTokenPurpose.ACCOUNT_INVITE
+    });
+
     const invitationUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/set-password?token=${token}`;
 
     await EmailHelper.emitKafkaUserEmailVerification({

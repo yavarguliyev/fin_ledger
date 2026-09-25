@@ -12,7 +12,7 @@ import { ResolveOutcomeDto } from '../dtos/helper/resolve-outcome.dto';
 import { ResolvedOutcomeDto } from '../dtos/bet/resolved-outcome.dto';
 
 export class BetHelper {
-  private static OPEN_STATUSES: GameEventStatus[] = [GameEventStatus.SCHEDULED, GameEventStatus.LIVE];
+  private static OPEN_STATUSES: GameEventStatus[] = [GameEventStatus.SCHEDULED];
 
   static assertEventAcceptsBets (event: GameEventDto | null): GameEventDto {
     if (!event) throw new NotFoundException('Game event not found');

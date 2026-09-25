@@ -6,9 +6,13 @@ import { ListWalletTransactionsDto } from '../../dtos/input/list-wallet-transact
 import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.use-case';
 
 @Injectable()
-export class GetWalletTransactionsUseCase extends WalletTransactionsBaseUseCase<ListWalletTransactionsDto, PaginatedResponseDto<WalletTransactionRecordDto>> {
+export class GetWalletTransactionsUseCase extends WalletTransactionsBaseUseCase<
+  ListWalletTransactionsDto,
+  PaginatedResponseDto<WalletTransactionRecordDto>
+> {
   async execute (dto: ListWalletTransactionsDto): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
     const { walletId, page, limit, type, role } = dto;
+
     const isStaff = role && STAFF_ROLES.includes(role);
     const criteria = { ...(!isStaff && { walletId }), ...(type && { type }), limit, offset: (page - 1) * limit };
 

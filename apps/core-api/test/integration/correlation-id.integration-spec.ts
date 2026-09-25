@@ -9,7 +9,7 @@ const apiUrl = (): string => process.env[TEST_ENV_KEYS.API_URL] as string;
 describe('Correlation IDs', () => {
   afterAll(async () => DbHelper.close());
 
-  it('echoes the caller\'s id back and stamps it on the outbox rows the request wrote', async () => {
+  it("echoes the caller's id back and stamps it on the outbox rows the request wrote", async () => {
     const correlationId = CryptoHelper.uuid();
     const email = `correlation+${correlationId}@seed.local`;
 

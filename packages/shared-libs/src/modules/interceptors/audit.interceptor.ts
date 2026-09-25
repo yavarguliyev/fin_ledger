@@ -22,9 +22,7 @@ export class AuditInterceptor implements NestInterceptor {
   intercept (context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const metadata = this.reflector.get<AuditMetadataDto | undefined>(AUDITED_METADATA, context.getHandler());
     if (!metadata) return next.handle();
-
     const request = context.switchToHttp().getRequest<AuditRequest>();
-
     return next.handle().pipe(tap(result => void this.publish(AuditHelper.buildEvent({ metadata, request, result }))));
   }
 

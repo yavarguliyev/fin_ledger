@@ -8,6 +8,7 @@ import { SettleHelper } from './settle.helper';
 export class ReplayHelper {
   static async replay ({ channel, queue, limit, logger }: ReplayBatchDto): Promise<number> {
     const source = QueueHelper.deadLetterQueue({ queue });
+
     let moved = 0;
 
     while (moved < limit) {

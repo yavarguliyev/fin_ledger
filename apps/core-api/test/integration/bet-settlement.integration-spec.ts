@@ -23,12 +23,15 @@ describe('Bet settlement', () => {
       sql: 'SELECT w.id, w.currency FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
       params: [email]
     });
+
     const [event] = await DbHelper.query<{ id: string }>({
       sql: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
     });
+
     const player = await ApiHelper.login({ email });
 
     const placed: SettledBet[] = [];
+
     while (!placed.some(({ status }) => status === 'WON') && placed.length < maxBets) {
       const bet = await ApiHelper.request<SettledBet>({
         method: 'POST',
@@ -36,12 +39,16 @@ describe('Bet settlement', () => {
         token: player,
         body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: `settlement-${placed.length}` }
       });
+
       expect(bet).toMatchObject({ status: 201 });
       placed.push(bet.body);
     }
 
     await expect(
-      DbHelper.query({ sql: "SELECT count(*)::int AS count FROM outbox_events WHERE aggregate_id = ANY($1) AND event_type = 'bet.settled'", params: [placed.map(({ id }) => id)] })
+      DbHelper.query({
+        sql: "SELECT count(*)::int AS count FROM outbox_events WHERE aggregate_id = ANY($1) AND event_type = 'bet.settled'",
+        params: [placed.map(({ id }) => id)]
+      })
     ).resolves.toEqual([{ count: placed.length }]);
 
     const won = placed.find(({ status }) => status === 'WON') as SettledBet;
@@ -65,9 +72,11 @@ describe('Bet settlement', () => {
       sql: 'SELECT w.id FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
       params: [email]
     });
+
     const [event] = await DbHelper.query<{ id: string }>({
       sql: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
     });
+
     const player = await ApiHelper.login({ email });
 
     let placed: SettledBet | null = null;
@@ -78,6 +87,7 @@ describe('Bet settlement', () => {
         token: player,
         body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: `settlement-admin-payout-${attempt}` }
       });
+
       expect(bet).toMatchObject({ status: 201 });
       if (bet.body.status === 'LOST') placed = bet.body;
     }
@@ -104,14 +114,14 @@ describe('Bet settlement', () => {
       ).status;
 
     await expect(settle(target.potentialPayoutMinor * 1000)).resolves.toBe(400);
-    await expect(
-      DbHelper.query({ sql: 'SELECT status, payout_minor FROM bets WHERE id = $1', params: [target.id] })
-    ).resolves.toEqual([{ status: 'PENDING', payout_minor: null }]);
+    await expect(DbHelper.query({ sql: 'SELECT status, payout_minor FROM bets WHERE id = $1', params: [target.id] })).resolves.toEqual([
+      { status: 'PENDING', payout_minor: null }
+    ]);
 
     await expect(settle(target.potentialPayoutMinor)).resolves.toBe(201);
-    await expect(
-      DbHelper.query({ sql: 'SELECT draw_value, draw_threshold FROM bets WHERE id = $1', params: [target.id] })
-    ).resolves.toEqual([{ draw_value: null, draw_threshold: null }]);
+    await expect(DbHelper.query({ sql: 'SELECT draw_value, draw_threshold FROM bets WHERE id = $1', params: [target.id] })).resolves.toEqual([
+      { draw_value: null, draw_threshold: null }
+    ]);
   }, 60_000);
 
   it('records the odds-derived draw that decided each settled bet', async () => {
@@ -119,9 +129,11 @@ describe('Bet settlement', () => {
       sql: 'SELECT w.id FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
       params: [email]
     });
+
     const [event] = await DbHelper.query<{ id: string }>({
       sql: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
     });
+
     const player = await ApiHelper.login({ email });
 
     const bet = await ApiHelper.request<SettledBet>({
@@ -130,6 +142,7 @@ describe('Bet settlement', () => {
       token: player,
       body: { walletId: wallet?.id, eventId: event?.id, selection: 'Home', stakeMinor: 100, idempotencyKey: 'settlement-draw-audit' }
     });
+
     expect(bet).toMatchObject({ status: 201 });
 
     const [row] = await DbHelper.query<{ status: string; draw_value: string; draw_threshold: string; odds_at_placement: string }>({

@@ -10,22 +10,25 @@ describe('BettingHelper', () => {
   const samplingTolerance = (odds: number): number => {
     const winChance = (1 - expectedEdge) / odds;
     const variancePerBet = odds ** 2 * winChance * (1 - winChance);
-
     return sigmas * Math.sqrt(variancePerBet / bets);
   };
 
-  it.each([1.5, 2, 3, 5, 10])('keeps a positive house edge at odds %s over a million bets', odds => {
-    let returned = 0;
+  it.each([1.5, 2, 3, 5, 10])(
+    'keeps a positive house edge at odds %s over a million bets',
+    odds => {
+      let returned = 0;
 
-    for (let i = 0; i < bets; i++) {
-      if (BettingHelper.draw({ odds, margin }).won) returned += odds;
-    }
+      for (let i = 0; i < bets; i++) {
+        if (BettingHelper.draw({ odds, margin }).won) returned += odds;
+      }
 
-    const edge = 1 - returned / bets;
+      const edge = 1 - returned / bets;
 
-    expect(edge).toBeGreaterThan(0);
-    expect(Math.abs(edge - expectedEdge)).toBeLessThan(samplingTolerance(odds));
-  }, 120_000);
+      expect(edge).toBeGreaterThan(0);
+      expect(Math.abs(edge - expectedEdge)).toBeLessThan(samplingTolerance(odds));
+    },
+    120_000
+  );
 
   it.each([
     [2, 0, BETTING_DRAW.DRAW_RANGE / 2],

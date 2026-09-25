@@ -1,8 +1,8 @@
 import { ProviderChargeStatus, ProviderErrorCategory } from '@common/shared-libs';
 
-import { StripeSimulationHelper } from '../modules/adapters/stripe/helpers/stripe-simulation.helper';
-import { STRIPE_SIMULATION } from '../modules/constants/stripe/stripe-simulated-outcomes.constant';
-import { CHARGE_INPUT } from '../modules/constants/testing/charge-input.constant';
+import { StripeSimulationHelper } from '../src/modules/adapters/stripe/helpers/stripe-simulation.helper';
+import { STRIPE_SIMULATION } from '../src/modules/constants/stripe/stripe-simulated-outcomes.constant';
+import { CHARGE_INPUT } from '../src/modules/constants/testing/charge-input.constant';
 
 const simulate = (paymentMethodToken?: string): ReturnType<typeof StripeSimulationHelper.charge> =>
   StripeSimulationHelper.charge({ dto: { ...CHARGE_INPUT, ...(paymentMethodToken && { paymentMethodToken }) }, provider: 'stripe' });
@@ -35,7 +35,8 @@ describe('Stripe simulation follows the Stripe test cards', () => {
 
 describe('Stripe simulation of charge lookups', () => {
   it('reports the outcome encoded in a simulated charge ID, and anything else as still pending', () => {
-    const retrieve = (chargeId: string): ProviderChargeStatus => StripeSimulationHelper.retrieveCharge({ dto: { chargeId }, provider: 'stripe' }).status;
+    const retrieve = (chargeId: string): ProviderChargeStatus =>
+      StripeSimulationHelper.retrieveCharge({ dto: { chargeId }, provider: 'stripe' }).status;
 
     expect(retrieve('pi_simulated_succeeded_1')).toBe(ProviderChargeStatus.SUCCEEDED);
     expect(retrieve('pi_simulated_failed_1')).toBe(ProviderChargeStatus.FAILED);
@@ -49,6 +50,9 @@ describe('Stripe simulation of cancellations', () => {
       status: ProviderChargeStatus.FAILED,
       failure: { code: 'canceled' }
     });
-    expect(StripeSimulationHelper.retrieveCharge({ dto: { chargeId: 'pi_simulated_requires_action_1' }, provider: 'stripe' }).status).toBe(ProviderChargeStatus.REQUIRES_ACTION);
+
+    expect(StripeSimulationHelper.retrieveCharge({ dto: { chargeId: 'pi_simulated_requires_action_1' }, provider: 'stripe' }).status).toBe(
+      ProviderChargeStatus.REQUIRES_ACTION
+    );
   });
 });

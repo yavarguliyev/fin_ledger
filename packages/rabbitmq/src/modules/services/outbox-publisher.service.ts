@@ -28,23 +28,8 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
 
   onModuleDestroy (): void {
     this.stopped = true;
-
     if (this.intervalHandle) clearInterval(this.intervalHandle);
     this.intervalHandle = null;
-  }
-
-  private async poll (): Promise<void> {
-    if (this.stopped || this.isPolling) return;
-
-    this.isPolling = true;
-
-    try {
-      await this.publishPendingEvents();
-    } catch (error) {
-      this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
-    } finally {
-      this.isPolling = false;
-    }
   }
 
   async publishPendingEvents (): Promise<void> {
@@ -55,7 +40,13 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     });
 
     for (const event of events) {
-      await this.publishEvent({ eventId: event.id, eventType: event.eventType, payload: event.payload, attempts: event.attempts, destination: event.destination });
+      await this.publishEvent({
+        eventId: event.id,
+        eventType: event.eventType,
+        payload: event.payload,
+        attempts: event.attempts,
+        destination: event.destination
+      });
     }
   }
 
@@ -69,8 +60,23 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
       const lastError = BaseHelper.errorResponse({ error }).message;
       const outcome = await this.outboxRepository.rescheduleFailed({ id: eventId, attempts, lastError });
 
-      if (outcome?.status === OutboxStatus.DEAD) this.logger.error(`Outbox event ${eventId} is dead after ${outcome.attempts} attempts: ${lastError}`);
-      else this.logger.warn(`Outbox publish failed for ${eventId}, retrying: ${lastError}`);
+      if (outcome?.status === OutboxStatus.DEAD) {
+        this.logger.error(`Outbox event ${eventId} is dead after ${outcome.attempts} attempts: ${lastError}`);
+      } else this.logger.warn(`Outbox publish failed for ${eventId}, retrying: ${lastError}`);
+    }
+  }
+
+  private async poll (): Promise<void> {
+    if (this.stopped || this.isPolling) return;
+
+    this.isPolling = true;
+
+    try {
+      await this.publishPendingEvents();
+    } catch (error) {
+      this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
+    } finally {
+      this.isPolling = false;
     }
   }
 }

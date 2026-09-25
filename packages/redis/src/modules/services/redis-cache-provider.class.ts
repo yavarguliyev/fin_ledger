@@ -76,7 +76,16 @@ export class RedisCacheProvider implements CacheProvider {
   }
 
   async hitRateLimit ({ key, ttlMs, limit, blockDurationMs }: RateLimitHitDto): Promise<RateLimitHitRecord> {
-    const [totalHits, timeToExpireMs, timeToBlockExpireMs] = (await this.client.eval(RATE_LIMIT_SCRIPT, 2, key, `${key}${RATE_LIMIT_KEYS.BLOCKED_SUFFIX}`, ttlMs, limit, blockDurationMs)) as [number, number, number];
+    const [totalHits, timeToExpireMs, timeToBlockExpireMs] = (await this.client.eval(
+      RATE_LIMIT_SCRIPT,
+      2,
+      key,
+      `${key}${RATE_LIMIT_KEYS.BLOCKED_SUFFIX}`,
+      ttlMs,
+      limit,
+      blockDurationMs
+    )) as [number, number, number];
+
     return { totalHits, timeToExpireMs, timeToBlockExpireMs };
   }
 

@@ -30,7 +30,6 @@ export class DisableMfaUseCase extends AuthBaseUseCase<DisableMfaDto, MfaDisable
     await this.postgresService.getWriteConnection().transaction({
       callback: async adapter => {
         await MfaHelper.verifySecondFactor({ user, code, totpService, mfaRecoveryCodeRepository, adapter });
-
         await this.authRepository.update({ id: userId, data: { mfaSecretEncrypted: null, mfaEnabledAt: null, mfaLastUsedStep: null }, adapter });
         await mfaRecoveryCodeRepository.retire({ userId, adapter });
       }

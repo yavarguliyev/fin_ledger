@@ -87,7 +87,11 @@ export class PaymentMethodRepository extends BaseRepository<PaymentMethodDto> {
   }
 
   async updateStatus ({ id, status, adapter }: UpdatePaymentMethodStatusDto): Promise<PaymentMethodDto | null> {
-    return this.update({ id, data: { status, verifiedAt: status === PaymentMethodStatus.VERIFIED ? new Date() : null }, ...(adapter && { adapter }) });
+    return this.update({
+      id,
+      data: { status, verifiedAt: status === PaymentMethodStatus.VERIFIED ? new Date() : null },
+      ...(adapter && { adapter })
+    });
   }
 
   async markRemoved ({ id }: PaymentMethodIdRequestDto): Promise<PaymentMethodDto | null> {

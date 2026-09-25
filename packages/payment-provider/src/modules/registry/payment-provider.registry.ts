@@ -37,11 +37,7 @@ export class PaymentProviderRegistry {
 
   require<D extends RequireProviderDto> ({ providerName, capability }: D): CapableProvider<D['capability']> {
     const provider = this.get({ providerName });
-
-    if (!provider.supports({ capability })) {
-      throw new BadRequestException(`Payment provider ${providerName} does not support ${capability}`);
-    }
-
+    if (!provider.supports({ capability })) throw new BadRequestException(`Payment provider ${providerName} does not support ${capability}`);
     return provider as CapableProvider<D['capability']>;
   }
 }

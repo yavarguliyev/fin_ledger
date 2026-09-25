@@ -13,7 +13,11 @@ export class RecoveryCodeHelper {
   }
 
   static hash ({ code }: RecoveryCodeDto): string {
-    const normalized = code.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const normalized = code
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '');
+
     return CryptoHelper.sha256({ value: normalized });
   }
 

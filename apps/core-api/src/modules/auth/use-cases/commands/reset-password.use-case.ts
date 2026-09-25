@@ -23,7 +23,12 @@ export class ResetPasswordUseCase extends AuthBaseUseCase<ResetPasswordDto, Rese
 
     const userId = await this.postgresService.getWriteConnection().transaction({
       callback: async adapter => {
-        const claimed = await AuthTokenHelper.claim({ authTokenRepository: this.authTokenRepository, token, purposes: [AuthTokenPurpose.PASSWORD_RESET], adapter });
+        const claimed = await AuthTokenHelper.claim({
+          authTokenRepository: this.authTokenRepository,
+          token,
+          purposes: [AuthTokenPurpose.PASSWORD_RESET],
+          adapter
+        });
 
         const user = await this.authRepository.findById({ id: claimed.userId, adapter });
         if (!user || user.deletedAt) throw new UnauthorizedException('User not found');

@@ -23,8 +23,13 @@ describe('Emailed one-time links', () => {
     const token = await requestReset('player10@seed.local');
     const hash = CryptoHelper.sha256({ value: token });
 
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM auth_tokens WHERE token_hash = $1', params: [hash] })).resolves.toEqual([{ count: 1 }]);
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM auth_tokens WHERE token_hash = $1', params: [token] })).resolves.toEqual([{ count: 0 }]);
+    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM auth_tokens WHERE token_hash = $1', params: [hash] })).resolves.toEqual([
+      { count: 1 }
+    ]);
+
+    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM auth_tokens WHERE token_hash = $1', params: [token] })).resolves.toEqual([
+      { count: 0 }
+    ]);
   });
 
   it('lets a password-reset link be used exactly once', async () => {
@@ -61,7 +66,10 @@ describe('Emailed one-time links', () => {
   it('keeps each purpose to its own endpoint', async () => {
     const resetToken = await requestReset('player14@seed.local');
 
-    await expect(ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token: resetToken, password: 'Cross#Purpose2026' } })).resolves.toMatchObject({ status: 400 });
+    await expect(
+      ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token: resetToken, password: 'Cross#Purpose2026' } })
+    ).resolves.toMatchObject({ status: 400 });
+
     await expect(resetPassword(resetToken, 'Reset#Still2026')).resolves.toMatchObject({ status: 201 });
   });
 
@@ -73,7 +81,13 @@ describe('Emailed one-time links', () => {
     const token = tokenFrom((await EmailInboxHelper.waitFor({ to: email, topic: EMAIL_TOPICS.EMAIL_VERIFICATION })).url);
 
     await expect(ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token } })).resolves.toMatchObject({ status: 400 });
-    await expect(ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token, password: 'Invite#Once2026' } })).resolves.toMatchObject({ status: 201 });
-    await expect(ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token, password: 'Invite#Twice2026' } })).resolves.toMatchObject({ status: 400 });
+
+    await expect(
+      ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token, password: 'Invite#Once2026' } })
+    ).resolves.toMatchObject({ status: 201 });
+
+    await expect(
+      ApiHelper.request({ method: 'POST', path: '/auth/verify-email', body: { token, password: 'Invite#Twice2026' } })
+    ).resolves.toMatchObject({ status: 400 });
   });
 });

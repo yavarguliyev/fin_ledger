@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper , RequestScope } from '@common/libs';
+import { BaseHelper, RequestScope } from '@common/libs';
 
 import { LedgerBalanceDriftRepository } from '../repositories/ledger-balance-drift.repository';
 import { WalletLedgerDriftRepository } from '../repositories/wallet-ledger-drift.repository';
@@ -35,7 +35,12 @@ export class LedgerIntegrityJob implements OnApplicationBootstrap, OnModuleDestr
   }
 
   async check (): Promise<LedgerIntegrityReportDto> {
-    const [driftedAccounts, driftedWallets, unbalanced] = await Promise.all([this.accountDrift.count(), this.walletDrift.count(), this.trialBalance.findUnbalanced()]);
+    const [driftedAccounts, driftedWallets, unbalanced] = await Promise.all([
+      this.accountDrift.count(),
+      this.walletDrift.count(),
+      this.trialBalance.findUnbalanced()
+    ]);
+
     const unbalancedCurrencies = unbalanced.map(({ currency }) => currency);
     const healthy = driftedAccounts === 0 && driftedWallets === 0 && unbalancedCurrencies.length === 0;
 

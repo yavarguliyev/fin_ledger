@@ -47,7 +47,10 @@ export class StripeOperationHelper {
   }
 
   static async retrieveCharge ({ client, dto }: StripeRetrieveChargeDto): Promise<OperationResultDto> {
-    const intentRef = dto.chargeId.startsWith(STRIPE_ID_PREFIXES.CHARGE) ? (await client.charges.retrieve(dto.chargeId)).payment_intent : dto.chargeId;
+    const intentRef = dto.chargeId.startsWith(STRIPE_ID_PREFIXES.CHARGE)
+      ? (await client.charges.retrieve(dto.chargeId)).payment_intent
+      : dto.chargeId;
+
     const intent = await client.paymentIntents.retrieve(typeof intentRef === 'string' ? intentRef : (intentRef?.id ?? dto.chargeId));
 
     return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };

@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, PaymentCapability, PaymentProviderRegistry, ProviderChargeStatus , RequestScope } from '@common/libs';
+import { BaseHelper, PaymentCapability, PaymentProviderRegistry, ProviderChargeStatus, RequestScope } from '@common/libs';
 
 import { PaymentRepository } from '../repositories/payment.repository';
 import { CompletePaymentUseCase } from '../use-cases/commands/complete-payment.use-case';
@@ -55,6 +55,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
 
     for (const payment of payments) {
       if (this.stopped) return;
+
       const resolved = await this.reconcile({ payment }).catch((error: unknown) => {
         this.logger.warn(`Reconciliation of payment ${payment.id} failed: ${BaseHelper.errorResponse({ error }).message}`);
         return false;
@@ -80,7 +81,10 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
 
   private async recordUnresolved ({ payment }: PaymentRefDto): Promise<void> {
     const updated = await this.paymentRepository.recordReconcileAttempt({ id: payment.id });
-    if (updated?.reconcileAttempts === PAYMENT_RECONCILIATION.MAX_ATTEMPTS) this.logger.error(`Payment ${payment.id} needs manual review: still unresolved after ${PAYMENT_RECONCILIATION.MAX_ATTEMPTS} reconciliation attempts`);
+    if (updated?.reconcileAttempts === PAYMENT_RECONCILIATION.MAX_ATTEMPTS)
+      this.logger.error(
+        `Payment ${payment.id} needs manual review: still unresolved after ${PAYMENT_RECONCILIATION.MAX_ATTEMPTS} reconciliation attempts`
+      );
   }
 
   private async reconcile ({ payment }: PaymentRefDto): Promise<boolean> {
@@ -102,6 +106,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
         failureReason: PAYMENT_FAILURE_REASONS.NOT_FOUND_AT_PROVIDER,
         failureCode: PAYMENT_FAILURE_CODES.NOT_FOUND_AT_PROVIDER
       });
+
       return true;
     }
 
@@ -128,6 +133,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
       ...(charge.failureReason && { failureReason: charge.failureReason }),
       ...(charge.failure && { failureCode: charge.failure.code })
     });
+
     return true;
   }
 }

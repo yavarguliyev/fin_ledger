@@ -11,7 +11,6 @@ export class StripeErrorMapper {
     const candidate = (error ?? {}) as StripeLikeError;
     const name = candidate.type ?? (error as Error)?.constructor?.name ?? '';
     const category = STRIPE_TYPE_CATEGORY[name] ?? ProviderErrorCategory.UNKNOWN;
-
     const code = candidate.decline_code ?? candidate.code;
 
     return new ProviderError({

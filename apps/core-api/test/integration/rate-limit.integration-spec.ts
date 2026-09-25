@@ -30,7 +30,11 @@ describe('Rate limiting', () => {
     await expect(deposit()).resolves.toMatchObject({ status: 429 });
 
     const otherToken = await ApiHelper.login({ email: 'player21@seed.local' });
-    await expect(ApiHelper.request({ method: 'POST', path: '/payments/deposit', token: otherToken, body: {} })).resolves.toMatchObject({ status: 400 });
+
+    await expect(ApiHelper.request({ method: 'POST', path: '/payments/deposit', token: otherToken, body: {} })).resolves.toMatchObject({
+      status: 400
+    });
+
     await expect(ApiHelper.request({ method: 'GET', path: '/wallets', token })).resolves.toMatchObject({ status: 200 });
   });
 });

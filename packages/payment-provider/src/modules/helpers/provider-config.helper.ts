@@ -22,7 +22,7 @@ export class ProviderConfigHelper {
     if (missing.length === 0) return true;
 
     if (missing.length < keys.length) {
-      throw new Error(
+      throw new BadRequestException(
         `${providerName} is partially configured; missing: ${missing.join(', ')}. ` +
           'Provide every credential or none - a partly configured provider cannot verify webhooks.'
       );

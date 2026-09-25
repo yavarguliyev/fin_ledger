@@ -8,7 +8,7 @@ import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-
 import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
 
 export class PaymentHelper {
-  public static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {
+  static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {
     const { userId, paymentMethodId, paymentMethodRepository } = dto;
     if (!paymentMethodId) throw new BadRequestException('Payment method is required');
 
@@ -20,7 +20,7 @@ export class PaymentHelper {
     return method;
   }
 
-  public static completedEventPayload ({ payment }: PaymentRefDto): PaymentAnalyticsEventPayloadDto {
+  static completedEventPayload ({ payment }: PaymentRefDto): PaymentAnalyticsEventPayloadDto {
     return {
       paymentId: payment.id,
       userId: payment.userId,
@@ -34,7 +34,7 @@ export class PaymentHelper {
     };
   }
 
-  public static failedEventPayload ({ payment }: PaymentRefDto): PaymentFailedEventPayloadDto {
+  static failedEventPayload ({ payment }: PaymentRefDto): PaymentFailedEventPayloadDto {
     return {
       paymentId: payment.id,
       userId: payment.userId,
@@ -45,5 +45,4 @@ export class PaymentHelper {
       providerChargeId: payment.providerChargeId
     };
   }
-
 }

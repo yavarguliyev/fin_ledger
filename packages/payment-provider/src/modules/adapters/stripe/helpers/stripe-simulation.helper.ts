@@ -3,14 +3,22 @@ import { ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@com
 import { ProviderChargeResultDto } from '../../../dtos/operation/provider-charge-result.dto';
 import { SimulateChargeDto } from '../../../dtos/helper/simulate-charge.dto';
 import { ProviderResultHelper } from '../../../helpers/provider-result.helper';
-import { STRIPE_SIMULATED_OUTCOMES, STRIPE_SIMULATED_RETRIEVALS, STRIPE_SIMULATION } from '../../../constants/stripe/stripe-simulated-outcomes.constant';
+import {
+  STRIPE_SIMULATED_OUTCOMES,
+  STRIPE_SIMULATED_RETRIEVALS,
+  STRIPE_SIMULATION
+} from '../../../constants/stripe/stripe-simulated-outcomes.constant';
 import { SimulateRetrieveChargeDto } from '../../../dtos/helper/simulate-retrieve-charge.dto';
 import { STRIPE_INTENT_DEFAULTS } from '../../../constants/stripe/stripe-intent-status.constant';
 import { PROVIDER_RESULT_DEFAULTS } from '../../../constants/result/provider-result-defaults.constant';
 
 export class StripeSimulationHelper {
   static cancelCharge ({ dto, provider }: SimulateRetrieveChargeDto): ProviderChargeResultDto {
-    const failure = new ProviderError({ message: STRIPE_INTENT_DEFAULTS.FAILURE_MESSAGE, category: ProviderErrorCategory.DECLINED, code: STRIPE_SIMULATION.CANCELED_CODE });
+    const failure = new ProviderError({
+      message: STRIPE_INTENT_DEFAULTS.FAILURE_MESSAGE,
+      category: ProviderErrorCategory.DECLINED,
+      code: STRIPE_SIMULATION.CANCELED_CODE
+    });
 
     return {
       chargeId: dto.chargeId,
@@ -37,11 +45,18 @@ export class StripeSimulationHelper {
   }
 
   static charge ({ dto, provider }: SimulateChargeDto): ProviderChargeResultDto {
-    const result = ProviderResultHelper.simulatedCharge({ prefix: STRIPE_SIMULATION.CHARGE_PREFIX, amount: dto.amount, currency: dto.currency, provider });
+    const result = ProviderResultHelper.simulatedCharge({
+      prefix: STRIPE_SIMULATION.CHARGE_PREFIX,
+      amount: dto.amount,
+      currency: dto.currency,
+      provider
+    });
+
     const token = dto.paymentMethodToken ?? '';
     const outcomeKey = Object.keys(STRIPE_SIMULATED_OUTCOMES)
       .filter(key => token.startsWith(key))
       .sort((a, b) => b.length - a.length)[0];
+
     const outcome = outcomeKey ? STRIPE_SIMULATED_OUTCOMES[outcomeKey] : undefined;
     if (!outcome) return result;
 

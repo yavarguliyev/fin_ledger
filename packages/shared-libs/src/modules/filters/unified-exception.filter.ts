@@ -69,7 +69,8 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
     const method = request.method || EXCEPTION_LOG_DEFAULTS.METHOD;
     const url = request.url || EXCEPTION_LOG_DEFAULTS.URL;
     const exceptionType = exception?.constructor?.name || EXCEPTION_LOG_DEFAULTS.TYPE;
-    const cause = exception instanceof Error && exception.cause !== undefined ? BaseHelper.errorResponse({ error: exception.cause }).message : undefined;
+    const cause =
+      exception instanceof Error && exception.cause !== undefined ? BaseHelper.errorResponse({ error: exception.cause }).message : undefined;
     const message = `[${method}] ${url} - ${exceptionType}: ${error.message}`;
     const logContext = JSON.stringify({ correlationId, method, url, type: exceptionType, message: error.message, ...(cause && { cause }) });
 

@@ -19,9 +19,7 @@ export class ShutdownHelper {
 
   static async drain ({ pending, logger }: DrainDto): Promise<void> {
     const deadline = Date.now() + RABBITMQ_TOPOLOGY.DRAIN_TIMEOUT_MS;
-
     while (pending() > 0 && Date.now() < deadline) await sleep(RABBITMQ_TOPOLOGY.DRAIN_POLL_MS);
-
     if (pending() > 0) logger.warn(`Closing with ${pending()} message(s) still in flight; they will be redelivered`);
   }
 

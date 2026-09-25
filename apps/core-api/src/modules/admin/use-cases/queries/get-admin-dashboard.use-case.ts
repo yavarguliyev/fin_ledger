@@ -8,7 +8,6 @@ import { AdminDashboardDto } from '../../dtos/dashboard/admin-dashboard.dto';
 export class GetAdminDashboardUseCase extends AdminBaseUseCase<void, AdminDashboardDto> {
   async execute (): Promise<AdminDashboardDto> {
     const [users, pending] = await Promise.all([this.userRepository.findAllWithWallets(), this.walletTransactionRepository.countPending()]);
-
     return { stats: AdminHelper.buildStats({ users, pending }), users };
   }
 }

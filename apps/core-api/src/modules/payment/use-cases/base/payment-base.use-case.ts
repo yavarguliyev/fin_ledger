@@ -1,11 +1,5 @@
 import { BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
-import {
-  PaymentCapability,
-  PaymentProviderRegistry,
-  PaymentStatus,
-  PaymentType,
-  WalletStatus
-} from '@common/libs';
+import { PaymentCapability, PaymentProviderRegistry, PaymentStatus, PaymentType, WalletStatus } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
@@ -38,7 +32,6 @@ export abstract class PaymentBaseUseCase {
 
   @Inject(PaymentProviderRegistry)
   protected readonly providerRegistry!: PaymentProviderRegistry;
-
 
   protected abstract validateWallet(dto: ValidateWalletDto): void;
 

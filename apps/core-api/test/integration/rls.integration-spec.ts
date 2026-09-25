@@ -19,7 +19,6 @@ describe('Row-level security', () => {
     try {
       await app.query('SELECT set_config($1, $2, true)', ['app.current_user_id', actorId ?? '']);
       const result = await app.query(sql, params);
-
       return result.rows;
     } finally {
       await app.query('COMMIT');
@@ -34,8 +33,8 @@ describe('Row-level security', () => {
 
     alice = owners[0] as Owner;
     bob = owners[1] as Owner;
-
     app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
+
     await app.connect();
   });
 
@@ -55,25 +54,26 @@ describe('Row-level security', () => {
 
   it('lets an owner read their own wallet', async () => {
     const rows = await asActor({ actorId: alice.userId, sql: 'SELECT id FROM wallets WHERE id = $1', params: [alice.walletId] });
-
     expect(rows).toHaveLength(1);
   });
 
-  it('hides another user\'s wallet even when the query asks for it directly', async () => {
+  it("hides another user's wallet even when the query asks for it directly", async () => {
     const rows = await asActor({ actorId: alice.userId, sql: 'SELECT id FROM wallets WHERE id = $1', params: [bob.walletId] });
-
     expect(rows).toEqual([]);
   });
 
   it('returns nothing at all when no actor is set, so a missing scope fails closed', async () => {
     const rows = await asActor({ actorId: null, sql: 'SELECT id FROM wallets', params: [] });
-
     expect(rows).toEqual([]);
   });
 
   it('lets staff read every wallet through the staff policy', async () => {
     const [admin] = await DbHelper.query<{ id: string }>({ sql: "SELECT id FROM users WHERE role = 'GLOBAL_ADMIN' LIMIT 1" });
-    const rows = await asActor({ actorId: admin?.id ?? null, sql: 'SELECT id FROM wallets WHERE id = ANY($1)', params: [[alice.walletId, bob.walletId]] });
+    const rows = await asActor({
+      actorId: admin?.id ?? null,
+      sql: 'SELECT id FROM wallets WHERE id = ANY($1)',
+      params: [[alice.walletId, bob.walletId]]
+    });
 
     expect(rows).toHaveLength(2);
   });

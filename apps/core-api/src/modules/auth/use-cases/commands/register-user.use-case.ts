@@ -30,21 +30,28 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterRe
 
     const passwordHash = await SessionHelper.hash({ password: dto.password });
 
-    const { user } = await RequestScope.runSystem(() => this.postgresService.getWriteConnection().transaction({
-      callback: async tx => {
-        return AuthHelper.createUserWalletAndLedger({
-          dto,
-          passwordHash,
-          tx,
-          authRepository: this.authRepository,
-          outboxRepository: this.outboxRepository,
-          ledgerService: this.ledgerService,
-          walletService: this.walletService
-        });
-      }
-    }));
+    const { user } = await RequestScope.runSystem(() =>
+      this.postgresService.getWriteConnection().transaction({
+        callback: async tx => {
+          return AuthHelper.createUserWalletAndLedger({
+            dto,
+            passwordHash,
+            tx,
+            authRepository: this.authRepository,
+            outboxRepository: this.outboxRepository,
+            ledgerService: this.ledgerService,
+            walletService: this.walletService
+          });
+        }
+      })
+    );
 
-    const token = await AuthTokenHelper.issue({ authTokenRepository: this.authTokenRepository, userId: user.id, purpose: AuthTokenPurpose.EMAIL_VERIFICATION });
+    const token = await AuthTokenHelper.issue({
+      authTokenRepository: this.authTokenRepository,
+      userId: user.id,
+      purpose: AuthTokenPurpose.EMAIL_VERIFICATION
+    });
+
     const verificationUrl = `${this.frontendUrl}/auth/verify-email?token=${token}`;
 
     await EmailHelper.emitKafkaUserEmailVerification({

@@ -16,24 +16,7 @@ import { PAYMENT_LABELS } from '../constants/operations/payment-labels.constant'
 import { PAYMENT_METADATA_KEYS } from '../constants/operations/payment-metadata.constant';
 
 export class PaymentOperationHelper {
-  private static async markIndeterminate ({ paymentRepository, paymentId, charge }: MarkIndeterminateDto): Promise<void> {
-    await paymentRepository.updatePaymentStatus({
-      paymentId,
-      status: PaymentStatus.REQUIRES_ACTION,
-      failureReason: charge.failureReason ?? PAYMENT_FAILURE_REASONS.OUTCOME_UNCONFIRMED,
-      ...(charge.failure ? { failureCode: charge.failure.code } : {})
-    });
-  }
-
-  private static async keepOpen ({ paymentRepository, paymentId, charge, status }: KeepPaymentOpenDto): Promise<PaymentResultDto> {
-    const updated = await paymentRepository.updatePaymentStatus({ paymentId, status, providerChargeId: charge.chargeId });
-    const payment = updated ?? (await paymentRepository.findById({ id: paymentId }));
-    if (!payment) throw new NotFoundException(PAYMENT_ERRORS.NOT_FOUND);
-
-    return { ...payment, ...(charge.clientSecret && { clientSecret: charge.clientSecret }) };
-  }
-
-  public static async executeDepositOperation (options: ExecuteDepositOperationDto): Promise<PaymentResultDto> {
+  static async executeDepositOperation (options: ExecuteDepositOperationDto): Promise<PaymentResultDto> {
     const { payment, dto, method, provider, paymentRepository, completePayment } = options;
 
     const charge = await provider.charge({
@@ -69,11 +52,11 @@ export class PaymentOperationHelper {
     } catch (err) {
       if (charge.chargeId) {
         await provider.refund({
-        chargeId: charge.chargeId,
-        amount: dto.amountMinor,
-        currency: dto.currency,
-        idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.REFUND, paymentId: payment.id })
-      });
+          chargeId: charge.chargeId,
+          amount: dto.amountMinor,
+          currency: dto.currency,
+          idempotencyKey: IdempotencyHelper.forPayment({ operation: PaymentOperation.REFUND, paymentId: payment.id })
+        });
       }
 
       await paymentRepository.updatePaymentStatus({ paymentId: payment.id, status: PaymentStatus.COMPENSATED });
@@ -81,7 +64,7 @@ export class PaymentOperationHelper {
     }
   }
 
-  public static async executeWithdrawalOperation (options: ExecuteWithdrawalOperationDto): Promise<PaymentDto> {
+  static async executeWithdrawalOperation (options: ExecuteWithdrawalOperationDto): Promise<PaymentDto> {
     const { payment, dto, userWallet, method, provider, walletService, paymentRepository, completePayment } = options;
     const { amountMinor, currency } = dto;
     const { id: walletId } = userWallet;
@@ -100,7 +83,10 @@ export class PaymentOperationHelper {
         description: `${PAYMENT_LABELS.WITHDRAWAL.DESCRIPTION}${PAYMENT_LABELS.SEPARATOR}${paymentId}`
       });
     } catch (error) {
-      await PaymentOperationHelper.failWithdrawal({ ...failure, reason: error instanceof Error ? error.message : PAYMENT_FAILURE_REASONS.PAYOUT_FAILED });
+      await PaymentOperationHelper.failWithdrawal({
+        ...failure,
+        reason: error instanceof Error ? error.message : PAYMENT_FAILURE_REASONS.PAYOUT_FAILED
+      });
       throw error;
     }
 
@@ -116,6 +102,23 @@ export class PaymentOperationHelper {
     }
 
     return completePayment.execute({ paymentId, providerChargeId: payout.chargeId });
+  }
+
+  private static async markIndeterminate ({ paymentRepository, paymentId, charge }: MarkIndeterminateDto): Promise<void> {
+    await paymentRepository.updatePaymentStatus({
+      paymentId,
+      status: PaymentStatus.REQUIRES_ACTION,
+      failureReason: charge.failureReason ?? PAYMENT_FAILURE_REASONS.OUTCOME_UNCONFIRMED,
+      ...(charge.failure ? { failureCode: charge.failure.code } : {})
+    });
+  }
+
+  private static async keepOpen ({ paymentRepository, paymentId, charge, status }: KeepPaymentOpenDto): Promise<PaymentResultDto> {
+    const updated = await paymentRepository.updatePaymentStatus({ paymentId, status, providerChargeId: charge.chargeId });
+    const payment = updated ?? (await paymentRepository.findById({ id: paymentId }));
+    if (!payment) throw new NotFoundException(PAYMENT_ERRORS.NOT_FOUND);
+
+    return { ...payment, ...(charge.clientSecret && { clientSecret: charge.clientSecret }) };
   }
 
   private static async failWithdrawal (dto: FailWithdrawalDto): Promise<void> {

@@ -2,12 +2,13 @@ import type Stripe from 'stripe';
 import { PaymentIntent } from 'stripe';
 import { ProviderChargeStatus, ProviderErrorCategory } from '@common/shared-libs';
 
-import { StripeIntentHelper } from '../modules/adapters/stripe/helpers/stripe-intent.helper';
-import { StripeOperationHelper } from '../modules/adapters/stripe/helpers/stripe-operation.helper';
-import { STRIPE_INTENT_DEFAULTS } from '../modules/constants/stripe/stripe-intent-status.constant';
-import { CHARGE_INPUT } from '../modules/constants/testing/charge-input.constant';
+import { StripeIntentHelper } from '../src/modules/adapters/stripe/helpers/stripe-intent.helper';
+import { StripeOperationHelper } from '../src/modules/adapters/stripe/helpers/stripe-operation.helper';
+import { STRIPE_INTENT_DEFAULTS } from '../src/modules/constants/stripe/stripe-intent-status.constant';
+import { CHARGE_INPUT } from '../src/modules/constants/testing/charge-input.constant';
 
-const intentOf = (fields: Partial<PaymentIntent>): PaymentIntent => ({ id: 'pi_test', client_secret: null, last_payment_error: null, ...fields }) as PaymentIntent;
+const intentOf = (fields: Partial<PaymentIntent>): PaymentIntent =>
+  ({ id: 'pi_test', client_secret: null, last_payment_error: null, ...fields }) as PaymentIntent;
 
 describe('Stripe PaymentIntent status mapping', () => {
   it.each([
@@ -25,7 +26,6 @@ describe('Stripe PaymentIntent status mapping', () => {
 
   it('returns the client secret when the customer must act (3-D Secure)', () => {
     const result = StripeIntentHelper.toOperationResult({ intent: intentOf({ status: 'requires_action', client_secret: 'pi_test_secret_abc' }) });
-
     expect(result).toEqual({ id: 'pi_test', status: ProviderChargeStatus.REQUIRES_ACTION, clientSecret: 'pi_test_secret_abc' });
   });
 
@@ -46,10 +46,8 @@ describe('Stripe PaymentIntent status mapping', () => {
 
   it('describes a cancellation even without a payment error', () => {
     const { failure } = StripeIntentHelper.toOperationResult({ intent: intentOf({ status: 'canceled' }) });
-
     expect(failure).toMatchObject({ code: 'canceled', message: STRIPE_INTENT_DEFAULTS.FAILURE_MESSAGE, indeterminate: false });
   });
-
 });
 
 describe('StripeOperationHelper.createCharge', () => {
@@ -65,14 +63,18 @@ describe('StripeOperationHelper.createCharge', () => {
     } as unknown as Stripe;
 
     await StripeOperationHelper.createCharge({ client, dto: { ...CHARGE_INPUT, metadata: { paymentId: 'payment-1' } } });
-
     expect(sent[0]).toMatchObject({ metadata: { paymentId: 'payment-1' } });
   });
 
   it('is what createCharge returns', async () => {
-    const client = { paymentIntents: { create: async (): Promise<PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) } } as unknown as Stripe;
+    const client = {
+      paymentIntents: { create: async (): Promise<PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) }
+    } as unknown as Stripe;
 
-    await expect(StripeOperationHelper.createCharge({ client, dto: CHARGE_INPUT })).resolves.toEqual({ id: 'pi_test', status: ProviderChargeStatus.PENDING });
+    await expect(StripeOperationHelper.createCharge({ client, dto: CHARGE_INPUT })).resolves.toEqual({
+      id: 'pi_test',
+      status: ProviderChargeStatus.PENDING
+    });
   });
 });
 
@@ -94,6 +96,7 @@ describe('StripeOperationHelper.retrieveCharge', () => {
       amount: 1500,
       currency: 'usd'
     });
+
     await StripeOperationHelper.retrieveCharge({ client, dto: { chargeId: 'ch_indirect' } });
 
     expect(retrieved).toEqual(['pi_direct', 'pi_from_charge']);
@@ -116,6 +119,7 @@ describe('StripeOperationHelper.findIntentId', () => {
 
     await expect(StripeOperationHelper.findIntentId({ client: clientReturning(['pi_found']), dto })).resolves.toBe('pi_found');
     await expect(StripeOperationHelper.findIntentId({ client: clientReturning([]), dto })).resolves.toBeNull();
+
     expect(queries[0]).toBe("metadata['paymentId']:'0192f3a4-0000-7000-8000-000000000001'");
   });
 });
@@ -136,6 +140,7 @@ describe('StripeOperationHelper.cancelCharge', () => {
       status: ProviderChargeStatus.FAILED,
       failure: { code: 'canceled', indeterminate: false }
     });
+
     expect(cancelled).toEqual(['pi_abandoned']);
   });
 });

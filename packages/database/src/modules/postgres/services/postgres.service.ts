@@ -19,17 +19,6 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
 
   constructor (@Inject(DATABASE_CONFIG) private readonly config: DatabaseConfig) {}
 
-  async onModuleInit (): Promise<void> {
-    await this.addConnection({ name: DATABASE_CONNECTIONS.DEFAULT, config: this.config });
-
-    if (this.config.workerUsername && this.config.workerPassword) {
-      await this.addConnection({
-        name: DATABASE_CONNECTIONS.WORKER,
-        config: { ...this.config, username: this.config.workerUsername, password: this.config.workerPassword }
-      });
-    }
-  }
-
   getWriteConnection = ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter => this.getConnection({ name });
 
   getConnection ({ name }: ConnectionNameDto = {}): DatabaseAdapter {
@@ -41,16 +30,8 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     throw new InternalServerErrorException(`Database connection '${resolved || DATABASE_CONNECTIONS.DEFAULT}' not found`);
   }
 
-  private resolveConnectionName ({ name }: ConnectionNameDto = {}): string | undefined {
-    const isDefault = !name || name === DATABASE_CONNECTIONS.DEFAULT;
-    if (isDefault && RequestScope.isSystem() && this.adapters.has(DATABASE_CONNECTIONS.WORKER)) return DATABASE_CONNECTIONS.WORKER;
-
-    return name;
-  }
-
   poolStats ({ name }: ConnectionNameDto = {}): PoolStats {
     const adapter = this.getConnection(name ? { name } : {});
-
     return adapter instanceof PostgreSQLAdapter ? adapter.poolStats() : { totalCount: 0, idleCount: 0, waitingCount: 0 };
   }
 
@@ -58,6 +39,17 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     const readKey = `${name}_read`;
     if (this.adapters.has(readKey)) return this.adapters.get(readKey)!;
     return this.getConnection({ name });
+  }
+
+  async onModuleInit (): Promise<void> {
+    await this.addConnection({ name: DATABASE_CONNECTIONS.DEFAULT, config: this.config });
+
+    if (this.config.workerUsername && this.config.workerPassword) {
+      await this.addConnection({
+        name: DATABASE_CONNECTIONS.WORKER,
+        config: { ...this.config, username: this.config.workerUsername, password: this.config.workerPassword }
+      });
+    }
   }
 
   async addConnection ({ name, config, isReadOnly = false }: AddConnectionDto): Promise<void> {
@@ -97,5 +89,11 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy (): Promise<void> {
     await this.closeAllConnections();
+  }
+
+  private resolveConnectionName ({ name }: ConnectionNameDto = {}): string | undefined {
+    const isDefault = !name || name === DATABASE_CONNECTIONS.DEFAULT;
+    if (isDefault && RequestScope.isSystem() && this.adapters.has(DATABASE_CONNECTIONS.WORKER)) return DATABASE_CONNECTIONS.WORKER;
+    return name;
   }
 }

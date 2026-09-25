@@ -1,5 +1,5 @@
-import { QueueHelper } from '../modules/helpers/queue.helper';
-import { RABBITMQ_TOPOLOGY } from '../modules/constants/messaging/topology.constant';
+import { QueueHelper } from '../src/modules/helpers/queue.helper';
+import { RABBITMQ_TOPOLOGY } from '../src/modules/constants/messaging/topology.constant';
 
 const QUEUE = 'notifications.wallet.credited';
 

@@ -36,7 +36,6 @@ export class RetryHelper {
   static async waitUntilDue ({ message }: { message: KafkaMessage }): Promise<void> {
     const retryAt = Number(message.headers?.[KAFKA_CONSUMER.RETRY_AT_HEADER]?.toString() ?? 0);
     const remaining = Math.min(retryAt - Date.now(), KAFKA_CONSUMER.MAX_RETRY_WAIT_MS);
-
     if (remaining > 0) await sleep(remaining);
   }
 }

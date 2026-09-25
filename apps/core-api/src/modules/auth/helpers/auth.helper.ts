@@ -53,6 +53,7 @@ export class AuthHelper {
       termsAcceptedAt: new Date().toISOString(),
       adapter: tx
     });
+
     if (!user) throw new InternalServerErrorException('Failed to create user');
 
     const ledgerAccount = await ledgerService.createAccount({
@@ -61,6 +62,7 @@ export class AuthHelper {
       currency: APP_CONSTANTS.DEFAULT_CURRENCY,
       adapter: tx
     });
+
     const wallet = await walletService.createWallet({
       userId: user.id,
       ledgerAccountId: ledgerAccount.id,

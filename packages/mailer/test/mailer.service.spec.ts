@@ -2,8 +2,8 @@ import { Logger } from '@nestjs/common';
 import type { ConfigService } from '@nestjs/config';
 import { MailTransportKind } from '@common/shared-libs';
 
-import { MailerService } from '../modules/services/mailer.service';
-import { SendEmailDto } from '../modules/dtos/send-email.dto';
+import { MailerService } from '../src/modules/services/mailer.service';
+import { SendEmailDto } from '../src/modules/dtos/send-email.dto';
 
 const sendMail = jest.fn().mockResolvedValue(undefined);
 

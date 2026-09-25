@@ -46,7 +46,14 @@ export class CompletePaymentUseCase {
 
     const payload = PaymentHelper.completedEventPayload({ payment: completed });
 
-    await this.outboxRepository.createEvent({ aggregateType: 'Payment', aggregateId: paymentId, eventType: DomainEventType.PAYMENT_COMPLETED, payload, adapter });
+    await this.outboxRepository.createEvent({
+      aggregateType: 'Payment',
+      aggregateId: paymentId,
+      eventType: DomainEventType.PAYMENT_COMPLETED,
+      payload,
+      adapter
+    });
+
     await this.outboxRepository.createEvent({
       aggregateType: 'Payment',
       aggregateId: paymentId,
@@ -68,7 +75,10 @@ export class CompletePaymentUseCase {
     }
 
     if (type === PaymentType.WITHDRAWAL) {
-      return this.walletService.captureReservedFunds({ ...operation, reference: `${PAYMENT_LABELS.WITHDRAWAL.REFERENCE}${PAYMENT_LABELS.SEPARATOR}${id}` });
+      return this.walletService.captureReservedFunds({
+        ...operation,
+        reference: `${PAYMENT_LABELS.WITHDRAWAL.REFERENCE}${PAYMENT_LABELS.SEPARATOR}${id}`
+      });
     }
 
     throw new InternalServerErrorException(PAYMENT_ERRORS.NOT_COMPLETABLE);

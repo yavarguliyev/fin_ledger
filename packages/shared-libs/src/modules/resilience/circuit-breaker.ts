@@ -38,7 +38,12 @@ export class CircuitBreaker {
   assertClosed (): void {
     if (!this.isOpen) return;
 
-    throw new InfrastructureError({ message: `${this.name} is temporarily unavailable; no request was sent`, code: CIRCUIT_OPEN_CODE, retryable: true, httpStatus: 503 });
+    throw new InfrastructureError({
+      message: `${this.name} is temporarily unavailable; no request was sent`,
+      code: CIRCUIT_OPEN_CODE,
+      retryable: true,
+      httpStatus: 503
+    });
   }
 
   recordSuccess (): void {

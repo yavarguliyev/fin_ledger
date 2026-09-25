@@ -30,7 +30,11 @@ describe('Outbox relay', () => {
 
   const connectionString = (): string => process.env[TEST_ENV_KEYS.DATABASE_URL] as string;
 
-  const seedEvent = async ({ lockedBy, lockOffsetSeconds, availableInSeconds }: { lockedBy?: string; lockOffsetSeconds?: number; availableInSeconds?: number } = {}): Promise<string> => {
+  const seedEvent = async ({
+    lockedBy,
+    lockOffsetSeconds,
+    availableInSeconds
+  }: { lockedBy?: string; lockOffsetSeconds?: number; availableInSeconds?: number } = {}): Promise<string> => {
     version += 1;
 
     const [row] = await DbHelper.query<{ id: string }>({
@@ -38,7 +42,15 @@ describe('Outbox relay', () => {
             VALUES ('WALLET', $1, $2, $3, '{"probe": true}'::jsonb, $4, now() + make_interval(secs => $5),
                     $6, CASE WHEN $7::int IS NULL THEN NULL ELSE now() + make_interval(secs => $7::int) END)
             RETURNING id`,
-      params: [aggregateId, DomainEventType.NONE, Date.now() + version, MAX_ATTEMPTS, availableInSeconds ?? PARKED_SECONDS, lockedBy ?? null, lockOffsetSeconds ?? null]
+      params: [
+        aggregateId,
+        DomainEventType.NONE,
+        Date.now() + version,
+        MAX_ATTEMPTS,
+        availableInSeconds ?? PARKED_SECONDS,
+        lockedBy ?? null,
+        lockOffsetSeconds ?? null
+      ]
     });
 
     return row?.id ?? '';
@@ -67,12 +79,14 @@ describe('Outbox relay', () => {
     await client.query('BEGIN');
     await client.query('UPDATE outbox_events SET available_at = now() WHERE id = ANY($1)', [ids]);
     const result = await client.query<ClaimedRow>(OUTBOX_CONSTANTS.CLAIM_PENDING_BATCH_SQL, [lockedBy, LOCK_SECONDS, BATCH_LIMIT]);
-
     return result.rows.map(row => row.id);
   };
 
   const reschedule = async ({ id, attempts }: { id: string; attempts: number }): Promise<void> => {
-    await DbHelper.query({ sql: OUTBOX_CONSTANTS.RESCHEDULE_FAILED_SQL, params: [id, OutboxHelper.backoffSeconds({ attempts }), 'broker unavailable'] });
+    await DbHelper.query({
+      sql: OUTBOX_CONSTANTS.RESCHEDULE_FAILED_SQL,
+      params: [id, OutboxHelper.backoffSeconds({ attempts }), 'broker unavailable']
+    });
   };
 
   const readEvent = async ({ id }: { id: string }): Promise<EventRow> => {
@@ -90,7 +104,10 @@ describe('Outbox relay', () => {
   });
 
   afterAll(async () => {
-    await DbHelper.query({ sql: "UPDATE outbox_events SET status = 'DEAD', locked_by = NULL, locked_until = NULL WHERE payload @> '{\"probe\": true}'::jsonb AND status = 'PENDING'" });
+    await DbHelper.query({
+      sql: "UPDATE outbox_events SET status = 'DEAD', locked_by = NULL, locked_until = NULL WHERE payload @> '{\"probe\": true}'::jsonb AND status = 'PENDING'"
+    });
+
     await DbHelper.close();
   });
 
@@ -99,6 +116,7 @@ describe('Outbox relay', () => {
 
     const relayA = new Client({ connectionString: connectionString() });
     const relayB = new Pool({ connectionString: connectionString() });
+
     await relayA.connect();
 
     try {
@@ -144,11 +162,13 @@ describe('Outbox relay', () => {
 
     try {
       await client.query('BEGIN');
+
       await client.query(
         `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, destination)
          VALUES ('User', $1, $2, $3, '{"probe": true}'::jsonb, 'KAFKA')`,
         [aggregateId, DomainEventType.NONE, version]
       );
+
       await client.query('ROLLBACK');
     } finally {
       await client.end();
@@ -164,7 +184,6 @@ describe('Outbox relay', () => {
 
   it('publishes an event once its retry delay has passed', async () => {
     const id = await seedEvent({ availableInSeconds: 0 });
-
     await expect(waitForStatus({ id, status: 'PUBLISHED' })).resolves.toBe('PUBLISHED');
   });
 

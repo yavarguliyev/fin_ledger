@@ -2,8 +2,8 @@ import { ConfigService } from '@nestjs/config';
 import { generateSync } from 'otplib';
 import { CryptoHelper } from '@common/shared-libs';
 
-import { TotpService } from '../modules/services/totp.service';
-import { RecoveryCodeHelper } from '../modules/helpers/recovery-code.helper';
+import { TotpService } from '../src/modules/services/totp.service';
+import { RecoveryCodeHelper } from '../src/modules/helpers/recovery-code.helper';
 
 const configOf = (values: Record<string, string>): ConfigService => ({ get: (key: string) => values[key] }) as unknown as ConfigService;
 const key = CryptoHelper.randomBytes({ bytes: 32 }).toString('base64');
@@ -12,7 +12,9 @@ const service = (): TotpService => new TotpService({ configService: configOf({ M
 describe('TotpService configuration', () => {
   it('refuses to start without a 32-byte encryption key', () => {
     expect(() => new TotpService({ configService: configOf({}) })).toThrow(/MFA_ENCRYPTION_KEY/);
-    expect(() => new TotpService({ configService: configOf({ MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 16 }).toString('base64') }) })).toThrow(/MFA_ENCRYPTION_KEY/);
+    expect(
+      () => new TotpService({ configService: configOf({ MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 16 }).toString('base64') }) })
+    ).toThrow(/MFA_ENCRYPTION_KEY/);
   });
 });
 

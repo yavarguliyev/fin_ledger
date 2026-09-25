@@ -23,6 +23,12 @@ export abstract class UserBaseCase<TInput, TOutput> {
 
   abstract execute(input: TInput): Promise<TOutput>;
 
+  protected handleAddImages ({ request, user, updates }: ImageActionDto): void {
+    if (!request.profileImages || request.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
+    updates.profileImages = [...user.profileImages, ...request.profileImages];
+    if (request.profileImagesKey) updates.profileImagesKey = request.profileImagesKey;
+  }
+
   protected async publishEmailVerification (eventPayload: SendEmailDto, userId: string, adapter?: DatabaseAdapter): Promise<SendEmailDto> {
     await this.outboxRepository.createEvent({
       aggregateType: 'User',
@@ -53,12 +59,6 @@ export abstract class UserBaseCase<TInput, TOutput> {
       default:
         throw new BadRequestException('Invalid image action');
     }
-  }
-
-  protected handleAddImages ({ request, user, updates }: ImageActionDto): void {
-    if (!request.profileImages || request.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
-    updates.profileImages = [...user.profileImages, ...request.profileImages];
-    if (request.profileImagesKey) updates.profileImagesKey = request.profileImagesKey;
   }
 
   protected async handleDeleteAllImages ({ user, updates }: ImageActionDto): Promise<void> {

@@ -1,5 +1,14 @@
 import { Logger } from '@nestjs/common';
-import { BaseHelper, CircuitBreaker, CryptoHelper, PaymentCapability, PaymentProvider, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
+import {
+  BaseHelper,
+  CircuitBreaker,
+  CryptoHelper,
+  PaymentCapability,
+  PaymentProvider,
+  ProviderChargeStatus,
+  ProviderError,
+  ProviderErrorCategory
+} from '@common/shared-libs';
 
 import { PaymentProviderCore } from '../../interfaces/payment-provider-core.interface';
 import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-result.dto';
@@ -35,9 +44,7 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
     this.breaker = new CircuitBreaker({ name });
   }
 
-  supports ({ capability }: CapabilityDto): boolean {
-    return this.capabilities.includes(capability);
-  }
+  supports = ({ capability }: CapabilityDto): boolean => this.capabilities.includes(capability);
 
   verifyPaymentMethod ({ paymentMethodToken }: VerifyPaymentMethodDto): Promise<ProviderMethodResultDto> {
     return Promise.resolve(ProviderResultHelper.buildNotFoundResult({ token: paymentMethodToken, provider: this.providerName }));
@@ -49,9 +56,7 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
     return value ?? '';
   }
 
-  protected getEnvValue (dto: EnvValueDto): string | undefined {
-    return ProviderConfigHelper.getValue(dto);
-  }
+  protected getEnvValue = (dto: EnvValueDto): string | undefined => ProviderConfigHelper.getValue(dto);
 
   protected requireCredentials ({ configService, keys }: AdapterCredentialsDto): boolean {
     return ProviderConfigHelper.requireCredentials({ configService, keys, providerName: this.constructor.name, logger: this.logger });
@@ -99,7 +104,6 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
 
   protected classifyError ({ error }: ClassifyErrorDto): ProviderError {
     if (error instanceof ProviderError) return error;
-
     return new ProviderError({ message: BaseHelper.errorResponse({ error }).message, category: ProviderErrorCategory.UNKNOWN });
   }
 
@@ -107,9 +111,7 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
     return ProviderResultHelper.failedOperation({ prefix, amount, currency, failure: this.classifyError({ error }) });
   }
 
-  protected mapVerifiedMethod (details: MapVerifiedMethodDto): ProviderMethodResultDto {
-    return ProviderResultHelper.verifiedMethod(details);
-  }
+  protected mapVerifiedMethod = (details: MapVerifiedMethodDto): ProviderMethodResultDto => ProviderResultHelper.verifiedMethod(details);
 
   protected async executeOperation ({ prefix, amount, currency, operation }: ExecuteOperationDto): Promise<ProviderChargeResultDto> {
     if (this.breaker.isOpen) {

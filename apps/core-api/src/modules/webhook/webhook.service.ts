@@ -1,5 +1,13 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
-import { PaymentCapability, PaymentMethodStatus, PaymentProvider, PaymentProviderRegistry, PaymentStatus, PostgresService, WebhookStatus } from '@common/libs';
+import {
+  PaymentCapability,
+  PaymentMethodStatus,
+  PaymentProvider,
+  PaymentProviderRegistry,
+  PaymentStatus,
+  PostgresService,
+  WebhookStatus
+} from '@common/libs';
 
 import { HandlePaymentMethodEventUseCase } from './use-cases/commands/handle-payment-method-event.use-case';
 import { HandlePaymentChargeEventUseCase } from './use-cases/commands/handle-payment-charge-event.use-case';
@@ -62,8 +70,8 @@ export class WebhookService {
       payload: event.payload,
       signatureVerified: event.signatureVerified ?? false
     });
-    if (!claimed) throw new InternalServerErrorException(WEBHOOK_ERRORS.CLAIM_FAILED);
 
+    if (!claimed) throw new InternalServerErrorException(WEBHOOK_ERRORS.CLAIM_FAILED);
     await this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.handleClaimed({ event: claimed, adapter }) });
   }
 

@@ -1,6 +1,15 @@
 import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, SessionGuard, RequestContext, ParamsQueryAndHeaders, Roles, RolesGuard, UserRoles } from '@common/libs';
+import {
+  ENVIRONMENT_CONSTANTS,
+  PaginatedResponseDto,
+  SessionGuard,
+  RequestContext,
+  ParamsQueryAndHeaders,
+  Roles,
+  RolesGuard,
+  UserRoles
+} from '@common/libs';
 
 import { LedgerService } from './ledger.service';
 import { LedgerAccountDto } from './dtos/account/ledger-account.dto';
@@ -38,7 +47,9 @@ export class LedgerController {
 
   @Get('transactions/:id/entries')
   @UseGuards(LedgerTransactionAccessGuard)
-  async getTransactionEntries (@ParamsQueryAndHeaders({ schema: GetTransactionEntriesSchema }) dto: GetTransactionEntriesDto): Promise<LedgerEntryResponseDto[]> {
+  async getTransactionEntries (
+    @ParamsQueryAndHeaders({ schema: GetTransactionEntriesSchema }) dto: GetTransactionEntriesDto
+  ): Promise<LedgerEntryResponseDto[]> {
     return this.ledgerService.getTransactionEntries(dto);
   }
 

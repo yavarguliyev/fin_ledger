@@ -32,7 +32,12 @@ export class LoginUseCase extends AuthBaseUseCase<LoginDto, LoginResponseDto> {
     if (user.mfaEnabledAt) {
       if (rehash.passwordHash) await this.authRepository.update({ id: user.id, data: rehash });
 
-      const challengeToken = await AuthTokenHelper.issue({ authTokenRepository: this.authTokenRepository, userId: user.id, purpose: AuthTokenPurpose.MFA_CHALLENGE });
+      const challengeToken = await AuthTokenHelper.issue({
+        authTokenRepository: this.authTokenRepository,
+        userId: user.id,
+        purpose: AuthTokenPurpose.MFA_CHALLENGE
+      });
+
       return { mfaRequired: true, challengeToken };
     }
 

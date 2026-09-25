@@ -82,20 +82,28 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
 
   private async handleMessage ({ payload }: KafkaMessagePayloadDto): Promise<void> {
     const { topic, partition, message } = payload;
+
     const originTopic = TopicHelper.originTopic({ topic });
     const handlers = this.subscribers.get(originTopic);
-    if (!handlers || handlers.length === 0) return;
 
+    if (!handlers || handlers.length === 0) return;
     if (TopicHelper.isRetryTopic({ topic })) await RetryHelper.waitUntilDue({ message });
 
-    const record = KafkaHelper.buildKafkaMessage({ topic: originTopic, partition, message });
-
-    await DispatchHelper.runAll({ handlers, record, payload, send: message => this.kafkaService.send(message), consumerGroup: this.groupId(), inboxRepository: this.inboxRepository, logger: this.logger });
+    await DispatchHelper.runAll({
+      handlers,
+      record: KafkaHelper.buildKafkaMessage({ topic: originTopic, partition, message }),
+      payload,
+      send: message => this.kafkaService.send(message),
+      consumerGroup: this.groupId(),
+      inboxRepository: this.inboxRepository,
+      logger: this.logger
+    });
   }
 
   private registerSingleSubscriber ({ instance, methodName, options }: RegisterSubscriberDto): void {
     const instanceRecord = instance as UnknownRecord;
     const handler = instanceRecord[methodName as string];
+
     if (typeof handler !== 'function') return;
 
     const topic = typeof options.topic === 'string' ? options.topic : options.topic.source;

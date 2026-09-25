@@ -29,6 +29,7 @@ export class SettleBetUseCase extends BetBaseUseCase<SettleBetDto, BetDto> {
     const margin = this.configService.get<number>('BETTING_MARGIN') ?? BETTING_DRAW.DEFAULT_MARGIN;
     const drawn = BetHelper.resolveOutcome({ bet, margin });
     const result = BetHelper.assertOutcomeMatchesStake({ outcome: outcome ?? drawn, bet });
+
     const settlementLedgerTransactionId =
       result.payoutMinor > 0 ? await this.creditPayout({ bet, payoutMinor: result.payoutMinor, adapter }) : undefined;
 
@@ -53,7 +54,14 @@ export class SettleBetUseCase extends BetBaseUseCase<SettleBetDto, BetDto> {
       payoutMinor: settled.payoutMinor ?? 0,
       currency: settled.currency
     };
-    await this.outboxRepository.createEvent({ aggregateType: 'Bet', aggregateId: settled.id, eventType: DomainEventType.BET_SETTLED, payload, adapter });
+
+    await this.outboxRepository.createEvent({
+      aggregateType: 'Bet',
+      aggregateId: settled.id,
+      eventType: DomainEventType.BET_SETTLED,
+      payload,
+      adapter
+    });
 
     return settled;
   }
