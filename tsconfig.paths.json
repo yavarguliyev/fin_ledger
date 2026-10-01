@@ -23,6 +23,8 @@
       "@common/database/*": ["packages/database/src/*"],
       "@common/payment-provider": ["packages/payment-provider/src/index.ts"],
       "@common/payment-provider/*": ["packages/payment-provider/src/*"],
+      "@common/mfa": ["packages/mfa/src/index.ts"],
+      "@common/mfa/*": ["packages/mfa/src/*"],
       "@common/sms": ["packages/sms/src/index.ts"],
       "@common/sms/*": ["packages/sms/src/*"],
       "@common/common": ["packages/common/src/index.ts"],

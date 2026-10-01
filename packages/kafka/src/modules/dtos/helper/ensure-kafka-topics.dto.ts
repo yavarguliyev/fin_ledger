@@ -1,6 +1,6 @@
-import { z } from 'zod';
 import { Logger } from '@nestjs/common';
 import type { Kafka } from 'kafkajs';
+import { z } from 'zod';
 
 export const EnsureKafkaTopicsSchema = z.object({
   kafka: z.custom<Kafka>(),

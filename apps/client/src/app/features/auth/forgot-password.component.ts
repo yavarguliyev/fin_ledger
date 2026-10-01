@@ -24,7 +24,10 @@ export class ForgotPasswordComponent {
   readonly error = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    email: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()], nonNullable: false })
+    email: this.fb.control('', {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()],
+      nonNullable: false
+    })
   });
 
   get emailControl (): FormControl<string | null> {
@@ -45,7 +48,7 @@ export class ForgotPasswordComponent {
 
     this.loading.set(true);
     this.error.set(null);
-    this.auth.requestPasswordReset(email).subscribe({
+    this.auth.requestPasswordReset({ email }).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);

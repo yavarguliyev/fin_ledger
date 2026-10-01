@@ -15,16 +15,14 @@ export class AuditInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditInterceptor.name);
 
   constructor (
-    private readonly reflector: Reflector,
-    @Inject(KAFKA_SERVICE) private readonly publisher: AuditEventPublisher
+    @Inject(KAFKA_SERVICE) private readonly publisher: AuditEventPublisher,
+    private readonly reflector: Reflector
   ) {}
 
   intercept (context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const metadata = this.reflector.get<AuditMetadataDto | undefined>(AUDITED_METADATA, context.getHandler());
     if (!metadata) return next.handle();
-
     const request = context.switchToHttp().getRequest<AuditRequest>();
-
     return next.handle().pipe(tap(result => void this.publish(AuditHelper.buildEvent({ metadata, request, result }))));
   }
 

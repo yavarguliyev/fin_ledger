@@ -1,8 +1,6 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": "./src",
     "outDir": "./dist/out-tsc",
     "target": "ES2022",
     "module": "ES2022",
@@ -42,11 +40,12 @@
       "@shared/*": ["./src/app/shared/*"],
       "@features/*": ["./src/app/features/*"],
       "@env/*": ["./src/environments/*"]
-    }
+    },
+    "types": ["node", "jest"]
   },
   "files": ["src/main.ts"],
-  "include": ["src/**/*.ts", "src/**/*.html"],
-  "exclude": ["src/**/*.spec.ts", "src/**/*.test.ts", "node_modules", "dist"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "exclude": ["node_modules", "dist"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

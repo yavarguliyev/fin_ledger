@@ -1,6 +1,6 @@
-import { THREE_DECIMAL_CURRENCIES } from '../../../constants/currency/three-decimal-currencies.constant';
 import { ProviderError, ProviderErrorCategory } from '@common/shared-libs';
 
+import { THREE_DECIMAL_CURRENCIES } from '../../../constants/currency/three-decimal-currencies.constant';
 import { AssertChargeableDto } from '../../../dtos/helper/assert-chargeable.dto';
 
 export class StripeAmountHelper {

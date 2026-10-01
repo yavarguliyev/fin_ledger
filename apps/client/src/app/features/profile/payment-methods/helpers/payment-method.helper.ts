@@ -1,21 +1,35 @@
-import { PaymentMethod } from '../../../../core/interfaces/payment-method/payment-method.interface';
+import { PaymentMethod } from '../../../../core/types/payment-method/payment-method.type';
+import { PAYMENT_METHOD_LABELS } from '../../../../core/constants/payment/payment-method-labels.constant';
+import { BrandRefDto } from '../../../../core/dtos/payment/brand-ref.dto';
+import { PaymentMethodRefDto } from '../../../../core/dtos/payment/payment-method-ref.dto';
+import { PaymentMethodListDto } from '../../../../core/dtos/payment/payment-method-list.dto';
+import { PAYMENT_METHOD_STATUS } from '../../../../core/constants/payment/payment-method-status.constant';
 
 export class PaymentMethodHelper {
-  static getBrandLabel (brand: string | null | undefined): string {
-    if (!brand || brand === 'unknown') return '';
+  static preferredVerified ({ methods }: PaymentMethodListDto): PaymentMethod | undefined {
+    const verified = methods.filter(({ status }) => status === PAYMENT_METHOD_STATUS.VERIFIED);
+    return verified.find(({ isDefault }) => isDefault) ?? verified[0];
+  }
+
+  static getBrandLabel ({ brand }: BrandRefDto): string {
+    if (!brand || brand === PAYMENT_METHOD_LABELS.UNKNOWN_BRAND) return '';
     return brand.charAt(0).toUpperCase() + brand.slice(1);
   }
 
-  static getPaymentMethodLabel (method: PaymentMethod): string {
-    if (method.brand && method.brand !== 'unknown') {
-      return PaymentMethodHelper.getBrandLabel(method.brand);
-    }
+  static getPaymentMethodLabel ({ method }: PaymentMethodRefDto): string {
+    const brand = PaymentMethodHelper.getBrandLabel({ brand: method.cardBrand });
+    if (brand) return brand;
 
-    if (method.walletType === 'apple_pay') return 'Apple Pay';
-    if (method.walletType === 'google_pay') return 'Google Pay';
+    if (method.walletType === PAYMENT_METHOD_LABELS.APPLE_PAY_TYPE) return PAYMENT_METHOD_LABELS.APPLE_PAY;
+    if (method.walletType === PAYMENT_METHOD_LABELS.GOOGLE_PAY_TYPE) return PAYMENT_METHOD_LABELS.GOOGLE_PAY;
     if (method.bankName) return method.bankName;
-    if (method.type === 'BANK_ACCOUNT') return 'Bank Account';
+    if (method.type === PAYMENT_METHOD_LABELS.BANK_ACCOUNT_TYPE) return PAYMENT_METHOD_LABELS.BANK_ACCOUNT;
 
-    return 'Card';
+    return PAYMENT_METHOD_LABELS.CARD;
+  }
+
+  static maskedAccount ({ method }: PaymentMethodRefDto): string {
+    if (method.lastFour) return `${PAYMENT_METHOD_LABELS.MASK}${method.lastFour}`;
+    return method.bankName ?? PaymentMethodHelper.getPaymentMethodLabel({ method });
   }
 }

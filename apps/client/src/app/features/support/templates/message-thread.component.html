@@ -1,0 +1,127 @@
+<div class="flex flex-col gap-1 px-4 py-4">
+  @if (messages().length === 0) {
+    <p class="my-auto py-10 text-center text-sm text-ink-400">{{ labels.NO_MESSAGES }}</p>
+  }
+
+  @for (group of groups; track group.dayLabel) {
+    <div class="my-3 flex items-center justify-center">
+      <span class="px-3 py-1 rounded-full bg-ink-100 dark:bg-night-bg text-[11px] font-medium text-ink-500 dark:text-ink-400">
+        {{ group.dayLabel }}
+      </span>
+    </div>
+
+    @for (message of group.messages; track message.id) {
+      @if (isSystem(message)) {
+        <div class="my-2 flex justify-center">
+          <span class="flex items-center gap-1.5 rounded-lg bg-white dark:bg-night-card px-3 py-1.5 text-xs text-ink-600 dark:text-ink-300 shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 006.6 6.6l2.2-2.2a1 1 0 011-.25 11.4 11.4 0 003.6.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.4 11.4 0 00.57 3.6 1 1 0 01-.25 1z"></path></svg>
+            {{ message.body }}
+            <span class="text-ink-400">{{ message.createdAt | date: 'shortTime' }}</span>
+          </span>
+        </div>
+      } @else {
+        <div class="group flex items-end gap-2" [class.flex-row-reverse]="isOwn(message)">
+          <div
+            class="max-w-[75%]"
+            [class]="bubbleClass(message)"
+          >
+            @if (message.deletedAt) {
+              <p class="flex items-center gap-1.5 text-sm italic text-ink-400 dark:text-white/50">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+                  <path stroke-linecap="round" stroke-width="2" d="M5.6 5.6l12.8 12.8"></path>
+                </svg>
+                {{ isOwn(message) ? rules.YOU_DELETED_TEXT : rules.DELETED_TEXT }}
+              </p>
+            }
+
+            @if (message.attachment; as file) {
+              @if (kindOf(message) === attachment.VOICE_KIND) {
+                <app-voice-note [url]="file.url" [durationSeconds]="file.durationSeconds" />
+              } @else if (kindOf(message) === attachment.VIDEO_KIND && file.durationSeconds) {
+                <app-video-note class="block mb-1" [url]="file.url" [durationSeconds]="file.durationSeconds" />
+              } @else if (kindOf(message) === attachment.VIDEO_KIND) {
+                <video class="-mx-1.5 -mt-0.5 mb-1 max-h-72 w-full rounded-xl bg-black" controls preload="metadata" playsinline [src]="file.url"></video>
+              } @else if (isImage(message)) {
+                <a [href]="file.url" target="_blank" rel="noopener" class="block -mx-1.5 -mt-0.5 mb-1">
+                  <img [src]="file.url" [alt]="file.fileName ?? ''" class="max-h-64 w-full rounded-xl object-cover" loading="lazy" />
+                </a>
+              } @else {
+                <a
+                  [href]="file.url"
+                  target="_blank"
+                  rel="noopener"
+                  [title]="attachment.OPEN_FILE"
+                  class="mb-1 flex items-center gap-3 rounded-xl bg-black/5 dark:bg-white/10 px-3 py-2 hover:bg-black/10"
+                >
+                  <svg class="w-8 h-8 shrink-0 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.41a1 1 0 00-.29-.7l-5.42-5.42A1 1 0 0012.59 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-medium">{{ file.fileName }}</span>
+                    <span class="block text-[11px] text-ink-500 dark:text-white/60">{{ size(message) }}</span>
+                  </span>
+                </a>
+              }
+            }
+
+            @if (message.body) {
+              <p class="whitespace-pre-wrap break-words text-sm">{{ message.body }}</p>
+            }
+
+            <p class="mt-1 flex items-center justify-end gap-1 text-[10px]" [class]="isOwn(message) ? 'text-ink-500 dark:text-white/60' : 'text-ink-400'">
+              @if (message.editedAt && !message.deletedAt) {
+                <span class="italic">{{ attachment.EDITED_LABEL }}</span>
+              }
+              <span>{{ message.createdAt | date: 'shortTime' }}</span>
+
+              @if (isOwn(message) && !message.deletedAt) {
+                <span [attr.aria-label]="tickLabel(message)" [title]="tickLabel(message)">
+                  @if (delivered(message)) {
+                    <svg class="w-4 h-3.5" [class]="message.seen ? 'text-[#53bdeb]' : 'text-ink-400 dark:text-white/60'" viewBox="0 0 20 14" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M1 7.5l4 4L13 2"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M7 7.5l4 4L19 2"></path>
+                    </svg>
+                  } @else {
+                    <svg class="w-3 h-3.5 text-ink-400 dark:text-white/60" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M1 7.5l4 4L13 2"></path>
+                    </svg>
+                  }
+                </span>
+              }
+            </p>
+          </div>
+
+          <div class="mb-1 flex items-center gap-0.5 transition-opacity md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100">
+            @if (canEdit(message)) {
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 dark:hover:bg-night-card"
+                [title]="attachment.EDIT_ACTION"
+                [attr.aria-label]="attachment.EDIT_ACTION"
+                (click)="editRequested.emit(message)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.23 5.23l3.54 3.54M4 20h4L19.5 8.5a2.5 2.5 0 00-3.54-3.54L4.5 16.5V20z"></path>
+                </svg>
+              </button>
+            }
+            @if (isOwn(message)) {
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 hover:text-danger dark:hover:bg-night-card"
+                [title]="rules.DELETE_ACTION"
+                [attr.aria-label]="rules.DELETE_ACTION"
+                (click)="deleteRequested.emit(message)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7"></path>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

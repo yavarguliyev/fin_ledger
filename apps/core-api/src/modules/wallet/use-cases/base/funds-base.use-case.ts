@@ -33,7 +33,7 @@ export abstract class FundsBaseUseCase {
     if (!wallet) throw new NotFoundException('Wallet not found');
     if (this.allowedStatuses) WalletHelper.assertWalletStatus({ status: wallet.status, allowedStatuses: this.allowedStatuses });
 
-    const expectedVersion = wallet.version!;
+    const expectedVersion = wallet.version;
     const { newAvailable: availableBalanceMinor, newReserved: reservedBalanceMinor } = this.calculateNewBalances({ wallet, amountMinor });
 
     const updated = await this.walletRepository.updateBalances({ walletId, availableBalanceMinor, reservedBalanceMinor, expectedVersion, adapter });

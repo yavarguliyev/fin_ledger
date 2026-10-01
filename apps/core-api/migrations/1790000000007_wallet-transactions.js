@@ -1,12 +1,13 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('wallet_transactions', {
     id: 'id',
     wallet_id: { type: 'uuid', notNull: true },
 
-    type: { type: 'wallet_transaction_type', notNull: true },
-    status: { type: 'wallet_transaction_status', notNull: true, default: 'PENDING' },
+    type: { type: 'text', notNull: true },
+    status: { type: 'text', notNull: true, default: 'PENDING' },
 
     amount_minor: { type: 'money_minor', notNull: true, check: 'amount_minor <> 0' },
     currency: 'currency',
@@ -19,6 +20,9 @@ export const up = pgm => {
     ledger_transaction_id: { type: 'uuid', references: 'ledger_transactions(id)', onDelete: 'RESTRICT' },
     created_at: 'created_at'
   });
+
+  addEnumCheck(pgm, { table: 'wallet_transactions', column: 'type', name: 'wallet_transaction_type' });
+  addEnumCheck(pgm, { table: 'wallet_transactions', column: 'status', name: 'wallet_transaction_status' });
 
   pgm.addConstraint('wallet_transactions', 'fk_wallet_transactions_wallet_currency', {
     foreignKeys: {

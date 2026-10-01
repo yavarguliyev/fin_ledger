@@ -1,4 +1,4 @@
-import { AuthUser } from './auth-user.interface';
+import { AuthUser } from '../../types/auth/auth-user.type';
 
 export interface AuthResponse {
   tokenType: string;

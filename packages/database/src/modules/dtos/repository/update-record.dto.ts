@@ -3,7 +3,12 @@ import { EntityId } from '@common/shared-libs';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const UpdateRecordSchema = <T, K extends keyof T = keyof T>(): z.ZodObject<{ id: z.ZodCustom<EntityId>; data: z.ZodCustom<Partial<T>>; returningColumns: z.ZodOptional<z.ZodCustom<K[]>>; adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>> }> =>
+export const UpdateRecordSchema = <T, K extends keyof T = keyof T>(): z.ZodObject<{
+  id: z.ZodCustom<EntityId>;
+  data: z.ZodCustom<Partial<T>>;
+  returningColumns: z.ZodOptional<z.ZodCustom<K[]>>;
+  adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>>;
+}> =>
   z.object({
     id: z.custom<EntityId>(),
 

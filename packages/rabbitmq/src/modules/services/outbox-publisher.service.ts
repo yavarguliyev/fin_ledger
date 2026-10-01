@@ -1,6 +1,7 @@
 import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
 import { OutboxRepository } from '@common/database';
-import { BaseHelper, RABBITMQ_SERVICE } from '@common/shared-libs';
+import { KafkaService } from '@common/kafka';
+import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SERVICE, RequestScope } from '@common/shared-libs';
 
 import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
@@ -11,23 +12,59 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
   private intervalHandle: ReturnType<typeof setInterval> | null = null;
   private isPolling = false;
   private stopped = false;
+
+  private readonly relayId = `${process.pid}-${CryptoHelper.uuid()}`;
   private readonly logger = new Logger(OutboxPublisherService.name);
 
   constructor (
     private readonly outboxRepository: OutboxRepository,
-    @Inject(RABBITMQ_SERVICE) private readonly rabbitmqService: RabbitmqService
+    @Inject(RABBITMQ_SERVICE) private readonly rabbitmqService: RabbitmqService,
+    private readonly kafkaService: KafkaService
   ) {}
 
   onApplicationBootstrap (): void {
-    this.intervalHandle = setInterval(() => void this.poll(), RABBITMQ_CONSTANTS.OUTBOX_POLL_INTERVAL_MS.key);
+    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.poll()), RABBITMQ_CONSTANTS.OUTBOX_POLL_INTERVAL_MS.key);
     this.intervalHandle.unref();
   }
 
   onModuleDestroy (): void {
     this.stopped = true;
-
     if (this.intervalHandle) clearInterval(this.intervalHandle);
     this.intervalHandle = null;
+  }
+
+  async publishPendingEvents (): Promise<void> {
+    const events = await this.outboxRepository.claimPendingBatch({
+      limit: RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key,
+      lockedBy: this.relayId,
+      lockSeconds: RABBITMQ_CONSTANTS.OUTBOX_LOCK_SECONDS.key
+    });
+
+    for (const event of events) {
+      await this.publishEvent({
+        eventId: event.id,
+        eventType: event.eventType,
+        payload: event.payload,
+        attempts: event.attempts,
+        destination: event.destination
+      });
+    }
+  }
+
+  async publishEvent ({ eventId, eventType, payload, attempts, destination }: PublishOutboxEventDto): Promise<void> {
+    try {
+      if (destination === OutboxDestination.KAFKA) await this.kafkaService.send({ topic: eventType, payload });
+      else await this.rabbitmqService.publish({ payload, routingKey: eventType, persistent: true });
+
+      await this.outboxRepository.markPublished({ id: eventId });
+    } catch (error) {
+      const lastError = BaseHelper.errorResponse({ error }).message;
+      const outcome = await this.outboxRepository.rescheduleFailed({ id: eventId, attempts, lastError });
+
+      if (outcome?.status === OutboxStatus.DEAD) {
+        this.logger.error(`Outbox event ${eventId} is dead after ${outcome.attempts} attempts: ${lastError}`);
+      } else this.logger.warn(`Outbox publish failed for ${eventId}, retrying: ${lastError}`);
+    }
   }
 
   private async poll (): Promise<void> {
@@ -41,23 +78,6 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
       this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
     } finally {
       this.isPolling = false;
-    }
-  }
-
-  async publishPendingEvents (): Promise<void> {
-    const events = await this.outboxRepository.findPendingBatch({ limit: RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key });
-    for (const event of events) {
-      await this.publishEvent({ eventId: event.id, eventType: event.eventType, payload: event.payload });
-    }
-  }
-
-  async publishEvent ({ eventId, eventType, payload }: PublishOutboxEventDto): Promise<void> {
-    try {
-      await this.rabbitmqService.publish({ payload, routingKey: eventType, persistent: true });
-      await this.outboxRepository.markPublished({ id: eventId });
-    } catch (error) {
-      this.logger.warn(`Outbox publish failed for ${eventId}: ${BaseHelper.errorResponse({ error }).message}`);
-      await this.outboxRepository.markFailed({ id: eventId });
     }
   }
 }

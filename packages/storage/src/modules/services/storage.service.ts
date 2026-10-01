@@ -13,6 +13,8 @@ import { UploadFilesDto } from '../dtos/service/upload-files.dto';
 import { GetFilesDto } from '../dtos/service/get-files.dto';
 import { FileSelectionDto } from '../dtos/service/file-selection.dto';
 import { ObjectKeyDto } from '../dtos/strategy/object-key.dto';
+import { STORAGE_CACHE } from '../constants/cache/storage-cache.constant';
+import { StorageCacheHelper } from '../helpers/storage-cache.helper';
 
 @Injectable()
 export class StorageService {
@@ -27,17 +29,17 @@ export class StorageService {
     this[REDIS_CACHE_PROVIDER] = redisCacheProvider;
   }
 
-  @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true })
+  @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true, scope: StorageCacheHelper.scopeOf })
   async uploadFiles (dto: UploadFilesDto): Promise<UploadFileResponse> {
     return this.uploadFileUseCase.execute(dto);
   }
 
-  @Cacheable({ keyPrefix: 'storage:file-urls', ttlSeconds: 82800 })
+  @Cacheable({ keyPrefix: 'storage:file-urls', ttlSeconds: STORAGE_CACHE.URL_TTL_SECONDS, scope: StorageCacheHelper.scopeOf })
   async get (dto: GetFilesDto): Promise<FileUrlResponse | FileUrlsResponse> {
     return this.getFileUrlUseCase.getWithLogic(dto);
   }
 
-  @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true })
+  @CacheEvict({ keyPrefix: ['storage:file-urls'], isPattern: true, scope: StorageCacheHelper.scopeOf })
   async delete (dto: FileSelectionDto): Promise<DeleteResult> {
     return this.deleteFileUseCase.deleteWithLogic(dto);
   }

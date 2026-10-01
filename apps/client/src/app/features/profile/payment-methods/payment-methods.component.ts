@@ -1,11 +1,13 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
+import { StepUpRetryService } from '../../../core/services/step-up-retry.service';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
+import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { AddPaymentMethodModalComponent } from './add-payment-method-modal.component';
 import { PaymentMethodHelper } from './helpers/payment-method.helper';
+import { PAYMENT_PROVIDERS } from '../../../core/constants/payment/payment-providers.constant';
 
 @Component({
   selector: 'app-payment-methods',
@@ -15,6 +17,7 @@ import { PaymentMethodHelper } from './helpers/payment-method.helper';
 })
 export class PaymentMethodsComponent implements OnInit {
   private readonly paymentMethodService = inject(PaymentMethodService);
+  private readonly stepUp = inject(StepUpRetryService);
   private readonly toast = inject(ToastService);
 
   readonly methods = signal<PaymentMethod[]>([]);
@@ -27,7 +30,7 @@ export class PaymentMethodsComponent implements OnInit {
   }
 
   getTypeLabel (method: PaymentMethod): string {
-    return PaymentMethodHelper.getPaymentMethodLabel(method);
+    return PaymentMethodHelper.getPaymentMethodLabel({ method });
   }
 
   openAddModal (): void {
@@ -80,7 +83,7 @@ export class PaymentMethodsComponent implements OnInit {
     const status = params.get('status');
 
     if (sessionId && status === 'success') {
-      this.paymentMethodService.confirmSetupSession('stripe', sessionId).subscribe({
+      this.stepUp.guard({ request: this.paymentMethodService.confirmSetupSession({ provider: PAYMENT_PROVIDERS.STRIPE, sessionId }) }).subscribe({
         next: () => {
           this.toast.success('Payment method verified and linked successfully with Stripe!');
           this.loadMethods();

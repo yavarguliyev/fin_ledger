@@ -6,33 +6,30 @@ import { PaymentRepository } from './repositories/payment.repository';
 import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawal.use-case';
 import { GetPaymentUseCase } from './use-cases/queries/get-payment.use-case';
+import { ListUnresolvedPaymentsUseCase } from './use-cases/queries/list-unresolved-payments.use-case';
+import { CompletePaymentUseCase } from './use-cases/commands/complete-payment.use-case';
+import { FailPaymentUseCase } from './use-cases/commands/fail-payment.use-case';
+import { PaymentReconciliationJob } from './jobs/payment-reconciliation.job';
 import { SharedModule } from '../../shared/shared.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { AuthModule } from '../auth/auth.module';
 import { PaymentMethodModule } from '../payment-methods/payment-method.module';
-import { DepositOrchestratorWorkflow } from './workflows/deposit-orchestrator.workflow';
-import { ValidatePaymentMethodStep } from './workflows/steps/validate-payment-method.step';
-import { CreatePaymentRecordStep } from './workflows/steps/create-payment-record.step';
-import { ChargePaymentStep } from './workflows/steps/charge-payment.step';
-import { CreditWalletStep } from './workflows/steps/credit-wallet.step';
-import { EmitPaymentEventStep } from './workflows/steps/emit-payment-event.step';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [SharedModule, WalletModule, AuthModule, PaymentMethodModule],
+  imports: [SharedModule, WalletModule, AuthModule, PaymentMethodModule, UserModule],
   controllers: [PaymentController],
   providers: [
     PaymentService,
     PaymentRepository,
     RequestDepositUseCase,
     RequestWithdrawalUseCase,
+    CompletePaymentUseCase,
+    FailPaymentUseCase,
+    PaymentReconciliationJob,
     GetPaymentUseCase,
-    ValidatePaymentMethodStep,
-    CreatePaymentRecordStep,
-    ChargePaymentStep,
-    CreditWalletStep,
-    EmitPaymentEventStep,
-    DepositOrchestratorWorkflow
+    ListUnresolvedPaymentsUseCase
   ],
-  exports: [PaymentService, PaymentRepository, DepositOrchestratorWorkflow]
+  exports: [PaymentService, PaymentRepository, CompletePaymentUseCase, FailPaymentUseCase]
 })
 export class PaymentModule {}

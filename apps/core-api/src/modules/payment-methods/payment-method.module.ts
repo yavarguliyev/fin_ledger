@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { PaymentMethodController } from './payment-method.controller';
 import { PaymentMethodService } from './payment-method.service';
 import { PaymentMethodRepository } from './repositories/payment-method.repository';
+import { ProviderCustomerRepository } from './repositories/provider-customer.repository';
 import { RemovePaymentMethodUseCase } from './use-cases/commands/remove-payment-method.use-case';
 import { VerifyPaymentMethodUseCase } from './use-cases/commands/verify-payment-method.use-case';
 import { CreateSetupSessionUseCase } from './use-cases/commands/create-setup-session.use-case';
@@ -18,6 +19,7 @@ import { AuthModule } from '../auth/auth.module';
   providers: [
     PaymentMethodService,
     PaymentMethodRepository,
+    ProviderCustomerRepository,
     RemovePaymentMethodUseCase,
     VerifyPaymentMethodUseCase,
     CreateSetupSessionUseCase,
@@ -25,6 +27,6 @@ import { AuthModule } from '../auth/auth.module';
     ListPaymentMethodsUseCase,
     GetPaymentMethodUseCase
   ],
-  exports: [PaymentMethodService, PaymentMethodRepository, GetPaymentMethodUseCase]
+  exports: [PaymentMethodService, PaymentMethodRepository, GetPaymentMethodUseCase, ProviderCustomerRepository]
 })
 export class PaymentMethodModule {}

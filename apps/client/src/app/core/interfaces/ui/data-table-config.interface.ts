@@ -15,5 +15,6 @@ export interface DataTableConfig<T = unknown> {
   headerActions?: boolean;
   headerAction?: HeaderAction;
   showCreateButton?: boolean;
+
   onCreateClick?: () => void;
 }

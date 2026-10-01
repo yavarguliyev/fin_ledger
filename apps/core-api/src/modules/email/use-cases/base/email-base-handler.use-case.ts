@@ -11,8 +11,8 @@ export abstract class EmailBaseHandler<T extends SendEmailDto> {
     this.logger = new Logger(loggerContext);
   }
 
-  protected handle ({ value }: KafkaMessageRecord<T>): void {
+  protected async handle ({ value }: KafkaMessageRecord<T>): Promise<void> {
     this.logger.log(`[Email Handler]: Received email event`);
-    this.mailerService.sendEmail(value);
+    await this.mailerService.sendEmail(value);
   }
 }

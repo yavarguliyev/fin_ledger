@@ -3,7 +3,12 @@ import { EntityId } from '@common/shared-libs';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const IncrementSchema = <T>(): z.ZodObject<{ id: z.ZodCustom<EntityId>; field: z.ZodCustom<keyof T & string>; amount: z.ZodNumber; adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>> }> =>
+export const IncrementSchema = <T>(): z.ZodObject<{
+  id: z.ZodCustom<EntityId>;
+  field: z.ZodCustom<keyof T & string>;
+  amount: z.ZodNumber;
+  adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>>;
+}> =>
   z.object({
     id: z.custom<EntityId>(),
 

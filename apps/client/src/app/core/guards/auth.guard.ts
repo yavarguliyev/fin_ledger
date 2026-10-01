@@ -1,40 +1,53 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
+import { Observable, map } from 'rxjs';
 
+import { SESSION } from '../constants/auth/session.constant';
 import { AuthService } from '../services/auth.service';
+import { SessionRefreshService } from '../services/session-refresh.service';
 import { UserRole } from '../types/auth/user-role.type';
 
-export const guestGuard: CanActivateFn = (): boolean => {
+export const guestGuard: CanActivateFn = (): Observable<boolean> => {
   const auth = inject(AuthService);
+  const refresh = inject(SessionRefreshService);
   const router = inject(Router);
 
-  if (!auth.isAuthenticated()) return true;
-
-  const user = auth.currentUser();
-  const redirectPath = user?.role === 'USER' ? '/betting' : '/dashboard';
-
-  void router.navigate([redirectPath]);
-
-  return false;
+  return refresh.ensureSession().pipe(
+    map(active => {
+      if (!active) return true;
+      void router.navigate([auth.landingRoute()]);
+      return false;
+    })
+  );
 };
 
-export const roleGuard = (allowedRoles?: UserRole[], redirectTo = '/dashboard'): CanActivateFn => {
-  return (): boolean => {
+export const roleGuard = (allowedRoles?: readonly UserRole[], redirectTo = SESSION.STAFF_ROUTE): CanActivateFn => {
+  return (_route, state: RouterStateSnapshot): Observable<boolean> => {
     const auth = inject(AuthService);
+    const refresh = inject(SessionRefreshService);
     const router = inject(Router);
 
-    if (!auth.isAuthenticated()) {
-      void router.navigate(['/auth/login']);
-      return false;
-    }
+    return refresh.ensureSession().pipe(
+      map(active => {
+        if (!active) {
+          void router.navigate([SESSION.LOGIN_ROUTE]);
+          return false;
+        }
 
-    if (!allowedRoles) return true;
+        if (auth.mfaSetupRequired() && !state.url.startsWith(SESSION.PROFILE_ROUTE)) {
+          void router.navigate([SESSION.PROFILE_ROUTE]);
+          return false;
+        }
 
-    const user = auth.currentUser();
-    if (user && allowedRoles.includes(user.role)) return true;
+        if (!allowedRoles) return true;
 
-    void router.navigate([redirectTo]);
+        const user = auth.currentUser();
+        if (user && allowedRoles.includes(user.role)) return true;
 
-    return false;
+        void router.navigate([redirectTo]);
+
+        return false;
+      })
+    );
   };
 };

@@ -1,0 +1,24 @@
+<div class="flex flex-1 items-center gap-3">
+  <button type="button" class="grid place-items-center w-10 h-10 rounded-full text-ink-500 hover:text-danger hover:bg-ink-100 dark:hover:bg-night-bg"
+    [attr.aria-label]="labels.CANCEL_RECORDING" [title]="labels.CANCEL_RECORDING" (click)="cancel()">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0v12a2 2 0 01-2 2H8a2 2 0 01-2-2V7"></path>
+    </svg>
+  </button>
+
+  @if (video() && recorder.preview()) {
+    <video class="w-16 h-16 rounded-full object-cover -scale-x-100 ring-2 ring-danger" autoplay playsinline [muted]="true" [srcObject]="recorder.preview()"></video>
+  }
+
+  <span class="flex flex-1 items-center gap-2 text-sm text-ink-700 dark:text-ink-200" [attr.aria-label]="labels.RECORDING_LABEL">
+    <span class="w-2.5 h-2.5 rounded-full bg-danger animate-pulse"></span>
+    <span class="tabular-nums">{{ elapsed() }}</span>
+  </span>
+
+  <button type="button" class="grid place-items-center w-10 h-10 rounded-full bg-primary text-white hover:bg-primary-dark active:scale-95"
+    [attr.aria-label]="labels.SEND_RECORDING" [title]="labels.SEND_RECORDING" (click)="send()">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7"></path>
+    </svg>
+  </button>
+</div>

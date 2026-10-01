@@ -1,22 +1,25 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
-import { AccountType, PostgresService } from '@common/libs';
+import { AccountType, AggregateType, BettingType, DomainEventType } from '@common/libs';
 
 import { CreateWalletUseCase } from './create-wallet.use-case';
-import { WalletRepository } from '../../../repositories/wallet.repository';
 import { CurrencyRepository } from '../../../repositories/currency.repository';
 import { WalletDto } from '../../../dtos/wallet/wallet.dto';
 import { OpenWalletDto } from '../../../dtos/input/open-wallet.dto';
-import { LedgerService } from '../../../../ledger/ledger.service';
+import { WalletBaseUseCase } from '../../base/wallet-base.use-case';
 
 @Injectable()
-export class OpenWalletUseCase {
+export class OpenWalletUseCase extends WalletBaseUseCase<OpenWalletDto, WalletDto> {
+  protected readonly currentDomainEventType: DomainEventType = DomainEventType.NONE;
+  protected readonly currentAggregateType: AggregateType = 'None';
+  protected readonly currentBettingType: BettingType = 'NONE';
+  protected readonly requiredToCheckAmountMinor: boolean = false;
+
   constructor (
-    private readonly postgresService: PostgresService,
-    private readonly walletRepository: WalletRepository,
     private readonly currencyRepository: CurrencyRepository,
-    private readonly ledgerService: LedgerService,
     private readonly createWalletUseCase: CreateWalletUseCase
-  ) {}
+  ) {
+    super();
+  }
 
   async execute ({ userId, currency }: OpenWalletDto): Promise<WalletDto> {
     const activeCodes = await this.currencyRepository.findActiveCodes();

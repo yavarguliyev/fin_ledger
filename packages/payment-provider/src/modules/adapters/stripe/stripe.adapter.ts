@@ -1,13 +1,15 @@
 import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { PaymentCapability, PaymentProvider, ProviderError } from '@common/shared-libs';
+import { PaymentProvider, ProviderError } from '@common/shared-libs';
 
 import { ChargePaymentDto } from '../../dtos/operation/charge-payment.dto';
 import { PayoutFundsDto } from '../../dtos/operation/payout-funds.dto';
 import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-result.dto';
 import { ProviderMethodResultDto } from '../../dtos/operation/provider-method-result.dto';
 import { RefundPaymentDto } from '../../dtos/operation/refund-payment.dto';
+import { RetrieveChargeDto } from '../../dtos/operation/retrieve-charge.dto';
+import { FindChargeByMetadataDto } from '../../dtos/operation/find-charge-by-metadata.dto';
 import { WebhookEventDto } from '../../dtos/operation/webhook-event.dto';
 import { CreateSetupSessionDto } from '../../dtos/operation/create-setup-session.dto';
 import { SetupSessionResultDto } from '../../dtos/operation/setup-session-result.dto';
@@ -29,6 +31,14 @@ import { StripeWebhookHelper } from './helpers/stripe-webhook.helper';
 import { StripeMethodHelper } from './helpers/stripe-method.helper';
 import { StripeOperationHelper } from './helpers/stripe-operation.helper';
 import { ExecuteOperationDto } from '../../dtos/adapter/execute-operation.dto';
+import { StripeSimulationHelper } from './helpers/stripe-simulation.helper';
+import { STRIPE_SIMULATION } from '../../constants/stripe/stripe-simulated-outcomes.constant';
+import { STRIPE_ERROR_DEFAULTS } from '../../constants/stripe/stripe-error-defaults.constant';
+import { STRIPE_HEADERS } from '../../constants/stripe/stripe-headers.constant';
+import { STRIPE_ROUTING } from '../../constants/stripe/stripe-routing.constant';
+import { ProviderResultHelper } from '../../helpers/provider-result.helper';
+import { PROVIDER_RESULT_DEFAULTS } from '../../constants/result/provider-result-defaults.constant';
+import { OperationResultDto } from '../../dtos/adapter/operation-result.dto';
 
 @Injectable()
 export class StripeAdapter
@@ -36,16 +46,10 @@ export class StripeAdapter
   implements SupportsCharge, SupportsPayout, SupportsMethodVault, SupportsHostedSetup, SupportsWebhooks
 {
   readonly providerName = PaymentProvider.STRIPE;
-
-  readonly capabilities = [
-    PaymentCapability.CHARGE,
-    PaymentCapability.PAYOUT,
-    PaymentCapability.METHOD_VAULT,
-    PaymentCapability.HOSTED_SETUP,
-    PaymentCapability.WEBHOOKS
-  ] as const;
-
-  private static readonly SIGNATURE_HEADER = 'stripe-signature';
+  readonly capabilities = STRIPE_ROUTING.CAPABILITIES;
+  override readonly supportedCurrencies = STRIPE_ROUTING.CURRENCIES;
+  override readonly supportedCountries = STRIPE_ROUTING.COUNTRIES;
+  override readonly priority = STRIPE_ROUTING.PRIORITY;
 
   private readonly stripe: Stripe | null;
   private readonly isSimulated: boolean;
@@ -64,85 +68,79 @@ export class StripeAdapter
     if (this.stripe) this.logger.log('Stripe client initialized successfully');
   }
 
-  extractSignature ({ headers }: ExtractSignatureDto): string {
-    return this.headerValue({ headers, name: StripeAdapter.SIGNATURE_HEADER });
-  }
-
-  constructWebhookEvent (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
-    try {
-      if (!this.stripe || !this.webhookSecret) {
-        if (!this.isSimulated) throw new UnauthorizedException('Stripe webhook signature cannot be verified');
-        return Promise.resolve(this.simulateWebhook(dto));
-      }
-
-      return Promise.resolve(StripeWebhookHelper.verify({ ...dto, client: this.stripe, secret: this.webhookSecret }));
-    } catch (error) {
-      return Promise.reject(error instanceof Error ? error : new Error(String(error)));
-    }
-  }
-
   override async verifyPaymentMethod (dto: VerifyPaymentMethodDto): Promise<ProviderMethodResultDto> {
     if (!this.stripe) return super.verifyPaymentMethod(dto);
-    const { paymentMethodToken: token } = dto;
-
     return this.executeMethodOperation({
-      token,
-      operation: async () => StripeMethodHelper.toMethodResult({ paymentMethod: await this.stripe!.paymentMethods.retrieve(token) })
+      token: dto.paymentMethodToken,
+      operation: async () => StripeMethodHelper.toMethodResult({ paymentMethod: await this.stripe!.paymentMethods.retrieve(dto.paymentMethodToken) })
     });
   }
 
+  protected override classifyError = (dto: ClassifyErrorDto): ProviderError => StripeErrorMapper.toProviderError(dto);
+
+  extractSignature = ({ headers }: ExtractSignatureDto): string => this.headerValue({ headers, name: STRIPE_HEADERS.SIGNATURE });
+  constructWebhookEvent = (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> => Promise.resolve().then(() => this.buildWebhookEvent(dto));
+
   async charge (dto: ChargePaymentDto): Promise<ProviderChargeResultDto> {
-    return this.stripeOperation({
-      prefix: 'ch',
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createCharge({ client: this.stripe!, dto })
-    });
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.charge({ dto, provider: this.providerName }));
+    const operation = async (): Promise<OperationResultDto> => StripeOperationHelper.createCharge({ client: this.stripe!, dto });
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.CHARGE_PREFIX, amount: dto.amount, currency: dto.currency, operation });
+  }
+
+  async retrieveCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.retrieveCharge({ dto, provider: this.providerName }));
+    const { UNKNOWN_AMOUNT: amount, UNKNOWN_CURRENCY: currency } = PROVIDER_RESULT_DEFAULTS;
+    const operation = async (): Promise<OperationResultDto> => StripeOperationHelper.retrieveCharge({ client: this.stripe!, dto });
+    return this.executeOperation({ prefix: STRIPE_SIMULATION.CHARGE_PREFIX, amount, currency, operation });
+  }
+
+  async findChargeByMetadata (dto: FindChargeByMetadataDto): Promise<ProviderChargeResultDto | null> {
+    const intentId = this.stripe ? await StripeOperationHelper.findIntentId({ client: this.stripe, dto }) : null;
+    return intentId ? this.retrieveCharge({ chargeId: intentId }) : null;
+  }
+
+  async cancelCharge (dto: RetrieveChargeDto): Promise<ProviderChargeResultDto> {
+    if (!this.stripe) return Promise.resolve(StripeSimulationHelper.cancelCharge({ dto, provider: this.providerName }));
+    return ProviderResultHelper.fromOperation({ result: await StripeOperationHelper.cancelCharge({ client: this.stripe, dto }) });
   }
 
   async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {
-    return this.stripeOperation({
-      prefix: 'po',
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createPayout({ client: this.stripe!, dto })
-    });
+    const operation = async (): Promise<string> => StripeOperationHelper.createPayout({ client: this.stripe!, dto });
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.PAYOUT_PREFIX, amount: dto.amount, currency: dto.currency, operation });
   }
 
   async refund (dto: RefundPaymentDto): Promise<ProviderChargeResultDto> {
-    return this.stripeOperation({
-      prefix: 're',
-      amount: dto.amount,
-      currency: dto.currency,
-      operation: async () => StripeOperationHelper.createRefund({ client: this.stripe!, dto })
-    });
+    const operation = async (): Promise<string> => StripeOperationHelper.createRefund({ client: this.stripe!, dto });
+    return this.stripeOperation({ prefix: STRIPE_SIMULATION.REFUND_PREFIX, amount: dto.amount, currency: dto.currency, operation });
   }
 
   async createSetupSession (dto: CreateSetupSessionDto): Promise<SetupSessionResultDto> {
-    if (!this.stripe) throw new InternalServerErrorException('Stripe client not initialized');
+    if (!this.stripe) throw new InternalServerErrorException(STRIPE_ERROR_DEFAULTS.CLIENT_NOT_INITIALIZED);
     return StripeMethodHelper.createSetupSession({ client: this.stripe, session: dto });
   }
 
   async retrieveSessionPaymentMethod ({ sessionId }: RetrieveSessionDto): Promise<ProviderMethodResultDto> {
-    if (!this.stripe) throw new InternalServerErrorException('Stripe client not initialized');
+    if (!this.stripe) throw new InternalServerErrorException(STRIPE_ERROR_DEFAULTS.CLIENT_NOT_INITIALIZED);
     return StripeMethodHelper.retrieveSessionMethod({ client: this.stripe, sessionId });
   }
 
-  protected override classifyError (dto: ClassifyErrorDto): ProviderError {
-    return StripeErrorMapper.toProviderError(dto);
+  private buildWebhookEvent (dto: ConstructWebhookEventDto): WebhookEventDto {
+    if (!this.stripe || !this.webhookSecret) {
+      if (!this.isSimulated) throw new UnauthorizedException(STRIPE_ERROR_DEFAULTS.UNVERIFIABLE_WEBHOOK);
+      return this.simulateWebhook(dto);
+    }
+
+    return StripeWebhookHelper.verify({ ...dto, client: this.stripe, secret: this.webhookSecret });
   }
 
   private async stripeOperation ({ prefix, amount, currency, operation }: ExecuteOperationDto): Promise<ProviderChargeResultDto> {
     if (!this.stripe) return this.buildSimulatedResult({ prefix, amount, currency });
 
-    return this.executeOperation({
-      prefix,
-      amount,
-      currency,
-      operation: async () => {
-        StripeAmountHelper.assertChargeable({ amountMinor: amount, currency });
-        return operation();
-      }
-    });
+    const chargeable = async (): ReturnType<typeof operation> => {
+      StripeAmountHelper.assertChargeable({ amountMinor: amount, currency });
+      return operation();
+    };
+
+    return this.executeOperation({ prefix, amount, currency, operation: chargeable });
   }
 }

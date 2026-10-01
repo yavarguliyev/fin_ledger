@@ -22,7 +22,6 @@ export class CurrencyRepository extends BaseRepository<CurrencyDto> {
 
   async findActiveCodes (): Promise<string[]> {
     const currencies = await this.findAll({ where: { is_active: true }, orderBy: 'code', orderDirection: 'ASC' });
-
     return currencies.map(currency => currency.code);
   }
 }

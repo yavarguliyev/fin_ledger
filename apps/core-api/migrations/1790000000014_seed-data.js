@@ -1,8 +1,8 @@
 export { shorthands } from './utils/shorthands.js';
 
-const SEED_EMAIL_PATTERN = '%@seed.local';
-const SEED_REFERENCE_TYPE = 'seed_deposit';
-const SEED_PROVIDER = 'seed';
+const DEMO_EMAIL_PATTERN = '%@realtime-wallet-payments.com';
+const DEMO_REFERENCE_TYPE = 'demo_deposit';
+const DEMO_PROVIDER = 'demo';
 
 const MIN_SERVER_VERSION = 130000;
 
@@ -20,7 +20,7 @@ const SKIP_UNLESS_DEV = `
     AND current_database() NOT LIKE '%test%'
     AND current_database() NOT LIKE '%local%' THEN
     RAISE NOTICE
-      'Skipping seed data: database "%" does not look like a dev/test database',
+      'Skipping demo data: database "%" does not look like a dev/test database',
       current_database();
     RETURN;
   END IF;
@@ -29,9 +29,7 @@ const SKIP_UNLESS_DEV = `
 const isDevDatabase = database => ['distributed_db', 'test', 'local'].some(marker => database.includes(marker));
 
 export const up = async pgm => {
-  const [environment] = await pgm.db.select(
-    "SELECT current_database() AS database, current_setting('server_version_num')::int AS server_version"
-  );
+  const [environment] = await pgm.db.select("SELECT current_database() AS database, current_setting('server_version_num')::int AS server_version");
 
   if (environment.server_version < MIN_SERVER_VERSION) {
     throw new Error(`PostgreSQL 13 or newer is required to run this migration (found ${environment.server_version})`);
@@ -42,7 +40,7 @@ export const up = async pgm => {
       DO $$
       BEGIN
         RAISE NOTICE
-          'Skipping seed data: database "%" does not look like a dev/test database',
+          'Skipping demo data: database "%" does not look like a dev/test database',
           current_database();
       END $$;
     `);
@@ -50,12 +48,12 @@ export const up = async pgm => {
     return;
   }
 
-  if (!process.env.SEED_PASSWORD) {
-    throw new Error('SEED_PASSWORD must be set to seed a development database. Add it to your .env file.');
+  if (!process.env.DEMO_USER_PASSWORD) {
+    throw new Error('DEMO_USER_PASSWORD must be set to load demo data into a development database. Add it to your .env file.');
   }
 
   const { default: argon2 } = await import('argon2');
-  const pwHash = await argon2.hash(process.env.SEED_PASSWORD, { type: argon2.argon2id, ...ARGON2_OPTIONS });
+  const pwHash = await argon2.hash(process.env.DEMO_USER_PASSWORD, { type: argon2.argon2id, ...ARGON2_OPTIONS });
 
   pgm.sql(`
     DO $$
@@ -91,9 +89,9 @@ export const up = async pgm => {
         email_verified_at
       )
       VALUES
-        ('global_admin@seed.local', 'Seed Global Admin', v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'GLOBAL_ADMIN', 'ACTIVE', true, CURRENT_TIMESTAMP),
-        ('admin@seed.local',        'Seed Admin',        v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'ADMIN',        'ACTIVE', true, CURRENT_TIMESTAMP),
-        ('moderator@seed.local',    'Seed Moderator',    v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'MODERATOR',    'ACTIVE', true, CURRENT_TIMESTAMP)
+        ('global_admin@realtime-wallet-payments.com', 'Global Admin', v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'GLOBAL_ADMIN', 'ACTIVE', true, CURRENT_TIMESTAMP),
+        ('admin@realtime-wallet-payments.com',        'Admin',             v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'ADMIN',        'ACTIVE', true, CURRENT_TIMESTAMP),
+        ('moderator@realtime-wallet-payments.com',    'Moderator',    v_pw_hash, 'argon2id', CURRENT_TIMESTAMP, 'MODERATOR',    'ACTIVE', true, CURRENT_TIMESTAMP)
       ON CONFLICT DO NOTHING;
 
       FOR i IN 1..25 LOOP
@@ -113,7 +111,7 @@ export const up = async pgm => {
           date_of_birth
         )
         VALUES (
-          format('player%s@seed.local', i),
+          format('player%s@realtime-wallet-payments.com', i),
           format('Player %s', i),
           v_pw_hash,
           'argon2id',
@@ -141,9 +139,9 @@ export const up = async pgm => {
 
         INSERT INTO ledger_transactions (reference_type, description, idempotency_key)
         VALUES (
-          '${SEED_REFERENCE_TYPE}',
+          '${DEMO_REFERENCE_TYPE}',
           format('Opening deposit for player %s', i),
-          format('seed-deposit-%s', i)
+          format('demo-deposit-%s', i)
         )
         RETURNING id INTO v_txn_id;
 
@@ -173,19 +171,19 @@ export const up = async pgm => {
           v_amount,
           'USD',
           v_amount,
-          format('seed-wt-%s', i),
+          format('demo-wt-%s', i),
           v_txn_id
         );
 
         INSERT INTO notifications (user_id, type, title, content, status, sent_at, dedupe_key)
         VALUES (
           v_user_id,
-          'PAYMENT',
+          'PAYMENT_COMPLETED',
           'Deposit received',
           'Your opening deposit has been credited.',
           'SENT',
           CURRENT_TIMESTAMP,
-          format('seed-notif-%s', i)
+          format('demo-notif-%s', i)
         );
       END LOOP;
 
@@ -202,19 +200,19 @@ export const up = async pgm => {
           betting_closes_at
         )
         VALUES (
-          '${SEED_PROVIDER}',
-          format('seed-fixture-%s', i),
+          '${DEMO_PROVIDER}',
+          format('demo-fixture-%s', i),
           (ARRAY['football', 'basketball', 'tennis', 'mma'])[1 + (i % 4)],
           (ARRAY['Premier League', 'NBA', 'ATP Tour', 'UFC'])[1 + (i % 4)],
-          format('Seed Fixture %s', i),
+          format('Fixture %s', i),
           round((1.25 + random() * 3.5)::numeric, 2),
-          CASE WHEN i % 4 = 0 THEN 'LIVE'::event_status ELSE 'SCHEDULED'::event_status END,
+          CASE WHEN i % 4 = 0 THEN 'LIVE' ELSE 'SCHEDULED' END,
           CURRENT_TIMESTAMP + ((i || ' days')::interval),
           CURRENT_TIMESTAMP + ((i || ' days')::interval)
         );
       END LOOP;
 
-      RAISE NOTICE 'Seed complete: 28 users, 25 wallets, 15 fixtures.';
+      RAISE NOTICE 'Demo data complete: 28 users, 25 wallets, 15 fixtures.';
     END $$;
   `);
 
@@ -227,13 +225,13 @@ export const up = async pgm => {
       SELECT count(*) INTO v_drift FROM v_ledger_balance_drift;
 
       IF v_drift > 0 THEN
-        RAISE EXCEPTION 'Seed produced % account(s) with balance drift', v_drift;
+        RAISE EXCEPTION 'Demo data produced % account(s) with balance drift', v_drift;
       END IF;
 
       SELECT COALESCE(SUM(net_minor), 0) INTO v_net FROM v_trial_balance;
 
       IF v_net <> 0 THEN
-        RAISE EXCEPTION 'Seed produced an unbalanced trial balance: %', v_net;
+        RAISE EXCEPTION 'Demo data produced an unbalanced trial balance: %', v_net;
       END IF;
     END $$;
   `);
@@ -256,50 +254,50 @@ ${IMMUTABILITY_TRIGGERS.map(([table, trigger]) => `      EXECUTE 'ALTER TABLE ${
     BEGIN
       ${SKIP_UNLESS_DEV}
 
-      CREATE TEMP TABLE _seed_users ON COMMIT DROP AS
-      SELECT id FROM users WHERE email LIKE '${SEED_EMAIL_PATTERN}';
+      CREATE TEMP TABLE _demo_users ON COMMIT DROP AS
+      SELECT id FROM users WHERE email LIKE '${DEMO_EMAIL_PATTERN}';
 
-      CREATE TEMP TABLE _seed_wallets ON COMMIT DROP AS
-      SELECT id FROM wallets WHERE user_id IN (SELECT id FROM _seed_users);
+      CREATE TEMP TABLE _demo_wallets ON COMMIT DROP AS
+      SELECT id FROM wallets WHERE user_id IN (SELECT id FROM _demo_users);
 
-      CREATE TEMP TABLE _seed_txns ON COMMIT DROP AS
+      CREATE TEMP TABLE _demo_txns ON COMMIT DROP AS
       WITH RECURSIVE owned AS (
         SELECT t.id
         FROM ledger_transactions t
-        WHERE t.reference_type = '${SEED_REFERENCE_TYPE}'
-           OR t.actor_user_id IN (SELECT id FROM _seed_users)
+        WHERE t.reference_type = '${DEMO_REFERENCE_TYPE}'
+           OR t.actor_user_id IN (SELECT id FROM _demo_users)
            OR EXISTS (
              SELECT 1
              FROM ledger_entries e
              JOIN ledger_accounts a ON a.id = e.account_id
-             WHERE e.transaction_id = t.id AND a.user_id IN (SELECT id FROM _seed_users)
+             WHERE e.transaction_id = t.id AND a.user_id IN (SELECT id FROM _demo_users)
            )
         UNION
         SELECT t.id FROM ledger_transactions t JOIN owned o ON t.reverses_transaction_id = o.id
       )
       SELECT id FROM owned;
 
-      SELECT count(*) INTO v_users FROM _seed_users;
-      SELECT count(*) INTO v_txns FROM _seed_txns;
+      SELECT count(*) INTO v_users FROM _demo_users;
+      SELECT count(*) INTO v_txns FROM _demo_txns;
 
       DELETE FROM wallet_transactions
-      WHERE wallet_id IN (SELECT id FROM _seed_wallets)
-         OR ledger_transaction_id IN (SELECT id FROM _seed_txns);
+      WHERE wallet_id IN (SELECT id FROM _demo_wallets)
+         OR ledger_transaction_id IN (SELECT id FROM _demo_txns);
 
       DELETE FROM bets
-      WHERE user_id IN (SELECT id FROM _seed_users)
-         OR event_id IN (SELECT id FROM game_events WHERE provider = '${SEED_PROVIDER}');
+      WHERE user_id IN (SELECT id FROM _demo_users)
+         OR event_id IN (SELECT id FROM game_events WHERE provider = '${DEMO_PROVIDER}');
 
-      DELETE FROM payments WHERE user_id IN (SELECT id FROM _seed_users);
-      DELETE FROM payment_methods WHERE user_id IN (SELECT id FROM _seed_users);
-      DELETE FROM notifications WHERE user_id IN (SELECT id FROM _seed_users);
-      DELETE FROM audit_log WHERE actor_user_id IN (SELECT id FROM _seed_users);
-      DELETE FROM wallets WHERE id IN (SELECT id FROM _seed_wallets);
-      DELETE FROM ledger_entries WHERE transaction_id IN (SELECT id FROM _seed_txns);
-      DELETE FROM ledger_transactions WHERE id IN (SELECT id FROM _seed_txns);
-      DELETE FROM ledger_accounts WHERE user_id IN (SELECT id FROM _seed_users);
-      DELETE FROM users WHERE id IN (SELECT id FROM _seed_users);
-      DELETE FROM game_events WHERE provider = '${SEED_PROVIDER}';
+      DELETE FROM payments WHERE user_id IN (SELECT id FROM _demo_users);
+      DELETE FROM payment_methods WHERE user_id IN (SELECT id FROM _demo_users);
+      DELETE FROM notifications WHERE user_id IN (SELECT id FROM _demo_users);
+      DELETE FROM audit_log WHERE actor_user_id IN (SELECT id FROM _demo_users);
+      DELETE FROM wallets WHERE id IN (SELECT id FROM _demo_wallets);
+      DELETE FROM ledger_entries WHERE transaction_id IN (SELECT id FROM _demo_txns);
+      DELETE FROM ledger_transactions WHERE id IN (SELECT id FROM _demo_txns);
+      DELETE FROM ledger_accounts WHERE user_id IN (SELECT id FROM _demo_users);
+      DELETE FROM users WHERE id IN (SELECT id FROM _demo_users);
+      DELETE FROM game_events WHERE provider = '${DEMO_PROVIDER}';
 
       UPDATE ledger_accounts a
       SET balance_minor = COALESCE((
@@ -314,7 +312,7 @@ ${IMMUTABILITY_TRIGGERS.map(([table, trigger]) => `      EXECUTE 'ALTER TABLE ${
         WHERE e.account_id = a.id
       ), 0)::bigint;
 
-      RAISE NOTICE 'Seed rollback complete: % users and % ledger transactions removed.', v_users, v_txns;
+      RAISE NOTICE 'Demo data rollback complete: % users and % ledger transactions removed.', v_users, v_txns;
     END $$;
   `);
 
@@ -337,20 +335,20 @@ ${IMMUTABILITY_TRIGGERS.map(([table, trigger]) => `      EXECUTE 'ALTER TABLE ${
 
       SELECT count(*) INTO v_drift FROM v_ledger_balance_drift;
       IF v_drift > 0 THEN
-        RAISE EXCEPTION 'Seed rollback left % account(s) with balance drift', v_drift;
+        RAISE EXCEPTION 'Demo data rollback left % account(s) with balance drift', v_drift;
       END IF;
 
       SELECT COALESCE(SUM(net_minor), 0) INTO v_net FROM v_trial_balance;
       IF v_net <> 0 THEN
-        RAISE EXCEPTION 'Seed rollback left an unbalanced trial balance: %', v_net;
+        RAISE EXCEPTION 'Demo data rollback left an unbalanced trial balance: %', v_net;
       END IF;
 
       SELECT count(*) INTO v_left
       FROM users
-      WHERE email LIKE '${SEED_EMAIL_PATTERN}';
+      WHERE email LIKE '${DEMO_EMAIL_PATTERN}';
 
       IF v_left > 0 THEN
-        RAISE EXCEPTION 'Seed rollback left % seeded user(s) behind', v_left;
+        RAISE EXCEPTION 'Demo data rollback left % demo user(s) behind', v_left;
       END IF;
     END $$;
   `);

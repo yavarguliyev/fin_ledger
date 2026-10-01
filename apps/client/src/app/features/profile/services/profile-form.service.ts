@@ -1,35 +1,26 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 
-import { WalletService } from '../../../core/services/wallet.service';
 import { ShowMoreConfig } from '../../../core/interfaces/ui/show-more-config.interface';
 import { VisibleImages } from '../../../core/interfaces/auth/visible-images.interface';
+import { ProfileFields } from '../../../core/types/auth/profile-fields.type';
+import { ProfileFieldsHelper } from '../helpers/profile-fields.helper';
 
 @Injectable()
 export class ProfileFormService {
-  private readonly walletService = inject(WalletService);
-  private readonly initialDisplayName = signal<string | null>(null);
+  private readonly initialValues = signal<ProfileFields | null>(null);
   readonly isFormChanged = signal(false);
   readonly imagesPage = signal(1);
   readonly imagesPageSize = signal(2);
 
-  setInitialValue (displayName: string): void {
-    this.initialDisplayName.set(displayName);
+  setInitialValues (fields: ProfileFields): void {
+    this.initialValues.set(ProfileFieldsHelper.normalize({ fields }));
     this.isFormChanged.set(false);
   }
 
-  checkIfChanged (currentDisplayName: string | null | undefined): void {
-    const initial = this.initialDisplayName();
+  checkIfChanged (fields: ProfileFields): void {
+    const initial = this.initialValues();
     if (initial === null) return;
-
-    this.isFormChanged.set(currentDisplayName !== initial);
-  }
-
-  loadMemberSince (onLoaded: (createdAt: string) => void): void {
-    this.walletService.loadWallets().subscribe({
-      next: ([firstWallet]) => {
-        if (firstWallet) onLoaded(firstWallet.createdAt);
-      }
-    });
+    this.isFormChanged.set(ProfileFieldsHelper.hasChanged({ initial, current: fields }));
   }
 
   loadMoreImages (): void {

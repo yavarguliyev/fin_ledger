@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 const UPDATED_AT_TABLES = [
   'currencies',
@@ -26,7 +27,7 @@ export const up = pgm => {
   pgm.createTable('audit_log', {
     id: 'id',
     actor_user_id: { type: 'uuid', references: 'users(id)', onDelete: 'RESTRICT' },
-    actor_role: { type: 'user_role' },
+    actor_role: { type: 'text' },
     actor_service: { type: 'varchar(100)' },
 
     action: { type: 'varchar(100)', notNull: true },
@@ -42,6 +43,8 @@ export const up = pgm => {
 
     created_at: 'created_at'
   });
+
+  addEnumCheck(pgm, { table: 'audit_log', column: 'actor_role', name: 'user_role' });
 
   pgm.createIndex('audit_log', ['entity_type', 'entity_id', 'created_at'], {
     name: 'idx_audit_log_entity'

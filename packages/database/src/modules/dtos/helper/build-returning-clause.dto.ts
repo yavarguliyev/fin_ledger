@@ -2,7 +2,10 @@ import { z } from 'zod';
 
 import type { Builder } from '../../postgres/query-builder/builder';
 
-export const BuildReturningClauseSchema = <T>(): z.ZodObject<{ builder: z.ZodCustom<Builder<T>>; selectColumns: z.ZodArray<z.ZodString> }> =>
+export const BuildReturningClauseSchema = <T>(): z.ZodObject<{
+  builder: z.ZodCustom<Builder<T>>;
+  selectColumns: z.ZodArray<z.ZodString>;
+}> =>
   z.object({
     builder: z.custom<Builder<T>>(),
 

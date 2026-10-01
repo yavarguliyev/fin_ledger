@@ -6,7 +6,7 @@ export const AuthSchema = z.object({
 
   passwordHash: z.string({ message: 'Password hash must be a string' }),
 
-  passwordAlgo: z.enum(PasswordAlgorithm, { message: 'Password algorithm must be argon2id or bcrypt' }),
+  passwordAlgo: z.enum(PasswordAlgorithm, { message: 'Password algorithm must be argon2id' }),
 
   passwordChangedAt: z.iso.datetime({ message: 'Password changed at must be a valid ISO datetime' }).nullable(),
 
@@ -16,13 +16,31 @@ export const AuthSchema = z.object({
 
   lastLoginAt: z.iso.datetime({ message: 'Last login must be a valid ISO datetime' }).nullable(),
 
+  failedLoginAttempts: z.number({ message: 'Failed login attempts must be a number' }).int().optional(),
+
+  lockedUntil: z.iso.datetime({ message: 'Locked until must be a valid ISO datetime' }).nullable().optional(),
+
+  lastLoginIp: z.string({ message: 'Last login IP must be a string' }).nullable().optional(),
+
   isEmailVerified: z.boolean({ message: 'Is email verified must be a boolean' }),
 
   emailVerifiedAt: z.iso.datetime({ message: 'Email verified at must be a valid ISO datetime' }).nullable(),
 
+  termsAcceptedAt: z.iso.datetime({ message: 'Terms accepted at must be a valid ISO datetime' }).nullable(),
+
+  mfaSecretEncrypted: z.custom<Buffer>().nullable(),
+
+  mfaEnabledAt: z.iso.datetime({ message: 'MFA enabled at must be a valid ISO datetime' }).nullable(),
+
+  mfaLastUsedStep: z.number({ message: 'MFA last used step must be a number' }).int().nullable(),
+
+  selfExclusionUntil: z.iso.datetime({ message: 'Self exclusion until must be a valid ISO datetime' }).nullable().optional(),
+
   deletedAt: z.iso.datetime({ message: 'Deleted at must be a valid ISO datetime' }).nullable(),
 
   email: z.string({ message: 'Email must be a string' }),
+
+  pendingEmail: z.string({ message: 'Pending email must be a string' }).nullable().optional(),
 
   displayName: z.string({ message: 'Display name must be a string' }),
 
@@ -34,7 +52,7 @@ export const AuthSchema = z.object({
 
   role: z.enum(Object.values(UserRoles) as [string, ...string[]], { message: 'Role must be a valid user role' }),
 
-  status: z.enum(Object.values(UserStatus) as [string, ...string[]], { message: 'Status must be a valid user status' })
+  status: z.enum(UserStatus, { message: 'Status must be a valid user status' })
 });
 
 export type AuthDto = z.infer<typeof AuthSchema>;

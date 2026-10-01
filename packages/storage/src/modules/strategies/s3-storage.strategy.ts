@@ -34,7 +34,7 @@ export class S3StorageStrategy extends BaseStrategy {
   constructor (@Inject(STORAGE_OPTIONS) options: StorageModuleOptions) {
     super();
 
-    this.clientId = options.clientId || ClientIds.DEAFULT;
+    this.clientId = options.clientId || ClientIds.DEFAULT;
     this.logger = new Logger(`${S3StorageStrategy.name}:${this.clientId}`);
 
     if (!options.s3) throw new BadRequestException('S3 configuration is missing');
@@ -58,6 +58,10 @@ export class S3StorageStrategy extends BaseStrategy {
     this.logger.log(`S3 storage strategy initialized for ${this.clientId} with bucket: ${this.bucketName}`);
   }
 
+  async delete ({ key }: ObjectKeyDto): Promise<void> {
+    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: key }));
+  }
+
   async upload ({ key, body, contentType }: UploadObjectDto): Promise<void> {
     await this.ensureBucket();
     const command = new PutObjectCommand({ Bucket: this.bucketName, Key: key, Body: body, ContentType: contentType });
@@ -67,10 +71,6 @@ export class S3StorageStrategy extends BaseStrategy {
   async getDownloadUrl ({ key, expiresIn }: DownloadUrlDto): Promise<string> {
     const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key });
     return getSignedUrl(this.urlClient, command, { expiresIn: expiresIn ?? 3600 });
-  }
-
-  async delete ({ key }: ObjectKeyDto): Promise<void> {
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: key }));
   }
 
   async exists ({ key }: ObjectKeyDto): Promise<boolean> {

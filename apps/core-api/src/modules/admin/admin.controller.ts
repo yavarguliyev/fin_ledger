@@ -5,6 +5,7 @@ import { ENVIRONMENT_CONSTANTS, SessionGuard, RolesGuard, Roles, UserRoles } fro
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 import { AdminService } from './admin.service';
 import { AdminDashboardDto } from './dtos/dashboard/admin-dashboard.dto';
+import { SharedDeviceDto } from '../auth/dtos/device/shared-device.dto';
 
 @ApiTags(SHARED_CONSTANTS.ADMIN.key)
 @UseGuards(SessionGuard, RolesGuard)
@@ -16,5 +17,11 @@ export class AdminController {
   @Get('dashboard')
   async getAdminDashboard (): Promise<AdminDashboardDto> {
     return this.adminService.getAdminDashboard();
+  }
+
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
+  @Get('shared-devices')
+  async getSharedDevices (): Promise<SharedDeviceDto[]> {
+    return this.adminService.getSharedDevices();
   }
 }

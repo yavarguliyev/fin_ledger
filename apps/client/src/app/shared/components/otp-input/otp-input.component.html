@@ -1,0 +1,23 @@
+<div class="flex items-center justify-center gap-2 sm:gap-2.5" role="group" [attr.aria-label]="label()">
+  @for (index of slots(); track index) {
+    @if (startsGroup(index)) {
+      <span class="w-3 sm:w-4 h-px bg-ink-300 dark:bg-night-border" aria-hidden="true"></span>
+    }
+    <input
+      #box
+      type="text"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      maxlength="1"
+      [disabled]="disabled()"
+      [attr.aria-label]="label() + ' digit ' + (index + 1)"
+      class="w-11 h-14 sm:w-12 sm:h-15 text-center text-2xl font-semibold rounded-xl border bg-white dark:bg-night-bg text-ink-900 dark:text-white caret-primary transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary focus:scale-[1.04] disabled:opacity-60"
+      [class.border-ink-300]="!invalid()"
+      [class.dark:border-night-border]="!invalid()"
+      [class.border-danger]="invalid()"
+      (input)="onInput({ index, event: $event })"
+      (keydown)="onKeydown({ index, event: $event })"
+      (paste)="onPaste({ index, event: $event })"
+    />
+  }
+</div>

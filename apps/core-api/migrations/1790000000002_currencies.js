@@ -19,10 +19,7 @@ export const up = pgm => {
       ('USD', 'United States Dollar', 2),
       ('EUR', 'Euro', 2),
       ('GBP', 'Pound Sterling', 2),
-      ('AZN', 'Azerbaijani Manat', 2),
-      ('TRY', 'Turkish Lira', 2),
-      ('JPY', 'Japanese Yen', 0),
-      ('KWD', 'Kuwaiti Dinar', 3)
+      ('CAD', 'Canadian Dollar', 2)
     ON CONFLICT (code) DO NOTHING;
   `);
 

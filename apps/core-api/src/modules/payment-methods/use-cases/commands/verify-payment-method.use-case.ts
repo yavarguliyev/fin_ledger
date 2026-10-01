@@ -4,6 +4,7 @@ import { PaymentCapability, PaymentMethodStatus } from '@common/libs';
 import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
 import { PaymentMethodDto } from '../../dtos/payment-method/payment-method.dto';
 import { PaymentMethodByUserDto } from '../../dtos/input/payment-method-by-user.dto';
+import { PAYMENT_METHOD_STATUS } from '../../constants/status/payment-method-status.constant';
 
 @Injectable()
 export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<PaymentMethodByUserDto, PaymentMethodDto> {
@@ -11,11 +12,11 @@ export class VerifyPaymentMethodUseCase extends PaymentMethodBaseUseCase<Payment
     const existing = await this.paymentMethodRepository.findById({ id });
     const method = this.validateOwnership({ method: existing, userId });
 
-    if (method.status === PaymentMethodStatus.VERIFIED) {
+    if (method.status === PAYMENT_METHOD_STATUS.VERIFIED) {
       return method;
     }
 
-    if (method.status === PaymentMethodStatus.REMOVED || method.status === PaymentMethodStatus.REJECTED) {
+    if (method.status === PAYMENT_METHOD_STATUS.REMOVED || method.status === PAYMENT_METHOD_STATUS.REJECTED) {
       throw new BadRequestException(`Cannot verify payment method in ${method.status} status`);
     }
 

@@ -1,0 +1,31 @@
+@if (available()) {
+  <div class="mt-4">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="h-px flex-1 bg-ink-200 dark:bg-ink-700"></span>
+      <span class="text-xs uppercase tracking-wide text-ink-400">or</span>
+      <span class="h-px flex-1 bg-ink-200 dark:bg-ink-700"></span>
+    </div>
+
+    <button
+      type="button"
+      [disabled]="busy()"
+      (click)="onClick()"
+      class="w-full py-2.5 rounded-lg border border-ink-300 dark:border-ink-700 font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-night-bg active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+    >
+      @if (busy()) {
+        <span class="w-4 h-4 border-2 border-ink-300 border-t-primary rounded-full animate-spin"></span>
+      } @else {
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-2.5 2-4.5 4.5-4.5S21 8.5 21 11m-9 0v3a7 7 0 01-1.5 4.3M7.5 20A11 11 0 003 11a9 9 0 0113.5-7.8M16.5 11v3c0 1.6-.3 3.2-.9 4.7M12 20.5c.5-1.4.8-2.9.8-4.5v-5"></path>
+        </svg>
+      }
+      {{ busy() ? 'Waiting for your device…' : label() }}
+    </button>
+
+    @if (error()) {
+      <p class="mt-2 text-xs text-danger" role="alert">{{ error() }}</p>
+    } @else if (hint()) {
+      <p class="mt-2 text-xs text-ink-500 dark:text-ink-400" role="status">{{ hint() }}</p>
+    }
+  </div>
+}

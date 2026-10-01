@@ -10,6 +10,10 @@ export const SettleBetRecordSchema = BetOutcomeSchema.extend({
 
   settlementLedgerTransactionId: z.string({ message: 'Settlement ledger transaction ID must be a string' }).optional(),
 
+  drawValue: z.number({ message: 'Draw value must be a number' }).int().optional(),
+
+  drawThreshold: z.number({ message: 'Draw threshold must be a number' }).int().optional(),
+
   adapter: z.custom<DatabaseAdapter>().optional()
 });
 

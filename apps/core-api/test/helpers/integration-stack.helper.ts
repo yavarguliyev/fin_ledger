@@ -1,0 +1,215 @@
+import { execFileSync, spawn } from 'node:child_process';
+import { once } from 'node:events';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { AddressInfo, createServer } from 'node:net';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { GenericContainer, StartedTestContainer, Wait } from 'testcontainers';
+import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { RabbitMQContainer } from '@testcontainers/rabbitmq';
+import { RedisContainer } from '@testcontainers/redis';
+import { CryptoHelper } from '@common/shared-libs';
+
+import { SEED_PASSWORD } from '../constants/seed-password.constant';
+import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
+import { TEST_IMAGES } from '../constants/test-images.constant';
+import { TEST_ORIGINS } from '../constants/test-origins.constant';
+import { IntegrationStack } from '../interfaces/integration-stack.interface';
+import { PortRef } from '../interfaces/port-ref.interface';
+import { WaitForApi } from '../interfaces/wait-for-api.interface';
+
+export class IntegrationStackHelper {
+  private static readonly APP_DIR = path.resolve(__dirname, '../..');
+  private static readonly REPO_ROOT = path.resolve(IntegrationStackHelper.APP_DIR, '../..');
+  private static readonly JWT_ISSUER = 'core-api-integration';
+  private static readonly READY_TIMEOUT_MS = 90_000;
+  private static readonly APP_DB_USERNAME = 'app_api';
+  private static readonly APP_WORKER_USERNAME = 'app_worker';
+  private static readonly RABBITMQ_HTTP_PORT = 15_672;
+
+  static async start(): Promise<IntegrationStack> {
+    const [kafkaPort, apiPort] = await Promise.all([IntegrationStackHelper.freePort(), IntegrationStackHelper.freePort()]);
+    const redisPassword = CryptoHelper.randomToken({ bytes: 12 });
+
+    const [postgres, redis, rabbitmq, kafka] = await Promise.all([
+      new PostgreSqlContainer(TEST_IMAGES.POSTGRES).withDatabase('core_api_test').start(),
+      new RedisContainer(TEST_IMAGES.REDIS).withPassword(redisPassword).start(),
+      new RabbitMQContainer(TEST_IMAGES.RABBITMQ).start(),
+      IntegrationStackHelper.startKafka({ port: kafkaPort })
+    ]);
+
+    const databaseUrl = postgres.getConnectionUri();
+    execFileSync(
+      path.join(IntegrationStackHelper.REPO_ROOT, 'node_modules/.bin/node-pg-migrate'),
+      ['up', '--migrations-dir', path.join(IntegrationStackHelper.APP_DIR, 'migrations')],
+      {
+        env: { ...process.env, DATABASE_URL: databaseUrl, DEMO_USER_PASSWORD: SEED_PASSWORD },
+        stdio: 'pipe'
+      }
+    );
+
+    const appDbPassword = CryptoHelper.randomToken({ bytes: 16 });
+    execFileSync(process.execPath, [path.join(IntegrationStackHelper.REPO_ROOT, 'scripts/db/provision-login-roles.mjs')], {
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseUrl,
+        APP_API_DB_USERNAME: IntegrationStackHelper.APP_DB_USERNAME,
+        APP_API_DB_PASSWORD: appDbPassword,
+        APP_WORKER_DB_USERNAME: IntegrationStackHelper.APP_WORKER_USERNAME,
+        APP_WORKER_DB_PASSWORD: appDbPassword
+      },
+      stdio: 'pipe'
+    });
+
+    const appDatabaseUrl = `postgres://${IntegrationStackHelper.APP_DB_USERNAME}:${appDbPassword}@${postgres.getHost()}:${postgres.getPort()}/${postgres.getDatabase()}`;
+
+    const { publicKey, privateKey } = CryptoHelper.generateRsaKeyPair();
+
+    const redisHost = redis.getHost();
+    const redisPort = redis.getPort();
+    const workDir = mkdtempSync(path.join(tmpdir(), 'core-api-integration-'));
+
+    const env: NodeJS.ProcessEnv = {
+      PATH: process.env['PATH'],
+      NODE_ENV: 'development',
+      PORT: String(apiPort),
+      HOST: '127.0.0.1',
+      FRONTEND_URL: TEST_ORIGINS.FRONTEND,
+      ALLOWED_ORIGINS: TEST_ORIGINS.FRONTEND,
+      EMAIL_FROM: 'no-reply@core-api.test',
+      JWT_PRIVATE_KEY: privateKey,
+      JWT_PUBLIC_KEY: publicKey,
+      JWT_EXPIRES_IN: '15m',
+      JWT_ISSUER: IntegrationStackHelper.JWT_ISSUER,
+      JWT_AUDIENCE: IntegrationStackHelper.JWT_ISSUER,
+      DB_HOST: postgres.getHost(),
+      DB_PORT: String(postgres.getPort()),
+      DB_USERNAME: IntegrationStackHelper.APP_DB_USERNAME,
+      DB_WORKER_USERNAME: IntegrationStackHelper.APP_WORKER_USERNAME,
+      DB_WORKER_PASSWORD: appDbPassword,
+      DB_PASSWORD: appDbPassword,
+      DB_NAME: postgres.getDatabase(),
+      DB_DATABASE: postgres.getDatabase(),
+      REDIS_HOST: redisHost,
+      REDIS_PORT: String(redisPort),
+      REDIS_PASSWORD: redisPassword,
+      RABBITMQ_URL: rabbitmq.getAmqpUrl(),
+      RABBITMQ_DEFAULT_USER: 'guest',
+      RABBITMQ_DEFAULT_PASS: 'guest',
+      RABBITMQ_DEFAULT_HOST: rabbitmq.getHost(),
+      KAFKA_BROKERS: `127.0.0.1:${kafkaPort}`,
+      KAFKA_BROKER_HOST: '127.0.0.1',
+      KAFKA_BROKER_PORT: String(kafkaPort),
+      KAFKA_CONSUMER_GROUP_ID: 'core-api-integration',
+      STORAGE_STRATEGY: 's3',
+      STORAGE_ENDPOINT: 'http://127.0.0.1:1',
+      STORAGE_ACCESS_KEY: 'integration',
+      STORAGE_SECRET_KEY: 'integration',
+      STORAGE_BUCKET_NAME: 'integration',
+      STORAGE_REGION: 'us-east-1',
+      STORAGE_FORCE_PATH_STYLE: 'true',
+      STORAGE_ENSURE_BUCKET: 'false',
+      PAYMENT_SIMULATION: 'true',
+      WEBHOOK_REPLAY_INTERVAL_MS: '500',
+      WEBHOOK_REPLAY_STALE_AFTER_MS: '5000',
+      PAYMENT_RECONCILE_INTERVAL_MS: '500',
+      TASK_POLL_MS: '200',
+      PAYMENT_RECONCILE_STALE_AFTER_MS: '30000',
+      TRUST_PROXY: '1',
+      MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64'),
+      MFA_ISSUER: 'Integration Wallet',
+      REFRESH_GRACE_MS: '800',
+      PASSKEY_RP_ID: TEST_ORIGINS.RP_ID,
+      PASSKEY_RP_NAME: 'Integration Wallet',
+      PASSKEY_ORIGIN: TEST_ORIGINS.FRONTEND,
+      PASSKEY_STEP_UP_ENABLED: 'true'
+    };
+
+    const api = spawn(process.execPath, [path.join(IntegrationStackHelper.APP_DIR, 'dist/main.js')], {
+      cwd: workDir,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    const logs: string[] = [];
+    api.stdout?.on('data', (chunk: Buffer) => logs.push(chunk.toString()));
+    api.stderr?.on('data', (chunk: Buffer) => logs.push(chunk.toString()));
+
+    const apiUrl = `http://127.0.0.1:${apiPort}/api/v1`;
+    await IntegrationStackHelper.waitForApi({ url: apiUrl, api, logs });
+
+    process.env[TEST_ENV_KEYS.API_URL] = apiUrl;
+    process.env[TEST_ENV_KEYS.DATABASE_URL] = databaseUrl;
+    process.env[TEST_ENV_KEYS.APP_DATABASE_URL] = appDatabaseUrl;
+    process.env[TEST_ENV_KEYS.KAFKA_BROKERS] = `127.0.0.1:${kafkaPort}`;
+    process.env[TEST_ENV_KEYS.RABBITMQ_URL] = rabbitmq.getAmqpUrl();
+    process.env[TEST_ENV_KEYS.RABBITMQ_MANAGEMENT_URL] =
+      `http://${rabbitmq.getHost()}:${rabbitmq.getMappedPort(IntegrationStackHelper.RABBITMQ_HTTP_PORT)}`;
+
+    process.env[TEST_ENV_KEYS.REDIS_URL] = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
+
+    return { api, containers: [postgres, redis, rabbitmq, kafka], workDir };
+  }
+
+  static async stop({ api, containers, workDir }: IntegrationStack): Promise<void> {
+    if (api.exitCode === null) {
+      api.kill('SIGTERM');
+      await Promise.race([once(api, 'exit'), sleep(15_000)]);
+    }
+
+    await Promise.all(containers.map(container => container.stop()));
+    rmSync(workDir, { recursive: true, force: true });
+  }
+
+  private static async startKafka({ port }: PortRef): Promise<StartedTestContainer> {
+    return new GenericContainer(TEST_IMAGES.KAFKA)
+      .withEnvironment({
+        KAFKA_NODE_ID: '1',
+        KAFKA_PROCESS_ROLES: 'broker,controller',
+        KAFKA_CONTROLLER_QUORUM_VOTERS: '1@localhost:9093',
+        KAFKA_LISTENERS: `PLAINTEXT://0.0.0.0:${port},CONTROLLER://0.0.0.0:9093`,
+        KAFKA_ADVERTISED_LISTENERS: `PLAINTEXT://127.0.0.1:${port}`,
+        KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER',
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT',
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1',
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: '1',
+        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: '1',
+        KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0'
+      })
+      .withExposedPorts({ container: port, host: port })
+      .withWaitStrategy(Wait.forLogMessage(/Kafka Server started/))
+      .start();
+  }
+
+  private static async waitForApi({ url, api, logs }: WaitForApi): Promise<void> {
+    const deadline = Date.now() + IntegrationStackHelper.READY_TIMEOUT_MS;
+
+    while (Date.now() < deadline) {
+      if (api.exitCode !== null) throw new Error(`core-api exited during startup:\n${logs.join('')}`);
+
+      const ready = await fetch(`${url}/game-events`).then(
+        () => true,
+        () => false
+      );
+
+      if (ready) return;
+
+      await sleep(500);
+    }
+
+    throw new Error(`core-api did not become ready in time:\n${logs.join('')}`);
+  }
+
+  private static async freePort(): Promise<number> {
+    const server = createServer();
+    server.listen(0, '127.0.0.1');
+    await once(server, 'listening');
+
+    const { port } = server.address() as AddressInfo;
+    server.close();
+    await once(server, 'close');
+
+    return port;
+  }
+}

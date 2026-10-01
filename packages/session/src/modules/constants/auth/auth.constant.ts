@@ -4,5 +4,20 @@ export const AUTH_CONSTANTS = {
   ARGON2_MEMORY_COST: 65536,
   ARGON2_TIME_COST: 3,
   ARGON2_PARALLELISM: 4,
-  TOKEN_TYPE: 'Bearer'
+  TOKEN_TYPE: 'Bearer',
+  REFRESH_PREFIX: 'refresh:',
+  REFRESH_SEPARATOR: '.',
+  REFRESH_BYTES: 32,
+  REFRESH_TTL_SECONDS: 60 * 60 * 24 * 30,
+  REFRESH_GRACE_MS: 15000,
+  REFRESH_GRACE_KEY: 'REFRESH_GRACE_MS',
+  REFRESH_REUSE_MESSAGE: 'This refresh token was already used. Every session for the account has been ended.',
+  REFRESH_INVALID_MESSAGE: 'Refresh token is invalid or has expired.',
+  DEFAULT_ACCESS_EXPIRY: '15m',
+  STREAM_TICKET_PREFIX: 'sse-ticket:',
+  STREAM_TICKET_PARAM: 'ticket',
+  STREAM_TICKET_BYTES: 32,
+  STREAM_TICKET_TTL_SECONDS: 30,
+  STREAM_TICKET_MISSING_MESSAGE: 'A stream ticket is required.',
+  STREAM_TICKET_INVALID_MESSAGE: 'The stream ticket is invalid, expired or already used.'
 } as const;

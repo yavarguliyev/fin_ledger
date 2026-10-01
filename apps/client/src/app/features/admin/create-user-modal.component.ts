@@ -2,7 +2,7 @@ import { Component, output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
-
+import { ROLES } from '../../core/constants/auth/roles.constant';
 
 @Component({
   selector: 'app-create-user-modal',
@@ -18,12 +18,14 @@ export class CreateUserModalComponent {
   readonly loading = signal(false);
 
   readonly roleOptions = [
-    { value: 'ADMIN', label: 'Admin' },
-    { value: 'MODERATOR', label: 'Moderator' }
+    { value: ROLES.ADMIN, label: 'Admin' },
+    { value: ROLES.MODERATOR, label: 'Moderator' }
   ];
 
   readonly form = this.fb.group({
-    displayName: this.fb.nonNullable.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(2)] }),
+    displayName: this.fb.nonNullable.control('', {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(2)]
+    }),
     email: this.fb.nonNullable.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()] }),
     role: this.fb.nonNullable.control('', { validators: [ValidatorsHelper.createRequiredValidator()] })
   });

@@ -5,19 +5,46 @@ import { RegisterUserUseCase } from './use-cases/commands/register-user.use-case
 import { LoginUseCase } from './use-cases/commands/login.use-case';
 import { ValidateSessionUseCase } from './use-cases/commands/validate-session.use-case';
 import { LogoutUseCase } from './use-cases/commands/logout.use-case';
+import { LogoutEverywhereUseCase } from './use-cases/commands/logout-everywhere.use-case';
+import { RefreshSessionUseCase } from './use-cases/commands/refresh-session.use-case';
+import { ChangePasswordUseCase } from './use-cases/commands/account/change-password.use-case';
+import { ChangeEmailUseCase } from './use-cases/commands/account/change-email.use-case';
+import { ConfirmEmailChangeUseCase } from './use-cases/commands/account/confirm-email-change.use-case';
 import { ForgotPasswordUseCase } from './use-cases/commands/forgot-password.use-case';
 import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-case';
 import { EmailVerificationUseCase } from './use-cases/commands/email-verification.use-case';
 import { RegisterDto } from './dtos/request/register.dto';
 import { LoginDto } from './dtos/request/login.dto';
-import { AuthResponseDto } from './dtos/response/auth-response.dto';
+import { RegisterResponseDto } from './dtos/response/register-response.dto';
 import { ForgotPasswordResponseDto } from './dtos/response/forgot-password-response.dto';
 import { ResetPasswordDto } from './dtos/request/reset-password.dto';
 import { AuthorizationDto } from './dtos/request/authorization.dto';
+import { RefreshSessionDto } from './dtos/request/refresh-session.dto';
+import { LogoutSessionDto } from './dtos/input/logout-session.dto';
+import { SessionOwnerDto } from './dtos/input/session-owner.dto';
+import { ChangePasswordDto } from './dtos/input/change-password.dto';
+import { ChangeEmailDto } from './dtos/input/change-email.dto';
+import { ConfirmEmailChangeRequestDto } from './dtos/request/confirm-email-change-request.dto';
+import { AccountMessageResponseDto } from './dtos/response/account-message-response.dto';
 import { ForgotPasswordDto } from './dtos/request/forgot-password.dto';
 import { ResetPasswordResponseDto } from './dtos/response/reset-password-response.dto';
-import { SessionResponseDto } from './dtos/response/session-response.dto';
+import { AuthResponseDto } from './dtos/response/auth-response.dto';
 import { VerifyEmailDto } from './dtos/request/verify-email.dto';
+import { GetMfaStatusUseCase } from './use-cases/queries/get-mfa-status.use-case';
+import { SetupMfaUseCase } from './use-cases/commands/mfa/setup-mfa.use-case';
+import { EnableMfaUseCase } from './use-cases/commands/mfa/enable-mfa.use-case';
+import { DisableMfaUseCase } from './use-cases/commands/mfa/disable-mfa.use-case';
+import { VerifyMfaLoginUseCase } from './use-cases/commands/mfa/verify-mfa-login.use-case';
+import { RegenerateRecoveryCodesUseCase } from './use-cases/commands/mfa/regenerate-recovery-codes.use-case';
+import { VerifyMfaLoginDto } from './dtos/request/verify-mfa-login.dto';
+import { LoginResponseDto } from './dtos/response/login-response.dto';
+import { MfaUserDto } from './dtos/input/mfa-user.dto';
+import { EnableMfaDto } from './dtos/input/enable-mfa.dto';
+import { DisableMfaDto } from './dtos/input/disable-mfa.dto';
+import { MfaStatusResponseDto } from './dtos/response/mfa-status-response.dto';
+import { MfaEnrollmentResponseDto } from './dtos/response/mfa-enrollment-response.dto';
+import { MfaRecoveryCodesResponseDto } from './dtos/response/mfa-recovery-codes-response.dto';
+import { MfaDisabledResponseDto } from './dtos/response/mfa-disabled-response.dto';
 
 @Injectable()
 export class AuthService {
@@ -25,22 +52,53 @@ export class AuthService {
     private readonly registerUserUseCase: RegisterUserUseCase,
     private readonly loginUseCase: LoginUseCase,
     private readonly logoutUseCase: LogoutUseCase,
+    private readonly logoutEverywhereUseCase: LogoutEverywhereUseCase,
+    private readonly refreshSessionUseCase: RefreshSessionUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly changeEmailUseCase: ChangeEmailUseCase,
+    private readonly confirmEmailChangeUseCase: ConfirmEmailChangeUseCase,
     private readonly validateSessionUseCase: ValidateSessionUseCase,
     private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
-    private readonly emailVerificationUseCase: EmailVerificationUseCase
+    private readonly emailVerificationUseCase: EmailVerificationUseCase,
+    private readonly getMfaStatusUseCase: GetMfaStatusUseCase,
+    private readonly setupMfaUseCase: SetupMfaUseCase,
+    private readonly enableMfaUseCase: EnableMfaUseCase,
+    private readonly disableMfaUseCase: DisableMfaUseCase,
+    private readonly verifyMfaLoginUseCase: VerifyMfaLoginUseCase,
+    private readonly regenerateRecoveryCodesUseCase: RegenerateRecoveryCodesUseCase
   ) {}
 
-  async register (dto: RegisterDto): Promise<AuthResponseDto> {
+  async register (dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.registerUserUseCase.execute(dto);
   }
 
-  async login (dto: LoginDto): Promise<AuthResponseDto> {
+  async login (dto: LoginDto): Promise<LoginResponseDto> {
     return this.loginUseCase.execute(dto);
   }
 
-  async logout (dto: AuthorizationDto): Promise<void> {
+  async logout (dto: LogoutSessionDto): Promise<void> {
     await this.logoutUseCase.execute(dto);
+  }
+
+  async logoutEverywhere (dto: SessionOwnerDto): Promise<void> {
+    await this.logoutEverywhereUseCase.execute(dto);
+  }
+
+  async refresh (dto: RefreshSessionDto): Promise<AuthResponseDto> {
+    return this.refreshSessionUseCase.execute(dto);
+  }
+
+  async changePassword (dto: ChangePasswordDto): Promise<AuthResponseDto> {
+    return this.changePasswordUseCase.execute(dto);
+  }
+
+  async changeEmail (dto: ChangeEmailDto): Promise<AccountMessageResponseDto> {
+    return this.changeEmailUseCase.execute(dto);
+  }
+
+  async confirmEmailChange (dto: ConfirmEmailChangeRequestDto): Promise<AccountMessageResponseDto> {
+    return this.confirmEmailChangeUseCase.execute(dto);
   }
 
   async getSession (dto: AuthorizationDto): Promise<SessionData> {
@@ -55,7 +113,31 @@ export class AuthService {
     return this.resetPasswordUseCase.execute(dto);
   }
 
-  async verifyEmail (dto: VerifyEmailDto): Promise<SessionResponseDto> {
+  async verifyEmail (dto: VerifyEmailDto): Promise<AuthResponseDto> {
     return this.emailVerificationUseCase.execute(dto);
+  }
+
+  async getMfaStatus (dto: MfaUserDto): Promise<MfaStatusResponseDto> {
+    return this.getMfaStatusUseCase.execute(dto);
+  }
+
+  async setupMfa (dto: MfaUserDto): Promise<MfaEnrollmentResponseDto> {
+    return this.setupMfaUseCase.execute(dto);
+  }
+
+  async enableMfa (dto: EnableMfaDto): Promise<MfaRecoveryCodesResponseDto> {
+    return this.enableMfaUseCase.execute(dto);
+  }
+
+  async disableMfa (dto: DisableMfaDto): Promise<MfaDisabledResponseDto> {
+    return this.disableMfaUseCase.execute(dto);
+  }
+
+  async regenerateRecoveryCodes (dto: DisableMfaDto): Promise<MfaRecoveryCodesResponseDto> {
+    return this.regenerateRecoveryCodesUseCase.execute(dto);
+  }
+
+  async verifyMfaLogin (dto: VerifyMfaLoginDto): Promise<AuthResponseDto> {
+    return this.verifyMfaLoginUseCase.execute(dto);
   }
 }

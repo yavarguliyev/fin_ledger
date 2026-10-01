@@ -1,4 +1,7 @@
 import { ActionConfig } from './action-config.interface';
+import { CellFormatDto } from '../../dtos/ui/cell-format.dto';
+import { RowRefDto } from '../../dtos/ui/row-ref.dto';
+import { ToggleValueDto } from '../../dtos/ui/toggle-value.dto';
 
 export interface TableColumn<T = unknown> {
   key: string;
@@ -7,12 +10,14 @@ export interface TableColumn<T = unknown> {
   align?: 'left' | 'right' | 'center';
   width?: string;
   sortable?: boolean;
-  format?: (value: unknown, row: T) => string;
-  badgeClass?: (value: unknown, row: T) => string;
   cellClass?: string;
   visible?: boolean;
   mobileVisible?: boolean;
-  toggleCallback?: (value: boolean, row: T) => void;
-  getToggleValue?: (row: T) => boolean;
   actions?: ActionConfig<T>;
+
+  format?: (dto: CellFormatDto<T>) => string;
+  badgeClass?: (dto: CellFormatDto<T>) => string;
+  toggleCallback?: (dto: ToggleValueDto<T>) => void;
+  getToggleValue?: (dto: RowRefDto<T>) => boolean;
+  toggleDisabled?: (dto: RowRefDto<T>) => boolean;
 }

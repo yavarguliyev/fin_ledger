@@ -2,11 +2,17 @@ import { z } from 'zod';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const TransactionWithRetrySchema = <R>(): z.ZodObject<{ callback: z.ZodCustom<(adapter: DatabaseAdapter) => Promise<R>>; retries: z.ZodOptional<z.ZodNumber> }> =>
+export const TransactionWithRetrySchema = <R>(): z.ZodObject<{
+  callback: z.ZodCustom<(adapter: DatabaseAdapter) => Promise<R>>;
+  retries: z.ZodOptional<z.ZodNumber>;
+  actor: z.ZodOptional<z.ZodString>;
+}> =>
   z.object({
     callback: z.custom<(adapter: DatabaseAdapter) => Promise<R>>(),
 
-    retries: z.number().int().positive().optional()
+    retries: z.number().int().positive().optional(),
+
+    actor: z.string().optional()
   });
 
 export type TransactionWithRetryDto<R> = z.infer<ReturnType<typeof TransactionWithRetrySchema<R>>>;

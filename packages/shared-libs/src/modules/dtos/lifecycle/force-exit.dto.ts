@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { LoggerService } from '@nestjs/common';
+import { z } from 'zod';
 
 export const ForceExitSchema = z.object({
   logger: z.custom<LoggerService>(),

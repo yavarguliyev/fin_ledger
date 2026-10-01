@@ -2,12 +2,19 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "composite": true,
-    "rootDir": "./src",
     "outDir": "./dist",
     "declarationDir": "./dist",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+    "tsBuildInfoFile": "./dist/.tsbuildinfo",
+    "types": ["node", "jest"]
   },
-  "references": [{ "path": "../shared-libs" }, { "path": "../redis" }],
-  "include": ["src/**/*.ts"],
+  "references": [
+    {
+      "path": "../shared-libs"
+    },
+    {
+      "path": "../redis"
+    }
+  ],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["dist", "node_modules", "src/**/*.d.ts"]
 }

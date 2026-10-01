@@ -1,5 +1,4 @@
 import { PaymentIntentCreateParams } from 'stripe';
-import { ProviderChargeStatus } from '@common/shared-libs';
 
 import { OperationResultDto } from '../../../dtos/adapter/operation-result.dto';
 import { BuildChargeParamsDto } from '../../../dtos/helper/build-charge-params.dto';
@@ -8,22 +7,22 @@ import { StripeChargeDto } from '../../../dtos/helper/stripe-charge.dto';
 import { StripePayoutDto } from '../../../dtos/helper/stripe-payout.dto';
 import { StripeRefundDto } from '../../../dtos/helper/stripe-refund.dto';
 import { StripeMethodHelper } from './stripe-method.helper';
+import { StripeIntentHelper } from './stripe-intent.helper';
+import { StripeRetrieveChargeDto } from '../../../dtos/helper/stripe-retrieve-charge.dto';
+import { StripeFindIntentDto } from '../../../dtos/helper/stripe-find-intent.dto';
+import { STRIPE_ID_PREFIXES } from '../../../constants/stripe/stripe-id-prefixes.constant';
 
 export class StripeOperationHelper {
   static async resolveCustomerForCharge ({ client, dto }: ResolveCustomerChargeDto): Promise<string | undefined> {
     if (!dto.paymentMethodToken) return dto.customerId;
 
-    try {
-      const pm = await client.paymentMethods.retrieve(dto.paymentMethodToken);
-      if (pm.customer) return typeof pm.customer === 'string' ? pm.customer : pm.customer.id;
+    const pm = await client.paymentMethods.retrieve(dto.paymentMethodToken);
+    if (pm.customer) return typeof pm.customer === 'string' ? pm.customer : pm.customer.id;
 
-      const customerId = await StripeMethodHelper.getOrCreateCustomer({ client });
-      await client.paymentMethods.attach(pm.id, { customer: customerId });
+    const customerId = dto.customerId ?? (await StripeMethodHelper.createCustomer({ client }));
+    await client.paymentMethods.attach(pm.id, { customer: customerId });
 
-      return customerId;
-    } catch {
-      return dto.customerId;
-    }
+    return customerId;
   }
 
   static buildChargeParams ({ dto, customerId }: BuildChargeParamsDto): PaymentIntentCreateParams {
@@ -44,7 +43,27 @@ export class StripeOperationHelper {
     const params = StripeOperationHelper.buildChargeParams({ dto, customerId });
     const intent = await client.paymentIntents.create(params, { idempotencyKey: dto.idempotencyKey });
 
-    return { id: intent.id, status: intent.status === 'succeeded' ? ProviderChargeStatus.SUCCEEDED : ProviderChargeStatus.PENDING };
+    return StripeIntentHelper.toOperationResult({ intent });
+  }
+
+  static async retrieveCharge ({ client, dto }: StripeRetrieveChargeDto): Promise<OperationResultDto> {
+    const intentRef = dto.chargeId.startsWith(STRIPE_ID_PREFIXES.CHARGE)
+      ? (await client.charges.retrieve(dto.chargeId)).payment_intent
+      : dto.chargeId;
+
+    const intent = await client.paymentIntents.retrieve(typeof intentRef === 'string' ? intentRef : (intentRef?.id ?? dto.chargeId));
+
+    return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
+  }
+
+  static async cancelCharge ({ client, dto }: StripeRetrieveChargeDto): Promise<OperationResultDto> {
+    const intent = await client.paymentIntents.cancel(dto.chargeId);
+    return { ...StripeIntentHelper.toOperationResult({ intent }), amount: intent.amount, currency: intent.currency };
+  }
+
+  static async findIntentId ({ client, dto }: StripeFindIntentDto): Promise<string | null> {
+    const result = await client.paymentIntents.search({ query: `metadata['${dto.key}']:'${dto.value}'`, limit: 1 });
+    return result.data[0]?.id ?? null;
   }
 
   static async createPayout ({ client, dto }: StripePayoutDto): Promise<string> {
@@ -62,7 +81,7 @@ export class StripeOperationHelper {
 
   static async createRefund ({ client, dto }: StripeRefundDto): Promise<string> {
     const { amount, chargeId, idempotencyKey } = dto;
-    const target = chargeId.startsWith('pi_') ? { payment_intent: chargeId } : { charge: chargeId };
+    const target = chargeId.startsWith(STRIPE_ID_PREFIXES.PAYMENT_INTENT) ? { payment_intent: chargeId } : { charge: chargeId };
     const refund = await client.refunds.create({ amount, ...target }, { idempotencyKey });
 
     return refund.id;

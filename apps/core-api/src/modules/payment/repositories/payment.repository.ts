@@ -1,14 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, PaymentStatus } from '@common/libs';
+import { BaseExtendedRepository, PaymentStatus, PaymentType, PostgresService, WhereCondition } from '@common/libs';
 
 import { PaymentDto } from '../dtos/payment/payment.dto';
 import { InternalPaymentRecordDto } from '../dtos/payment/internal-payment.dto';
 import { FindByProviderChargeIdDto } from '../dtos/repository/find-by-provider-charge-id.dto';
 import { FindPaymentByIdempotencyKeyDto } from '../dtos/repository/find-payment-by-idempotency-key.dto';
 import { UpdatePaymentStatusDto } from '../dtos/repository/update-payment-status.dto';
+import { PAYMENT_HISTORY } from '../constants/history/payment-history.constant';
+import { RecordStatusChangeDto } from '../dtos/history/record-status-change.dto';
+import { PAYMENT_TRANSITIONS } from '../constants/status/payment-transitions.constant';
+import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-codes.constant';
+import { FindStalePaymentsDto } from '../dtos/repository/find-stale-payments.dto';
+import { FindUnresolvedPaymentsDto } from '../dtos/repository/find-unresolved-payments.dto';
+import { EntityIdDto } from '../dtos/repository/entity-id.dto';
+import { AttachChargeIdDto } from '../dtos/repository/attach-charge-id.dto';
 
 @Injectable()
-export class PaymentRepository extends BaseRepository<PaymentDto> {
+export class PaymentRepository extends BaseExtendedRepository<PaymentDto> {
   constructor (postgresService: PostgresService) {
     super({
       service: postgresService,
@@ -26,6 +34,7 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
         metadata: 'metadata',
         failureCode: 'failure_code',
         failureReason: 'failure_reason',
+        reconcileAttempts: 'reconcile_attempts',
         authorizedAt: 'authorized_at',
         completedAt: 'completed_at',
         failedAt: 'failed_at',
@@ -53,6 +62,7 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
       'metadata',
       'failureCode',
       'failureReason',
+      'reconcileAttempts',
       'authorizedAt',
       'completedAt',
       'failedAt',
@@ -61,27 +71,79 @@ export class PaymentRepository extends BaseRepository<PaymentDto> {
     ];
   }
 
-  async findByIdempotencyKey ({ idempotencyKey }: FindPaymentByIdempotencyKeyDto): Promise<PaymentDto | null> {
-    return this.findOne({ where: { idempotency_key: idempotencyKey } });
+  async findByIdempotencyKey ({ userId, idempotencyKey }: FindPaymentByIdempotencyKeyDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { user_id: userId, idempotency_key: idempotencyKey } });
   }
 
-  async findByProviderChargeId ({ provider, providerChargeId }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
-    return this.findOne({ where: { provider, provider_charge_id: providerChargeId } });
+  async findByProviderChargeId ({ provider, providerChargeId, adapter }: FindByProviderChargeIdDto): Promise<PaymentDto | null> {
+    return this.findOne({ where: { provider, provider_charge_id: providerChargeId }, ...(adapter && { adapter }) });
+  }
+
+  async recordReconcileAttempt ({ id }: EntityIdDto): Promise<PaymentDto | null> {
+    return this.increment({ id, field: 'reconcileAttempts', amount: 1 });
+  }
+
+  async attachChargeId ({ paymentId, providerChargeId }: AttachChargeIdDto): Promise<PaymentDto | null> {
+    return this.updateWhere({ where: { id: paymentId, providerChargeId: null }, data: { providerChargeId } });
   }
 
   async createPayment (dto: InternalPaymentRecordDto): Promise<PaymentDto | null> {
     return this.create({ data: dto });
   }
 
-  async updatePaymentStatus (dto: UpdatePaymentStatusDto): Promise<PaymentDto | null> {
-    const { paymentId, ...update } = dto;
-    const now = new Date().toISOString();
+  async findUnresolved ({ minAttempts, limit }: FindUnresolvedPaymentsDto): Promise<PaymentDto[]> {
+    const where: WhereCondition[] = [
+      { field: 'status', operator: 'IN', value: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
+      { field: 'reconcileAttempts', operator: '>=', value: minAttempts }
+    ];
 
+    return this.findAll({ where, orderBy: 'created_at', orderDirection: 'ASC', limit });
+  }
+
+  async findStaleOpenDeposits ({ updatedBefore, maxAttempts, limit }: FindStalePaymentsDto): Promise<PaymentDto[]> {
+    const where: WhereCondition[] = [
+      { field: 'status', operator: 'IN', value: [PaymentStatus.PENDING, PaymentStatus.PROCESSING, PaymentStatus.REQUIRES_ACTION] },
+      { field: 'type', operator: '=', value: PaymentType.DEPOSIT },
+      { field: 'updatedAt', operator: '<', value: updatedBefore },
+      { field: 'reconcileAttempts', operator: '<', value: maxAttempts }
+    ];
+
+    return this.findAll({ where, orderBy: 'updated_at', orderDirection: 'ASC', limit });
+  }
+
+  async updatePaymentStatus (dto: UpdatePaymentStatusDto): Promise<PaymentDto | null> {
+    const { paymentId, adapter, ...update } = dto;
+
+    const now = new Date().toISOString();
     const derived = {
       ...(update.status === PaymentStatus.COMPLETED && { completedAt: now }),
-      ...(update.status === PaymentStatus.FAILED && { failedAt: now, failureCode: update.failureCode ?? 'PAYMENT_FAILED' })
+      ...(update.status === PaymentStatus.FAILED && { failedAt: now, failureCode: update.failureCode ?? PAYMENT_FAILURE_CODES.DEFAULT })
     };
 
-    return this.update({ id: paymentId, data: { ...update, ...derived } as Partial<PaymentDto> });
+    const current = await this.findOne({ where: { id: paymentId }, ...(adapter && { adapter }) });
+    const updated = await this.updateWhere({
+      where: { id: paymentId, status: [...PAYMENT_TRANSITIONS[update.status]] },
+      data: { ...update, ...derived } as Partial<PaymentDto>,
+      ...(adapter && { adapter })
+    });
+
+    if (updated) {
+      await this.recordStatusChange({
+        paymentId,
+        fromStatus: current?.status ?? null,
+        toStatus: update.status,
+        source: dto.source,
+        ...(adapter && { adapter })
+      });
+    }
+
+    return updated;
+  }
+
+  private async recordStatusChange ({ paymentId, fromStatus, toStatus, source, adapter }: RecordStatusChangeDto): Promise<void> {
+    await (adapter ?? this.service.getConnection()).query({
+      sql: PAYMENT_HISTORY.INSERT_SQL,
+      params: [paymentId, fromStatus, toStatus, source ?? PAYMENT_HISTORY.DEFAULT_SOURCE]
+    });
   }
 }

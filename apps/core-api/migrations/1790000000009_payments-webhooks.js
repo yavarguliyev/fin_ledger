@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('payments', {
@@ -16,8 +17,8 @@ export const up = pgm => {
       onDelete: 'RESTRICT'
     },
 
-    type: { type: 'payment_type', notNull: true },
-    status: { type: 'payment_status', notNull: true, default: 'PENDING' },
+    type: { type: 'text', notNull: true },
+    status: { type: 'text', notNull: true, default: 'PENDING' },
 
     amount_minor: 'money_positive',
     fee_minor: { type: 'money_minor_nonneg', notNull: true, default: 0 },
@@ -36,6 +37,8 @@ export const up = pgm => {
     failure_code: { type: 'varchar(50)' },
     failure_reason: { type: 'text' },
 
+    reconcile_attempts: { type: 'smallint', notNull: true, default: 0, check: 'reconcile_attempts >= 0' },
+
     authorized_at: { type: 'timestamptz' },
     completed_at: { type: 'timestamptz' },
     failed_at: { type: 'timestamptz' },
@@ -43,6 +46,9 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'payments', column: 'type', name: 'payment_type' });
+  addEnumCheck(pgm, { table: 'payments', column: 'status', name: 'payment_status' });
 
   pgm.addConstraint('payments', 'fk_payments_wallet_currency', {
     foreignKeys: { columns: ['wallet_id', 'currency'], references: 'wallets(id, currency)' }
@@ -91,7 +97,7 @@ export const up = pgm => {
     event_type: { type: 'varchar(100)', notNull: true },
     payload: { type: 'jsonb', notNull: true },
 
-    status: { type: 'webhook_status', notNull: true, default: 'RECEIVED' },
+    status: { type: 'text', notNull: true, default: 'RECEIVED' },
 
     signature_verified: { type: 'boolean', notNull: true, default: false },
 
@@ -101,6 +107,8 @@ export const up = pgm => {
     processed_at: { type: 'timestamptz' },
     created_at: 'created_at'
   });
+
+  addEnumCheck(pgm, { table: 'webhook_events', column: 'status', name: 'webhook_status' });
 
   pgm.addConstraint('webhook_events', 'uq_webhook_events_provider_event_id', {
     unique: ['provider', 'event_id']

@@ -1,37 +1,25 @@
 import { BadRequestException, Inject, InternalServerErrorException } from '@nestjs/common';
-import {
-  AnalyticsEventTopic,
-  EXTRACT_ID_KEY,
-  KAFKA_SERVICE,
-  KafkaPublish,
-  KafkaService,
-  OutboxRepository,
-  PaymentCapability,
-  PaymentProviderRegistry,
-  PaymentStatus,
-  PaymentType,
-  PostgresService,
-  WalletStatus
-} from '@common/libs';
+import { PaymentCapability, PaymentProviderRegistry, PaymentStatus, PaymentType, WalletStatus } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
 import { WalletService } from '../../../wallet/wallet.service';
 import { ProcessPaymentDto } from '../../dtos/input/process-payment.dto';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
-import { PaymentAnalyticsEventPayloadDto } from '../../dtos/analytics/payment-analytics-event.dto';
+import { PaymentResultDto } from '../../dtos/payment/payment-result.dto';
 import { PaymentHelper } from '../../helpers/payment.helper';
 import { PaymentOperationHelper } from '../../helpers/payment-operation.helper';
 import { WalletHelper } from '../../../wallet/helpers/wallet.helper';
 import { CreatePaymentRecordDto } from '../../dtos/step/create-payment-record.dto';
 import { DispatchPaymentOperationDto } from '../../dtos/step/dispatch-payment-operation.dto';
 import { ValidateWalletDto } from '../../dtos/step/validate-wallet.dto';
+import { CompletePaymentUseCase } from '../commands/complete-payment.use-case';
+import { AuthRepository } from '../../../auth/repositories/auth.repository';
+import { ProviderCustomerRepository } from '../../../payment-methods/repositories/provider-customer.repository';
+import { PaymentActorDto } from '../../dtos/step/payment-actor.dto';
 
 export abstract class PaymentBaseUseCase {
   protected abstract readonly paymentType: PaymentType;
-
-  @Inject(PostgresService)
-  protected readonly postgresService!: PostgresService;
 
   @Inject(WalletService)
   protected readonly walletService!: WalletService;
@@ -42,31 +30,30 @@ export abstract class PaymentBaseUseCase {
   @Inject(PaymentMethodRepository)
   protected readonly paymentMethodRepository!: PaymentMethodRepository;
 
-  @Inject(OutboxRepository)
-  protected readonly outboxRepository!: OutboxRepository;
+  @Inject(CompletePaymentUseCase)
+  protected readonly completePayment!: CompletePaymentUseCase;
 
   @Inject(PaymentProviderRegistry)
   protected readonly providerRegistry!: PaymentProviderRegistry;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
+  @Inject(AuthRepository)
+  protected readonly authRepository!: AuthRepository;
+
+  @Inject(ProviderCustomerRepository)
+  protected readonly providerCustomerRepository!: ProviderCustomerRepository;
 
   protected abstract validateWallet(dto: ValidateWalletDto): void;
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.PAYMENT_COMPLETED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'paymentId' }) })
-  protected async publishPaymentCompleted (eventPayload: PaymentAnalyticsEventPayloadDto): Promise<PaymentAnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
+  protected async assertPermitted (dto: PaymentActorDto): Promise<void> {
+    await Promise.resolve(dto);
   }
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.PAYMENT_FAILED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'paymentId' }) })
-  protected async publishPaymentFailed (eventPayload: PaymentAnalyticsEventPayloadDto): Promise<PaymentAnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
-  }
-
-  async execute (dto: ProcessPaymentDto): Promise<PaymentDto> {
+  async execute (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
     const { userId } = dto;
 
-    const existing = await this.paymentRepository.findByIdempotencyKey({ idempotencyKey: dto.idempotencyKey });
+    await this.assertPermitted({ userId, currency: dto.currency, amountMinor: dto.amountMinor });
+
+    const existing = await this.paymentRepository.findByIdempotencyKey({ userId, idempotencyKey: dto.idempotencyKey });
     if (existing) return existing;
 
     const userWallet = await this.walletService.getWalletByCurrency({ userId, currency: dto.currency });
@@ -82,17 +69,6 @@ export abstract class PaymentBaseUseCase {
 
     const payment = await this.createPaymentRecord({ wallet: userWallet, dto, provider: method.provider });
     const updated = await this.dispatchPaymentOperation({ payment, dto, userWallet, method });
-
-    await PaymentHelper.publishPaymentEvents({
-      payment,
-      walletId: userWallet.id,
-      dto,
-      updated,
-      paymentType: this.paymentType,
-      outboxRepository: this.outboxRepository,
-      publishPaymentCompleted: payload => this.publishPaymentCompleted(payload),
-      publishPaymentFailed: payload => this.publishPaymentFailed(payload)
-    });
 
     return updated;
   }
@@ -110,12 +86,22 @@ export abstract class PaymentBaseUseCase {
     return payment;
   }
 
-  private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentDto> {
-    const base = { payment, dto, userWallet, method, walletService: this.walletService, paymentRepository: this.paymentRepository };
+  private async dispatchPaymentOperation ({ payment, dto, userWallet, method }: DispatchPaymentOperationDto): Promise<PaymentResultDto> {
+    const base = {
+      payment,
+      dto,
+      userWallet,
+      method,
+      walletService: this.walletService,
+      paymentRepository: this.paymentRepository,
+      completePayment: this.completePayment
+    };
 
     if (this.paymentType === PaymentType.DEPOSIT) {
       const provider = this.providerRegistry.require({ providerName: method.provider, capability: PaymentCapability.CHARGE });
-      return PaymentOperationHelper.executeDepositOperation({ ...base, provider });
+      const customerId = await this.providerCustomerRepository.findCustomerId({ userId: dto.userId, provider: method.provider });
+
+      return PaymentOperationHelper.executeDepositOperation({ ...base, provider, ...(customerId && { customerId }) });
     }
 
     const provider = this.providerRegistry.require({ providerName: method.provider, capability: PaymentCapability.PAYOUT });

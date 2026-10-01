@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('ledger_transactions', {
@@ -31,7 +32,7 @@ export const up = pgm => {
     },
 
     account_id: { type: 'uuid', notNull: true },
-    entry_type: { type: 'entry_type', notNull: true },
+    entry_type: { type: 'text', notNull: true },
 
     amount_minor: 'money_positive',
     currency: 'currency',
@@ -40,6 +41,8 @@ export const up = pgm => {
     sequence: { type: 'integer', notNull: true, check: 'sequence > 0' },
     created_at: 'created_at'
   });
+
+  addEnumCheck(pgm, { table: 'ledger_entries', column: 'entry_type', name: 'entry_type' });
 
   pgm.addConstraint('ledger_entries', 'fk_ledger_entries_account_currency', {
     foreignKeys: { columns: ['account_id', 'currency'], references: 'ledger_accounts(id, currency)' }
@@ -119,7 +122,7 @@ export const up = pgm => {
     SET search_path = pg_catalog, public
     AS $$
     DECLARE
-      v_account_type account_type;
+      v_account_type text;
       v_signed       bigint;
     BEGIN
       SELECT account_type INTO v_account_type

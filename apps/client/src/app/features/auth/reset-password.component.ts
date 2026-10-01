@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -29,8 +30,14 @@ export class ResetPasswordComponent implements OnInit {
   readonly token = signal<string | null>(null);
 
   readonly form = this.fb.group({
-    password: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)], nonNullable: false }),
-    confirmPassword: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)], nonNullable: false })
+    password: this.fb.control('', {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)],
+      nonNullable: false
+    }),
+    confirmPassword: this.fb.control('', {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(6)],
+      nonNullable: false
+    })
   });
 
   get passwordControl (): FormControl<string | null> {
@@ -82,7 +89,7 @@ export class ResetPasswordComponent implements OnInit {
 
     this.loading.set(true);
     this.error.set(null);
-    this.auth.resetPassword(token, password).subscribe({
+    this.auth.resetPassword({ token, password }).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
@@ -91,7 +98,7 @@ export class ResetPasswordComponent implements OnInit {
       },
       error: (err: HttpError) => {
         this.loading.set(false);
-        const errorMessage = err?.error?.message ?? err?.message ?? 'Failed to reset password';
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to reset password' });
         this.error.set(errorMessage);
       }
     });

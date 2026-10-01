@@ -54,10 +54,8 @@
               <div>
                 <p class="text-sm font-semibold text-ink-900 dark:text-white">
                   {{ getTypeLabel(method) }}
-                  @if (method.last4) {
-                    <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ method.last4 }}</span>
-                  } @else {
-                    <span class="text-ink-400 font-normal ml-1">{{ method.maskedAccount }}</span>
+                  @if (method.lastFour) {
+                    <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ method.lastFour }}</span>
                   }
                 </p>
                 <p class="text-xs text-ink-500 dark:text-ink-400">{{ method.accountHolder }}</p>

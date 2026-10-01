@@ -2,17 +2,18 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, tap, catchError } from 'rxjs';
 
-import { Transaction } from '../interfaces/wallet/transaction.interface';
+import { Transaction } from '../types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../interfaces/wallet/wallet-transaction-summary.interface';
-import { Wallet } from '../interfaces/wallet/wallet.interface';
+import { Wallet } from '../types/wallet/wallet.type';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
-import { environment } from '../../../environments/environment';
+import { AppConfigService } from './app-config.service';
 import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.constant';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
+import { WalletTransactionsDto } from '../dtos/wallet/wallet-transactions.dto';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
 
   private readonly walletsSignal = signal<Wallet[]>([]);
@@ -22,6 +23,10 @@ export class WalletService {
   readonly wallets = computed(() => this.walletsSignal());
   readonly wallet = computed(() => this.walletsSignal().find(w => w.id === this.selectedIdSignal()) ?? this.walletsSignal()[0] ?? null);
   readonly transactions = computed(() => this.transactionsSignal());
+
+  private get apiUrl (): string {
+    return this.config.apiUrl;
+  }
 
   loadWallets (): Observable<Wallet[]> {
     return this.http.get<Wallet[]>(`${this.apiUrl}/wallets`).pipe(
@@ -64,7 +69,7 @@ export class WalletService {
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
-  getTransactions (walletId: string, page: number, limit: number): Observable<PaginatedResponse<Transaction>> {
+  getTransactions ({ walletId, page, limit }: WalletTransactionsDto): Observable<PaginatedResponse<Transaction>> {
     return this.http
       .get<PaginatedResponse<Transaction>>(`${this.apiUrl}/wallet-transactions/${walletId}/transactions`, {
         params: { page: page.toString(), limit: limit.toString() }

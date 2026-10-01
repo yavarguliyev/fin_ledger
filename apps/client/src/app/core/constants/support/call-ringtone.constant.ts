@@ -1,0 +1,10 @@
+export const CALL_RINGTONE = {
+  INCOMING_HZ: 440,
+  OUTGOING_HZ: 425,
+  BEEP_MS: 400,
+  GAP_MS: 200,
+  CYCLE_MS: 2500,
+  VOLUME: 0.08,
+  WAVE: 'sine',
+  MS_PER_SECOND: 1000
+} as const;

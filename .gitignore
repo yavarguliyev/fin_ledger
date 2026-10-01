@@ -14,3 +14,5 @@ coverage/
 .env.local
 .DS_Store
 keys/
+CLAUDE.md
+PROJECT-BACKLOG.md

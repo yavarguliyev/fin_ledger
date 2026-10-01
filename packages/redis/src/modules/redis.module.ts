@@ -4,6 +4,7 @@ import { ClientIdDto, REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
 import { RedisCacheProvider } from './services/redis-cache-provider.class';
 import { RedisModuleAsyncOptionsDto } from './dtos/module/redis-module-async-options.dto';
+import { REDIS_DEFAULTS } from './constants/connection/redis-defaults.constant';
 
 @Module({})
 export class RedisModule implements OnModuleDestroy {
@@ -34,11 +35,11 @@ export class RedisModule implements OnModuleDestroy {
       provide: REDIS_CACHE_PROVIDER,
       useFactory: async (configService: ConfigService): Promise<RedisCacheProvider> => {
         const password = configService.get<string>('REDIS_PASSWORD');
-        const db = configService.get<number>('REDIS_DB', 0);
+        const db = configService.get<number>('REDIS_DB', REDIS_DEFAULTS.DB);
 
         const config = {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
+          host: configService.get<string>('REDIS_HOST', REDIS_DEFAULTS.HOST),
+          port: configService.get<number>('REDIS_PORT', REDIS_DEFAULTS.PORT),
           ...(password && { password }),
           ...(db !== undefined && { db })
         };

@@ -33,12 +33,30 @@
     </div>
   }
 
-  @for (group of statGroups(); track group.currency) {
-    @if (showCurrencyLabels()) {
-      <h2 class="text-sm font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide">{{ group.currency }}</h2>
-    }
-    <app-stats-card [stats]="group.stats" [columns]="4" />
+  @if (hasMultipleCurrencies()) {
+    <div class="flex items-center gap-1 p-1 rounded-xl bg-ink-100 dark:bg-night-bg w-fit" role="tablist" aria-label="Wallet currency">
+      @for (currency of currencies(); track currency) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="currency === selectedCurrency()"
+          (click)="onSelectCurrency(currency)"
+          class="px-3.5 py-1.5 text-sm font-semibold rounded-lg transition-colors"
+          [class.bg-white]="currency === selectedCurrency()"
+          [class.dark:bg-night-surface]="currency === selectedCurrency()"
+          [class.shadow-sm]="currency === selectedCurrency()"
+          [class.text-ink-900]="currency === selectedCurrency()"
+          [class.dark:text-white]="currency === selectedCurrency()"
+          [class.text-ink-500]="currency !== selectedCurrency()"
+          [class.dark:text-ink-400]="currency !== selectedCurrency()"
+        >
+          {{ currency }}
+        </button>
+      }
+    </div>
   }
+
+  <app-stats-card [stats]="activeStats()" [columns]="4" />
 
   <app-data-table 
     [config]="tableConfig()" 

@@ -1,45 +1,49 @@
 import { BadRequestException } from '@nestjs/common';
-import { DomainEventType, PaymentMethodStatus, PaymentStatus } from '@common/libs';
+import { PaymentStatus } from '@common/libs';
 
-import { PublishPaymentEventsDto } from '../dtos/helper/publish-payment-events.dto';
+import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
+import { PaymentAnalyticsEventPayloadDto } from '../dtos/analytics/payment-analytics-event.dto';
+import { PaymentFailedEventPayloadDto } from '../dtos/analytics/payment-failed-event.dto';
 import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-payment-method.dto';
 import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
-import { AnalyticsHelper } from '../../analytics/helpers/analytics.helper';
+import { PAYMENT_METHOD_STATUS } from '../../payment-methods/constants/status/payment-method-status.constant';
 
 export class PaymentHelper {
-  public static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {
+  static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {
     const { userId, paymentMethodId, paymentMethodRepository } = dto;
     if (!paymentMethodId) throw new BadRequestException('Payment method is required');
 
     const method = await paymentMethodRepository.findByIdAndUserId({ id: paymentMethodId, userId });
     if (!method) throw new BadRequestException('Payment method not found or does not belong to user');
-    if (method.status !== PaymentMethodStatus.VERIFIED) throw new BadRequestException('Selected payment method is not verified');
+    if (method.status !== PAYMENT_METHOD_STATUS.VERIFIED) throw new BadRequestException('Selected payment method is not verified');
     if (!method.providerMethodId) throw new BadRequestException('Payment method token is missing');
 
     return method;
   }
-  public static async publishPaymentEvents (options: PublishPaymentEventsDto): Promise<void> {
-    const { payment, walletId, dto, updated, paymentType, outboxRepository, publishPaymentCompleted, publishPaymentFailed } = options;
 
-    const eventPayload = {
+  static completedEventPayload ({ payment }: PaymentRefDto): PaymentAnalyticsEventPayloadDto {
+    return {
       paymentId: payment.id,
-      userId: dto.userId,
-      walletId,
-      amountMinor: dto.amountMinor,
-      currency: dto.currency,
+      userId: payment.userId,
+      walletId: payment.walletId,
+      amountMinor: payment.amountMinor,
+      currency: payment.currency,
       status: PaymentStatus.COMPLETED,
-      paymentType,
+      paymentType: payment.type,
       timestamp: new Date().toISOString(),
-      providerTransactionId: updated.providerChargeId ?? ''
+      providerTransactionId: payment.providerChargeId ?? ''
     };
+  }
 
-    await outboxRepository.createEvent({
-      aggregateType: 'Payment',
-      aggregateId: payment.id,
-      eventType: DomainEventType.PAYMENT_COMPLETED,
-      payload: eventPayload
-    });
-
-    void AnalyticsHelper.emitKafkaPaymentAnalytics({ ...eventPayload, isCompleted: true, publishPaymentCompleted, publishPaymentFailed });
+  static failedEventPayload ({ payment }: PaymentRefDto): PaymentFailedEventPayloadDto {
+    return {
+      paymentId: payment.id,
+      userId: payment.userId,
+      amountMinor: payment.amountMinor,
+      currency: payment.currency,
+      status: PaymentStatus.FAILED,
+      provider: payment.provider,
+      providerChargeId: payment.providerChargeId
+    };
   }
 }

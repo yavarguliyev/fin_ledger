@@ -43,7 +43,6 @@ export class LedgerTransactionRepository extends BaseRepository<LedgerTransactio
 
   async findByIdempotencyKey (dto: FindLedgerTransactionByIdempotencyKeyDto): Promise<LedgerTransactionRecordDto | null> {
     const { idempotencyKey, adapter } = dto;
-
     return this.findOne({ where: { idempotency_key: idempotencyKey }, adapter });
   }
 }

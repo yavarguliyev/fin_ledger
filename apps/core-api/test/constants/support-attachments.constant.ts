@@ -1,0 +1,20 @@
+export const SUPPORT_ATTACHMENTS_TEST = {
+  CUSTOMER_EMAIL: 'player9@realtime-wallet-payments.com',
+  FIELD_NAME: 'files',
+  EDIT_FIELD_NAME: 'file',
+  MAX_FILES: 5,
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,
+  PNG_BYTES: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  PNG_TYPE: 'image/png',
+  PNG_NAME: 'receipt.png',
+  EXE_TYPE: 'application/x-msdownload',
+  EXE_NAME: 'tool.exe',
+  FAKE_TEXT: 'this is not a picture',
+  ORIGINAL_TEXT: 'My withdrawal is pending',
+  EDITED_TEXT: 'My withdrawal is pending since Monday',
+  OK: 200,
+  BAD_REQUEST: 400,
+  FORBIDDEN: 403,
+  PAYLOAD_TOO_LARGE: 413,
+  UNSUPPORTED: 415
+} as const;

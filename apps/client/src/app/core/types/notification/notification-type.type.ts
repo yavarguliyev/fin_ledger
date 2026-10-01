@@ -1,1 +1,3 @@
-export type NotificationType = 'bet' | 'payment' | 'system' | 'wallet';
+import type { NOTIFICATION_TYPES } from '@common/contracts';
+
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];

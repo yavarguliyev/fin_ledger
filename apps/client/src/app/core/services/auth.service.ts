@@ -1,135 +1,137 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { Observable, catchError, tap } from 'rxjs';
 
 import { AuthResponse } from '../interfaces/auth/auth-response.interface';
-import { AuthUser } from '../interfaces/auth/auth-user.interface';
 import { LoginRequest } from '../interfaces/auth/login-request.interface';
 import { RegisterDto } from '../interfaces/auth/register-dto.interface';
+import { RegisterResponse } from '../interfaces/auth/register-response.interface';
+import { VerifyEmailDto } from '../dtos/auth/verify-email.dto';
+import { LoginDto } from '../dtos/auth/login.dto';
+import { ForgotPasswordDto } from '../dtos/auth/forgot-password.dto';
+import { ResetPasswordDto } from '../dtos/auth/reset-password.dto';
+import { MessageResponse } from '../interfaces/auth/message-response.interface';
+import { UserRefDto } from '../dtos/auth/user-ref.dto';
+import { VerifyMfaLoginDto } from '../dtos/auth/verify-mfa-login.dto';
+import { LoginResult } from '../types/auth/login-result.type';
+import { MfaHelper } from '../helpers/auth/mfa.helper';
+import { RoleHelper } from '../helpers/auth/role.helper';
+import { ROLES } from '../constants/auth/roles.constant';
 import { SessionData } from '../interfaces/auth/session-data.interface';
-import { UpdateProfileResponse } from '../interfaces/auth/update-profile-response.interface';
-import { ThemeService } from './theme.service';
-import { NotificationService } from './notification.service';
-import { WalletService } from './wallet.service';
-import { environment } from '../../../environments/environment';
+import { SESSION } from '../constants/auth/session.constant';
+import { SessionStore } from './session-store.service';
+import { SessionTeardownService } from './session-teardown.service';
+import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly apiUrl = environment.apiUrl;
+  private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
-  private readonly router = inject(Router);
-  private readonly theme = inject(ThemeService);
-  private readonly notificationService = inject(NotificationService);
-  private readonly walletService = inject(WalletService);
-  private readonly tokenSignal = signal<string | null>(this.readToken());
-  private readonly userSignal = signal<AuthUser | null>(this.readUser());
+  private readonly store = inject(SessionStore);
+  private readonly teardown = inject(SessionTeardownService);
   private readonly loggingOutSignal = signal(false);
 
-  readonly token = computed(() => this.tokenSignal());
-  readonly currentUser = computed(() => this.userSignal());
-  readonly isAuthenticated = computed(() => !!this.tokenSignal());
+  readonly token = this.store.token;
+  readonly currentUser = this.store.user;
+  readonly isAuthenticated = computed(() => !!this.store.token());
   readonly isLoggingOut = computed(() => this.loggingOutSignal());
+  readonly isStaff = computed(() => RoleHelper.isStaff({ role: this.store.user()?.role }));
+  readonly isPlayer = computed(() => RoleHelper.isPlayer({ role: this.store.user()?.role }));
+  readonly isGlobalAdmin = computed(() => this.store.user()?.role === ROLES.GLOBAL_ADMIN);
+  readonly mfaSetupRequired = computed(() => this.store.user()?.mfaSetupRequired === true);
+  readonly selfExcludedUntil = computed(() => this.store.user()?.selfExclusionUntil ?? null);
+  readonly roleLabel = computed(() => RoleHelper.label({ role: this.store.user()?.role }));
+
+  forgetSession (): void {
+    this.store.clear();
+  }
+
+  updateCurrentUser ({ user }: UserRefDto): void {
+    this.store.adoptUser({ user });
+  }
 
   getRememberedEmail (): string | null {
-    return localStorage.getItem('remembered_email');
+    return localStorage.getItem(SESSION.REMEMBERED_EMAIL_KEY);
   }
 
-  register (dto: RegisterDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/register`, dto).pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+  logoutEverywhere (): Observable<unknown> {
+    return this.http.post(`${this.config.apiUrl}${SESSION.LOGOUT_ALL_PATH}`, {}, { withCredentials: true }).pipe(tap(() => this.teardown.run()));
   }
 
-  requestPasswordReset (email: string): Observable<{ message: string }> {
+  landingRoute (): string {
+    if (this.mfaSetupRequired()) return SESSION.PROFILE_ROUTE;
+    return RoleHelper.landingRoute({ role: this.store.user()?.role });
+  }
+
+  getSession (): SessionData | null {
+    const user = this.currentUser();
+    if (!user) return null;
+    return { userId: user.id, email: user.email, displayName: user.displayName, role: user.role };
+  }
+
+  register (dto: RegisterDto): Observable<RegisterResponse> {
     return this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .post<RegisterResponse>(`${this.config.apiUrl}/auth/register`, dto)
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
-  resetPassword (token: string, password: string): Observable<{ message: string }> {
+  requestPasswordReset (dto: ForgotPasswordDto): Observable<MessageResponse> {
     return this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, { token, password })
+      .post<MessageResponse>(`${this.config.apiUrl}/auth/forgot-password`, dto)
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 
-  verifyEmail (token: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/verify-email`, { token, password }).pipe(
-      tap(response => this.persist(response)),
+  resetPassword (dto: ResetPasswordDto): Observable<MessageResponse> {
+    return this.http
+      .post<MessageResponse>(`${this.config.apiUrl}/auth/reset-password`, dto)
+      .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
+  }
+
+  verifyEmail (dto: VerifyEmailDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.config.apiUrl}/auth/verify-email`, dto, { withCredentials: true }).pipe(
+      tap(session => this.store.adopt({ session })),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
-  getSession (): SessionData | null {
-    const u = this.userSignal();
-    if (!u) return null;
-    return { userId: u.id, email: u.email, displayName: u.displayName, role: u.role };
+  verifyMfaLogin (dto: VerifyMfaLoginDto): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.config.apiUrl}/auth/mfa/verify`, dto, { withCredentials: true }).pipe(
+      tap(session => this.store.adopt({ session })),
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
+    );
   }
 
-  updateUserSession (response: UpdateProfileResponse): void {
-    this.tokenSignal.set(response.accessToken);
-    this.userSignal.set(response.user);
-
-    localStorage.setItem('access_token', response.accessToken);
-    localStorage.setItem('auth_user', JSON.stringify(response.user));
-  }
-
-  login (email: string, password: string, rememberMe = false): Observable<AuthResponse> {
+  login ({ email, password, rememberMe }: LoginDto): Observable<LoginResult> {
     const payload: LoginRequest = { email, password };
 
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, payload).pipe(
-      tap(response => {
-        this.persist(response);
-        if (rememberMe) localStorage.setItem('remembered_email', email);
-        else localStorage.removeItem('remembered_email');
+    return this.http.post<LoginResult>(`${this.config.apiUrl}/auth/login`, payload, { withCredentials: true }).pipe(
+      tap(result => {
+        const session = MfaHelper.sessionOf({ result });
+        if (session) this.store.adopt({ session });
+        if (rememberMe) localStorage.setItem(SESSION.REMEMBERED_EMAIL_KEY, email);
+        else localStorage.removeItem(SESSION.REMEMBERED_EMAIL_KEY);
       }),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
   logout (): void {
-    const token = this.tokenSignal();
+    const token = this.token();
 
     if (!token) {
-      this.clearSession();
+      this.teardown.run();
       return;
     }
 
-    this.loggingOutSignal.set(true);
-    this.clearSession();
+    const headers = { [SESSION.AUTH_HEADER]: `${SESSION.BEARER_PREFIX}${token}` };
 
-    this.http.post(`${this.apiUrl}/auth/logout`, {}, { headers: { Authorization: `Bearer ${token}` } }).subscribe({
+    this.loggingOutSignal.set(true);
+    this.teardown.run();
+
+    this.http.post(`${this.config.apiUrl}${SESSION.LOGOUT_PATH}`, {}, { withCredentials: true, headers }).subscribe({
       next: () => this.loggingOutSignal.set(false),
       error: () => this.loggingOutSignal.set(false)
     });
-  }
-
-  private readToken (): string | null {
-    return localStorage.getItem('access_token');
-  }
-
-  private readUser (): AuthUser | null {
-    const raw = localStorage.getItem('auth_user');
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  }
-
-  private persist (response: AuthResponse): void {
-    this.tokenSignal.set(response.accessToken);
-    this.userSignal.set(response.user);
-
-    localStorage.setItem('access_token', response.accessToken);
-    localStorage.setItem('auth_user', JSON.stringify(response.user));
-  }
-
-  private clearSession (): void {
-    this.notificationService.disconnectSSE();
-    this.walletService.reset();
-    this.tokenSignal.set(null);
-    this.userSignal.set(null);
-
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('auth_user');
-
-    this.theme.set('light');
-    void this.router.navigate(['/auth/login']);
   }
 }

@@ -1,6 +1,6 @@
 # Real-Time Financial Ledger & Payments Core (Monorepo)
 
-##### A robust, scalable, and enterprise-grade financial ledger, multi-currency wallet, and real-time payments platform built with Domain-Driven Design (DDD) and NestJS architecture. Featuring immutable double-entry bookkeeping, transactional fund reservation, event-driven messaging (RabbitMQ & Kafka), flexible object storage (MinIO / AWS S3), real-time SSE notifications, interactive Swagger documentation, and comprehensive observability.
+##### A robust, scalable, and enterprise-grade financial ledger, multi-currency wallet, and real-time payments platform built with Domain-Driven Design (DDD) and NestJS architecture. Featuring immutable double-entry bookkeeping, transactional fund reservation, PostgreSQL row-level security, passkey and TOTP authentication, a transactional outbox over RabbitMQ and Kafka, a Postgres-backed job queue, flexible object storage (MinIO / AWS S3), real-time SSE notifications, interactive Swagger documentation, and comprehensive observability.
 
 ---
 
@@ -8,26 +8,29 @@
 
 1. [Features](#-features)
 2. [Architecture Overview](#-architecture-overview)
-3. [Interaction Flow in DDD and Architecture](#-interaction-flow-in-ddd-and-architecture)
-4. [Key Technical Features](#-key-technical-features)
-5. [Design Patterns](#-design-patterns)
-6. [Principles](#-principles)
-7. [Technologies](#-technologies)
-8. [Getting Started](#-getting-started)
-9. [Environment Configuration & .env Locations](#-environment-configuration--env-locations)
-10. [RSA Key Generation (JWT Authentication)](#-rsa-key-generation-jwt-authentication)
-11. [Project Structure](#-project-structure)
-12. [API Documentation (Interactive Swagger)](#-api-documentation-interactive-swagger)
-13. [Running the Application](#-running-the-application)
-14. [Event-Driven Messaging (RabbitMQ & Kafka)](#-event-driven-messaging-rabbitmq--kafka)
-15. [Usage](#-usage)
-16. [Health Monitoring & Observability](#-health-monitoring--observability)
-17. [Flexible Storage: Local MinIO to AWS S3](#-flexible-storage-local-minio-to-aws-s3)
-18. [Testing & Validation](#-testing--validation)
-19. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
-20. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
-21. [Contributing](#-contributing)
-22. [License](#-license)
+3. [How the Important Parts Work](#-how-the-important-parts-work)
+4. [Security Model](#-security-model)
+5. [Background Jobs & the Outbox Relay](#-background-jobs--the-outbox-relay)
+6. [Database Migrations & Security Setup](#-database-migrations--security-setup)
+7. [Key Technical Features](#-key-technical-features)
+8. [Design Patterns](#-design-patterns)
+9. [Principles](#-principles)
+10. [Technologies](#-technologies)
+11. [Getting Started](#-getting-started)
+12. [Environment Configuration & .env Locations](#-environment-configuration--env-locations)
+13. [RSA Key Generation (JWT Authentication)](#-rsa-key-generation-jwt-authentication)
+14. [Project Structure](#-project-structure)
+15. [API Documentation (Interactive Swagger)](#-api-documentation-interactive-swagger)
+16. [Running the Application](#-running-the-application)
+17. [Event-Driven Messaging (RabbitMQ & Kafka)](#-event-driven-messaging-rabbitmq--kafka)
+18. [Usage](#-usage)
+19. [Health Monitoring & Observability](#-health-monitoring--observability)
+20. [Flexible Storage: Local MinIO to AWS S3](#-flexible-storage-local-minio-to-aws-s3)
+21. [Testing & Validation](#-testing--validation)
+22. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
+23. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
+24. [Contributing](#-contributing)
+25. [License](#-license)
 
 ---
 
@@ -35,10 +38,19 @@
 
 ## User Management & Security
 
-- **Complete User Lifecycle**: Registration, email verification, login, password reset, profile management, and session invalidation.
-- **Asymmetric RSA JWT Authentication**: Public/private RSA key-pair signature validation for stateless, high-security token verification (`JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY`).
+- **Complete User Lifecycle**: Registration, email verification, login, password reset, verified email change, profile management, and session invalidation.
+- **Asymmetric RSA JWT Authentication**: Public/private RSA key-pair signature validation for stateless, high-security token verification (`JWT_PRIVATE_KEY` and `JWT_PUBLIC_KEY`), with short-lived access tokens and a rotating refresh cookie.
+- **Passkeys (WebAuthn)**: Sign in with Face ID, a fingerprint, a security key or a password manager. Only a public key is stored — no biometric ever reaches the server. Includes cloned-authenticator detection and **step-up re-authentication** before a withdrawal, before attaching a payout destination, and before turning off two-factor.
+- **Two-Factor Authentication (TOTP)**: Authenticator-app enrolment with encrypted secrets, single-use recovery codes, and a policy that can require 2FA for privileged roles.
+- **Account Lockout & Device Tracking**: Failed-attempt lockout, per-device login history, and a shared-device report for administrators.
+- **Row-Level Security**: PostgreSQL RLS is enforced in the database, not only in application code — see [Security Model](#-security-model).
 - **Role-Based Access Control (RBAC)**: Fine-grained permissions across hierarchical roles (`user`, `moderator`, `admin`, `global_admin`).
-- **Strict Data Validation**: Zod-based contract validation across incoming HTTP payloads with `nestjs-zod`.
+- **Strict Data Validation**: Zod 4 contract validation across incoming HTTP payloads with `nestjs-zod`.
+
+## Responsible Gambling Controls
+
+- **Self-Exclusion**: A user can lock themselves out of betting and depositing for a chosen period; withdrawals stay open by design.
+- **Deposit Limits**: Daily, weekly and monthly caps enforced against actual spend at deposit time.
 
 ## Double-Entry Financial Ledger
 
@@ -55,9 +67,14 @@
 
 ## Event-Driven & Async Architecture
 
-- **Transactional Outbox & Job Queues**: RabbitMQ handles asynchronous task distribution, payment webhooks, and background processing.
+- **Transactional Outbox**: Every domain event is written to `outbox_events` **inside the transaction that owns the state change**, then published by a relay. Each row carries a `destination` (`KAFKA` or `RABBITMQ`), so one relay feeds both brokers with no dual-write window.
+- **Postgres-Backed Job Queue**: `@common/tasks` claims work with `FOR UPDATE SKIP LOCKED`, retries with exponential backoff, and serialises recurring schedules across instances with `pg_try_advisory_xact_lock`.
 - **Real-Time Analytics Streaming**: Kafka event pipelines stream financial operations and game events for downstream analytics in ClickHouse.
 - **Live Notifications (SSE)**: Server-Sent Events stream instant balance updates, security alerts, and transaction statuses directly to connected clients.
+
+## Shared Contracts
+
+- **One Source of Truth for Shapes**: `@common/contracts` holds a Zod definition per domain object. The API and the Angular client both derive their types from it, so renaming a field breaks **both** typechecks instead of silently breaking the UI.
 
 ## Flexible Storage & Observability
 
@@ -69,166 +86,442 @@
 
 # 🏗 Architecture Overview
 
-The system implements a **Domain-Driven Design (DDD) Modular Monolith** combined with an **Event-Driven & Outbox** architecture, augmented by an **Orchestration-based Saga / Workflow Pattern** for resilient multi-step financial transactions with automatic compensating rollbacks.
+The system is a **Domain-Driven Design (DDD) modular monolith** with an **event-driven transactional outbox**. One
+codebase runs as two kinds of process — the **API** (HTTP and live streams) and the **worker** (background jobs) — and
+both share the same PostgreSQL database, which is the single source of truth for money.
 
-```mermaid
-graph TD
-    Client["📱 Angular Client (Port 4200)"]
-    API["🧠 NestJS Core API (Port 3000)"]
-    DB[("💾 PostgreSQL 16 (Ledger & State)")]
-    Redis[("⚡ Redis 7 (Cache & Sessions)")]
-    Rabbit["🐰 RabbitMQ (Async Task Queue)"]
-    Kafka["📨 Apache Kafka (Analytics Stream)"]
-    Storage[("🗄️ Object Storage (MinIO / AWS S3)")]
-    ClickHouse[("📊 ClickHouse (Analytics OLAP)")]
-    Prometheus["📈 Prometheus (Metrics Engine)"]
-    Grafana["🖥️ Grafana (Dashboards)"]
+Three ideas carry most of the weight:
 
-    Client <-->|REST API / SSE Streams| API
-    API <-->|ACID Transactions| DB
-    API <-->|Fast-Path Cache| Redis
-    API -->|Publish Tasks| Rabbit
-    API -->|Stream Events| Kafka
-    API <-->|Uploads / Images| Storage
-    Kafka --> ClickHouse
-    API -->|Scrape /api/metrics| Prometheus
-    Prometheus --> Grafana
-```
-
----
-
-# 🧩 Interaction Flow in DDD and Architecture
-
-### How a Financial Transaction Works (In Plain English)
-
-Think of the system like a modern digital bank: when a user clicks **"Place Bet"**, **"Deposit"**, or **"Transfer Funds"**, the platform ensures **instant response time** while guaranteeing that **not a single cent is ever lost or double-spent**.
-
----
-
-### The 4-Step Money Movement Flow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as 👤 User / App
-    participant API as 🧠 The Brain (NestJS API)
-    participant Vault as 🔒 Secure Vault (PostgreSQL Database)
-    participant Cache as ⚡ Fast Memory (Redis Cache)
-    participant Streams as 📨 Background Engines (RabbitMQ & Kafka)
-
-    User->>API: 1. "Place $50 Bet / Transfer"
-    API->>Vault: 2. Lock balance & check funds
-    Note over Vault: Move $50 from 'Available' to 'Reserved'<br/>Write balanced double-entry receipt
-    API->>Cache: 3. Update cached balance
-    API-->>User: 🚀 Instant "Success" & Updated Balance!
-    
-    par Background Work
-        API->>Streams: 4. Dispatch background jobs & analytics
-    end
-```
-
----
-
-### Why It Feels Instant & Never Loses Money
-
-| Principle | What It Means | Why It Matters |
+| Idea | In one sentence | Why it is there |
 | :--- | :--- | :--- |
-| ⚡ **Instant Response** | The user gets a green "Success" confirmation in milliseconds. | No spinning wheels or frozen interfaces; the UI stays fast and responsive. |
-| 🔒 **No Double-Spending** | The system locks the user's balance row during the transaction. | A user cannot open two tabs and spend the same $50 balance twice at the exact same millisecond. |
-| 📖 **Balanced Accounting** | Every movement creates an immutable **Debit** and **Credit** entry. | Money cannot be created or lost from thin air ($\sum \text{Debits} = \sum \text{Credits}$). |
-| 🔄 **Guaranteed Background Tasks** | Heavy analytics, email receipts, and external webhooks run in background queues. | Complex background jobs never slow down the primary checkout or betting experience. |
+| **Double-entry ledger** | Every movement writes balanced debit and credit rows that are never updated or deleted. | Money cannot be created or destroyed by a bug; the books can always be re-derived. |
+| **Transactional outbox** | Events are written in the same transaction as the change, and a relay publishes them afterwards. | A message can never describe a change that rolled back, and a change can never fail to produce its message. |
+| **Row-level security** | The database itself decides which rows an account can see. | A forgotten `WHERE` clause returns nothing instead of leaking another customer's data. |
+
+## The big picture
+
+```mermaid
+flowchart LR
+    Browser["📱 Angular client"]
+    Peer["📱 Other participant"]
+
+    subgraph App["Core API (NestJS)"]
+        API["🧠 API process<br/>REST · live streams"]
+        Worker["⚙️ Worker process<br/>jobs · outbox relay · consumers"]
+    end
+
+    subgraph Data["Data"]
+        DB[("💾 PostgreSQL<br/>ledger · state · outbox · jobs")]
+        Redis[("⚡ Redis<br/>sessions · presence · rate limits")]
+        Files[("🗄️ MinIO / S3<br/>images · attachments · recordings")]
+    end
+
+    subgraph Messaging["Messaging"]
+        Rabbit["🐰 RabbitMQ<br/>notifications"]
+        Kafka["📨 Kafka<br/>email · audit · analytics"]
+    end
+
+    PSP["💳 Payment providers (PSPs)<br/>one adapter per provider"]
+
+    Browser <-->|REST + SSE| API
+    Browser -.->|"calls: peer-to-peer WebRTC"| Peer
+    API --> DB
+    API --> Redis
+    API --> Files
+    API <--> PSP
+    Worker --> DB
+    Worker --> Rabbit
+    Worker --> Kafka
+    Rabbit --> Worker
+    Kafka --> Worker
+```
+
+**How to read it:**
+- The **browser** only talks to the API: REST for actions, one Server-Sent Events stream per feature for live updates.
+- The **API** never publishes to a broker. It writes events into PostgreSQL, and the **worker** relays them.
+- **Calls** carry audio and video directly between the two browsers; the API only passes the setup messages.
+- **Payments** go through a provider-agnostic layer (`@common/payment-provider`): each PSP is an adapter behind the
+  same interface, with routing and failover between them. Stripe is the first adapter; more can be added without
+  changing the payment flows.
+- **Monitoring** (not drawn): Prometheus scrapes `/metrics`, Grafana shows it. ClickHouse runs in the dev stack but is
+  not fed yet — see `PROJECT-BACKLOG.md` (`NEW-P2-7`, `NEW-P2-8`).
+
+> [!NOTE]
+> Today the API process also runs the background jobs, so a single process is enough locally. Splitting them so that
+> only the worker does background work is planned (`SCALE-1` in `PROJECT-BACKLOG.md`).
+
+## Inside the API
+
+```mermaid
+flowchart LR
+    Req["HTTP request"] --> Guard["🛡️ Guards<br/>session · roles · rate limit"]
+    Guard --> Ctrl["🚪 Controller<br/>validates the DTO"]
+    Ctrl --> Svc["📮 Module service<br/>one line, delegates"]
+    Svc --> UC["🧠 Use case<br/>the business rules"]
+    UC --> Repo["🗃️ Repository"]
+    Repo --> DB[("💾 PostgreSQL<br/>RLS enforced")]
+```
+
+Every request takes the same path: guards check who you are, the controller validates input, the module service hands
+it to one **use case**, and only the use case contains business logic. Repositories are the only code that writes SQL.
 
 ---
 
-### Multi-Step Saga Workflow (Orchestration with Compensating Transactions)
+# 🧩 How the Important Parts Work
 
-For multi-step financial flows (such as deposits and withdrawals), the system uses an **Orchestration-based Saga Pattern** (`WorkflowOrchestratorService`) to execute sequential business operations with automatic reverse-compensation rollbacks upon step failure:
+Each flow below covers one part of the application, in as few steps as possible.
+
+## 1. Signing in and staying signed in
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 👤 User / App
-    participant Orch as 🎯 Deposit Orchestrator
-    participant Step1 as 1️⃣ Validate Method
-    participant Step2 as 2️⃣ Reserve Funds
-    participant Step3 as 3️⃣ Create Record
-    participant Step4 as 4️⃣ Credit Wallet
-    participant Step5 as 5️⃣ Emit Event (Kafka)
+    actor User
+    participant Client as 📱 Client
+    participant API as 🧠 API
+    participant Redis as ⚡ Redis
 
-    User->>Orch: execute(DepositWorkflowInput)
-    Orch->>Step1: 1. execute(context) -> Verify payment method
-    Orch->>Step2: 2. execute(context) -> Reserve funds
-    Orch->>Step3: 3. execute(context) -> Create PENDING record
-    
-    alt Step Failure (e.g., Step 4 Fails)
-        Orch-xStep4: execute(context) -> Credit fails!
-        Note over Orch: Automatic Reverse Compensation Triggered
-        Orch->>Step3: compensate(context) -> Mark COMPENSATED
-        Orch->>Step2: compensate(context) -> Release reserved funds
-        Orch->>Step1: compensate(context) -> No-op (read-only)
-        Orch-->>User: ❌ Reversal Finished & Error Returned
-    else Happy Path (All Steps Pass)
-        Orch->>Step4: 4. execute(context) -> Credit wallet
-        Orch->>Step5: 5. execute(context) -> Emit payment.completed
-        Orch-->>User: ✅ Payment Completed & Event Published
-    end
+    User->>Client: Email + password (or passkey)
+    Client->>API: POST /auth/login
+    API->>API: Check password (Argon2id), then 2FA if enabled
+    API->>Redis: Create session
+    API-->>Client: Short-lived access token + refresh cookie
+    Note over Client,API: When the access token is about to expire, the client calls /auth/refresh with the cookie
+    User->>Client: Log out
+    Client->>API: POST /auth/logout
+    API->>Redis: Delete session, mark the user offline
 ```
 
-| Saga Step | Forward Action (`execute`) | Compensating Action (`compensate`) |
+- **Access token:** RS256 JWT, short-lived, sent as `Authorization: Bearer`.
+- **Refresh cookie:** `HttpOnly`, rotated on every refresh; reuse of an old one revokes every session of that user.
+- **Admins and global admins** must set up two-factor before they can use the app.
+
+## 2. Placing a bet (moving money)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant API as 🧠 API
+    participant DB as 💾 PostgreSQL
+
+    User->>API: Place a $25 bet
+    rect rgb(238, 246, 255)
+        Note over API,DB: One database transaction
+        API->>DB: Lock the wallet and check the balance
+        API->>DB: Debit the wallet + write balanced ledger rows
+        API->>DB: Write the event into outbox_events
+    end
+    API-->>User: ✅ Confirmed with the new balance
+```
+
+Everything in the shaded box commits together or not at all, so money and its event can never disagree. Notifications
+and emails go out afterwards through the outbox (flow 5).
+
+## 3. Deposits
+
+```mermaid
+flowchart LR
+    A([Deposit request]) --> B{Allowed?<br/>limits · self-exclusion}
+    B -->|No| X([Refused])
+    B -->|Yes| C[Create payment PENDING]
+    C --> D[Charge the provider]
+    D -->|Paid| E([Credit wallet + ledger + event<br/>in one transaction])
+    D -->|Declined| F([FAILED])
+    D -->|No answer| G([REQUIRES_ACTION<br/>reconciliation decides])
+```
+
+- Every deposit carries an **idempotency key**, so a double click or a retry charges once.
+- An unclear answer from the provider is never treated as a failure; the reconciliation job asks the provider later.
+- Card details never reach our servers: cards are added on the provider's own hosted page, and we keep only a token.
+
+## 4. Withdrawals
+
+```mermaid
+flowchart LR
+    A([Withdraw $50]) --> S{Passkey step-up<br/>if enabled}
+    S --> B[Reserve $50<br/>available → reserved]
+    B --> C[Ask the provider to pay out]
+    C -->|Paid| D([Settle: money leaves])
+    C -->|Declined| E([Release back to available])
+    C -->|No answer| F([Keep reserved,<br/>reconciliation decides])
+```
+
+Money is **reserved first** and only leaves once the provider confirms, so a failed payout can always be undone.
+
+## 5. Events: the outbox
+
+```mermaid
+flowchart LR
+    T["Business transaction"] -->|same COMMIT| O[("📬 outbox_events")]
+    O --> R["🔁 Relay<br/>(worker)"]
+    R -->|notifications| Q["🐰 RabbitMQ"]
+    R -->|email · audit · analytics| K["📨 Kafka"]
+    Q --> N["Notification consumer → live stream"]
+    K --> M["Email · audit · analytics consumers"]
+```
+
+Events are never published from a request. The relay picks up committed rows and publishes them; if a broker is down
+the rows wait and are sent when it returns.
+
+## 6. Live updates in the browser
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as 📱 Client
+    participant API as 🧠 API
+
+    Client->>API: POST …/stream-ticket (with access token)
+    API-->>Client: One-time ticket (30 seconds)
+    Client->>API: GET …/stream?ticket=… (EventSource)
+    API-->>Client: Events as they happen
+    Note over Client,API: On disconnect the client reconnects with backoff and a new ticket
+```
+
+A short one-time ticket is used because `EventSource` cannot send an `Authorization` header. Notifications and the
+support chat each have their own stream.
+
+## 7. Support chat
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Player
+    participant API as 🧠 API
+    participant DB as 💾 PostgreSQL
+    participant Files as 🗄️ MinIO
+    actor Staff
+
+    Player->>API: Pick a staff member → open conversation
+    Player->>API: Send text, files, a voice or a video message
+    API->>Files: Store files (type checked from their bytes)
+    API->>DB: Save the message
+    API-->>Staff: Pushed live on the support stream
+    Staff->>API: Open the conversation (mark read)
+    API-->>Player: Pushed live: ticks turn blue
+```
+
+- Each player has a **separate private conversation per staff member**; other staff cannot read it.
+- **Presence:** the app sends a heartbeat every 20 seconds; logging out shows "Last seen" immediately.
+- **Edit** for 15 minutes; **delete for everyone** within 48 hours; **delete for me** at any time — own messages only.
+
+## 8. Voice and video calls
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Caller
+    participant API as 🧠 API
+    actor Callee
+
+    Caller->>API: Start call (offer)
+    API-->>Callee: Ringing (live stream)
+    Callee->>API: Accept (answer)
+    API-->>Caller: Answer
+    Caller-->>Callee: Connection details exchanged through the API
+    Note over Caller,Callee: Audio · video · screen share flow directly between the browsers
+    Caller->>API: Hang up
+    API-->>Callee: Call ended + "Voice call · 02:13" in the chat
+```
+
+The API only relays the setup; the media never passes through our servers. Calls work on the same network today;
+across the internet they need STUN/TURN servers (`SUPPORT_ICE_SERVERS`, see `NEW-P1-1` in `PROJECT-BACKLOG.md`).
+
+## 9. Background jobs
+
+```mermaid
+flowchart LR
+    S["Scheduler<br/>(every N seconds)"] -->|enqueue| J[("💾 jobs table")]
+    U["Any use case"] -->|enqueue| J
+    J -->|"claim: FOR UPDATE SKIP LOCKED"| W["⚙️ Worker"]
+    W -->|success| D([done])
+    W -->|failure| B([retry with backoff, then park])
+```
+
+Recurring jobs: payment reconciliation, webhook replay, ledger integrity check, data retention. An advisory lock makes
+sure each schedule runs once even with several instances.
+
+## 10. Who can see which rows (row-level security)
+
+```mermaid
+flowchart LR
+    R["User request"] --> A["app_api login<br/>RLS enforced"]
+    A --> P{"Row belongs to<br/>this user? or staff?"}
+    P -->|yes| OK([visible])
+    P -->|no| NO([invisible])
+    B["Background work<br/>RequestScope.runSystem"] --> W["app_worker login<br/>bypasses RLS"]
+```
+
+Requests run as `app_api`, which PostgreSQL limits to the user's own rows. Background work runs as `app_worker` and
+must be wrapped in `RequestScope.runSystem(...)` — without it, it silently reads zero rows instead of leaking data.
+
+---
+
+# 🔐 Security Model
+
+## Authentication Ladder
+
+| Factor | Mechanism | Where it applies |
 | :--- | :--- | :--- |
-| **1. Validate Method** | Verifies payment method status is `VERIFIED` | No-op (read-only validation) |
-| **2. Reserve Funds** | Isolates balance via `walletService.reserveFunds` | Releases balance via `walletService.releaseFunds` |
-| **3. Create Record** | Inserts payment entry in `PENDING` state | Updates status to `COMPENSATED` |
-| **4. Credit Wallet** | Credits wallet with reference `deposit: <id>` | Debits wallet with reference `reversal:deposit: <id>` |
-| **5. Emit Event** | Publishes `payment.completed` event to Kafka | Publishes `payment.failed` event to Kafka |
+| **Password** | Argon2id hashes, per-account lockout after repeated failures | Every sign-in |
+| **TOTP (2FA)** | Authenticator app, encrypted secret, single-use recovery codes | Optional; can be **required** by role policy |
+| **Passkey (WebAuthn)** | Platform authenticator, security key or password manager | Sign in with no password at all |
+| **Step-up** | A fresh passkey assertion, single-use, 5-minute TTL | Withdrawal · attaching a payout destination · disabling 2FA |
 
----
+### Why passkeys and not a face scan
 
-### Payment Method Lifecycle & Card Verification Flow
+The biometric never leaves the device. The authenticator unlocks a private key locally and we verify a **signature**;
+we store only a public key. Sending a face or fingerprint to the server would make us a controller of special-category
+data (GDPR Article 9), a webcam face match is defeated by a photo without paid liveness, and a biometric cannot be
+rotated — a leaked template is leaked for life. Passkeys are also phishing-resistant, which a TOTP code is not.
 
-Payment methods (Credit/Debit cards, bank accounts, digital wallets) undergo real-time client validation, provider tokenization, and asynchronous webhook verification:
+Step-up is off unless `PASSKEY_STEP_UP_ENABLED=true`, and a user who has registered no passkey is **never** blocked
+from their own money by it.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as 👤 User / App
-    participant Client as 📱 Angular Client
-    participant CoreAPI as 🧠 Core API
-    participant Provider as 💳 Payment Provider (Stripe / Local)
-    participant DB as 💾 PostgreSQL (payment_methods)
-    participant Webhook as 🪝 Webhook Ingestion
+## Row-Level Security
 
-    User->>Client: 1. Input Card Number, Expiry (MM/YY), CVV, Holder
-    Note over Client: Real-time Luhn verification, auto-splitting & brand detection
-    User->>Client: 2. Click "Save & Verify"
-    Client->>CoreAPI: 3. POST /api/v1/payment-methods
-    CoreAPI->>Provider: 4. createPaymentMethod(details)
-    Provider->>Provider: 5. Verify Luhn, Expiry, CVV & Tokenize (pm_xxx)
-    Provider-->>CoreAPI: 6. Return ProviderMethodResultDto (status, brand, last4)
-    CoreAPI->>DB: 7. INSERT INTO payment_methods (status=VERIFIED, token)
-    CoreAPI-->>Client: 8. Return saved payment method
-    Client-->>User: 9. Card saved with Verified badge & form reset
+RLS is enforced by PostgreSQL, so a missing `WHERE user_id = …` in application code cannot leak another account's rows.
 
-    opt Asynchronous Provider Webhook Event
-        Provider->>Webhook: POST /api/v1/webhooks/:provider (e.g. payment_method.verified)
-        Webhook->>DB: Check idempotency (findByProviderAndEventId)
-        Webhook->>DB: Update payment_methods status
-    end
+- **`app_api`** is `NOBYPASSRLS`. The adapter sets `app.current_user_id` per transaction, and every owner-scoped table
+  has an owner policy plus a staff policy.
+- **`app_worker`** bypasses RLS and is used only for background work.
+- **Background work must run inside `RequestScope.runSystem(...)`** — jobs, Kafka and RabbitMQ handlers, the outbox
+  relay, webhook ingestion and registration. Inside it, `PostgresService` hands back the worker connection. Forget the
+  wrapper and the code reads **zero rows** rather than leaking them, which is the safe direction to fail.
+
+Provision the two login roles once per database:
+
+```bash
+# Requires APP_WORKER_DB_USERNAME and APP_WORKER_DB_PASSWORD; DATABASE_URL must be an owner connection
+npm run db:provision-roles
 ```
 
 ---
 
-### How the System Layers Work Together
+# ⚙️ Background Jobs & the Outbox Relay
 
-1. **🚪 The Front Door (Request Layer)**
-   - Checks security badges (RSA JWT tokens) and validates user inputs before anything touches the core database.
-2. **🧠 The Business Brain (Domain & Application Layer)**
-   - Enforces financial rules: checks if the wallet has enough funds, calculates currency conversions, and creates balanced accounting movements.
-3. **⚙️ The Engine Room (Infrastructure Layer)**
-   - **PostgreSQL**: Stores the permanent, tamper-proof financial ledger.
-   - **Redis**: Keeps balances hot in memory for lightning-fast lookups.
-   - **RabbitMQ & Kafka**: Handles background jobs, notifications, and analytics streaming without delaying the user.
+Two separate mechanisms, often confused:
 
+| | Transactional Outbox | Task Queue (`@common/tasks`) |
+| :--- | :--- | :--- |
+| **Table** | `outbox_events` | `jobs` |
+| **Purpose** | Publish a domain event that *already happened* | Run work that should happen *later* |
+| **Written** | Inside the transaction that owns the state change | By any caller, or on a recurring schedule |
+| **Claimed by** | The relay, in publish order | Workers, via `FOR UPDATE SKIP LOCKED` |
+| **On failure** | Retried until published | Exponential backoff, then parked |
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Tx as 💾 Business Transaction
+    participant Outbox as 📬 outbox_events
+    participant Relay as 🔁 Outbox Relay
+    participant Rabbit as 🐰 RabbitMQ
+    participant Kafka as 📨 Kafka
+
+    Tx->>Outbox: INSERT event (same COMMIT as the state change)
+    Note over Tx,Outbox: Both commit together, or neither does
+    Relay->>Outbox: Claim PENDING rows
+    alt destination = RABBITMQ
+        Relay->>Rabbit: Publish (notifications)
+    else destination = KAFKA
+        Relay->>Kafka: Publish (email, audit, analytics)
+    end
+    Relay->>Outbox: Mark PUBLISHED
+```
+
+### Rules the codebase relies on
+
+- **Never do network I/O inside a database transaction.** A retry re-runs the whole callback.
+- **Transaction retries are limited to `40001` / `40P01` / `55P03`, and only before `COMMIT`.** A `COMMIT` that fails
+  with a lost connection may already have committed; retrying it would double-write money.
+- **Write the event inside the transaction that owns the change** — never post-commit, never fire-and-forget.
+
+### Recurring work
+
+Scheduled jobs take a `pollMs` interval and are serialised across API instances with
+`pg_try_advisory_xact_lock(hashtext(name))`, so running several instances does not run the same schedule several times.
+Current schedules: outbox relay, webhook replay, payment reconciliation, and retention pruning.
+
+---
+
+# 🗄 Database Migrations & Security Setup
+
+Migrations and database logins are the most security-sensitive commands in the project: they run as the database
+**owner**, and they decide what the application is allowed to see. Run them in this order and with these settings.
+
+## Which settings each command reads
+
+| Command | Reads | Connects as |
+| :--- | :--- | :--- |
+| `npm run migrate:up` / `migrate:down` | root `.env` → `DATABASE_URL`, `DEMO_USER_PASSWORD` | the **owner** (`postgres` locally) |
+| `npm run db:provision-roles` | `apps/core-api/.env` → `DATABASE_URL`, `DB_USERNAME`/`APP_API_DB_*`, `APP_WORKER_DB_*` | the **owner**, to create the two app logins |
+| `npm run dev` (the app) | `apps/core-api/.env` → `DB_USERNAME`/`DB_PASSWORD`, `DB_WORKER_USERNAME`/`DB_WORKER_PASSWORD` | `app_api` for requests, `app_worker` for background work |
+
+> [!IMPORTANT]
+> `DB_USERNAME` in `apps/core-api/.env` must be the **API login** (`app_api`), never the owner. `db:provision-roles`
+> refuses to run if it is the owner. `APP_WORKER_DB_*` (used to create the worker login) and `DB_WORKER_*` (used by
+> the app to connect) must hold the same username and password.
+
+## First-time setup, in order
+
+```bash
+npm run generate:keys        # 1. RSA key pair for signing tokens (keys/ is git-ignored)
+npm run infra:up:dev         # 2. Start PostgreSQL, Redis, brokers, MinIO, monitoring
+npm run migrate:up           # 3. Create every table, policy and trigger (runs as the owner)
+npm run db:provision-roles   # 4. Create app_api (RLS enforced) and app_worker (bypasses RLS)
+npm run dev                  # 5. Start the API and the client
+```
+
+Demo users are created by migration `014` **only** when the database name contains `distributed_db`, `test` or
+`local`, and only if `DEMO_USER_PASSWORD` is set. Any other database name — staging or production — gets no demo data.
+
+## Day-to-day migration commands
+
+```bash
+npm run migrate:create -- add-payout-currency   # new file in apps/core-api/migrations/
+npm run migrate:up                              # apply every pending migration
+npm run migrate:down                            # roll back the most recent migration only
+```
+
+Rules every migration follows:
+- **Always a working `down`.** A migration that cannot be rolled back is not merged.
+- **Never edit an applied migration.** Add a new one; the dev database and every environment already ran the old one.
+- **Grant and protect new tables in the same migration:** `GRANT` to `app_readwrite` / `app_readonly`, `ENABLE ROW
+  LEVEL SECURITY`, and an owner policy plus a staff policy for any table with user data.
+- **Test up and down on a throwaway database** before applying it anywhere shared:
+
+```bash
+PW=$(grep '^DB_PASSWORD=' apps/core-api/.env | cut -d= -f2-)
+docker exec ddd_postgres_db psql -U postgres -c "CREATE DATABASE scratch_test;"
+DATABASE_URL="postgres://postgres:${PW}@127.0.0.1:54320/scratch_test" DEMO_USER_PASSWORD='ScratchPass123!' \
+  npx node-pg-migrate up --migrations-dir apps/core-api/migrations
+DATABASE_URL="postgres://postgres:${PW}@127.0.0.1:54320/scratch_test" \
+  npx node-pg-migrate down --migrations-dir apps/core-api/migrations
+docker exec ddd_postgres_db psql -U postgres -c "DROP DATABASE scratch_test;"
+```
+
+## Check that the security setup is right
+
+```bash
+docker exec ddd_postgres_db psql -U postgres -d distributed_db -c \
+  "SELECT rolname, rolbypassrls, rolcanlogin FROM pg_roles WHERE rolname IN ('app_api', 'app_worker');"
+```
+
+Expected: `app_api` → `rolbypassrls = f`, `app_worker` → `rolbypassrls = t`, both can log in. If `app_api` can bypass
+RLS, row-level security is not protecting anything.
+
+## Production checklist
+
+- Run migrations from the deployment pipeline (a one-off job before the new version starts), never by hand from a
+  laptop, and take a backup first.
+- The owner password, `app_api` and `app_worker` passwords and the JWT keys come from a secret store (Kubernetes
+  Secrets, Vault, AWS Secrets Manager) — never from committed files.
+- `DB_SSL=true`, a database name without `test`, `local` or `distributed_db` (so no demo data), and no
+  `DEMO_USER_PASSWORD`.
+- The application never connects as the owner; only migrations and `db:provision-roles` do.
+- Rotate the JWT keys and database passwords on a schedule and whenever someone with access leaves.
 
 ---
 
@@ -237,12 +530,16 @@ sequenceDiagram
 - **Domain-Driven Design (DDD)**: Clean domain models, bounded contexts, and separation of business rules from transport protocols.
 - **Double-Entry Bookkeeping**: Strict adherence to formal accounting principles ensuring balanced journal entries.
 - **Minor Currency Representation**: Storing monetary values as integers (`amountMinor`) to prevent floating-point truncation bugs.
-- **Transactional Outbox Pattern**: Guaranteed event publishing without dual-write consistency issues.
+- **Transactional Outbox Pattern**: Guaranteed event publishing without dual-write consistency issues, with per-row `destination` routing to Kafka or RabbitMQ.
+- **Row-Level Security**: Ownership enforced in PostgreSQL, so a forgotten `WHERE` clause reads nothing rather than leaking.
+- **Passkeys & Step-Up**: WebAuthn sign-in plus single-use re-authentication in front of the actions that move money.
+- **Postgres-Backed Job Queue**: `FOR UPDATE SKIP LOCKED` claiming, exponential backoff, and advisory-lock scheduling across instances.
 - **Server-Sent Events (SSE)**: Native real-time streaming endpoint at `/api/v1/notifications/stream`.
 - **Asymmetric RSA Authentication**: Secure JWT signing with private RSA keys and public key verification.
 - **Fine-Grained RBAC**: Multi-role security model protecting administrative and financial endpoints.
+- **Idempotent Money Paths**: Client-supplied idempotency keys plus a webhook inbox, so a retry or a replayed webhook can never double-charge.
 - **Interactive Swagger Documentation**: Automatically generated OpenAPI 3.0 schema and web test UI at `/api-docs`.
-- **Automated Schema Migrations**: Version-controlled migrations via `node-pg-migrate`.
+- **Automated Schema Migrations**: Version-controlled migrations via `node-pg-migrate`, every one with a working `down`.
 - **Pre-commit Quality Checks (Husky)**: Automated linting, formatting, and type-checking across all monorepo workspaces.
 
 ---
@@ -276,11 +573,17 @@ sequenceDiagram
 ## 9. Migration Strategy Pattern
 - Decouples database schema evolution from application deployments via versioned migration scripts.
 
-## 10. Saga / Workflow Orchestration Pattern (Compensating Transactions)
-- Implements an orchestration-based SAGA pattern via `WorkflowOrchestratorService` to coordinate multi-step, cross-bounded-context transactions.
-- Steps implement the generic `WorkflowStep<TContext>` contract with forward execution (`execute`) and undo semantics (`compensate`).
-- Automatically drives reverse compensating rollbacks upon step failure, guaranteeing eventual consistency across domain boundaries without requiring distributed 2PC (two-phase commit) locks.
-- Decorated with `@WorkflowStepMeta()` for automatic step discovery, telemetry, and structured workflow logging.
+## 10. Compensating Transactions (Explicit, Not Orchestrated)
+- A payment spans the database **and** an outside provider, so it cannot be held in one transaction. Each failure is answered with a specific compensating action rather than a generic rollback: refund the charge, release the reservation, or park the payment as `REQUIRES_ACTION`.
+- Compensation is written inline in `PaymentOperationHelper` where the failure happens. There is deliberately **no** workflow engine or step registry — the number of steps is small, and explicit handling makes it obvious what becomes of the money in every branch.
+- Indeterminate provider results are never compensated automatically. They are parked for the reconciliation job, because undoing something that may not have happened is how money gets moved twice.
+
+## 11. Idempotency & Inbox Pattern
+- Money-moving requests carry a client idempotency key; a repeat returns the original payment instead of creating a second one.
+- Inbound webhooks are recorded in a `webhook_inbox` keyed by provider and event id, so a provider re-sending an event changes nothing.
+
+## 12. Row-Level Security as a Backstop
+- Ownership is enforced by PostgreSQL policies, not only by application filters, so a missing predicate fails closed.
 
 ---
 
@@ -298,7 +601,10 @@ sequenceDiagram
 
 - **Monorepo Management**: NPM Workspaces & Turborepo (`turbo`)
 - **Backend Framework**: NestJS 12, Node.js (v22+), TypeScript 5.7+
-- **Validation**: Zod & `nestjs-zod`
+- **Validation**: Zod 4 & `nestjs-zod`, with shared contracts in `@common/contracts`
+- **Passwordless Authentication**: WebAuthn via `@simplewebauthn/server` and `@simplewebauthn/browser`
+- **Two-Factor**: TOTP with encrypted secrets and single-use recovery codes
+- **Integration Testing**: Testcontainers (Postgres, Redis, RabbitMQ, Kafka) against the built API
 - **Frontend**: Angular 21 (Standalone Components), RxJS, Tailwind CSS
 - **Primary Database**: PostgreSQL 16 (via `node-pg-migrate` & native client pool)
 - **In-Memory Cache**: Redis 7
@@ -367,6 +673,17 @@ Execute database migrations to initialize tables, schemas, and extensions:
 ```bash
 npm run migrate:up
 ```
+
+## 7. Provision the Row-Level Security Roles
+
+The API runs as a role that **cannot** bypass RLS, and background work runs as one that can. Create both once:
+
+```bash
+npm run db:provision-roles
+```
+
+This reads `APP_WORKER_DB_USERNAME` and `APP_WORKER_DB_PASSWORD`; without them, background work falls back to the API
+role and RLS will block it — see [Security Model](#-security-model).
 
 ---
 
@@ -509,7 +826,39 @@ STORAGE_SECRET_KEY=minio_password
 STORAGE_BUCKET_NAME=fin-ledger-storage
 STORAGE_REGION=us-east-1
 STORAGE_FORCE_PATH_STYLE=true
+
+# Row-Level Security: the login background work uses (bypasses RLS)
+DB_WORKER_USERNAME=app_worker
+DB_WORKER_PASSWORD=worker_password
+
+# Two-Factor (TOTP). 32 random bytes, base64; rotating it invalidates every enrolled secret
+MFA_ENCRYPTION_KEY=
+MFA_ISSUER=Wallet
+
+# Passkeys. Both default from FRONTEND_URL, so local development needs neither
+PASSKEY_RP_NAME=Wallet
+PASSKEY_RP_ID=localhost
+PASSKEY_ORIGIN=http://localhost:4200
+# Ask for the passkey again before a withdrawal, a payout change or disabling 2FA
+PASSKEY_STEP_UP_ENABLED=false
+
+# Payment providers (PSPs). Each provider adapter has its own credentials; Stripe is the first adapter.
+# With no provider credentials, set this to run without a live provider
+PAYMENT_SIMULATION=true
+# Stripe adapter
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PUBLISHABLE_KEY=
 ```
+
+> [!WARNING]
+> `PAYMENT_SIMULATION=true` is refused in production. If a provider's credentials **are** present they are used, so a
+> development run with real keys will call that provider's live API.
+
+> [!NOTE]
+> `npm run db:provision-roles` reads `APP_WORKER_DB_USERNAME` / `APP_WORKER_DB_PASSWORD` (it creates the role), while
+> the running API reads `DB_WORKER_USERNAME` / `DB_WORKER_PASSWORD` (it connects as the role). Set both pairs to the
+> same values.
 
 ---
 
@@ -561,11 +910,13 @@ GRAFANA_ADMIN_PASSWORD=admin
 ├── apps/
 │   ├── core-api/                  # NestJS API Application & Domain Modules
 │   │   ├── src/
-│   │   │   ├── modules/           # Bounded contexts (auth, wallet, ledger, payment, etc.)
+│   │   │   ├── modules/           # Bounded contexts, each with dtos/ constants/ helpers/
+│   │   │   │                      # interfaces/ repositories/ use-cases/{commands,queries}
 │   │   │   ├── shared/            # Shared constants, helpers, and configurations
 │   │   │   ├── app.module.ts      # Root NestJS application module
 │   │   │   └── main.ts            # Application bootstrap & Swagger initialization
-│   │   ├── migrations/            # node-pg-migrate SQL migrations
+│   │   ├── test/                  # Unit specs and the Testcontainers integration suite
+│   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 026)
 │   │   └── database.json          # Migration database connection configuration
 │   └── client/                    # Angular 21 Standalone Frontend Application
 │       ├── src/
@@ -575,18 +926,21 @@ GRAFANA_ADMIN_PASSWORD=admin
 │       │   │   └── shared/        # Reusable UI components (tables, modals, forms)
 │       │   └── index.html         # Application entrypoint
 ├── packages/                      # Shared Monorepo Packages (NPM Workspaces)
-│   ├── common/                    # Shared NestJS exports and infrastructure wiring
-│   ├── database/                  # PostgreSQL pool and transactional query helpers
+│   ├── common/                    # @common/libs — aggregate barrel re-exporting the packages below
+│   ├── contracts/                 # Zod domain shapes shared by the API and the Angular client
+│   ├── database/                  # PostgreSQL pool, transactions, RLS-aware connection routing
 │   ├── env/                       # Zod-validated environment schema
 │   ├── kafka/                     # Kafka producer and consumer adapters
 │   ├── mailer/                    # Transactional email adapter (NodeMailer / SMTP)
-│   ├── payment-provider/          # Pluggable payment adapters (Stripe, Local) & card validation
-│   ├── rabbitmq/                  # RabbitMQ queue publisher and consumer
+│   ├── mfa/                       # TOTP enrolment, verification and recovery codes
+│   ├── payment-provider/          # Pluggable PSP adapters, routing, circuit breaker, bulkhead
+│   ├── rabbitmq/                  # RabbitMQ publisher, consumer, retry and DLQ topology
 │   ├── redis/                     # Redis caching and key-value client
-│   ├── session/                   # RSA JWT authentication, SessionGuard, and RolesGuard
-│   ├── shared-libs/               # Shared DTOs, custom decorators, error filters, and types
+│   ├── session/                   # RSA JWT authentication, SessionGuard, RolesGuard, RequestScope
+│   ├── shared-libs/               # Shared DTOs, decorators, error filters, lifecycle and types
 │   ├── sms/                       # Transactional SMS provider adapter
-│   └── storage/                   # Flexible S3/MinIO object storage provider
+│   ├── storage/                   # Flexible S3/MinIO object storage provider
+│   └── tasks/                     # Postgres-backed job queue, scheduler and CPU task runner
 ├── infrastructure/
 │   ├── dev/                       # Local Docker Compose setup, Grafana, Prometheus
 │   │   ├── docker-compose.yml     # Multi-container local infrastructure stack
@@ -635,29 +989,41 @@ Start the backend and navigate to:
 | Module | Method | Endpoint | Description |
 | :--- | :--- | :--- | :--- |
 | **Auth** | `POST` | `/api/v1/auth/register` | Register a new user account |
-| **Auth** | `POST` | `/api/v1/auth/login` | Authenticate and obtain RSA-signed JWT |
-| **Auth** | `POST` | `/api/v1/auth/forgot-password` | Request password reset token |
-| **Auth** | `POST` | `/api/v1/auth/reset-password` | Reset password using verified token |
-| **Auth** | `POST` | `/api/v1/auth/verify-email` | Confirm email address |
-| **Users** | `GET` | `/api/v1/users` | List users with pagination (Admin/Moderator) |
-| **Users** | `POST` | `/api/v1/users/images` | Upload user profile image to object storage |
-| **Wallets** | `GET` | `/api/v1/wallets/:walletId` | Retrieve wallet balance (available & reserved) |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/bets` | Place bet and atomically reserve stake |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/winnings` | Settle bet winnings and credit wallet |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/credit` | Credit wallet balance |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/debit` | Debit wallet balance |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/reserve` | Lock funds into reserved balance |
-| **Wallets** | `POST` | `/api/v1/wallets/:walletId/release` | Release reserved funds back to available |
-| **Ledger** | `POST` | `/api/v1/ledger/accounts` | Create double-entry ledger account |
-| **Ledger** | `POST` | `/api/v1/ledger/transactions` | Post multi-entry balanced transaction |
-| **Ledger** | `GET` | `/api/v1/ledger/accounts/:id/entries` | Get paginated journal entries for account |
-| **Payments** | `POST` | `/api/v1/payments/deposit` | Initiate deposit transaction |
-| **Payments** | `POST` | `/api/v1/payments/withdraw` | Request fund withdrawal |
-| **Payment Methods** | `GET` | `/api/v1/payment-methods` | List user payment methods |
-| **Payment Methods** | `POST` | `/api/v1/payment-methods` | Add and tokenize payment method |
-| **Payment Methods** | `DELETE` | `/api/v1/payment-methods/:id` | Remove saved payment method |
-| **Webhooks** | `POST` | `/api/v1/webhooks/:provider` | Ingest and process provider webhook event |
-| **Notifications** | `GET` | `/api/v1/notifications/stream` | **Server-Sent Events (SSE)** real-time stream |
+| **Auth** | `POST` | `/api/v1/auth/login` | Authenticate and obtain an RSA-signed JWT |
+| **Auth** | `POST` | `/api/v1/auth/refresh` | Exchange the refresh cookie for a new access token |
+| **Auth** | `POST` | `/api/v1/auth/logout` · `/logout-all` | End this session, or every session |
+| **Auth** | `GET` | `/api/v1/auth/session` | Current session and user |
+| **Auth** | `POST` | `/api/v1/auth/forgot-password` · `/reset-password` | Password reset by single-use link |
+| **Auth** | `POST` | `/api/v1/auth/change-password` · `/change-email` · `/confirm-email-change` | Verified credential changes |
+| **2FA** | `GET` | `/api/v1/auth/mfa/status` | Whether TOTP is enabled or required |
+| **2FA** | `POST` | `/api/v1/auth/mfa/setup` · `/enable` · `/disable` | Enrol, confirm or turn off TOTP |
+| **2FA** | `POST` | `/api/v1/auth/mfa/recovery-codes` · `/verify` | Regenerate recovery codes · complete an MFA sign-in |
+| **Passkeys** | `POST` | `/api/v1/auth/passkeys/register/options` · `/verify` | Register a passkey on this device |
+| **Passkeys** | `POST` | `/api/v1/auth/passkeys/login/options` · `/verify` | Sign in with a passkey, no password |
+| **Passkeys** | `POST` | `/api/v1/auth/passkeys/step-up/options` · `/verify` | Re-confirm before a sensitive action |
+| **Passkeys** | `GET` `DELETE` | `/api/v1/auth/passkeys` · `/passkeys/:id` | List or remove registered passkeys |
+| **Users** | `GET` `PATCH` | `/api/v1/users/me` · `/users` | Read or update the current profile |
+| **Users** | `POST` `GET` `DELETE` | `/api/v1/users/upload` · `/users/images` | Profile images in object storage |
+| **Users** | `GET` `PUT` | `/api/v1/users/me/deposit-limits` | Read or set daily / weekly / monthly caps |
+| **Users** | `POST` | `/api/v1/users/me/self-exclusion` | Lock yourself out of betting and deposits |
+| **Users** | `DELETE` `POST` | `/api/v1/users/:userId` · `/anonymize` · `/suspend` · `/reactivate` | Administrative lifecycle actions |
+| **Wallets** | `GET` `POST` | `/api/v1/wallets` · `/wallets/currencies` · `/wallets/:walletId` | List, open and read wallets |
+| **Wallets** | `PATCH` | `/api/v1/wallets/:walletId/status` | Change wallet status (staff) |
+| **Wallet History** | `GET` | `/api/v1/wallets/:walletId/transactions` · `/bets` · `/summary` | Paginated history and totals |
+| **Bets** | `POST` `GET` | `/api/v1/bets` · `/bets/:betId/settlement` | Place a bet (reserving the stake) and settle it |
+| **Ledger** | `GET` | `/api/v1/ledger/accounts/:id` · `/accounts/:id/entries` | Account and its journal entries |
+| **Ledger** | `GET` | `/api/v1/ledger/transactions/:id/entries` · `/ledger/integrity` | Entries of a transaction · balance-drift check |
+| **Payments** | `POST` | `/api/v1/payments/deposit` · `/payments/withdraw` | Move money in or out (withdrawal may require step-up) |
+| **Payments** | `GET` | `/api/v1/payments/:id` · `/payments/unresolved` | Payment status · anything still open |
+| **Payment Methods** | `POST` | `/api/v1/payment-methods/:provider/session` · `/confirm` | Hosted setup; card details never reach us |
+| **Payment Methods** | `GET` `DELETE` | `/api/v1/payment-methods` · `/:id` | List, read or remove a saved method |
+| **Game Events** | `GET` `POST` `PATCH` | `/api/v1/game-events` · `/:eventId/status` · `/:eventId/result` | Fixture lifecycle and results |
+| **Webhooks** | `POST` | `/api/v1/webhooks/:provider` | Ingest a provider webhook (idempotent) |
+| **Notifications** | `GET` `PATCH` | `/api/v1/notifications` · `/:id/read` | List notifications, mark one read |
+| **Notifications** | `POST` | `/api/v1/notifications/stream-ticket` | Short-lived ticket for the SSE stream |
+| **Notifications** | `GET` | `/api/v1/notifications/stream` | **Server-Sent Events** real-time stream |
+| **Audit** | `GET` | `/api/v1/audit` | Query the immutable audit log (staff) |
+| **Admin** | `GET` | `/api/v1/admin/dashboard` · `/admin/shared-devices` | Operational overview · accounts sharing a device |
 | **Metrics** | `GET` | `/api/metrics` | Prometheus metrics scraping endpoint |
 
 ---
@@ -697,40 +1063,49 @@ npm run build:client
 
 # 📨 Event-Driven Messaging (RabbitMQ & Kafka)
 
-The system leverages a hybrid messaging architecture: **RabbitMQ** for task execution / job queues, and **Apache Kafka** for high-throughput analytics event streaming.
+Both brokers are fed by the **same outbox relay**, chosen per event by the `destination` column: **RabbitMQ** carries
+user-facing notifications, **Apache Kafka** carries email, audit and analytics streams.
 
 ```mermaid
 graph LR
-    API[🧠 NestJS Core] -->|Job Queue| Rabbit[🐰 RabbitMQ]
-    API -->|Analytics Event| Kafka[📨 Apache Kafka]
-    Rabbit --> Worker[⚙️ Background Task Workers]
-    Kafka --> StreamConsumer[📊 ClickHouse Ingestion]
+    API[🧠 NestJS Core] -->|"write in transaction"| Outbox[(📬 outbox_events)]
+    Outbox --> Relay[🔁 Outbox Relay]
+    Relay -->|RABBITMQ| Rabbit[🐰 Notifications]
+    Relay -->|KAFKA| Kafka[📨 Email · Audit · Analytics]
+    Kafka --> Consumers[⚙️ Email · audit · analytics consumers]
 ```
 
 ### Event Lifecycle:
 
-1. **State Mutation**: A financial action occurs (e.g., bet placement, deposit).
-2. **Transactional Outbox**: The state change and event payload are committed together in PostgreSQL.
-3. **Queue Distribution**: RabbitMQ dispatches tasks (notifications, webhook callbacks) to worker consumers.
-4. **Analytics Streaming**: Kafka streams immutable state change events (`wallet.credited`, `bet.placed`, `ledger.posted`) for real-time aggregation.
+1. **State Mutation**: A financial action occurs (e.g. bet placement, deposit).
+2. **Transactional Outbox**: The state change and the event row are committed together in PostgreSQL.
+3. **Relay**: A single relay claims pending rows in order and publishes each to the broker its `destination` names.
+4. **Consumption**: Notification consumers fan out to SSE; Kafka consumers handle email, the audit trail and analytics.
+
+> [!IMPORTANT]
+> Every consumer runs inside `RequestScope.runSystem(...)`. Without it the handler uses the RLS-restricted API role and
+> silently reads zero rows.
 
 ---
 
 # 🛠 Usage
 
-### 1. Placing a Bet & Reserving Funds
+### 1. Placing a Bet
 
-```typescript
-// Reserve stake and update ledger atomically
-const updatedWallet = await walletService.placeBet({
-  walletId: 'w_123456',
-  amountMinor: 2500, // $25.00
-  gameId: 'game_789',
-  betId: 'bet_999'
-});
+The stake is debited and the ledger rows written in a single transaction. The idempotency key makes a retry safe: send
+the same key twice and you get the same bet back, not a second one.
 
-logger.log(`Available Balance: ${updatedWallet.balanceMinor}`);
-logger.log(`Reserved Balance: ${updatedWallet.reservedBalanceMinor}`);
+```bash
+curl -X POST http://localhost:3000/api/v1/bets \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "walletId": "8f1c…",
+    "eventId": "3ab9…",
+    "selection": "HOME",
+    "stakeMinor": 2500,
+    "idempotencyKey": "bet-2026-09-29-001"
+  }'
 ```
 
 ### 2. Creating a Balanced Double-Entry Ledger Transaction
@@ -755,15 +1130,26 @@ const entries = await ledgerService.createTransaction([
 
 ### 3. Server-Sent Events (SSE) Client Consumption
 
-```typescript
-const eventSource = new EventSource('/api/v1/notifications/stream', {
-  withCredentials: true
-});
+`EventSource` cannot send an `Authorization` header, so the stream is opened with a **short-lived ticket** rather than
+by putting the access token in the URL where it would end up in logs and browser history:
 
-eventSource.onmessage = (event) => {
+```typescript
+// 1. Exchange the session for a single-use, short-lived stream ticket
+const { ticket } = await fetch('/api/v1/notifications/stream-ticket', {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${accessToken}` }
+}).then(response => response.json());
+
+// 2. Open the stream with the ticket
+const eventSource = new EventSource(`/api/v1/notifications/stream?ticket=${encodeURIComponent(ticket)}`);
+
+eventSource.onmessage = event => {
   const notification = JSON.parse(event.data);
   logger.log('Real-Time Notification:', notification);
 };
+
+// 3. Reconnect on drop — the client re-requests a ticket rather than reusing the old one
+eventSource.onerror = () => eventSource.close();
 ```
 
 ---
@@ -833,12 +1219,34 @@ npm run lint
 # Run TypeScript typechecks across all projects
 npm run typecheck
 
-# Run unit and integration tests
+# Run unit tests
 npm run test
 
 # Clean build artifacts and cache
 npm run clean
 ```
+
+> [!IMPORTANT]
+> Always build with `npx turbo run build --concurrency=1`. `nest build` wipes `dist/` before writing, so parallel
+> builds make dependents fail with phantom `Cannot find module '@common/…'` errors. A failure that disappears on
+> re-run was this, not a real error.
+
+### Integration Suite (Testcontainers)
+
+The integration suite is black-box: it starts **real** PostgreSQL, Redis, RabbitMQ and Kafka containers, runs the
+migrations and seed from zero, boots the **built** API, and drives it over HTTP.
+
+```bash
+npm run test:integration
+
+# or, to target one spec
+cd apps/core-api && TESTCONTAINERS_RYUK_PRIVILEGED=true NODE_OPTIONS=--experimental-vm-modules \
+  npx jest --config jest.integration.config.js --runInBand --testPathPatterns "outbox-relay"
+```
+
+- `npm run build` must succeed first — the stack runs `dist/main.js`.
+- The stack is fully isolated and provisions its own `app_api` and `app_worker` logins, so RLS is exercised for real.
+- Current coverage: **214 tests across 43 suites**, plus the unit suites.
 
 ### Workspace-Specific Checks
 

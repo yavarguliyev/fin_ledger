@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { BetStatus, GameEventStatus, WIN_CHANCE } from '@common/libs';
+import { BettingHelper, GameEventStatus } from '@common/libs';
 
 import { GameEventDto } from '../../game-events/dtos/game-event/game-event.dto';
 import { WalletDto } from '../../wallet/dtos/wallet/wallet.dto';
@@ -8,9 +8,12 @@ import { BetOutcomeDto } from '../dtos/bet/bet-outcome.dto';
 import { AssertOwnedWalletDto } from '../dtos/helper/assert-owned-wallet.dto';
 import { PotentialPayoutDto } from '../dtos/helper/potential-payout.dto';
 import { AssertOutcomeDto } from '../dtos/helper/assert-outcome.dto';
+import { ResolveOutcomeDto } from '../dtos/helper/resolve-outcome.dto';
+import { ResolvedOutcomeDto } from '../dtos/bet/resolved-outcome.dto';
+import { BET_STATUS } from '../constants/bet/bet-status.constant';
 
 export class BetHelper {
-  private static OPEN_STATUSES: GameEventStatus[] = [GameEventStatus.SCHEDULED, GameEventStatus.LIVE];
+  private static OPEN_STATUSES: GameEventStatus[] = [GameEventStatus.SCHEDULED];
 
   static assertEventAcceptsBets (event: GameEventDto | null): GameEventDto {
     if (!event) throw new NotFoundException('Game event not found');
@@ -42,15 +45,18 @@ export class BetHelper {
     return payout;
   }
 
-  static resolveOutcome (bet: BetDto): BetOutcomeDto {
-    if (Math.random() < WIN_CHANCE) return { status: BetStatus.WON, payoutMinor: Number(bet.potentialPayoutMinor) };
+  static resolveOutcome ({ bet, margin }: ResolveOutcomeDto): ResolvedOutcomeDto {
+    const { drawValue, drawThreshold, won } = BettingHelper.draw({ odds: Number(bet.oddsAtPlacement), margin });
+    const { status, payoutMinor } = won
+      ? { status: BET_STATUS.WON, payoutMinor: Number(bet.potentialPayoutMinor) }
+      : { status: BET_STATUS.LOST, payoutMinor: 0 };
 
-    return { status: BetStatus.LOST, payoutMinor: 0 };
+    return { status, payoutMinor, drawValue, drawThreshold };
   }
 
   static assertSettleable (bet: BetDto | null): BetDto {
     if (!bet) throw new NotFoundException('Bet not found');
-    if (bet.status !== BetStatus.PENDING) throw new ConflictException(`Bet is already settled (${bet.status})`);
+    if (bet.status !== BET_STATUS.PENDING) throw new ConflictException(`Bet is already settled (${bet.status})`);
 
     return bet;
   }
@@ -58,9 +64,12 @@ export class BetHelper {
   static assertOutcomeMatchesStake (params: AssertOutcomeDto): BetOutcomeDto {
     const { outcome, bet } = params;
 
-    if (outcome.status === BetStatus.PENDING) throw new BadRequestException('Settlement outcome cannot be PENDING');
-    if (outcome.status === BetStatus.LOST && outcome.payoutMinor !== 0) throw new BadRequestException('A lost bet pays nothing');
-    if (outcome.status === BetStatus.VOIDED && outcome.payoutMinor !== Number(bet.stakeMinor)) {
+    if (outcome.status === BET_STATUS.PENDING) throw new BadRequestException('Settlement outcome cannot be PENDING');
+    if (outcome.status === BET_STATUS.LOST && outcome.payoutMinor !== 0) throw new BadRequestException('A lost bet pays nothing');
+    if (outcome.status === BET_STATUS.WON && outcome.payoutMinor !== Number(bet.potentialPayoutMinor)) {
+      throw new BadRequestException('A won bet pays exactly the potential payout');
+    }
+    if (outcome.status === BET_STATUS.VOIDED && outcome.payoutMinor !== Number(bet.stakeMinor)) {
       throw new BadRequestException('A voided bet refunds exactly the stake');
     }
 

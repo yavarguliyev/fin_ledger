@@ -12,7 +12,12 @@
           class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
         >
           <span class="text-base" [innerHTML]="item.icon"></span>
-          {{ item.label }}
+          <span class="flex-1">{{ item.label }}</span>
+          @if (item.path === supportPath && chatUnread() > 0) {
+            <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">
+              {{ chatUnread() }}
+            </span>
+          }
         </a>
       }
     </nav>
@@ -81,6 +86,13 @@
     </header>
 
     <main class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto pb-20 md:pb-6">
+      @if (selfExcludedUntil()) {
+        <p class="mb-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">
+          You have self-excluded from gambling until {{ selfExcludedUntil() | date: 'medium' }}. Betting and deposits are blocked until then.
+          Withdrawals stay available.
+        </p>
+      }
+
       <router-outlet />
     </main>
 
@@ -100,3 +112,5 @@
     </nav>
   </div>
 </div>
+
+<app-call-overlay />

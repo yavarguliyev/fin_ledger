@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles, UserWalletStatus } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles } from '@common/libs';
 
 import { UserDto } from '../dtos/user/user.dto';
 import { UserWithWalletDto } from '../dtos/user/user-with-wallet.dto';
+import { UserRowHelper } from '../helpers/user-row.helper';
 import { UpdateUserRecordDto } from '../dtos/repository/update-user-record.dto';
 import { UserIdRequestDto } from '../dtos/request/user-id-request.dto';
 import { AnonymizeUserRecordDto } from '../dtos/repository/anonymize-user-record.dto';
@@ -23,8 +24,13 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
         profileImages: 'profile_images',
         profileImageIndex: 'profile_image_index',
         lastLoginAt: 'last_login_at',
+        lastLoginIp: 'last_login_ip',
         isEmailVerified: 'is_email_verified',
         emailVerifiedAt: 'email_verified_at',
+        countryCode: 'country_code',
+        dateOfBirth: 'date_of_birth',
+        kycStatus: 'kyc_status',
+        selfExclusionUntil: 'self_exclusion_until',
         deletedAt: 'deleted_at',
         createdAt: 'created_at',
         updatedAt: 'updated_at'
@@ -43,7 +49,12 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
       'profileImageIndex',
       'status',
       'lastLoginAt',
+      'lastLoginIp',
       'isEmailVerified',
+      'countryCode',
+      'dateOfBirth',
+      'kycStatus',
+      'selfExclusionUntil',
       'deletedAt',
       'createdAt',
       'updatedAt'
@@ -72,6 +83,7 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
     const result = await this.service
       .getConnection()
       .query({ sql: ANONYMIZATION_BLOCKERS_QUERY, params: [userId, OPEN_PAYMENT_STATUSES, OPEN_BET_STATUSES] });
+
     return AnonymizationBlockersSchema.parse(result.rows[0]);
   }
 
@@ -94,6 +106,7 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
       'users.email',
       'users.displayName',
       'users.role',
+      'users.status',
       'users.isEmailVerified',
       'users.deletedAt',
       'users.createdAt',
@@ -125,23 +138,6 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
 
     const result = await this.service.getConnection().query<Record<string, unknown>>({ sql: query, params });
 
-    return result.rows.map(row => this.mapRowToUserWithWallet(row));
-  }
-
-  private mapRowToUserWithWallet (row: Record<string, unknown>): UserWithWalletDto {
-    return {
-      id: row['users.id'] as string,
-      email: row['users.email'] as string,
-      display_name: row['users.displayName'] as string,
-      role: row['users.role'] as string,
-      wallet_id: (row['wallets.id'] as string | null) ?? null,
-      is_email_verified: row['users.isEmailVerified'] as boolean,
-      deleted_at: (row['users.deletedAt'] as string | null) ?? null,
-      created_at: row['users.createdAt'] as string,
-      available_balance_minor: row['wallets.available_balance_minor'] !== null ? Number(row['wallets.available_balance_minor']) : null,
-      reserved_balance_minor: row['wallets.reserved_balance_minor'] !== null ? Number(row['wallets.reserved_balance_minor']) : null,
-      currency: (row['wallets.currency'] as string | null) ?? null,
-      status: (row['wallets.status'] as UserWalletStatus | null) ?? null
-    };
+    return result.rows.map(row => UserRowHelper.toUserWithWallet({ row }));
   }
 }

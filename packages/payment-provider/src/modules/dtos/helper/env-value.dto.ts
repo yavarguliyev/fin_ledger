@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { ConfigService } from '@nestjs/config';
+import { z } from 'zod';
 
 export const EnvValueSchema = z.object({
   key: z.string({ message: 'Key must be a string' }),

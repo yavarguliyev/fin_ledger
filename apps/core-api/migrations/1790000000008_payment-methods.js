@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('payment_methods', {
@@ -11,8 +12,8 @@ export const up = pgm => {
       onDelete: 'RESTRICT'
     },
 
-    type: { type: 'payment_method_type', notNull: true },
-    status: { type: 'payment_method_status', notNull: true, default: 'PENDING_VERIFICATION' },
+    type: { type: 'text', notNull: true },
+    status: { type: 'text', notNull: true, default: 'PENDING_VERIFICATION' },
 
     provider: { type: 'varchar(50)', notNull: true },
     provider_method_id: { type: 'varchar(255)', notNull: true },
@@ -39,6 +40,9 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'payment_methods', column: 'type', name: 'payment_method_type' });
+  addEnumCheck(pgm, { table: 'payment_methods', column: 'status', name: 'payment_method_status' });
 
   pgm.createIndex('payment_methods', ['user_id', 'status'], {
     name: 'idx_payment_methods_user_status',
@@ -92,7 +96,7 @@ export const up = pgm => {
     SET search_path = pg_catalog, public
     AS $$
     DECLARE
-      v_role user_role;
+      v_role text;
     BEGIN
       SELECT role INTO v_role FROM users WHERE id = NEW.user_id;
 

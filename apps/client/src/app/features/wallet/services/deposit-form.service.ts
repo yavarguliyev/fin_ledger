@@ -1,9 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
-import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
+import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { PaymentRequest } from '../../../core/interfaces/wallet/payment-request.interface';
-import { UuidHelper } from '../../../core/helpers/common/uuid.helper';
+import { BuildPaymentPayloadDto } from '../dtos/build-payment-payload.dto';
+import { PaymentMethodHelper } from '../../profile/payment-methods/helpers/payment-method.helper';
 
 @Injectable()
 export class DepositFormService {
@@ -32,7 +33,7 @@ export class DepositFormService {
 
     if (method) {
       const typeLabel = method.bankName || (method.type === 'BANK_ACCOUNT' ? 'Bank Account' : 'Debit Card');
-      return `${typeLabel} (${method.maskedAccount})`;
+      return `${typeLabel} (${PaymentMethodHelper.maskedAccount({ method })})`;
     }
 
     return '—';
@@ -53,17 +54,17 @@ export class DepositFormService {
     });
   }
 
-  buildPayload (amountMinor: number, currency: string): PaymentRequest {
+  buildPayload ({ amountMinor, currency, idempotencyKey }: BuildPaymentPayloadDto): PaymentRequest {
     const method = this.paymentMethods().find(m => m.id === this.selectedMethodId());
 
     return {
       amountMinor,
       currency,
       paymentMethodId: this.selectedMethodId() ?? undefined,
-      idempotencyKey: UuidHelper.generate(),
+      idempotencyKey,
       metadata: {
         destination: method?.type ?? 'bank_account',
-        maskedAccount: method?.maskedAccount ?? '',
+        maskedAccount: method ? PaymentMethodHelper.maskedAccount({ method }) : '',
         accountHolder: method?.accountHolder ?? ''
       }
     };

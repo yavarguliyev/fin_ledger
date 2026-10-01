@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { DomainEventType, NotificationType } from '@common/libs';
+import { DomainEventType, NotificationType, NotificationTitle } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
 import { UserRegisteredPayloadDto } from '../../dtos/event/user-registered-payload.dto';
 
 @Injectable()
 export class UserRegisteredConsumer extends NotificationBaseConsumer<UserRegisteredPayloadDto> {
-  protected readonly title = 'Welcome!';
+  protected readonly title = NotificationTitle.WELCOME;
   protected readonly eventType = DomainEventType.USER_REGISTERED;
   protected readonly notificationType = NotificationType.SYSTEM;
 

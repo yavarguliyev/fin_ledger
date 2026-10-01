@@ -4,8 +4,8 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
-import { Transaction } from '../../core/interfaces/wallet/transaction.interface';
-import { Wallet } from '../../core/interfaces/wallet/wallet.interface';
+import { Transaction } from '../../core/types/wallet/transaction.type';
+import { Wallet } from '../../core/types/wallet/wallet.type';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
@@ -15,7 +15,6 @@ import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { WalletSwitcherComponent } from './wallet-switcher.component';
-import { RoleHelper } from '../../core/helpers/auth/role.helper';
 import { DateHelper } from '../../core/helpers/common/date.helper';
 import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { WalletHelper } from './helpers/wallet.helper';
@@ -33,8 +32,8 @@ export class WalletComponent implements OnInit {
   readonly loading = signal(true);
   readonly wallet = computed(() => this.walletService.wallet());
   readonly allTx = signal<Transaction[]>([]);
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
+  readonly isUser = this.auth.isPlayer;
+  private readonly isStaff = this.auth.isStaff;
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -88,11 +87,6 @@ export class WalletComponent implements OnInit {
     this.activeFilter.set(filterValue);
   }
 
-  private transactionScope (): string | null {
-    if (this.isStaff()) return ALL_RECORDS_SCOPE;
-    return this.walletService.wallet()?.id ?? null;
-  }
-
   onPageChange (page: number): void {
     this.currentPage.set(page);
     const scope = this.transactionScope();
@@ -128,9 +122,14 @@ export class WalletComponent implements OnInit {
     this.loadTransactions(wallet.id);
   }
 
+  private transactionScope (): string | null {
+    if (this.isStaff()) return ALL_RECORDS_SCOPE;
+    return this.walletService.wallet()?.id ?? null;
+  }
+
   private loadTransactions (walletId: string): void {
     this.loading.set(true);
-    this.walletService.getTransactions(walletId, this.currentPage(), this.pageSize()).subscribe({
+    this.walletService.getTransactions({ walletId, page: this.currentPage(), limit: this.pageSize() }).subscribe({
       next: response => {
         this.allTx.set(this.walletService.transactions() ?? []);
         this.totalItems.set(response.total);

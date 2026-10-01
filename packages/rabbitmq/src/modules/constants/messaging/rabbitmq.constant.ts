@@ -5,5 +5,7 @@ export const RABBITMQ_CONSTANTS = {
   RABBITMQ_DLX_EXCHANGE: { key: 'wallet.events.dlx' },
   KAFKA_ANALYTICS_TOPIC: { key: 'wallet.analytics' },
   OUTBOX_POLL_INTERVAL_MS: { key: 5000 },
-  OUTBOX_BATCH_SIZE: { key: 50 }
+  OUTBOX_BATCH_SIZE: { key: 50 },
+  OUTBOX_LOCK_SECONDS: { key: 30 },
+  PUBLISH_CONFIRM_TIMEOUT_MS: { key: 10000 }
 } satisfies RabbitmqRegistry;

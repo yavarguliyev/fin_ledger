@@ -1,8 +1,10 @@
 import { FilterOption } from '../../../core/interfaces/ui/filter-option.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
-import { Transaction } from '../../../core/interfaces/wallet/transaction.interface';
+import { Transaction } from '../../../core/types/wallet/transaction.type';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
 import { TransactionHelper } from '../../../core/helpers/wallet/transaction.helper';
+import { TABLE } from '../../../core/constants/ui/table.constant';
+import { AMOUNT_CLASS } from '../../../core/constants/ui/amount-class.constant';
 
 export class WalletHelper {
   static getWalletTableColumns (): TableColumn<Transaction>[] {
@@ -27,8 +29,8 @@ export class WalletHelper {
         type: 'currency',
         align: 'center',
         mobileVisible: true,
-        format: (value: unknown, row: Transaction): string => CurrencyHelper.formatCurrency(value as number, row.currency),
-        badgeClass: (_value: unknown, row: Transaction): string => (row.amountMinor < 0 ? 'text-danger font-semibold' : 'text-success font-semibold')
+        format: ({ value, row }): string => CurrencyHelper.formatCurrency({ amountMinor: value as number, currency: row.currency }),
+        badgeClass: ({ row }): string => (row.amountMinor < 0 ? AMOUNT_CLASS.NEGATIVE : AMOUNT_CLASS.POSITIVE)
       },
       {
         key: 'status',
@@ -36,7 +38,7 @@ export class WalletHelper {
         type: 'badge',
         align: 'center',
         mobileVisible: true,
-        badgeClass: (value: unknown) => TransactionHelper.statusClass(value as string)
+        badgeClass: ({ value }): string => TransactionHelper.statusClass(value as string)
       },
       {
         key: 'reference',
@@ -44,7 +46,7 @@ export class WalletHelper {
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        format: (value: unknown): string => (value && typeof value === 'string' ? value : '—')
+        format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
       }
     ];
   }
@@ -61,7 +63,12 @@ export class WalletHelper {
 
   static exportTransactionsToCsv (transactions: Transaction[]): void {
     const header = 'Date,Type,Amount,Status,Reference\n';
-    const rows = transactions.map(t => `${t.createdAt},${TransactionHelper.formatType(t.type)},${CurrencyHelper.fromMinor(t.amountMinor, t.currency)},${t.status},"${t.reference ?? ''}"`).join('\n');
+    const rows = transactions
+      .map(
+        t =>
+          `${t.createdAt},${TransactionHelper.formatType(t.type)},${CurrencyHelper.fromMinor({ amountMinor: t.amountMinor, currency: t.currency })},${t.status},"${t.reference ?? ''}"`
+      )
+      .join('\n');
 
     const blob = new Blob([header + rows], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);

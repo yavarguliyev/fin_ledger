@@ -2,7 +2,11 @@ import { z } from 'zod';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const CreateRecordSchema = <T, K extends keyof T = keyof T>(): z.ZodObject<{ data: z.ZodCustom<Partial<T>>; returningColumns: z.ZodOptional<z.ZodCustom<K[]>>; adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>> }> =>
+export const CreateRecordSchema = <T, K extends keyof T = keyof T>(): z.ZodObject<{
+  data: z.ZodCustom<Partial<T>>;
+  returningColumns: z.ZodOptional<z.ZodCustom<K[]>>;
+  adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>>;
+}> =>
   z.object({
     data: z.custom<Partial<T>>(),
 

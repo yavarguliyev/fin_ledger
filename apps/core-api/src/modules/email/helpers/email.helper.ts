@@ -3,12 +3,12 @@ import { EmitPasswordResetDto } from '../dtos/helper/emit-password-reset.dto';
 
 export class EmailHelper {
   static async emitKafkaUserEmailVerification (event: EmitEmailVerificationDto): Promise<void> {
-    const { action, publishEmailVerification, ...payload } = event;
-    if (action === 'email') await publishEmailVerification(payload);
+    const { action, publishEmailVerification, userId, ...eventPayload } = event;
+    if (action === 'email') await publishEmailVerification({ eventPayload, userId });
   }
 
   static async emitKafkaPasswordReset (event: EmitPasswordResetDto): Promise<void> {
-    const { action, publishPasswordReset, ...payload } = event;
-    if (action === 'password_reset') await publishPasswordReset(payload);
+    const { action, publishPasswordReset, userId, ...eventPayload } = event;
+    if (action === 'password_reset') await publishPasswordReset({ eventPayload, userId });
   }
 }

@@ -12,7 +12,6 @@ import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.inte
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { LedgerEntry } from '../../core/interfaces/ledger/ledger-entry.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
-import { RoleHelper } from '../../core/helpers/auth/role.helper';
 import { LedgerHelper } from './helpers/ledger.helper';
 
 @Component({
@@ -26,11 +25,12 @@ export class LedgerComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
 
+  private readonly isStaff = this.auth.isStaff;
+
   readonly loading = signal(true);
   readonly account = computed(() => this.ledgerService.account());
   readonly entries = computed(() => this.ledgerService.entries());
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
+  readonly isUser = this.auth.isPlayer;
 
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
@@ -64,21 +64,6 @@ export class LedgerComponent implements OnInit {
     this.loadEntries();
   }
 
-  private fetchEntries (ledgerAccountId: string): void {
-    this.loading.set(true);
-
-    const page = this.currentPage();
-    const limit = this.pageSize();
-
-    this.ledgerService.getAccountEntries(ledgerAccountId, page, limit).subscribe({
-      next: response => {
-        this.totalItems.set(response.total);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false)
-    });
-  }
-
   private loadEntries (): void {
     if (this.isStaff()) {
       this.fetchEntries(ALL_RECORDS_SCOPE);
@@ -87,6 +72,21 @@ export class LedgerComponent implements OnInit {
 
     this.walletService.loadWallets().subscribe({
       next: () => this.loadAccountEntries(this.walletService.wallet()?.ledgerAccountId),
+      error: () => this.loading.set(false)
+    });
+  }
+
+  private fetchEntries (ledgerAccountId: string): void {
+    this.loading.set(true);
+
+    const page = this.currentPage();
+    const limit = this.pageSize();
+
+    this.ledgerService.getAccountEntries({ accountId: ledgerAccountId, page, limit }).subscribe({
+      next: response => {
+        this.totalItems.set(response.total);
+        this.loading.set(false);
+      },
       error: () => this.loading.set(false)
     });
   }

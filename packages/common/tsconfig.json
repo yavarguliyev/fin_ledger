@@ -9,6 +9,7 @@
   "references": [
     { "path": "../database" },
     { "path": "../mailer" },
+    { "path": "../mfa" },
     { "path": "../payment-provider" },
     { "path": "../sms" },
     { "path": "../env" },

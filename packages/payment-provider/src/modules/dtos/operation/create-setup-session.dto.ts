@@ -3,6 +3,8 @@ import { z } from 'zod';
 export const CreateSetupSessionSchema = z.object({
   customerEmail: z.string({ message: 'Customer email must be a string' }).optional(),
 
+  customerId: z.string({ message: 'Customer ID must be a string' }).optional(),
+
   returnUrl: z.string({ message: 'Return URL must be a string' })
 });
 

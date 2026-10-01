@@ -1,5 +1,5 @@
-import { z } from 'zod';
 import { INestApplication } from '@nestjs/common';
+import { z } from 'zod';
 
 import { ShutdownHook } from '../../types/base.type';
 

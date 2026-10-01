@@ -11,6 +11,7 @@ export const MODULES_KEYS = [
   'Uploads',
   'Users',
   'Wallets',
+  'Support Chat',
   'Wallet Transactions',
   'Metrics',
   'Webhooks'

@@ -83,65 +83,9 @@ export const up = pgm => {
   pgm.createDomain('email_address', 'citext', {
     check: "VALUE ~ '^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$' AND length(VALUE) <= 320"
   });
-
-  pgm.createType('user_role', ['GLOBAL_ADMIN', 'ADMIN', 'MODERATOR', 'USER']);
-  pgm.createType('user_status', ['PENDING', 'ACTIVE', 'SUSPENDED', 'CLOSED']);
-
-  pgm.createType('account_type', ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE']);
-  pgm.createType('account_owner_type', ['USER', 'SYSTEM']);
-  pgm.createType('entry_type', ['DEBIT', 'CREDIT']);
-
-  pgm.createType('wallet_status', ['ACTIVE', 'SUSPENDED', 'CLOSED']);
-
-  pgm.createType('wallet_transaction_type', [
-    'DEPOSIT',
-    'WITHDRAWAL',
-    'BET_STAKE',
-    'BET_PAYOUT',
-    'BET_REFUND',
-    'FEE',
-    'ADJUSTMENT'
-  ]);
-
-  pgm.createType('wallet_transaction_status', ['PENDING', 'COMPLETED', 'FAILED', 'REVERSED']);
-
-  pgm.createType('payment_type', ['DEPOSIT', 'WITHDRAWAL', 'REFUND', 'CHARGEBACK']);
-  pgm.createType('payment_status', ['PENDING', 'PROCESSING', 'REQUIRES_ACTION', 'COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATED']);
-  pgm.createType('payment_method_type', ['BANK_ACCOUNT', 'CREDIT_CARD', 'DEBIT_CARD', 'APPLE_PAY', 'GOOGLE_PAY']);
-  pgm.createType('payment_method_status', ['PENDING_VERIFICATION', 'VERIFIED', 'REJECTED', 'REMOVED']);
-
-  pgm.createType('event_status', ['SCHEDULED', 'LIVE', 'FINISHED', 'SETTLED', 'CANCELLED', 'POSTPONED']);
-  pgm.createType('bet_status', ['PENDING', 'WON', 'LOST', 'VOIDED', 'CASHED_OUT']);
-
-  pgm.createType('notification_channel', ['IN_APP', 'EMAIL', 'SMS', 'PUSH']);
-  pgm.createType('notification_status', ['PENDING', 'SENT', 'FAILED', 'READ']);
-
-  pgm.createType('outbox_status', ['PENDING', 'PUBLISHED', 'FAILED', 'DEAD']);
-  pgm.createType('webhook_status', ['RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED']);
 };
 
 export const down = pgm => {
-  [
-    'webhook_status',
-    'outbox_status',
-    'notification_status',
-    'notification_channel',
-    'bet_status',
-    'event_status',
-    'payment_method_status',
-    'payment_method_type',
-    'payment_status',
-    'payment_type',
-    'wallet_transaction_status',
-    'wallet_transaction_type',
-    'wallet_status',
-    'entry_type',
-    'account_owner_type',
-    'account_type',
-    'user_status',
-    'user_role'
-  ].forEach(type => pgm.dropType(type, { ifExists: true }));
-
   ['email_address', 'decimal_odds', 'money_minor_positive', 'money_minor_nonneg', 'money_minor', 'currency_code'].forEach(domain =>
     pgm.dropDomain(domain, { ifExists: true })
   );

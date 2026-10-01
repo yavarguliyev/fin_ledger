@@ -12,7 +12,8 @@ export const Cacheable = (options: CacheableOptionsDto): MethodDecorator => {
       const provider = CacheHelper.resolveProvider({ target: this });
       if (!provider) return originalMethod.apply(this, args);
 
-      const cacheKey = CacheHelper.buildCacheKey({ prefix: options.keyPrefix, method: methodName, args });
+      const scope = options.scope?.(args);
+      const cacheKey = CacheHelper.buildCacheKey({ prefix: options.keyPrefix, method: methodName, args, ...(scope && { scope }) });
       const result = await CacheHelper.tryGetCached({ provider, cacheKey });
       if (result.hit) return result.value;
 

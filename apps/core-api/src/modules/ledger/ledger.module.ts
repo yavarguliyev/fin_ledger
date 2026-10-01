@@ -12,6 +12,11 @@ import { GetAccountEntriesUseCase } from './use-cases/queries/get-account-entrie
 import { GetTransactionEntriesUseCase } from './use-cases/queries/get-transaction-entries.use-case';
 import { SharedModule } from '../../shared/shared.module';
 import { GetSystemAccountUseCase } from './use-cases/queries/get-system-account.use-case';
+import { LedgerBalanceDriftRepository } from './repositories/ledger-balance-drift.repository';
+import { WalletLedgerDriftRepository } from './repositories/wallet-ledger-drift.repository';
+import { TrialBalanceRepository } from './repositories/trial-balance.repository';
+import { LedgerIntegrityJob } from './jobs/ledger-integrity.job';
+import { GetLedgerIntegrityUseCase } from './use-cases/queries/get-ledger-integrity.use-case';
 
 @Module({
   imports: [SharedModule],
@@ -26,8 +31,13 @@ import { GetSystemAccountUseCase } from './use-cases/queries/get-system-account.
     GetSystemAccountUseCase,
     GetLedgerAccountUseCase,
     GetAccountEntriesUseCase,
-    GetTransactionEntriesUseCase
+    GetTransactionEntriesUseCase,
+    GetLedgerIntegrityUseCase,
+    LedgerBalanceDriftRepository,
+    WalletLedgerDriftRepository,
+    TrialBalanceRepository,
+    LedgerIntegrityJob
   ],
-  exports: [LedgerService, LedgerAccountRepository, CreateLedgerTransactionUseCase]
+  exports: [LedgerService, LedgerAccountRepository, CreateLedgerTransactionUseCase, LedgerIntegrityJob]
 })
 export class LedgerModule {}

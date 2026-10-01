@@ -1,0 +1,107 @@
+<div class="flex h-[calc(100vh-8rem)] min-h-[32rem] overflow-hidden rounded-xl border border-ink-200 dark:border-ink-800 bg-ink-50 dark:bg-night-bg">
+  <section
+    class="w-full md:w-80 shrink-0 flex-col border-r border-ink-200 dark:border-ink-800 bg-white dark:bg-night-card"
+    [class]="chat.activeId() ? 'hidden md:flex' : 'flex'"
+  >
+    <header class="px-4 py-3 border-b border-ink-200 dark:border-ink-800">
+      <h1 class="text-sm font-semibold text-ink-900 dark:text-white">{{ chat.isStaff() ? labels.TITLE : labels.CONTACTS_TITLE }}</h1>
+      @if (chat.isStaff()) {
+        <p class="text-xs text-ink-500 dark:text-ink-400">{{ conversationCount }}</p>
+      }
+    </header>
+
+    @if (chat.isStaff()) {
+      <app-conversation-list [conversations]="chat.conversations()" [selectedId]="chat.activeId()" (picked)="onPick($event)" />
+    } @else {
+      <app-contact-list
+        [contacts]="presenceStore.contacts()"
+        [conversations]="chat.conversations()"
+        [selectedStaffId]="peer.activeStaffId()"
+        (picked)="onPickContact($event)"
+      />
+    }
+  </section>
+
+  <section class="min-w-0 flex-1 flex-col" [class]="chat.activeId() ? 'flex' : 'hidden md:flex'">
+    <header class="flex items-center justify-between gap-3 border-b border-ink-200 dark:border-ink-800 bg-white dark:bg-night-card px-4 py-3">
+      <div class="flex min-w-0 items-center gap-2">
+        <button type="button" class="md:hidden grid place-items-center w-8 h-8 rounded-full text-ink-500" [attr.aria-label]="view.BACK_LABEL" (click)="chat.close()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        @if (chat.activeId()) {
+          <div class="min-w-0">
+            <h2 class="truncate text-sm font-semibold text-ink-900 dark:text-white">{{ peer.name() }}</h2>
+            <p class="flex items-center gap-1.5 text-xs">
+              <span class="w-1.5 h-1.5 rounded-full" [class]="peer.online() ? 'bg-success' : 'bg-ink-300'"></span>
+              <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-ink-400'">{{ peer.status() }}</span>
+            </p>
+          </div>
+        } @else {
+          <h2 class="truncate text-sm font-semibold text-ink-900 dark:text-white">{{ labels.TITLE }}</h2>
+        }
+      </div>
+
+      <div class="flex items-center gap-1">
+        <button type="button" [disabled]="!chat.activeId() || calls.state.busy()" [title]="callLabels.VOICE_CALL" [attr.aria-label]="callLabels.VOICE_CALL"
+          (click)="onCall(callLabels.AUDIO)"
+          class="grid place-items-center w-9 h-9 rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg disabled:opacity-40 disabled:cursor-not-allowed">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.5 4.5a1 1 0 01-.5 1.2l-2.26 1.13a11 11 0 005.52 5.52l1.13-2.26a1 1 0 011.2-.5l4.5 1.5a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z"></path>
+          </svg>
+        </button>
+        <button type="button" [disabled]="!chat.activeId() || calls.state.busy()" [title]="callLabels.VIDEO_CALL" [attr.aria-label]="callLabels.VIDEO_CALL"
+          (click)="onCall(callLabels.VIDEO)"
+          class="grid place-items-center w-9 h-9 rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg disabled:opacity-40 disabled:cursor-not-allowed">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div #scroller class="flex-1 overflow-y-auto">
+      @if (chat.loading()) {
+        <div class="grid h-full place-items-center">
+          <span class="w-6 h-6 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
+        </div>
+      } @else if (!chat.activeId()) {
+        <p class="grid h-full place-items-center px-6 text-center text-sm text-ink-400">
+          {{ chat.isStaff() ? labels.NO_THREAD_SELECTED : labels.PICK_CONTACT }}
+        </p>
+      } @else {
+        <app-message-thread
+          [messages]="chat.messages()"
+          [userId]="chat.myUserId()"
+          [peerOnline]="peer.online()"
+          (editRequested)="compose.startEdit({ message: $event })"
+          (deleteRequested)="compose.askDelete({ message: $event })"
+        />
+      }
+    </div>
+
+    <app-message-composer
+      [sending]="compose.sending()"
+      [disabled]="!chat.activeId()"
+      [editing]="compose.editing()"
+      (submitted)="onSend($event)"
+      (saved)="onSave($event)"
+      (cancelled)="compose.cancelEdit()"
+      (recorded)="onRecorded($event)"
+    />
+  </section>
+
+  @if (chat.isStaff()) {
+    <app-presence-panel [entries]="presenceStore.entries()" />
+  }
+
+  <app-delete-dialog
+    [message]="compose.deleting()"
+    [userId]="chat.myUserId()"
+    (chosen)="onDelete($event)"
+    (cancelled)="compose.cancelDelete()"
+  />
+</div>

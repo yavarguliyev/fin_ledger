@@ -32,20 +32,15 @@ export class CacheHelper {
     await provider.delete({ key: keyPrefix });
   }
 
-  static buildCacheKey ({ prefix, method, args }: BuildCacheKeyDto): string {
+  static buildCacheKey ({ prefix, method, args, scope }: BuildCacheKeyDto): string {
     const serializedArgs = args
       .map(arg => {
         if (arg && typeof arg === 'object' && 'user' in arg && arg.user && typeof arg.user === 'object' && 'userId' in arg.user) {
           return `user:${(arg.user as { userId: string }).userId}`;
         }
 
-        if (arg === null || arg === undefined) {
-          return String(arg);
-        }
-
-        if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') {
-          return String(arg);
-        }
+        if (arg === null || arg === undefined) return String(arg);
+        if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'boolean') return String(arg);
 
         try {
           return JSON.stringify(arg);
@@ -55,6 +50,6 @@ export class CacheHelper {
       })
       .join(':');
 
-    return `${prefix}:${method}:${serializedArgs}`;
+    return scope ? `${prefix}:${scope}:${method}:${serializedArgs}` : `${prefix}:${method}:${serializedArgs}`;
   }
 }

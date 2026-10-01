@@ -9,7 +9,6 @@ import { ListAuditLogsDto } from '../../dtos/request/list-audit-logs.dto';
 export class GetAuditLogsUseCase extends AuditBaseUseCase<ListAuditLogsDto, PaginatedResponseDto<AuditLogDto>> {
   async execute (query: ListAuditLogsDto): Promise<PaginatedResponseDto<AuditLogDto>> {
     const { page, limit } = query;
-
     const criteria = { ...query, offset: (page - 1) * limit };
 
     const logs = await this.auditLogRepository.findPaginated(criteria);

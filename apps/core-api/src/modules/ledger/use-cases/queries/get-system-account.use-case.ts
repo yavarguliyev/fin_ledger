@@ -10,7 +10,6 @@ export class GetSystemAccountUseCase extends LedgerBaseUseCase<GetSystemAccountD
   async execute ({ currency }: GetSystemAccountDto): Promise<string> {
     const code = `${SYSTEM_ACCOUNT_CODE}_${currency}`;
     const account = await this.ledgerAccountRepository.findOne({ where: { code } });
-
     if (!account) throw new InternalServerErrorException(`System ledger account ${code} does not exist`);
     return account.id;
   }

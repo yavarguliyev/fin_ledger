@@ -7,18 +7,23 @@ import { Router, RouterModule } from '@angular/router';
 import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
 import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { IdempotencyKeyService } from '../../core/services/idempotency-key.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaymentMethod } from '../../core/interfaces/payment-method/payment-method.interface';
-import { UuidHelper } from '../../core/helpers/common/uuid.helper';
+import { PaymentMethod } from '../../core/types/payment-method/payment-method.type';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
+import { FormErrorHelper } from '../../core/helpers/forms/form-error.helper';
+import { StepUpRetryService } from '../../core/services/step-up-retry.service';
+import { FieldErrorComponent } from '../../shared/components/field-error/field-error.component';
+import { PAYMENT_FIELD_ALIASES } from '../../core/constants/wallet/payment-fields.constant';
+import { PaymentMethodHelper } from '../profile/payment-methods/helpers/payment-method.helper';
 
 @Component({
   selector: 'app-withdraw',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, FieldErrorComponent],
   templateUrl: './templates/withdraw.component.html'
 })
 export class WithdrawComponent implements OnInit {
@@ -26,7 +31,9 @@ export class WithdrawComponent implements OnInit {
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
   private readonly paymentMethodService = inject(PaymentMethodService);
+  private readonly idempotencyKeys = inject(IdempotencyKeyService);
   private readonly toast = inject(ToastService);
+  private readonly stepUp = inject(StepUpRetryService);
 
   readonly router = inject(Router);
   readonly loading = signal(false);
@@ -36,18 +43,19 @@ export class WithdrawComponent implements OnInit {
   readonly verifiedMethods = computed(() => this.paymentMethods().filter(m => m.status === 'VERIFIED'));
   readonly available = computed(() => this.walletService.wallet()?.availableBalanceMinor ?? 0);
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
+  readonly isValid = computed(() => this.formStatus() === 'VALID');
+  readonly amountMinor = computed(() => CurrencyHelper.toMinor({ amount: this.formValues().amount ?? 0, currency: this.currency() }));
 
   readonly form = this.fb.group({
-    amount: this.fb.control<number | null>(null, { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)] }),
+    amount: this.fb.control<number | null>(null, {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)]
+    }),
     paymentMethodId: this.fb.control<string>('', { validators: [ValidatorsHelper.createRequiredValidator()] }),
     terms: this.fb.control<boolean>(false, { validators: [ValidatorsHelper.createRequiredTrueValidator()] })
   });
 
   private readonly formValues = toSignal(this.form.valueChanges, { initialValue: this.form.value });
   private readonly formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
-
-  readonly isValid = computed(() => this.formStatus() === 'VALID');
-  readonly amountMinor = computed(() => CurrencyHelper.toMinor(this.formValues().amount ?? 0, this.currency()));
 
   get amountControl (): typeof this.form.controls.amount {
     return this.form.controls.amount;
@@ -75,14 +83,27 @@ export class WithdrawComponent implements OnInit {
 
     this.loading.set(true);
     const selectedMethod = this.paymentMethods().find(m => m.id === this.form.controls.paymentMethodId.value);
+    const amountMinor = this.amountMinor();
+    const currency = this.currency();
+    const paymentMethodId = this.form.controls.paymentMethodId.value ?? undefined;
 
-    this.paymentService
-      .withdraw({
-        amountMinor: this.amountMinor(),
-        currency: this.currency(),
-        paymentMethodId: this.form.controls.paymentMethodId.value ?? undefined,
-        idempotencyKey: UuidHelper.generate(),
-        metadata: { destination: selectedMethod?.type ?? 'bank_account', maskedAccount: selectedMethod?.maskedAccount ?? '' }
+    this.idempotencyKeys
+      .run({
+        scope: 'withdraw',
+        fingerprint: `${amountMinor}:${currency}:${paymentMethodId}`,
+        request: idempotencyKey =>
+          this.stepUp.guard({
+            request: this.paymentService.withdraw({
+              amountMinor,
+              currency,
+              paymentMethodId,
+              idempotencyKey,
+              metadata: {
+                destination: selectedMethod?.type ?? 'bank_account',
+                maskedAccount: selectedMethod ? PaymentMethodHelper.maskedAccount({ method: selectedMethod }) : ''
+              }
+            })
+          })
       })
       .subscribe({
         next: () => {
@@ -92,7 +113,8 @@ export class WithdrawComponent implements OnInit {
         },
         error: (err: Error) => {
           this.loading.set(false);
-          this.toast.error(err.message);
+          const message = FormErrorHelper.report({ form: this.form, error: err, fallback: err.message, aliases: PAYMENT_FIELD_ALIASES });
+          if (message) this.toast.error(message);
         }
       });
   }
@@ -101,9 +123,12 @@ export class WithdrawComponent implements OnInit {
     this.walletService.loadWallets().subscribe(() => {
       const wallet = this.walletService.wallet();
       if (!wallet) return;
-
-      const maxAmount = CurrencyHelper.fromMinor(wallet.availableBalanceMinor, wallet.currency);
-      this.amountControl.setValidators([ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1), ValidatorsHelper.createMaxValidator(maxAmount)]);
+      const maxAmount = CurrencyHelper.fromMinor({ amountMinor: wallet.availableBalanceMinor, currency: wallet.currency });
+      this.amountControl.setValidators([
+        ValidatorsHelper.createRequiredValidator(),
+        ValidatorsHelper.createMinValidator(1),
+        ValidatorsHelper.createMaxValidator(maxAmount)
+      ]);
       this.amountControl.updateValueAndValidity();
     });
   }
@@ -113,12 +138,8 @@ export class WithdrawComponent implements OnInit {
       next: methods => {
         this.paymentMethods.set(methods);
         this.loadingMethods.set(false);
-        const verified = methods.filter(m => m.status === 'VERIFIED');
-
-        if (verified.length > 0) {
-          const defaultMethod = verified.find(m => m.isDefault) ?? verified[0];
-          if (defaultMethod) this.form.controls.paymentMethodId.setValue(defaultMethod.id);
-        }
+        const preferred = PaymentMethodHelper.preferredVerified({ methods });
+        if (preferred) this.form.controls.paymentMethodId.setValue(preferred.id);
       },
       error: () => this.loadingMethods.set(false)
     });

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { PaymentCapability } from '@common/shared-libs';
 
-import type { IPaymentProvider } from '../../interfaces/payment-provider.interface';
+import type { IPaymentProvider } from '../../types/payment-provider.type';
 
 export const ProviderContractOptionsSchema = z.object({
   name: z.string({ message: 'Name must be a string' }),

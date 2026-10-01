@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('game_events', {
@@ -13,7 +14,7 @@ export const up = pgm => {
 
     odds: { type: 'decimal_odds', notNull: true },
 
-    status: { type: 'event_status', notNull: true, default: 'SCHEDULED' },
+    status: { type: 'text', notNull: true, default: 'SCHEDULED' },
 
     starts_at: { type: 'timestamptz', notNull: true },
     betting_closes_at: { type: 'timestamptz' },
@@ -24,6 +25,8 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'game_events', column: 'status', name: 'event_status' });
 
   pgm.createIndex('game_events', ['provider', 'external_ref'], {
     name: 'uq_game_events_provider_external_ref',
@@ -61,7 +64,7 @@ export const up = pgm => {
     odds_at_placement: { type: 'decimal_odds', notNull: true },
     potential_payout_minor: 'money_positive',
 
-    status: { type: 'bet_status', notNull: true, default: 'PENDING' },
+    status: { type: 'text', notNull: true, default: 'PENDING' },
     payout_minor: { type: 'money_minor_nonneg' },
 
     idempotency_key: { type: 'varchar(255)', notNull: true },
@@ -84,6 +87,8 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'bets', column: 'status', name: 'bet_status' });
 
   pgm.addConstraint('bets', 'fk_bets_wallet_currency', {
     foreignKeys: { columns: ['wallet_id', 'currency'], references: 'wallets(id, currency)' }

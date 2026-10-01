@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Transaction } from '../../core/interfaces/wallet/transaction.interface';
+import { Transaction } from '../../core/types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../../core/interfaces/wallet/wallet-transaction-summary.interface';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
@@ -13,12 +13,12 @@ import { DataTableComponent } from '../../shared/components/data-table/data-tabl
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
+import { StatCard } from '../../core/interfaces/ui/stat-card.interface';
 import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
-import { RoleHelper } from '../../core/helpers/auth/role.helper';
-import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { DashboardHelper } from './helpers/dashboard.helper';
+import { ACTIVITY } from '../../core/constants/wallet/activity.constant';
 
 @Component({
   selector: 'app-dashboard',
@@ -31,6 +31,9 @@ export class DashboardComponent implements OnInit {
   private readonly walletService = inject(WalletService);
   private readonly notif = inject(NotificationService);
 
+  private readonly requestedCurrency = signal<string | null>(null);
+  private readonly isStaff = this.auth.isStaff;
+
   readonly typeIcon = (value: string): string => TransactionHelper.typeIcon(value);
   readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
   readonly formatType = (value: string): string => TransactionHelper.formatType(value);
@@ -41,11 +44,13 @@ export class DashboardComponent implements OnInit {
   readonly summaries = signal<WalletTransactionSummary[]>([]);
   readonly recentTx = signal<Transaction[]>([]);
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
-  readonly isUser = computed(() => this.auth.currentUser()?.role === 'USER');
-  private readonly isStaff = computed(() => RoleHelper.isStaffRole(this.auth.currentUser()?.role));
+  readonly isUser = this.auth.isPlayer;
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
+
+  readonly currencies = computed(() => this.summaries().map(summary => summary.currency));
+  readonly hasMultipleCurrencies = computed(() => this.currencies().length > 1);
 
   readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
     title: 'Recent Activity',
@@ -54,37 +59,26 @@ export class DashboardComponent implements OnInit {
     headerAction: { label: 'View all', link: '/wallet' }
   }));
 
-  readonly statGroups = computed(() =>
-    this.summaries().map(summary => ({
-      currency: summary.currency,
-      stats: [
-        {
-          label: 'Total Deposits',
-          value: CurrencyHelper.formatCurrency(summary.totalDepositsMinor, summary.currency),
-          icon: '📥',
-          trend: '+12%',
-          toneClass: 'bg-success/10 text-success'
-        },
-        {
-          label: 'Total Withdrawals',
-          value: CurrencyHelper.formatCurrency(summary.totalWithdrawalsMinor, summary.currency),
-          icon: '📤',
-          trend: '-4%',
-          toneClass: 'bg-danger/10 text-danger'
-        },
-        { label: 'Bets Placed', value: String(summary.betsCount), icon: '🎯', trend: '+8%', toneClass: 'bg-primary/10 text-primary' },
-        {
-          label: 'Total Winnings',
-          value: CurrencyHelper.formatCurrency(summary.totalWinningsMinor, summary.currency),
-          icon: '🏆',
-          trend: '+22%',
-          toneClass: 'bg-warning/10 text-warning'
-        }
-      ]
-    }))
-  );
+  readonly selectedCurrency = computed(() => {
+    const available = this.currencies();
+    const requested = this.requestedCurrency();
 
-  readonly showCurrencyLabels = computed(() => this.statGroups().length > 1);
+    if (requested && available.includes(requested)) return requested;
+
+    const walletCurrency = this.wallet()?.currency;
+    if (walletCurrency && available.includes(walletCurrency)) return walletCurrency;
+
+    return available[0] ?? null;
+  });
+
+  readonly activeStats = computed<StatCard[]>(() => {
+    const summary = this.summaries().find(entry => entry.currency === this.selectedCurrency());
+    return summary ? DashboardHelper.buildStatCards({ summary }) : [];
+  });
+
+  onSelectCurrency (currency: string): void {
+    this.requestedCurrency.set(currency);
+  }
 
   ngOnInit (): void {
     const user = this.auth.currentUser();
@@ -107,7 +101,7 @@ export class DashboardComponent implements OnInit {
   private loadActivity (scope: string): void {
     this.walletService.getSummary(scope).subscribe({ next: summaries => this.summaries.set(summaries) });
 
-    this.walletService.getTransactions(scope, 1, 10).subscribe({
+    this.walletService.getTransactions({ walletId: scope, page: ACTIVITY.PAGE, limit: ACTIVITY.LIMIT }).subscribe({
       next: () => {
         this.recentTx.set(this.walletService.transactions() ?? []);
         this.loading.set(false);

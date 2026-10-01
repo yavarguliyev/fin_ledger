@@ -1,6 +1,13 @@
 import { Logger } from '@nestjs/common';
-import { v7 as uuid } from 'uuid';
-import { BaseHelper, CircuitBreaker, PaymentCapability, PaymentProvider, ProviderChargeStatus, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
+import {
+  BaseHelper,
+  CircuitBreaker,
+  PaymentCapability,
+  PaymentProvider,
+  ProviderChargeStatus,
+  ProviderError,
+  ProviderErrorCategory
+} from '@common/shared-libs';
 
 import { PaymentProviderCore } from '../../interfaces/payment-provider-core.interface';
 import { ProviderChargeResultDto } from '../../dtos/operation/provider-charge-result.dto';
@@ -23,51 +30,66 @@ import { AdapterNameDto } from '../../dtos/adapter/adapter-name.dto';
 import { CapabilityDto } from '../../dtos/contract/capability.dto';
 import { ProviderResultHelper } from '../../helpers/provider-result.helper';
 import { ProviderConfigHelper } from '../../helpers/provider-config.helper';
+import { PROVIDER_ROUTING } from '../../constants/routing/provider-routing.constant';
+import { OPERATION_LIMITS } from '../../constants/routing/operation-limits.constant';
+import { OperationLimiter } from '../../resilience/operation-limiter';
 
 export abstract class BasePaymentAdapter implements PaymentProviderCore {
   protected readonly logger: Logger;
-  protected readonly paymentMethods = new Map<string, ProviderMethodResultDto>();
   protected readonly breaker: CircuitBreaker;
+  protected readonly limiter: OperationLimiter;
 
   abstract readonly providerName: PaymentProvider;
   abstract readonly capabilities: readonly PaymentCapability[];
 
+  readonly supportedCurrencies: readonly string[] = PROVIDER_ROUTING.ALL_CURRENCIES;
+  readonly supportedCountries: readonly string[] = PROVIDER_ROUTING.ALL_COUNTRIES;
+  readonly priority: number = PROVIDER_ROUTING.DEFAULT_PRIORITY;
+
   constructor ({ name }: AdapterNameDto) {
     this.logger = new Logger(name);
     this.breaker = new CircuitBreaker({ name });
+    this.limiter = new OperationLimiter({ label: name });
   }
 
-  supports ({ capability }: CapabilityDto): boolean {
-    return this.capabilities.includes(capability);
-  }
+  supports = ({ capability }: CapabilityDto): boolean => this.capabilities.includes(capability);
+  isAvailable = (): boolean => !this.breaker.isOpen;
 
   verifyPaymentMethod ({ paymentMethodToken }: VerifyPaymentMethodDto): Promise<ProviderMethodResultDto> {
-    const existing = this.paymentMethods.get(paymentMethodToken);
-    if (existing) return Promise.resolve(existing);
     return Promise.resolve(ProviderResultHelper.buildNotFoundResult({ token: paymentMethodToken, provider: this.providerName }));
   }
 
-  protected headerValue ({ headers, name }: HeaderValueDto): string {
-    const value = headers[name] ?? headers[name.toLowerCase()];
-    if (Array.isArray(value)) return value[0] ?? '';
-    return value ?? '';
-  }
-
-  protected getEnvValue (dto: EnvValueDto): string | undefined {
-    return ProviderConfigHelper.getValue(dto);
-  }
+  protected getEnvValue = (dto: EnvValueDto): string | undefined => ProviderConfigHelper.getValue(dto);
+  protected mapVerifiedMethod = (details: MapVerifiedMethodDto): ProviderMethodResultDto => ProviderResultHelper.verifiedMethod(details);
 
   protected requireCredentials ({ configService, keys }: AdapterCredentialsDto): boolean {
     return ProviderConfigHelper.requireCredentials({ configService, keys, providerName: this.constructor.name, logger: this.logger });
   }
 
-  protected parseRawPayload ({ payload }: RawPayloadDto): Record<string, unknown> {
-    try {
-      const raw = typeof payload === 'string' ? payload : payload.toString('utf-8');
-      return JSON.parse(raw) as Record<string, unknown>;
-    } catch {
-      return {};
-    }
+  protected simulateWebhook ({ payload, signature }: ConstructWebhookEventDto): WebhookEventDto {
+    return ProviderResultHelper.simulatedWebhook({ parsed: this.parseRawPayload({ payload }), provider: this.providerName, signature });
+  }
+
+  protected buildSimulatedResult (dto: SimulatedResultDto): ProviderChargeResultDto {
+    return ProviderResultHelper.simulatedCharge({ ...dto, provider: this.providerName });
+  }
+
+  protected createFailedOperation ({ prefix, amount, currency, error }: CreateFailedOperationDto): ProviderChargeResultDto {
+    return ProviderResultHelper.failedOperation({ prefix, amount, currency, failure: this.classifyError({ error }) });
+  }
+
+  protected createFailedMethod ({ token, error, walletType }: CreateFailedMethodDto): ProviderMethodResultDto {
+    return ProviderResultHelper.failedMethod({ token, message: this.classifyError({ error }).message, walletType });
+  }
+
+  protected headerValue ({ headers, name }: HeaderValueDto): string {
+    const value = headers[name] ?? headers[name.toLowerCase()];
+    return (Array.isArray(value) ? value[0] : value) ?? '';
+  }
+
+  protected classifyError ({ error }: ClassifyErrorDto): ProviderError {
+    if (error instanceof ProviderError) return error;
+    return new ProviderError({ message: BaseHelper.errorResponse({ error }).message, category: ProviderErrorCategory.UNKNOWN });
   }
 
   protected async executeMethodOperation ({ token, walletType, operation }: ExecuteMethodOperationDto): Promise<ProviderMethodResultDto> {
@@ -78,34 +100,20 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
     }
   }
 
-  protected simulateWebhook ({ payload, signature }: ConstructWebhookEventDto): WebhookEventDto {
-    const parsed = this.parseRawPayload({ payload });
-    const eventId = typeof parsed['id'] === 'string' ? parsed['id'] : `evt_${uuid()}`;
-    const eventType = typeof parsed['type'] === 'string' ? parsed['type'] : 'payment.unknown';
+  protected parseRawPayload ({ payload }: RawPayloadDto): Record<string, unknown> {
+    const raw = typeof payload === 'string' ? payload : payload.toString('utf-8');
 
-    return { eventId, eventType, provider: this.providerName, payload: parsed, signature, signatureVerified: false };
-  }
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new SyntaxError('payload is not a JSON object');
 
-  protected buildSimulatedResult (dto: SimulatedResultDto): ProviderChargeResultDto {
-    return ProviderResultHelper.simulatedCharge({ ...dto, provider: this.providerName });
-  }
-
-  protected createFailedMethod ({ token, error, walletType }: CreateFailedMethodDto): ProviderMethodResultDto {
-    return ProviderResultHelper.failedMethod({ token, message: this.classifyError({ error }).message, walletType });
-  }
-
-  protected classifyError ({ error }: ClassifyErrorDto): ProviderError {
-    if (error instanceof ProviderError) return error;
-
-    return new ProviderError({ message: BaseHelper.errorResponse({ error }).message, category: ProviderErrorCategory.UNKNOWN });
-  }
-
-  protected createFailedOperation ({ prefix, amount, currency, error }: CreateFailedOperationDto): ProviderChargeResultDto {
-    return ProviderResultHelper.failedOperation({ prefix, amount, currency, failure: this.classifyError({ error }) });
-  }
-
-  protected mapVerifiedMethod (details: MapVerifiedMethodDto): ProviderMethodResultDto {
-    return ProviderResultHelper.verifiedMethod(details);
+      return parsed as Record<string, unknown>;
+    } catch (error) {
+      throw new ProviderError({
+        message: `${this.providerName} webhook payload is not valid JSON: ${BaseHelper.errorResponse({ error }).message}`,
+        category: ProviderErrorCategory.INVALID_REQUEST
+      });
+    }
   }
 
   protected async executeOperation ({ prefix, amount, currency, operation }: ExecuteOperationDto): Promise<ProviderChargeResultDto> {
@@ -119,14 +127,12 @@ export abstract class BasePaymentAdapter implements PaymentProviderCore {
     }
 
     try {
-      const res = await operation();
-      const isStr = typeof res === 'string';
-      const chargeId = isStr ? res : res.id;
-      const status = isStr ? ProviderChargeStatus.SUCCEEDED : (res.status ?? ProviderChargeStatus.SUCCEEDED);
+      const res = await this.limiter.run({ operation, deadlineMs: OPERATION_LIMITS.DEADLINE_MS, label: this.providerName });
+      const result = typeof res === 'string' ? { id: res, status: ProviderChargeStatus.SUCCEEDED } : res;
 
       this.breaker.recordSuccess();
 
-      return { chargeId, status, amount, currency: currency.toUpperCase() };
+      return ProviderResultHelper.withRequested({ result, amount, currency });
     } catch (error: unknown) {
       const failure = this.classifyError({ error });
       this.breaker.recordFailure({ retryable: failure.retryable });

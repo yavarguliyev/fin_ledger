@@ -26,6 +26,10 @@ export class GetFileUrlUseCase extends StorageBaseUseCase {
     return this.executeByKey({ key, expiresIn });
   }
 
+  private getFileIndex ({ files, result, indexes, index }: FileIndexDto): number | undefined {
+    return indexes ? indexes[index] : files.indexOf(result.filePath);
+  }
+
   private async executeByKey ({ key, indexes, expiresIn = DEFAULT_EXPIRES_IN }: GetFilesDto): Promise<FileUrlsResponse> {
     const { files, targetFiles } = await this.resolveTargetFiles({ key, indexes });
     const results = await Promise.all(
@@ -33,10 +37,6 @@ export class GetFileUrlUseCase extends StorageBaseUseCase {
     );
 
     return { key, files: this.getFileUrlResults({ results, files, indexes }), expiresIn };
-  }
-
-  private getFileIndex ({ files, result, indexes, index }: FileIndexDto): number | undefined {
-    return indexes ? indexes[index] : files.indexOf(result.filePath);
   }
 
   private getFileUrlResults ({ results, files, indexes }: FileUrlResultsDto): FileUrlResults[] {

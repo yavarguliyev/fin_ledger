@@ -1,5 +1,5 @@
 import { logLevel } from 'kafkajs';
-import { BaseHelper, HeadersPayload, WorkflowExecutionRecord, WorkflowStepStatus } from '@common/shared-libs';
+import { BaseHelper, HeadersPayload } from '@common/shared-libs';
 
 import { KafkaMessageRecord } from '../interfaces/kafka-message-record.interface';
 import { KafkaConfigPayload } from '../interfaces/kafka-config-payload.interface';
@@ -11,7 +11,6 @@ import { EnsureKafkaTopicsDto } from '../dtos/helper/ensure-kafka-topics.dto';
 import { InstanceWrapperDto } from '../dtos/helper/instance-wrapper.dto';
 import { ParseKafkaHeadersDto } from '../dtos/helper/parse-kafka-headers.dto';
 import { ResolveBrokersDto } from '../dtos/helper/resolve-brokers.dto';
-import { RunCompensationsDto } from '../dtos/helper/run-compensations.dto';
 import { SubscribeToTopicsDto } from '../dtos/helper/subscribe-to-topics.dto';
 
 export class KafkaHelper {
@@ -95,28 +94,5 @@ export class KafkaHelper {
         maxRetryTime: 30000
       }
     };
-  }
-
-  static async runCompensations (params: RunCompensationsDto): Promise<WorkflowExecutionRecord[]> {
-    const { steps, context, failedIndex, logger } = params;
-
-    const log: WorkflowExecutionRecord[] = [];
-    const executedSteps = steps.slice(0, failedIndex).reverse();
-
-    for (const currentStep of executedSteps) {
-      try {
-        await currentStep.compensate(context);
-
-        log.push({ stepName: currentStep.stepName, status: WorkflowStepStatus.COMPENSATED });
-        logger.warn(`Compensated: ${currentStep.stepName}`);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-
-        log.push({ stepName: currentStep.stepName, status: WorkflowStepStatus.FAILED });
-        logger.error(`Compensation failed for ${currentStep.stepName}: ${message}`);
-      }
-    }
-
-    return log;
   }
 }

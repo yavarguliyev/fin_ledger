@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { WalletService } from '../../core/services/wallet.service';
 import { ToastService } from '../../core/services/toast.service';
-import { Wallet } from '../../core/interfaces/wallet/wallet.interface';
+import { Wallet } from '../../core/types/wallet/wallet.type';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 
 @Component({

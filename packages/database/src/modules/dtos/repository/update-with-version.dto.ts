@@ -3,7 +3,13 @@ import { EntityId } from '@common/shared-libs';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const UpdateWithVersionSchema = <T>(): z.ZodObject<{ id: z.ZodCustom<EntityId>; data: z.ZodCustom<Partial<T>>; versionField: z.ZodCustom<keyof T & string>; expectedVersion: z.ZodNumber; adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>> }> =>
+export const UpdateWithVersionSchema = <T>(): z.ZodObject<{
+  id: z.ZodCustom<EntityId>;
+  data: z.ZodCustom<Partial<T>>;
+  versionField: z.ZodCustom<keyof T & string>;
+  expectedVersion: z.ZodNumber;
+  adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>>;
+}> =>
   z.object({
     id: z.custom<EntityId>(),
 

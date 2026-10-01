@@ -1,0 +1,11 @@
+<div class="min-h-screen flex items-center justify-center px-4 bg-ink-50 dark:bg-night-bg">
+  <div class="w-full max-w-md bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-8 text-center">
+    @if (loading()) {
+      <p class="text-sm text-ink-600 dark:text-ink-300">Confirming your new email address…</p>
+    } @else {
+      <h1 class="text-lg font-semibold text-ink-900 dark:text-white mb-2">That link did not work</h1>
+      <p class="text-sm text-danger mb-6" role="alert">{{ error() }}</p>
+      <a routerLink="/profile" class="text-sm font-medium text-primary hover:underline">Back to your profile</a>
+    }
+  </div>
+</div>

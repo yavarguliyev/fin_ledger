@@ -12,7 +12,6 @@ import { AggregateExpressionDto } from '../../dtos/builder/aggregate-expression.
 export class AggregateBuilder extends BaseBuilder {
   private readonly whereBuilder: WhereBuilder;
   private readonly joinBuilder: JoinBuilder;
-
   private readonly tableName: string;
 
   constructor ({ tableName, columnMappings = {} }: BuilderOptionsDto) {

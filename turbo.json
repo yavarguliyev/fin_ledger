@@ -18,7 +18,12 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:integration": {
+      "dependsOn": ["build"],
+      "cache": false
     },
     "clean": {
       "cache": false

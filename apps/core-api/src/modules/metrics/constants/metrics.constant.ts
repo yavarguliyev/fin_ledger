@@ -1,0 +1,21 @@
+export const METRICS = {
+  PREFIX: 'core_api_',
+  CONTENT_TYPE_HEADER: 'content-type',
+  POOL_TOTAL: 'db_pool_connections_total',
+  POOL_IDLE: 'db_pool_connections_idle',
+  POOL_WAITING: 'db_pool_connections_waiting',
+  OUTBOX_PENDING: 'outbox_events_pending',
+  OUTBOX_DEAD: 'outbox_events_dead',
+  LEDGER_DRIFTED_ACCOUNTS: 'ledger_drifted_accounts',
+  LEDGER_DRIFTED_WALLETS: 'ledger_drifted_wallets',
+  LEDGER_UNBALANCED_CURRENCIES: 'ledger_unbalanced_currencies',
+  DLQ_DEPTH: 'rabbitmq_dead_letter_depth',
+  HTTP_DURATION: 'http_request_duration_seconds',
+  HTTP_BUCKETS: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5],
+  HTTP_LABELS: ['method', 'route', 'status'],
+  DLQ_LABEL: 'queue',
+  UNKNOWN_ROUTE: 'unmatched',
+  DLQ_PROBE_EVENT: 'wallet.credited',
+  NANOSECONDS_PER_SECOND: 1_000_000_000,
+  PENDING_SQL: "SELECT count(*) FILTER (WHERE status = 'PENDING') AS pending, count(*) FILTER (WHERE status = 'DEAD') AS dead FROM outbox_events"
+} as const;

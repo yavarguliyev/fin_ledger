@@ -9,6 +9,10 @@ import { PaginationConfig } from '../../../core/interfaces/ui/pagination-config.
 import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-config.interface';
 import { DataTableConfig } from '../../../core/interfaces/ui/data-table-config.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
+import { SELECT_CHEVRON } from '../../../core/constants/ui/select.constant';
+import { CellRefDto } from '../../../core/dtos/ui/cell-ref.dto';
+import { ColumnRefDto } from '../../../core/dtos/ui/column-ref.dto';
+import { ToggleChangeDto } from '../../../core/dtos/ui/toggle-change.dto';
 import { DataTableHelper } from './helpers/data-table.helper';
 
 @Component({
@@ -18,6 +22,8 @@ import { DataTableHelper } from './helpers/data-table.helper';
   templateUrl: './data-table.component.html'
 })
 export class DataTableComponent<T = unknown> {
+  readonly CHEVRON_ICON = SELECT_CHEVRON;
+
   readonly config = input.required<DataTableConfig<T>>();
   readonly data = input.required<T[]>();
   readonly loading = input<boolean>(false);
@@ -61,44 +67,44 @@ export class DataTableComponent<T = unknown> {
     this.pageSizeChange.emit(size);
   }
 
-  onToggleChange (column: TableColumn<T>, row: T, checked: boolean): void {
-    if (column.toggleCallback) column.toggleCallback(checked, row);
+  onToggleChange ({ row, column, checked }: ToggleChangeDto<T>): void {
+    if (column.toggleCallback) column.toggleCallback({ value: checked, row });
   }
 
-  onActionView (column: TableColumn<T>, row: T): void {
-    if (column.actions?.onView) column.actions.onView(row);
+  onActionView ({ row, column }: CellRefDto<T>): void {
+    if (column.actions?.onView) column.actions.onView({ row });
   }
 
-  onActionUpdate (column: TableColumn<T>, row: T): void {
-    if (column.actions?.onUpdate) column.actions.onUpdate(row);
+  onActionUpdate ({ row, column }: CellRefDto<T>): void {
+    if (column.actions?.onUpdate) column.actions.onUpdate({ row });
   }
 
-  onActionDelete (column: TableColumn<T>, row: T): void {
-    if (column.actions?.onDelete) column.actions.onDelete(row);
+  onActionDelete ({ row, column }: CellRefDto<T>): void {
+    if (column.actions?.onDelete) column.actions.onDelete({ row });
   }
 
-  getCellValue (row: T, column: TableColumn<T>): unknown {
-    return DataTableHelper.getCellValue(row, column);
+  getCellText (dto: CellRefDto<T>): string {
+    return DataTableHelper.getCellText(dto);
   }
 
-  formatCellValue (value: unknown, row: T, column: TableColumn<T>): string {
-    return DataTableHelper.formatCellValue(value, row, column);
+  getBadgeClass (dto: CellRefDto<T>): string {
+    return DataTableHelper.getBadgeClass(dto);
   }
 
-  getBadgeClass (value: unknown, row: T, column: TableColumn<T>): string {
-    return DataTableHelper.getBadgeClass(value, row, column);
+  getAlignmentClass (dto: ColumnRefDto<T>): string {
+    return DataTableHelper.getAlignmentClass(dto);
   }
 
-  getAlignmentClass (column: TableColumn<T>): string {
-    return DataTableHelper.getAlignmentClass(column);
+  getToggleChecked (dto: CellRefDto<T>): boolean {
+    return DataTableHelper.getToggleChecked(dto);
   }
 
-  getToggleChecked (column: TableColumn<T>, row: T): boolean {
-    return DataTableHelper.getToggleChecked(column, row);
+  getToggleDisabled (dto: CellRefDto<T>): boolean {
+    return DataTableHelper.getToggleDisabled(dto);
   }
 
-  getActionConfig (column: TableColumn<T>): ActionIconsConfig {
-    return DataTableHelper.getActionConfig(column);
+  getActionConfig (dto: ColumnRefDto<T>): ActionIconsConfig {
+    return DataTableHelper.getActionConfig(dto);
   }
 
   onFilterChange (event: Event): void {

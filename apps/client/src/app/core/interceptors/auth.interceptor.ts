@@ -1,21 +1,57 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 
-import { PUBLIC_ALLOWED_COMPONENTS } from '../constants/auth/public-allowed-components.constant';
+import { SESSION } from '../constants/auth/session.constant';
+import { DEVICE } from '../constants/device/device.constant';
 import { AuthService } from '../services/auth.service';
+import { SessionRefreshService } from '../services/session-refresh.service';
+import { DeviceService } from '../services/device.service';
+import { AuthInterceptorHelper } from '../helpers/auth/auth-interceptor.helper';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  if (PUBLIC_ALLOWED_COMPONENTS.some(url => req.url.includes(url))) return next(req);
+  const device = inject(DeviceService);
+  const tagged = req.clone({ headers: req.headers.set(DEVICE.HEADER, device.id()) });
 
-  const token = localStorage.getItem('access_token');
+  if (AuthInterceptorHelper.isPublic({ url: req.url })) return next(tagged);
+
   const authService = inject(AuthService);
-  const request = token ? req.clone({ headers: req.headers.set('Authorization', `Bearer ${token}`) }) : req;
+  const refreshService = inject(SessionRefreshService);
 
-  return next(request).pipe(
+  const authorize = (token: string | null): HttpRequest<unknown> => {
+    return token ? tagged.clone({ headers: tagged.headers.set(SESSION.AUTH_HEADER, `${SESSION.BEARER_PREFIX}${token}`) }) : tagged;
+  };
+
+  if (req.url.includes(SESSION.REFRESH_PATH)) return next(tagged);
+  if (tagged.headers.has(SESSION.AUTH_HEADER)) return next(tagged);
+
+  if (!refreshService.hasFreshAccess()) {
+    if (!refreshService.canRefresh()) return throwError(() => AuthInterceptorHelper.noSession({ url: req.url }));
+
+    return refreshService.refresh().pipe(
+      switchMap(session => {
+        if (!session) return throwError(() => AuthInterceptorHelper.noSession({ url: req.url }));
+        return next(authorize(session.accessToken));
+      })
+    );
+  }
+
+  return next(authorize(authService.token())).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !authService.isLoggingOut()) authService.logout();
-      return throwError(() => error);
+      const refreshable = !req.url.includes(SESSION.REFRESH_PATH) && refreshService.canRefresh();
+      const retryable = error.status === SESSION.UNAUTHORIZED && !authService.isLoggingOut() && refreshable;
+      if (!retryable) return throwError(() => error);
+
+      return refreshService.refresh().pipe(
+        switchMap(session => {
+          if (!session) {
+            authService.logout();
+            return throwError(() => error);
+          }
+
+          return next(authorize(session.accessToken));
+        })
+      );
     })
   );
 };

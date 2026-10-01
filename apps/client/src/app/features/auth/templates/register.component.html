@@ -21,6 +21,7 @@
                   @else if (displayNameControl.hasError('maxlength')) { Max 50 characters }
                 </p>
               }
+              <app-field-error [control]="displayNameControl" />
             </div>
 
             <div>
@@ -35,6 +36,7 @@
                   @else if (emailControl.hasError('email')) { Enter a valid email }
                 </p>
               }
+              <app-field-error [control]="emailControl" />
             </div>
 
             <div>
@@ -71,6 +73,7 @@
               @if (passwordControl.invalid && passwordControl.touched) {
                 <p class="mt-1.5 text-xs text-danger">Min 8 chars, upper + lower + number</p>
               }
+              <app-field-error [control]="passwordControl" />
             </div>
 
             <div>
@@ -107,6 +110,7 @@
               @if (form.hasError('mismatch') && confirmPasswordControl.touched) {
                 <p class="mt-1.5 text-xs text-danger">Passwords don't match</p>
               }
+              <app-field-error [control]="confirmPasswordControl" />
             </div>
 
             <label class="flex items-start gap-2 text-sm text-ink-600 dark:text-ink-300 cursor-pointer">

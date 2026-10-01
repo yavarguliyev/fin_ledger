@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { BaseHelper, DomainEventType, NotificationType } from '@common/libs';
+import { BaseHelper, DomainEventType, NotificationType, NotificationTitle } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
 import { WalletEventPayloadDto } from '../../../wallet/dtos/events/wallet-event-payload.dto';
 
 @Injectable()
 export class WalletDebitedConsumer extends NotificationBaseConsumer<WalletEventPayloadDto> {
-  protected readonly title = 'Wallet Debited';
+  protected readonly title = NotificationTitle.WALLET_DEBITED;
   protected readonly eventType = DomainEventType.WALLET_DEBITED;
   protected readonly notificationType = NotificationType.WALLET_DEBITED;
 

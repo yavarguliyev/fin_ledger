@@ -1,15 +1,22 @@
 import { Signal } from '@angular/core';
+import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
 
 import { AdminUser } from '../../core/interfaces/admin/admin-user.interface';
 import { DashboardStats } from '../../core/interfaces/admin/dashboard-stats.interface';
 import { AdminApiService } from '../../core/services/admin-api.service';
+import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { HttpError } from '../../core/interfaces/http/http-error.interface';
-import { UserRole } from '../../core/types/auth/user-role.type';
+import { AccountStatusHelper } from './helpers/account-status.helper';
+import { UserIdRefDto } from '../../core/dtos/user/user-id-ref.dto';
+import { UserToggleDto } from '../../core/dtos/admin/user-toggle.dto';
+import { WalletToggleDto } from '../../core/dtos/admin/wallet-toggle.dto';
+import { AdminUserHelper } from './helpers/admin-user.helper';
 
 export class AdminHandlers {
   constructor (
     private readonly adminApi: AdminApiService,
+    private readonly userService: UserService,
     private readonly toast: ToastService,
     private readonly allUsers: Signal<AdminUser[]>,
 
@@ -20,64 +27,51 @@ export class AdminHandlers {
     private readonly isAuthEnding: () => boolean
   ) {}
 
-  onView (userId: string): void {
+  onView ({ userId }: UserIdRefDto): void {
     const user = this.allUsers().find(u => u.id === userId);
     if (user) this.setSelectedUser(user);
   }
 
-  onEmailVerificationToggle (userId: string, isVerified: boolean): void {
-    this.adminApi.updateEmailVerification(userId, isVerified).subscribe({
+  onAnonymize ({ userId }: UserIdRefDto): void {
+    const user = this.allUsers().find(u => u.id === userId);
+    if (!user) return;
+    const message = `Anonymize ${user.email}? Their personal data will be erased permanently. Financial records are kept for compliance. This cannot be undone.`;
+    this.toast.confirm({ message, onConfirm: () => this.applyAnonymize({ userId }) });
+  }
+
+  onEmailVerificationToggle ({ userId, isEnabled: isVerified }: UserToggleDto): void {
+    this.userService.updateEmailVerification({ userId, isEmailVerified: isVerified }).subscribe({
       next: () => {
         this.updateUsers(users => users.map(u => (u.id === userId ? { ...u, isEmailVerified: isVerified } : u)));
         this.toast.success(`Email verification ${isVerified ? 'enabled' : 'disabled'}`);
       },
       error: (err: HttpError) => {
-        const errorMessage = err?.error?.message ?? err?.message ?? 'Failed to update email verification';
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to update email verification' });
         this.toast.error(errorMessage);
       }
     });
   }
 
-  onDeletedToggle (userId: string): void {
+  onDeletedToggle ({ userId }: UserIdRefDto): void {
     const user = this.allUsers().find(u => u.id === userId);
     if (!user) return;
 
     const isCurrentlyDeleted = user.deletedAt !== null;
     const action = isCurrentlyDeleted ? 'restore' : 'delete';
 
-    this.adminApi.deleteUser(userId).subscribe({
+    this.userService.deleteUser(userId).subscribe({
       next: response => {
         this.updateUsers(users => users.map(u => (u.id === userId ? { ...u, deletedAt: isCurrentlyDeleted ? null : new Date().toISOString() } : u)));
         this.toast.success(response.message);
       },
       error: (err: HttpError) => {
-        const errorMessage = err?.error?.message ?? err?.message ?? `Failed to ${action} user`;
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: `Failed to ${action} user` });
         this.toast.error(errorMessage);
       }
     });
   }
 
-  onAnonymize (userId: string): void {
-    const user = this.allUsers().find(u => u.id === userId);
-    if (!user) return;
-
-    const message = `Anonymize ${user.email}? Their personal data will be erased permanently. Financial records are kept for compliance. This cannot be undone.`;
-
-    this.toast.confirm(message, () => {
-      this.adminApi.anonymizeUser(userId).subscribe({
-        next: response => {
-          this.toast.success(response.message);
-          this.loadDashboardData();
-        },
-        error: (err: HttpError) => {
-          const errorMessage = err?.error?.message ?? err?.message ?? 'Failed to anonymize user';
-          this.toast.error(errorMessage);
-        }
-      });
-    });
-  }
-
-  onStatusToggle (walletId: string | null, isActive: boolean): void {
+  onStatusToggle ({ walletId, isActive }: WalletToggleDto): void {
     const newStatus = isActive ? 'ACTIVE' : 'SUSPENDED';
 
     if (!walletId) {
@@ -85,15 +79,31 @@ export class AdminHandlers {
       return;
     }
 
-    this.adminApi.updateWalletStatus(walletId, newStatus).subscribe({
+    this.userService.updateWalletStatus({ walletId, status: newStatus }).subscribe({
       next: () => {
         this.updateUsers(users => users.map(u => (u.walletId === walletId ? { ...u, status: newStatus } : u)));
         this.toast.success(`Wallet status updated to ${newStatus}`);
       },
       error: (err: HttpError) => {
-        const errorMessage = err?.error?.message ?? err?.message ?? 'Failed to update wallet status';
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to update wallet status' });
         this.toast.error(errorMessage);
       }
+    });
+  }
+
+  onAccountStatusToggle ({ userId, isEnabled: suspend }: UserToggleDto): void {
+    const user = this.allUsers().find(u => u.id === userId);
+    if (!user || !AccountStatusHelper.confirm({ email: user.email, suspend })) return;
+
+    const request = suspend ? this.userService.suspendUser(userId) : this.userService.reactivateUser(userId);
+
+    request.subscribe({
+      next: () => {
+        this.updateUsers(users => users.map(u => (u.id === userId ? { ...u, userStatus: suspend ? 'SUSPENDED' : 'ACTIVE' } : u)));
+        this.toast.success(`Account ${suspend ? 'suspended' : 'reactivated'}`);
+      },
+      error: (err: HttpError) =>
+        this.toast.error(ErrorMessageHelper.from({ error: err, fallback: `Failed to ${suspend ? 'suspend' : 'reactivate'} user` }))
     });
   }
 
@@ -102,18 +112,7 @@ export class AdminHandlers {
       next: dashboard => {
         this.setDashboardStats(dashboard.stats);
 
-        const users: AdminUser[] = dashboard.users.map(user => {
-          const { id, displayName: name, email, walletId, isEmailVerified, deletedAt } = user;
-
-          const role = user.role as UserRole;
-          const balance = Number(user.availableBalanceMinor ?? 0) + Number(user.reservedBalanceMinor ?? 0);
-          const status = user.status ?? 'ACTIVE';
-          const currency = user.currency ?? 'USD';
-
-          return { id, name, email, role, status, balance, currency, walletId, isEmailVerified, deletedAt };
-        });
-
-        this.updateUsers(() => users);
+        this.updateUsers(() => dashboard.users.map(user => AdminUserHelper.fromRecord({ user })));
         this.setLoading(false);
       },
       error: (err: HttpError) => {
@@ -122,10 +121,20 @@ export class AdminHandlers {
           return;
         }
 
-        const errorMessage = err?.error?.message || (err?.message ? String(err.message) : 'Failed to load dashboard data');
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to load dashboard data' });
         this.toast.error(errorMessage);
         this.setLoading(false);
       }
+    });
+  }
+
+  private applyAnonymize ({ userId }: UserIdRefDto): void {
+    this.userService.anonymizeUser(userId).subscribe({
+      next: response => {
+        this.toast.success(response.message);
+        this.loadDashboardData();
+      },
+      error: (err: HttpError) => this.toast.error(ErrorMessageHelper.from({ error: err, fallback: 'Failed to anonymize user' }))
     });
   }
 }

@@ -26,6 +26,8 @@ export class BetRepository extends BaseExtendedRepository<BetDto> {
         oddsAtPlacement: 'odds_at_placement',
         potentialPayoutMinor: 'potential_payout_minor',
         payoutMinor: 'payout_minor',
+        drawValue: 'draw_value',
+        drawThreshold: 'draw_threshold',
         idempotencyKey: 'idempotency_key',
         stakeLedgerTransactionId: 'stake_ledger_transaction_id',
         settlementLedgerTransactionId: 'settlement_ledger_transaction_id',
@@ -50,6 +52,8 @@ export class BetRepository extends BaseExtendedRepository<BetDto> {
       'potentialPayoutMinor',
       'status',
       'payoutMinor',
+      'drawValue',
+      'drawThreshold',
       'idempotencyKey',
       'stakeLedgerTransactionId',
       'settlementLedgerTransactionId',
@@ -62,7 +66,6 @@ export class BetRepository extends BaseExtendedRepository<BetDto> {
 
   async createBet (dto: CreateBetDto): Promise<BetDto | null> {
     const { adapter, ...bet } = dto;
-
     return this.create({ data: { ...bet, status: BetStatus.PENDING }, adapter });
   }
 
@@ -70,19 +73,27 @@ export class BetRepository extends BaseExtendedRepository<BetDto> {
     return this.findOne({ where: { user_id: dto.userId, idempotency_key: dto.idempotencyKey } });
   }
 
-  async settle (dto: SettleBetRecordDto): Promise<BetDto | null> {
-    const { betId, adapter, ...record } = dto;
-
-    return this.update({ id: betId, data: record, adapter });
-  }
-
   async findPaginated (dto: FindBetsDto): Promise<BetDto[]> {
     const { limit, offset } = dto;
-
     return this.findAll({ where: buildWhere(dto), orderBy: 'placed_at', orderDirection: 'DESC', limit, offset });
   }
 
   async countBets (dto: FindBetsDto): Promise<number> {
     return this.count({ where: buildWhere(dto) });
+  }
+
+  async settle (dto: SettleBetRecordDto): Promise<BetDto | null> {
+    const { betId, adapter, settlementLedgerTransactionId, drawValue, drawThreshold, ...record } = dto;
+
+    return this.update({
+      id: betId,
+      data: {
+        ...record,
+        ...(settlementLedgerTransactionId && { settlementLedgerTransactionId }),
+        ...(drawValue !== undefined && { drawValue }),
+        ...(drawThreshold !== undefined && { drawThreshold })
+      },
+      adapter
+    });
   }
 }

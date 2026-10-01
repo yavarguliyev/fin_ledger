@@ -11,7 +11,7 @@ export class ToggleComponent {
   readonly checked = input.required<boolean>();
   readonly disabled = input<boolean>(false);
   readonly id = input<string>(`toggle-${Math.random().toString(36).substr(2, 9)}`);
-  
+
   readonly toggleChange = output<boolean>();
 
   onToggle (event: Event): void {

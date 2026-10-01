@@ -1,13 +1,15 @@
 import { BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailTemplateType, EXTRACT_ID_KEY, KAFKA_SERVICE, KafkaPublish, KafkaService, SendEmailDto, SessionService, StorageService } from '@common/libs';
+import { EmailTemplateType, OutboxDestination, OutboxRepository, SendEmailDto, SessionService, StorageService } from '@common/libs';
+
+import { PublishUserEmailDto } from '../../../email/dtos/step/publish-user-email.dto';
+import { RecordEmailEventDto } from '../../../email/dtos/step/record-email-event.dto';
 
 import { UserRepository } from '../../repositories/user.repository';
+import { UserStorageHelper } from '../../helpers/user-storage.helper';
 import { ImageActionDto } from '../../dtos/helper/image-action.dto';
 
 export abstract class UserBaseCase<TInput, TOutput> {
-  protected readonly webCompatibleFormats = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-
   @Inject(UserRepository)
   protected readonly userRepository!: UserRepository;
 
@@ -20,14 +22,39 @@ export abstract class UserBaseCase<TInput, TOutput> {
   @Inject(StorageService)
   protected readonly storageService!: StorageService;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
+  @Inject(OutboxRepository)
+  protected readonly outboxRepository!: OutboxRepository;
 
   abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: EmailTemplateType.EMAIL_VERIFICATION, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'userId' }) })
-  protected async publishEmailVerification (eventPayload: SendEmailDto): Promise<SendEmailDto> {
-    return Promise.resolve(eventPayload);
+  protected handleAddImages ({ request, user, updates }: ImageActionDto): void {
+    if (!request.profileImages || request.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
+    updates.profileImages = [...user.profileImages, ...request.profileImages];
+    updates.profileImagesKey = UserStorageHelper.profileImagesKey({ userId: user.id });
+  }
+
+  protected async publishAccountEmail ({ eventType, eventPayload, userId, adapter }: RecordEmailEventDto): Promise<void> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
+  }
+
+  protected async publishEmailVerification ({ eventPayload, userId, adapter }: PublishUserEmailDto): Promise<SendEmailDto> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'User',
+      aggregateId: userId,
+      eventType: EmailTemplateType.EMAIL_VERIFICATION,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
+
+    return eventPayload;
   }
 
   protected async handleImageAction (dto: ImageActionDto): Promise<void> {
@@ -47,12 +74,6 @@ export abstract class UserBaseCase<TInput, TOutput> {
       default:
         throw new BadRequestException('Invalid image action');
     }
-  }
-
-  protected handleAddImages ({ request, user, updates }: ImageActionDto): void {
-    if (!request.profileImages || request.profileImages.length === 0) throw new BadRequestException('Profile images are required for add action');
-    updates.profileImages = [...user.profileImages, ...request.profileImages];
-    if (request.profileImagesKey) updates.profileImagesKey = request.profileImagesKey;
   }
 
   protected async handleDeleteAllImages ({ user, updates }: ImageActionDto): Promise<void> {

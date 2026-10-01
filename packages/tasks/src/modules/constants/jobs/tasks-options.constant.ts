@@ -1,0 +1,1 @@
+export const TASKS_OPTIONS = 'COMMON_TASKS_OPTIONS';

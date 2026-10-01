@@ -5,7 +5,9 @@ export const BuildCacheKeySchema = z.object({
 
   method: z.string({ message: 'Method must be a string' }),
 
-  args: z.array(z.unknown())
+  args: z.array(z.unknown()),
+
+  scope: z.string({ message: 'Scope must be a string' }).optional()
 });
 
 export type BuildCacheKeyDto = z.infer<typeof BuildCacheKeySchema>;

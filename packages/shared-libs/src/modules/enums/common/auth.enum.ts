@@ -12,7 +12,14 @@ export enum UserStatus {
   SUSPENDED = 'SUSPENDED'
 }
 
+export enum AuthTokenPurpose {
+  ACCOUNT_INVITE = 'account_invite',
+  EMAIL_CHANGE = 'email_change',
+  EMAIL_VERIFICATION = 'email_verification',
+  MFA_CHALLENGE = 'mfa_challenge',
+  PASSWORD_RESET = 'password_reset'
+}
+
 export enum PasswordAlgorithm {
-  ARGON2ID = 'argon2id',
-  BCRYPT = 'bcrypt'
+  ARGON2ID = 'argon2id'
 }

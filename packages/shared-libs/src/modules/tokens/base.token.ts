@@ -10,4 +10,3 @@ export const RABBITMQ_SERVICE = Symbol('RABBITMQ_SERVICE');
 export const REDIS_CACHE_PROVIDER = Symbol('REDIS_CACHE_PROVIDER');
 export const SMS_SERVICE = Symbol('SMS_SERVICE');
 export const STORAGE_OPTIONS = Symbol('STORAGE_OPTIONS');
-export const WORKFLOW_STEP_METADATA = Symbol('WORKFLOW_STEP_METADATA');

@@ -1,8 +1,11 @@
 import { z } from 'zod';
-import { Environment } from '@common/shared-libs';
+import { Environment, MailTransportKind, SmsTransportKind } from '@common/shared-libs';
+
+import { ENVIRONMENT_CONSTANTS } from '../../constants/environment/env.constant';
 
 export const EnvironmentVariablesSchema = z.object({
   NODE_ENV: z.enum(Environment, { message: 'NODE_ENV must be a valid Environment enum' }),
+  HOST: z.string({ message: 'HOST must be a string' }).default('0.0.0.0'),
 
   PORT: z.coerce
     .number({ message: 'PORT must be a number' })
@@ -10,9 +13,37 @@ export const EnvironmentVariablesSchema = z.object({
     .min(0, { message: 'PORT must be at least 0' })
     .max(65535, { message: 'PORT must not exceed 65535' }),
 
+  ALLOWED_ORIGINS: z
+    .string({ message: 'ALLOWED_ORIGINS must be a string' })
+    .transform(value =>
+      value
+        .split(ENVIRONMENT_CONSTANTS.CORS.ORIGIN_SEPARATOR)
+        .map(origin => origin.trim())
+        .filter(Boolean)
+    )
+    .pipe(z.array(z.url({ message: 'ALLOWED_ORIGINS must list valid URLs' })).min(1, { message: 'ALLOWED_ORIGINS is required' })),
+
   FRONTEND_URL: z.coerce.string({ message: 'FRONTEND_URL must be a string' }).min(1, { message: 'FRONTEND_URL is required' }),
+
   EMAIL_FROM: z.string({ message: 'EMAIL_FROM must be a string' }).min(1, { message: 'EMAIL_FROM is required' }),
-  HOST: z.string({ message: 'HOST must be a string' }).default('0.0.0.0'),
+  MAIL_TRANSPORT: z.enum(MailTransportKind, { message: 'MAIL_TRANSPORT must be a valid MailTransportKind enum' }).default(MailTransportKind.CONSOLE),
+
+  SMTP_HOST: z.string({ message: 'SMTP_HOST must be a string' }).optional(),
+  SMTP_PORT: z.coerce.number({ message: 'SMTP_PORT must be a number' }).int().positive().optional(),
+  SMTP_USER: z.string({ message: 'SMTP_USER must be a string' }).optional(),
+  SMTP_PASSWORD: z.string({ message: 'SMTP_PASSWORD must be a string' }).optional(),
+  SMS_TRANSPORT: z.enum(SmsTransportKind, { message: 'SMS_TRANSPORT must be a valid SmsTransportKind enum' }).default(SmsTransportKind.CONSOLE),
+  SMS_FROM: z.string({ message: 'SMS_FROM must be a string' }).optional(),
+
+  TWILIO_ACCOUNT_SID: z.string({ message: 'TWILIO_ACCOUNT_SID must be a string' }).optional(),
+  TWILIO_AUTH_TOKEN: z.string({ message: 'TWILIO_AUTH_TOKEN must be a string' }).optional(),
+  TWILIO_API_BASE: z.url({ message: 'TWILIO_API_BASE must be a valid URL' }).optional(),
+
+  TRUST_PROXY: z.coerce
+    .number({ message: 'TRUST_PROXY must be a number' })
+    .int({ message: 'TRUST_PROXY must be an integer' })
+    .min(0, { message: 'TRUST_PROXY must be at least 0' })
+    .default(0),
 
   JWT_PRIVATE_KEY: z.string({ message: 'JWT_PRIVATE_KEY must be a string' }).min(1, { message: 'JWT_PRIVATE_KEY is required' }),
   JWT_PUBLIC_KEY: z.string({ message: 'JWT_PUBLIC_KEY must be a string' }).min(1, { message: 'JWT_PUBLIC_KEY is required' }),
@@ -25,6 +56,24 @@ export const EnvironmentVariablesSchema = z.object({
   DB_NAME: z.string({ message: 'DB_NAME must be a string' }).min(1, { message: 'DB_NAME is required' }),
   DB_HOST: z.string({ message: 'DB_HOST must be a string' }).min(1, { message: 'DB_HOST is required' }),
   DB_PORT: z.coerce.number({ message: 'DB_PORT must be a number' }),
+  DB_ACQUIRE_TIMEOUT: z.coerce.number({ message: 'DB_ACQUIRE_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_PRIMARY_POOL_MAX: z.coerce.number({ message: 'DB_PRIMARY_POOL_MAX must be a number' }).int().positive().optional(),
+  DB_STATEMENT_TIMEOUT: z.coerce.number({ message: 'DB_STATEMENT_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_IDLE_IN_TRANSACTION_TIMEOUT: z.coerce.number({ message: 'DB_IDLE_IN_TRANSACTION_TIMEOUT must be a number' }).int().positive().optional(),
+  DB_MAX_LIFETIME_SECONDS: z.coerce.number({ message: 'DB_MAX_LIFETIME_SECONDS must be a number' }).int().positive().optional(),
+  DB_APPLICATION_NAME: z.string({ message: 'DB_APPLICATION_NAME must be a string' }).optional(),
+  REFRESH_GRACE_MS: z.string({ message: 'REFRESH_GRACE_MS must be a string' }).optional(),
+
+  TELEGRAM_BOT_TOKEN: z.string({ message: 'TELEGRAM_BOT_TOKEN must be a string' }).optional(),
+  TELEGRAM_WEBHOOK_URL: z.string({ message: 'TELEGRAM_WEBHOOK_URL must be a string' }).optional(),
+  TELEGRAM_WEBHOOK_SECRET: z.string({ message: 'TELEGRAM_WEBHOOK_SECRET must be a string' }).optional(),
+
+  DB_WORKER_USERNAME: z.string({ message: 'DB_WORKER_USERNAME must be a string' }).optional(),
+  DB_WORKER_PASSWORD: z.string({ message: 'DB_WORKER_PASSWORD must be a string' }).optional(),
+
+  RETENTION_INTERVAL_MS: z.coerce.number({ message: 'RETENTION_INTERVAL_MS must be a number' }).int().positive().optional(),
+  RETENTION_OUTBOX_DAYS: z.coerce.number({ message: 'RETENTION_OUTBOX_DAYS must be a number' }).int().positive().optional(),
+  RETENTION_WEBHOOK_DAYS: z.coerce.number({ message: 'RETENTION_WEBHOOK_DAYS must be a number' }).int().positive().optional(),
 
   REDIS_HOST: z.string({ message: 'REDIS_HOST must be a string' }).min(1, { message: 'REDIS_HOST is required' }),
   REDIS_PORT: z.coerce.number({ message: 'REDIS_PORT must be a number' }),
@@ -34,11 +83,11 @@ export const EnvironmentVariablesSchema = z.object({
   RABBITMQ_DEFAULT_PASS: z.string({ message: 'RABBITMQ_DEFAULT_PASS must be a string' }).min(1, { message: 'RABBITMQ_DEFAULT_PASS is required' }),
   RABBITMQ_DEFAULT_HOST: z.string({ message: 'RABBITMQ_DEFAULT_HOST must be a string' }).min(1, { message: 'RABBITMQ_DEFAULT_HOST is required' }),
 
-  JWT_SECRET: z.string({ message: 'JWT_SECRET must be a string' }).optional(),
-
   STORAGE_STRATEGY: z.string({ message: 'STORAGE_STRATEGY must be a string' }).min(1, { message: 'STORAGE_STRATEGY is required' }),
   STORAGE_ENDPOINT: z.string({ message: 'STORAGE_ENDPOINT must be a string' }).optional(),
   STORAGE_PUBLIC_ENDPOINT: z.string({ message: 'STORAGE_PUBLIC_ENDPOINT must be a string' }).optional(),
+
+  SUPPORT_ICE_SERVERS: z.string({ message: 'SUPPORT_ICE_SERVERS must be a JSON string' }).optional(),
 
   STORAGE_ACCESS_KEY: z.string({ message: 'STORAGE_ACCESS_KEY must be a string' }).min(1, { message: 'STORAGE_ACCESS_KEY is required' }),
   STORAGE_SECRET_KEY: z.string({ message: 'STORAGE_SECRET_KEY must be a string' }).min(1, { message: 'STORAGE_SECRET_KEY is required' }),
@@ -60,7 +109,21 @@ export const EnvironmentVariablesSchema = z.object({
 
   STRIPE_SECRET_KEY: z.string({ message: 'STRIPE_SECRET_KEY must be a string' }).optional(),
   STRIPE_PUBLISHABLE_KEY: z.string({ message: 'STRIPE_PUBLISHABLE_KEY must be a string' }).optional(),
-  STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET must be a string' }).optional()
+  STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET must be a string' }).optional(),
+
+  MFA_ENCRYPTION_KEY: z.string({ message: 'MFA_ENCRYPTION_KEY must be a string' }).min(1, { message: 'MFA_ENCRYPTION_KEY is required' }),
+  MFA_ISSUER: z.string({ message: 'MFA_ISSUER must be a string' }).optional(),
+
+  WEBHOOK_REPLAY_INTERVAL_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_INTERVAL_MS must be a number' }).int().positive().optional(),
+  WEBHOOK_REPLAY_STALE_AFTER_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_STALE_AFTER_MS must be a number' }).int().nonnegative().optional(),
+
+  PAYMENT_RECONCILE_INTERVAL_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_INTERVAL_MS must be a number' }).int().positive().optional(),
+  PAYMENT_RECONCILE_STALE_AFTER_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_STALE_AFTER_MS must be a number' }).int().nonnegative().optional(),
+  PAYMENT_ACTION_EXPIRY_MS: z.coerce.number({ message: 'PAYMENT_ACTION_EXPIRY_MS must be a number' }).int().positive().optional(),
+
+  LEDGER_INTEGRITY_INTERVAL_MS: z.coerce.number({ message: 'LEDGER_INTEGRITY_INTERVAL_MS must be a number' }).int().positive().optional(),
+
+  BETTING_MARGIN: z.coerce.number({ message: 'BETTING_MARGIN must be a number' }).nonnegative().optional()
 });
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

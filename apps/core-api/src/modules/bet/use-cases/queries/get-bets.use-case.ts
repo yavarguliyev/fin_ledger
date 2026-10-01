@@ -9,6 +9,7 @@ import { ListBetsDto } from '../../dtos/input/list-bets.dto';
 export class GetBetsUseCase extends BetBaseUseCase<ListBetsDto, PaginatedResponseDto<BetDto>> {
   async execute (dto: ListBetsDto): Promise<PaginatedResponseDto<BetDto>> {
     const { page, limit, status, userId, role } = dto;
+
     const criteria = { status, limit, offset: (page - 1) * limit, ...(role && STAFF_ROLES.includes(role) ? {} : { userId }) };
 
     const bets = await this.betRepository.findPaginated(criteria);

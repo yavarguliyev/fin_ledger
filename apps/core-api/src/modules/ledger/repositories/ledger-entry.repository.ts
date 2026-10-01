@@ -27,21 +27,6 @@ export class LedgerEntryRepository extends BaseRepository<LedgerEntryResponseDto
     return ['id', 'transactionId', 'accountId', 'entryType', 'amountMinor', 'currency', 'description', 'reference', 'sequence', 'createdAt'];
   }
 
-  private assertBalanced (entries: LedgerEntryDto[]): void {
-    const totals = new Map<string, { debit: number; credit: number }>();
-
-    for (const entry of entries) {
-      const total = totals.get(entry.currency) ?? { debit: 0, credit: 0 };
-      if (entry.entryType === EntryType.DEBIT) total.debit += entry.amountMinor;
-      else total.credit += entry.amountMinor;
-      totals.set(entry.currency, total);
-    }
-
-    for (const total of totals.values()) {
-      if (total.debit !== total.credit) throw new BadRequestException('Ledger entries are not balanced');
-    }
-  }
-
   async createBalancedEntries (dto: CreateBalancedEntriesDto): Promise<LedgerEntryResponseDto[]> {
     const { entries, transactionId, adapter } = dto;
     this.assertBalanced(entries);
@@ -86,4 +71,19 @@ export class LedgerEntryRepository extends BaseRepository<LedgerEntryResponseDto
   }
 
   private buildWhere = ({ accountId }: FindAccountEntriesDto): QueryOptionsDto => ({ ...(accountId && { where: { account_id: accountId } }) });
+
+  private assertBalanced (entries: LedgerEntryDto[]): void {
+    const totals = new Map<string, { debit: number; credit: number }>();
+
+    for (const entry of entries) {
+      const total = totals.get(entry.currency) ?? { debit: 0, credit: 0 };
+      if (entry.entryType === EntryType.DEBIT) total.debit += entry.amountMinor;
+      else total.credit += entry.amountMinor;
+      totals.set(entry.currency, total);
+    }
+
+    for (const total of totals.values()) {
+      if (total.debit !== total.credit) throw new BadRequestException('Ledger entries are not balanced');
+    }
+  }
 }

@@ -109,8 +109,10 @@ export abstract class BaseExtendedRepository<T> extends BaseRepository<T> {
         whereKeys
           .map(key => {
             const dbCol = this.builder.getColumnMapping({ column: key });
+            if (where[key] === null) return `${dbCol} IS NULL`;
+
             params.push(where[key]);
-            return `${dbCol} = $${currentIdx++}`;
+            return Array.isArray(where[key]) ? `${dbCol} = ANY($${currentIdx++})` : `${dbCol} = $${currentIdx++}`;
           })
           .join(' AND ');
     }

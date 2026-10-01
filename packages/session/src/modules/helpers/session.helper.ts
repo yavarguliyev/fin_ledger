@@ -1,42 +1,38 @@
 import { UnauthorizedException } from '@nestjs/common';
-import * as argon2 from 'argon2';
-import * as bcrypt from 'bcryptjs';
+import { CryptoHelper } from '@common/shared-libs';
 
 import { SessionData } from '../interfaces/session-data.interface';
-import { ARGON2_OPTIONS } from '../constants/password/argon2-options.constant';
+import { PasswordHelper } from './password.helper';
 import { HashDto } from '../dtos/helper/hash.dto';
 import { CompareDto } from '../dtos/helper/compare.dto';
-import { PasswordHashDto } from '../dtos/helper/password-hash.dto';
 import { GetSessionUserDto } from '../dtos/helper/get-session-user.dto';
 import { ParseExpiryDto } from '../dtos/helper/parse-expiry.dto';
 
 export class SessionHelper {
+  private static dummyPasswordHash: Promise<string> | null = null;
+
   static async hash ({ password }: HashDto): Promise<string> {
-    return argon2.hash(password, ARGON2_OPTIONS);
-  }
-
-  static isLegacyHash ({ passwordHash }: PasswordHashDto): boolean {
-    return !passwordHash.startsWith('$argon2');
-  }
-
-  private static async verify ({ password, passwordHash }: CompareDto): Promise<boolean> {
-    if (SessionHelper.isLegacyHash({ passwordHash })) return bcrypt.compare(password, passwordHash);
-
-    try {
-      return await argon2.verify(passwordHash, password);
-    } catch {
-      return false;
-    }
+    return PasswordHelper.hash({ password });
   }
 
   static async compare (dto: CompareDto): Promise<void> {
-    const isMatch = await SessionHelper.verify(dto);
+    const isMatch = await SessionHelper.matches(dto);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
   }
 
   static getSessionUser ({ context }: GetSessionUserDto): SessionData {
     if (!context.user) throw new UnauthorizedException('User not authenticated');
     return context.user;
+  }
+
+  static async rejectWithDummyHash ({ password }: HashDto): Promise<never> {
+    SessionHelper.dummyPasswordHash ??= SessionHelper.hash({ password: CryptoHelper.uuid() });
+    await SessionHelper.matches({ password, passwordHash: await SessionHelper.dummyPasswordHash });
+    throw new UnauthorizedException('Invalid credentials');
+  }
+
+  static async matches (dto: CompareDto): Promise<boolean> {
+    return PasswordHelper.matches(dto);
   }
 
   static parseExpiryToSeconds ({ expiry }: ParseExpiryDto): number {

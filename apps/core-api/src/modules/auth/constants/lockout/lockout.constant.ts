@@ -1,0 +1,8 @@
+export const LOCKOUT = {
+  MAX_ATTEMPTS: 5,
+  LOCK_MINUTES: 15,
+  MS_PER_MINUTE: 60_000,
+  FIRST_FAILURE: 1,
+  RESET_ATTEMPTS: 0,
+  INVALID_CREDENTIALS: 'Invalid credentials'
+} as const;

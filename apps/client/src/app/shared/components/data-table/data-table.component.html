@@ -34,7 +34,10 @@
         <select
           [value]="selectedFilter()"
           (change)="onFilterChange($event)"
-          class="px-3 py-1.5 rounded-lg text-sm border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-700 dark:text-ink-200 focus:outline-none focus:ring-2 focus:ring-primary/40"
+          class="appearance-none pl-3 pr-9 py-1.5 rounded-lg text-sm border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-700 dark:text-ink-200 bg-no-repeat cursor-pointer transition-colors hover:border-ink-400 dark:hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+          [style.background-image]="CHEVRON_ICON"
+          [style.background-position]="'right 0.65rem center'"
+          [style.background-size]="'0.85rem'"
         >
           @for (option of config().filterOptions; track option.value) {
             <option [value]="option.value">{{ option.label }}</option>
@@ -58,7 +61,7 @@
       <thead class="bg-ink-50 dark:bg-night-bg text-ink-500 dark:text-ink-400 text-xs uppercase">
         <tr>
           @for (col of visibleColumns(); track col.key) {
-            <th class="px-5 py-3 font-medium" [ngClass]="getAlignmentClass(col)">{{ col.label }}</th>
+            <th class="px-5 py-3 font-medium" [ngClass]="getAlignmentClass({ column: col })">{{ col.label }}</th>
           }
         </tr>
       </thead>
@@ -73,33 +76,34 @@
           @for (row of paginatedData(); track row) {
             <tr class="hover:bg-ink-50 dark:hover:bg-night-bg transition-colors" (click)="onRowClick(row)">
               @for (col of visibleColumns(); track col.key) {
-                <td class="px-5 py-3" [ngClass]="getAlignmentClass(col)">
+                <td class="px-5 py-3" [ngClass]="getAlignmentClass({ column: col })">
                   @if (col.type === 'actions') {
                     <div class="flex justify-center">
                       <app-action-icons
-                        [config]="getActionConfig(col)"
-                        (viewClick)="onActionView(col, row)"
-                        (updateClick)="onActionUpdate(col, row)"
-                        (deleteClick)="onActionDelete(col, row)"
+                        [config]="getActionConfig({ column: col })"
+                        (viewClick)="onActionView({ row, column: col })"
+                        (updateClick)="onActionUpdate({ row, column: col })"
+                        (deleteClick)="onActionDelete({ row, column: col })"
                       />
                     </div>
                   } @else if (col.type === 'toggle') {
                     <div class="flex justify-center">
                       <app-toggle
-                        [checked]="getToggleChecked(col, row)"
-                        (toggleChange)="onToggleChange(col, row, $event)"
+                        [checked]="getToggleChecked({ row, column: col })"
+                        [disabled]="getToggleDisabled({ row, column: col })"
+                        (toggleChange)="onToggleChange({ row, column: col, checked: $event })"
                       />
                     </div>
                   } @else if (col.type === 'badge') {
-                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass(getCellValue(row, col), row, col)">
-                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass({ row, column: col })">
+                      {{ getCellText({ row, column: col }) }}
                     </span>
                   } @else if (col.type === 'currency') {
-                    <span [ngClass]="col.badgeClass ? getBadgeClass(getCellValue(row, col), row, col) : 'font-semibold text-ink-900 dark:text-white'">
-                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    <span [ngClass]="col.badgeClass ? getBadgeClass({ row, column: col }) : 'font-semibold text-ink-900 dark:text-white'">
+                      {{ getCellText({ row, column: col }) }}
                     </span>
                   } @else if (col.type === 'date') {
-                    <span class="text-ink-500 dark:text-ink-400 text-xs">{{ formatCellValue(getCellValue(row, col), row, col) }}</span>
+                    <span class="text-ink-500 dark:text-ink-400 text-xs">{{ getCellText({ row, column: col }) }}</span>
                   } @else if (col.type === 'custom') {
                     <ng-container *ngTemplateOutlet="customCellTemplate()!; context: { row: row, column: col }"></ng-container>
                   } @else {
@@ -107,7 +111,7 @@
                       col.type === 'number' ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-600 dark:text-ink-300',
                       col.cellClass || ''
                     ]">
-                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                      {{ getCellText({ row, column: col }) }}
                     </span>
                   }
                 </td>
@@ -140,26 +144,26 @@
                   <span class="text-xs text-ink-500 dark:text-ink-400">{{ col.label }}</span>
                   @if (col.type === 'actions') {
                     <app-action-icons
-                      [config]="getActionConfig(col)"
-                      (viewClick)="onActionView(col, row)"
-                      (updateClick)="onActionUpdate(col, row)"
-                      (deleteClick)="onActionDelete(col, row)"
+                      [config]="getActionConfig({ column: col })"
+                      (viewClick)="onActionView({ row, column: col })"
+                      (updateClick)="onActionUpdate({ row, column: col })"
+                      (deleteClick)="onActionDelete({ row, column: col })"
                     />
                   } @else if (col.type === 'toggle') {
                     <app-toggle
-                      [checked]="getToggleChecked(col, row)"
-                      (toggleChange)="onToggleChange(col, row, $event)"
+                      [checked]="getToggleChecked({ row, column: col })"
+                      (toggleChange)="onToggleChange({ row, column: col, checked: $event })"
                     />
                   } @else if (col.type === 'badge') {
-                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass(getCellValue(row, col), row, col)">
-                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="getBadgeClass({ row, column: col })">
+                      {{ getCellText({ row, column: col }) }}
                     </span>
                   } @else if (col.type === 'currency') {
-                    <span [ngClass]="col.badgeClass ? getBadgeClass(getCellValue(row, col), row, col) : 'font-semibold text-ink-900 dark:text-white'">
-                      {{ formatCellValue(getCellValue(row, col), row, col) }}
+                    <span [ngClass]="col.badgeClass ? getBadgeClass({ row, column: col }) : 'font-semibold text-ink-900 dark:text-white'">
+                      {{ getCellText({ row, column: col }) }}
                     </span>
                   } @else {
-                    <span class="text-ink-900 dark:text-white">{{ formatCellValue(getCellValue(row, col), row, col) }}</span>
+                    <span class="text-ink-900 dark:text-white">{{ getCellText({ row, column: col }) }}</span>
                   }
                 </div>
               }

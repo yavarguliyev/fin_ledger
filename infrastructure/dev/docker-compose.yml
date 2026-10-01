@@ -105,7 +105,7 @@ services:
       networks:
         - ddd_mesh
       healthcheck:
-        test: ["CMD-SHELL", "kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
+        test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 || exit 1"]
         interval: 10s
         timeout: 10s
         retries: 5
@@ -115,7 +115,7 @@ services:
   # 5. MINIO
   # =======================================================
   minio:
-    image: minio/minio:latest
+    image: cgr.dev/chainguard/minio:latest
     container_name: dd_minio
     ports:
       - "9000:9000"
@@ -154,7 +154,7 @@ services:
     networks:
       - ddd_mesh
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8123/ping"]
       interval: 10s
       timeout: 5s
       retries: 5

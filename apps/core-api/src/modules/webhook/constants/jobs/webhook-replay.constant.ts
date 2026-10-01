@@ -1,0 +1,7 @@
+export const WEBHOOK_REPLAY = {
+  TASK_NAME: 'webhook.replay',
+  DEFAULT_INTERVAL_MS: 60_000,
+  DEFAULT_STALE_AFTER_MS: 5 * 60_000,
+  BATCH_SIZE: 50,
+  MAX_ATTEMPTS: 10
+} as const;

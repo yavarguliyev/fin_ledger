@@ -1,4 +1,18 @@
+import { DATE_FORMATS } from '../../constants/common/date-formats.constant';
+
 export class DateHelper {
+  static formatDateTime (date: string | Date | null | undefined): string {
+    const parsed = DateHelper.parse(date);
+    return parsed
+      ? parsed.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : DATE_FORMATS.EMPTY;
+  }
+
+  static formatDate (date: string | Date | null | undefined): string {
+    const parsed = DateHelper.parse(date);
+    return parsed ? parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : DATE_FORMATS.EMPTY;
+  }
+
   static formatRelative (date: string | Date): string {
     const now = new Date();
     const then = new Date(date);
@@ -15,11 +29,9 @@ export class DateHelper {
     return then.toLocaleDateString();
   }
 
-  static formatDateTime (date: string | Date): string {
-    return new Date(date).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  }
-
-  static formatDate (date: string | Date): string {
-    return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  private static parse (date: string | Date | null | undefined): Date | null {
+    if (!date) return null;
+    const parsed = new Date(date);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
   }
 }

@@ -4,6 +4,7 @@ import { PostgresService } from '@common/libs';
 import { BetRepository } from '../../repositories/bet.repository';
 import { GameEventRepository } from '../../../game-events/repositories/game-event.repository';
 import { WalletService } from '../../../wallet/wallet.service';
+import { AuthRepository } from '../../../auth/repositories/auth.repository';
 
 export abstract class BetBaseUseCase<TInput, TOutput> {
   @Inject(PostgresService)
@@ -17,6 +18,9 @@ export abstract class BetBaseUseCase<TInput, TOutput> {
 
   @Inject(WalletService)
   protected readonly walletService!: WalletService;
+
+  @Inject(AuthRepository)
+  protected readonly authRepository!: AuthRepository;
 
   abstract execute(input: TInput): Promise<TOutput>;
 }

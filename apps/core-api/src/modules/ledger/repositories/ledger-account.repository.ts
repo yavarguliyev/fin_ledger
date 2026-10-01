@@ -28,7 +28,6 @@ export class LedgerAccountRepository extends BaseExtendedRepository<LedgerAccoun
 
   async createAccount (dto: CreateLedgerAccountDto): Promise<LedgerAccountDto | null> {
     const { userId, accountType, currency, adapter } = dto;
-
     return this.create({ data: { userId, ownerType: AccountOwnerType.USER, accountType, currency, balanceMinor: 0 }, adapter });
   }
 }

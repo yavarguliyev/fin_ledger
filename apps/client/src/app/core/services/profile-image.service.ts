@@ -3,6 +3,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
+import { ImageIndexDto } from '../dtos/ui/image-index.dto';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileImageService {
@@ -48,28 +49,16 @@ export class ProfileImageService {
   }
 
   deleteAllImages (): void {
-    this.toast.confirm('Are you sure you want to delete all profile images?', () => {
-      this.userService.updateProfile({ imageAction: 'delete_all' }).subscribe({
-        next: () => {
-          this.imageUrls.set([]);
-          this.toast.success('All images deleted');
-        },
-        error: () => this.toast.error('Failed to delete images')
-      });
+    this.toast.confirm({
+      message: 'Are you sure you want to delete all profile images?',
+      onConfirm: () => this.applyDeleteAll()
     });
   }
 
   deleteImage (index: number): void {
-    this.toast.confirm('Are you sure you want to delete this image?', () => {
-      this.userService.updateProfile({ imageAction: 'delete_by_index', deleteIndexes: [index] }).subscribe({
-        next: () => {
-          const currentUrls = this.imageUrls();
-          const updatedUrls = currentUrls.filter(img => img.index !== index).map((img, newIndex) => ({ ...img, index: newIndex }));
-          this.imageUrls.set(updatedUrls);
-          this.toast.success('Image deleted');
-        },
-        error: () => this.toast.error('Failed to delete image')
-      });
+    this.toast.confirm({
+      message: 'Are you sure you want to delete this image?',
+      onConfirm: () => this.applyDeleteImage({ index })
     });
   }
 
@@ -77,12 +66,11 @@ export class ProfileImageService {
     const user = this.auth.currentUser();
     if (!user) return;
 
-    const key = `user-${user.id}`;
     this.isUploading.set(true);
 
     this.userService.uploadImages(files).subscribe({
       next: response => {
-        this.userService.updateProfile({ profileImages: response.files, profileImagesKey: key, imageAction: 'add' }).subscribe({
+        this.userService.updateProfile({ profileImages: response.files, imageAction: 'add' }).subscribe({
           next: () => {
             this.isUploading.set(false);
             setTimeout(() => {
@@ -108,6 +96,27 @@ export class ProfileImageService {
         this.isUploading.set(false);
         this.toast.error('Failed to upload images');
       }
+    });
+  }
+
+  private applyDeleteAll (): void {
+    this.userService.updateProfile({ imageAction: 'delete_all' }).subscribe({
+      next: () => {
+        this.imageUrls.set([]);
+        this.toast.success('All images deleted');
+      },
+      error: () => this.toast.error('Failed to delete images')
+    });
+  }
+
+  private applyDeleteImage ({ index }: ImageIndexDto): void {
+    this.userService.updateProfile({ imageAction: 'delete_by_index', deleteIndexes: [index] }).subscribe({
+      next: () => {
+        const remaining = this.imageUrls().filter(img => img.index !== index);
+        this.imageUrls.set(remaining.map((img, newIndex) => ({ ...img, index: newIndex })));
+        this.toast.success('Image deleted');
+      },
+      error: () => this.toast.error('Failed to delete image')
     });
   }
 }

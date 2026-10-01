@@ -1,5 +1,7 @@
 export interface UpdateProfileRequest {
   displayName?: string;
+  countryCode?: string;
+  dateOfBirth?: string;
   currency?: string;
   profileImages?: string[];
   profileImageIndex?: number;

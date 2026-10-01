@@ -1,0 +1,18 @@
+<div class="flex w-56 items-center gap-3 py-1">
+  <audio #player preload="metadata" [src]="url()" (play)="playing.set(true)" (pause)="playing.set(false)" (timeupdate)="onTime(player)" (ended)="onEnded()"></audio>
+
+  <button type="button" class="grid place-items-center w-9 h-9 shrink-0 rounded-full bg-primary text-white" [attr.aria-label]="playing() ? labels.PAUSE : labels.PLAY" (click)="toggle()">
+    @if (playing()) {
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z"></path></svg>
+    } @else {
+      <svg class="w-4 h-4 translate-x-px" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+    }
+  </button>
+
+  <span class="flex flex-1 flex-col gap-1">
+    <span class="relative h-1 rounded-full bg-ink-300/60 dark:bg-white/20">
+      <span class="absolute inset-y-0 left-0 rounded-full bg-primary" [style.width.%]="progress()"></span>
+    </span>
+    <span class="text-[11px] tabular-nums text-ink-500 dark:text-white/60">{{ time() }}</span>
+  </span>
+</div>

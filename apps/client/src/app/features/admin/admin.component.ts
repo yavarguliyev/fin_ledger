@@ -1,5 +1,6 @@
 import { Component, signal, computed, OnInit, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
 
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
@@ -15,6 +16,7 @@ import { AdminUser } from '../../core/interfaces/admin/admin-user.interface';
 import { CreateUserResponse } from '../../core/interfaces/admin/create-user-response.interface';
 import { DashboardStats } from '../../core/interfaces/admin/dashboard-stats.interface';
 import { UserData } from '../../core/interfaces/admin/user-data.interface';
+import { UserService } from '../../core/services/user.service';
 import { AdminApiService } from '../../core/services/admin-api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -37,6 +39,7 @@ import { AdminHelper } from './helpers/admin.helper';
 })
 export class AdminComponent implements OnInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly handlers: AdminHandlers;
@@ -48,7 +51,8 @@ export class AdminComponent implements OnInit {
   readonly showCreateModal = signal(false);
   readonly createUserModalComponent = viewChild(CreateUserModalComponent);
 
-  readonly isGlobalAdmin = computed(() => this.authService.currentUser()?.role === 'GLOBAL_ADMIN');
+  readonly isGlobalAdmin = this.authService.isGlobalAdmin;
+  readonly currentUserId = computed(() => this.authService.currentUser()?.id ?? null);
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
   readonly totalItems = computed(() => this.allUsers().length);
@@ -60,22 +64,7 @@ export class AdminComponent implements OnInit {
     availablePageSizes: [10, 25, 50, 100]
   }));
 
-  readonly stats = computed<StatCard[]>(() => {
-    const stats = this.dashboardStats();
-
-    const definitions = [
-      { label: 'Total Users', icon: '👥', value: stats?.totalUsers },
-      { label: 'Active Wallets', icon: '👛', value: stats?.activeWallets },
-      { label: 'Total Volume', icon: '💰', value: stats?.totalVolumeMinor },
-      { label: 'Pending', icon: '⏳', value: stats?.pending }
-    ];
-
-    return definitions.map(({ label, icon, value }) => ({
-      label,
-      icon,
-      value: value == null ? (label === 'Total Volume' ? '$0' : '0') : label === 'Total Volume' ? AdminHelper.formatCurrencyCompact(value) : String(value)
-    }));
-  });
+  readonly stats = computed<StatCard[]>(() => AdminHelper.buildStatCards({ stats: this.dashboardStats() }));
 
   readonly tableConfig = computed<DataTableConfig<AdminUser>>(() => ({
     title: 'User Management',
@@ -84,19 +73,22 @@ export class AdminComponent implements OnInit {
     emptyMessage: 'No users',
     showCreateButton: this.isGlobalAdmin(),
     onCreateClick: this.openCreateModal.bind(this),
-    columns: AdminHelper.getAdminTableColumns(
-      this.handlers.onStatusToggle.bind(this.handlers),
-      this.handlers.onEmailVerificationToggle.bind(this.handlers),
-      this.handlers.onDeletedToggle.bind(this.handlers),
-      this.handlers.onView.bind(this.handlers),
-      this.handlers.onAnonymize.bind(this.handlers),
-      this.isGlobalAdmin()
-    )
+    columns: AdminHelper.getAdminTableColumns({
+      onStatusToggle: this.handlers.onStatusToggle.bind(this.handlers),
+      onEmailVerificationToggle: this.handlers.onEmailVerificationToggle.bind(this.handlers),
+      onDeletedToggle: this.handlers.onDeletedToggle.bind(this.handlers),
+      onView: this.handlers.onView.bind(this.handlers),
+      onAnonymize: this.handlers.onAnonymize.bind(this.handlers),
+      onAccountStatusToggle: this.handlers.onAccountStatusToggle.bind(this.handlers),
+      isGlobalAdmin: this.isGlobalAdmin(),
+      currentUserId: this.currentUserId()
+    })
   }));
 
   constructor () {
     this.handlers = new AdminHandlers(
       this.adminApi,
+      this.userService,
       this.toast,
       this.allUsers,
       this.allUsers.update.bind(this.allUsers),
@@ -142,7 +134,7 @@ export class AdminComponent implements OnInit {
       },
       error: (err: HttpError) => {
         this.createUserModalComponent()?.loading.set(false);
-        const errorMessage = err?.error?.message ?? err?.message ?? err?.statusText ?? 'Failed to create user';
+        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to create user' });
         this.toast.error(errorMessage);
       }
     });

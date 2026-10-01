@@ -1,8 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CanActivate, ExecutionContext } from '@nestjs/common';
+import { RequestScope, UserStatus } from '@common/shared-libs';
 
 import { SessionService } from '../services/session.service';
-import { ExpressReqFields } from '../interfaces/express-req-fields.interface';
 import { RequestContext } from '../interfaces/request-context.interface';
 import { RequestRefDto } from '../dtos/guard/request-ref.dto';
 
@@ -18,8 +18,12 @@ export class SessionGuard implements CanActivate {
     if (!session) throw new UnauthorizedException('Invalid or expired session');
     if (!session.isEmailVerified) throw new UnauthorizedException('Please verify your email before accessing this resource');
     if (session.deletedAt !== null && session.deletedAt !== undefined) throw new UnauthorizedException('Your account has been deleted');
+    if (session.status !== UserStatus.ACTIVE) throw new UnauthorizedException('Your account is not active');
 
     request.user = session;
+
+    const scope = RequestScope.current();
+    if (scope) scope.actorId = session.userId;
 
     return true;
   }
@@ -30,23 +34,6 @@ export class SessionGuard implements CanActivate {
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.slice(7).trim();
       if (token) return token;
-    }
-
-    const queryToken = request.query?.['token'];
-    if (typeof queryToken === 'string' && queryToken) return queryToken;
-
-    const expressReq = request as unknown as ExpressReqFields;
-    const url = expressReq.url;
-
-    if (typeof url === 'string' && url.includes('?')) {
-      const queryString = url.split('?')[1];
-
-      if (queryString) {
-        const urlParams = new URLSearchParams(queryString);
-        const urlToken = urlParams.get('token');
-
-        if (urlToken) return urlToken;
-      }
     }
 
     throw new UnauthorizedException('Missing or invalid Authorization header');

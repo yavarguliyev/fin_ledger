@@ -1,7 +1,7 @@
-import { AdminStats } from './admin-stats.interface';
+import { DashboardStats } from './dashboard-stats.interface';
 import { UserWithWallet } from './user-with-wallet.interface';
 
 export interface AdminDashboard {
-  stats: AdminStats;
+  stats: DashboardStats;
   users: UserWithWallet[];
 }

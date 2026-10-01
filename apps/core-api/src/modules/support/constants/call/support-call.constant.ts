@@ -1,0 +1,22 @@
+export const SUPPORT_CALL = {
+  KEY_PREFIX: 'support-call:',
+  USER_KEY_PREFIX: 'support-call-user:',
+  TTL_SECONDS: 4 * 60 * 60,
+  ICE_SERVERS_KEY: 'SUPPORT_ICE_SERVERS',
+  SDP_MAX_LENGTH: 20000,
+  CANDIDATE_MAX_LENGTH: 2000,
+  MS_PER_SECOND: 1000,
+  SECONDS_PER_MINUTE: 60,
+  PAD_LENGTH: 2,
+  PAD_CHAR: '0',
+  TIME_SEPARATOR: ':',
+  LABEL_SEPARATOR: ' · ',
+  VOICE_LABEL: 'Voice call',
+  VIDEO_LABEL: 'Video call',
+  MISSED_VOICE_LABEL: 'Missed voice call',
+  MISSED_VIDEO_LABEL: 'Missed video call',
+  NOT_FOUND_MESSAGE: 'That call is no longer active',
+  BUSY_MESSAGE: 'They are on another call right now',
+  SELF_BUSY_MESSAGE: 'You are already on a call',
+  NOT_CALLEE_MESSAGE: 'Only the person being called can answer'
+} as const;

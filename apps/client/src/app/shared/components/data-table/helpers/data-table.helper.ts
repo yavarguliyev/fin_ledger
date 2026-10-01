@@ -1,62 +1,58 @@
 import { ActionIconsConfig } from '../../../../core/interfaces/ui/action-icons-config.interface';
-import { TableColumn } from '../../../../core/interfaces/ui/table-column.interface';
+import { TABLE } from '../../../../core/constants/ui/table.constant';
+import { BADGE_CLASSES } from '../../../../core/constants/ui/badge-class.constant';
+import { BadgeStatusDto } from '../../../../core/dtos/ui/badge-status.dto';
+import { CellRefDto } from '../../../../core/dtos/ui/cell-ref.dto';
+import { ColumnRefDto } from '../../../../core/dtos/ui/column-ref.dto';
 
 export class DataTableHelper {
-  static getAlignmentClass<T> (column: TableColumn<T>): string {
-    return `text-${column.align ?? 'left'}`;
+  static getAlignmentClass<T> ({ column }: ColumnRefDto<T>): string {
+    return `${TABLE.ALIGN_PREFIX}${column.align ?? TABLE.DEFAULT_ALIGN}`;
   }
 
-  static getBadgeClass<T> (value: unknown, row: T, column: TableColumn<T>): string {
-    if (column.badgeClass) return column.badgeClass(value, row);
-    if (typeof value === 'string') return DataTableHelper.getDefaultBadgeClass(value);
-    return DataTableHelper.getDefaultBadgeClass('');
+  static getDefaultBadgeClass ({ status }: BadgeStatusDto): string {
+    return BADGE_CLASSES[status] ?? TABLE.DEFAULT_BADGE_CLASS;
   }
 
-  static getToggleChecked<T> (column: TableColumn<T>, row: T): boolean {
-    if (column.getToggleValue) return column.getToggleValue(row);
-    const value = DataTableHelper.getCellValue(row, column);
-    return value === 'active' || value === 'ACTIVE' || value === true;
+  static getToggleDisabled<T> ({ row, column }: CellRefDto<T>): boolean {
+    return column.toggleDisabled ? column.toggleDisabled({ row }) : false;
   }
 
-  static getActionConfig<T> (column: TableColumn<T>): ActionIconsConfig {
+  static getBadgeClass<T> ({ row, column }: CellRefDto<T>): string {
+    const value = DataTableHelper.getCellValue({ row, column });
+    if (column.badgeClass) return column.badgeClass({ value, row });
+    return DataTableHelper.getDefaultBadgeClass({ status: typeof value === 'string' ? value : '' });
+  }
+
+  static getToggleChecked<T> ({ row, column }: CellRefDto<T>): boolean {
+    if (column.getToggleValue) return column.getToggleValue({ row });
+    const value = DataTableHelper.getCellValue({ row, column });
+    return value === true || TABLE.ACTIVE_VALUES.some(active => active === value);
+  }
+
+  static getActionConfig<T> ({ column }: ColumnRefDto<T>): ActionIconsConfig {
     return {
       view: column.actions?.view ?? false,
       update: column.actions?.update ?? false,
       delete: column.actions?.delete ?? false,
-      deleteLabel: column.actions?.deleteLabel ?? 'Delete'
+      deleteLabel: column.actions?.deleteLabel ?? TABLE.DEFAULT_DELETE_LABEL
     };
   }
 
-  static formatCellValue<T> (value: unknown, row: T, column: TableColumn<T>): string {
-    if (column.format) return column.format(value, row);
-    if (value === null || value === undefined) return '—';
+  static getCellText<T> ({ row, column }: CellRefDto<T>): string {
+    const value = DataTableHelper.getCellValue({ row, column });
+    if (column.format) return column.format({ value, row });
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
-    return '—';
+    return TABLE.EMPTY_CELL;
   }
 
-  static getCellValue<T> (row: T, column: TableColumn<T>): unknown {
-    const keys = column.key.split('.');
+  static getCellValue<T> ({ row, column }: CellRefDto<T>): unknown {
     let value: unknown = row;
 
-    for (const key of keys) {
+    for (const key of column.key.split('.')) {
       value = (value as Record<string, unknown>)?.[key];
     }
 
     return value;
-  }
-
-  static getDefaultBadgeClass (status: string): string {
-    const map: Record<string, string> = {
-      active: 'bg-success/10 text-success',
-      suspended: 'bg-warning/10 text-warning',
-      closed: 'bg-danger/10 text-danger',
-      inactive: 'bg-ink-100 dark:bg-night-border text-ink-500 dark:text-ink-400',
-      COMPLETED: 'bg-success/10 text-success',
-      PENDING: 'bg-warning/10 text-warning',
-      FAILED: 'bg-danger/10 text-danger',
-      CANCELLED: 'bg-ink-100 text-ink-500'
-    };
-
-    return map[status] ?? 'bg-ink-100 dark:bg-night-border text-ink-500 dark:text-ink-400';
   }
 }

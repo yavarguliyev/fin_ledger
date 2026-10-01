@@ -1,0 +1,22 @@
+export const ENUM_VALUES = {
+  account_owner_type: ['USER', 'SYSTEM'],
+  account_type: ['ASSET', 'LIABILITY', 'EQUITY', 'REVENUE', 'EXPENSE'],
+  bet_status: ['PENDING', 'WON', 'LOST', 'VOIDED', 'CASHED_OUT'],
+  entry_type: ['DEBIT', 'CREDIT'],
+  event_status: ['SCHEDULED', 'LIVE', 'FINISHED', 'SETTLED', 'CANCELLED', 'POSTPONED'],
+  notification_channel: ['IN_APP', 'EMAIL', 'SMS', 'PUSH'],
+  notification_status: ['PENDING', 'SENT', 'FAILED', 'READ'],
+  notification_type: ['BET_WON', 'INFO', 'PAYMENT_COMPLETED', 'PAYMENT_FAILED', 'SYSTEM', 'WALLET_CREDITED', 'WALLET_DEBITED'],
+  outbox_destination: ['RABBITMQ', 'KAFKA'],
+  outbox_status: ['PENDING', 'PUBLISHED', 'DEAD'],
+  payment_method_status: ['PENDING_VERIFICATION', 'VERIFIED', 'REJECTED', 'REMOVED'],
+  payment_method_type: ['BANK_ACCOUNT', 'CREDIT_CARD', 'DEBIT_CARD', 'APPLE_PAY', 'GOOGLE_PAY'],
+  payment_status: ['PENDING', 'PROCESSING', 'REQUIRES_ACTION', 'COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATED'],
+  payment_type: ['DEPOSIT', 'WITHDRAWAL', 'REFUND', 'CHARGEBACK'],
+  user_role: ['GLOBAL_ADMIN', 'ADMIN', 'MODERATOR', 'USER'],
+  user_status: ['PENDING', 'ACTIVE', 'SUSPENDED', 'CLOSED'],
+  wallet_status: ['ACTIVE', 'SUSPENDED', 'CLOSED'],
+  wallet_transaction_status: ['PENDING', 'COMPLETED', 'FAILED', 'REVERSED'],
+  wallet_transaction_type: ['DEPOSIT', 'WITHDRAWAL', 'BET_STAKE', 'BET_PAYOUT', 'BET_REFUND', 'FEE', 'ADJUSTMENT'],
+  webhook_status: ['RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED']
+};

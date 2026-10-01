@@ -10,6 +10,7 @@ export const SHARED_CONSTANTS = {
   NOTIFICATION: { key: 'Notifications' },
   PAYMENT: { key: 'Payments' },
   PAYMENT_METHOD: { key: 'Payment Methods' },
+  SUPPORT: { key: 'Support Chat' },
   UPLOAD: { key: 'Uploads' },
   USER: { key: 'Users' },
   WALLET: { key: 'Wallets' },

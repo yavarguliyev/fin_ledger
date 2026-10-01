@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
@@ -11,7 +12,7 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
 import { ShowMoreConfig } from '../../core/interfaces/ui/show-more-config.interface';
-import { Bet } from '../../core/interfaces/betting/bet.interface';
+import { Bet } from '../../core/types/betting/bet.type';
 import { GameEvent } from '../../core/interfaces/betting/game-event.interface';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
@@ -23,6 +24,7 @@ import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
   templateUrl: './templates/betting.component.html'
 })
 export class BettingComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private readonly bettingService = inject(BettingService);
   private readonly toast = inject(ToastService);
@@ -41,12 +43,17 @@ export class BettingComponent implements OnInit {
   readonly currency = computed(() => this.bettingService.currency());
 
   readonly form = this.fb.group({
-    stake: this.fb.control<number | null>(null, { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)], nonNullable: false })
+    stake: this.fb.control<number | null>(null, {
+      validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)],
+      nonNullable: false
+    })
   });
+
+  readonly visibleEvents = computed(() => this.events().slice(0, this.eventsPage() * this.eventsPageSize()));
 
   readonly stakeMinor = computed(() => {
     const value = this.stakeValue();
-    return value && value > 0 ? CurrencyHelper.toMinor(value, this.currency()) : 0;
+    return value && value > 0 ? CurrencyHelper.toMinor({ amount: value, currency: this.currency() }) : 0;
   });
 
   readonly potentialWin = computed(() => {
@@ -55,16 +62,8 @@ export class BettingComponent implements OnInit {
   });
 
   readonly canPlaceBet = computed(() => {
-    const event = this.selectedEvent();
     const value = this.stakeValue();
-    const isLoading = this.loading();
-    return event !== null && value !== null && value > 0 && !isLoading;
-  });
-
-  readonly visibleEvents = computed(() => {
-    const allEvents = this.events();
-    const limit = this.eventsPage() * this.eventsPageSize();
-    return allEvents.slice(0, limit);
+    return this.selectedEvent() !== null && value !== null && value > 0 && !this.loading();
   });
 
   readonly showMoreConfig = computed<ShowMoreConfig>(() => ({
@@ -81,7 +80,7 @@ export class BettingComponent implements OnInit {
   }));
 
   constructor () {
-    this.form.controls.stake.valueChanges.subscribe(value => this.stakeValue.set(value));
+    this.form.controls.stake.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.stakeValue.set(value));
   }
 
   selectEvent = (event: GameEvent): void => this.selectedEvent.set(event);
@@ -114,7 +113,7 @@ export class BettingComponent implements OnInit {
     }
 
     this.loading.set(true);
-    this.bettingService.placeBet(event, stake).subscribe({
+    this.bettingService.placeBet({ event, stakeMinor: stake }).subscribe({
       next: settled => {
         this.loadBets();
         this.announce(settled);
@@ -129,14 +128,18 @@ export class BettingComponent implements OnInit {
     });
   }
 
-  private announce (bet: Bet): void {
-    if (bet.status === 'WON') return this.toast.success(`Bet won! You collected ${CurrencyHelper.formatCurrency(bet.payoutMinor ?? 0, bet.currency)}.`);
-    if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');
-
-    return this.toast.success('Bet placed!');
+  private loadBets (): void {
+    this.bettingService.loadBets({ page: this.currentPage(), limit: this.pageSize() }).subscribe();
   }
 
-  private loadBets (): void {
-    this.bettingService.loadBets(this.currentPage(), this.pageSize()).subscribe();
+  private announce (bet: Bet): void {
+    if (bet.status === 'WON') {
+      return this.toast.success(
+        `Bet won! You collected ${CurrencyHelper.formatCurrency({ amountMinor: bet.payoutMinor ?? 0, currency: bet.currency })}.`
+      );
+    }
+
+    if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');
+    return this.toast.success('Bet placed!');
   }
 }

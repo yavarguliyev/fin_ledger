@@ -5,17 +5,20 @@ import { BetService } from './bet.service';
 import { WalletService } from './wallet.service';
 import { GameEventsService } from './game-events.service';
 import { BetRequest } from '../interfaces/betting/bet-request.interface';
-import { Bet } from '../interfaces/betting/bet.interface';
+import { Bet } from '../types/betting/bet.type';
 import { GameEvent } from '../interfaces/betting/game-event.interface';
-import { Wallet } from '../interfaces/wallet/wallet.interface';
+import { Wallet } from '../types/wallet/wallet.type';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
-import { UuidHelper } from '../helpers/common/uuid.helper';
+import { IdempotencyKeyService } from './idempotency-key.service';
+import { PlaceBetDto } from '../dtos/betting/place-bet.dto';
+import { PageRequestDto } from '../dtos/common/page-request.dto';
 
 @Injectable({ providedIn: 'root' })
 export class BettingService {
   private readonly betService = inject(BetService);
   private readonly walletService = inject(WalletService);
   private readonly gameEventsService = inject(GameEventsService);
+  private readonly idempotencyKeys = inject(IdempotencyKeyService);
 
   private readonly betsSignal = signal<Bet[]>([]);
   private readonly totalBetsSignal = signal(0);
@@ -34,8 +37,8 @@ export class BettingService {
     return this.walletService.loadWallets();
   }
 
-  loadBets (page: number, pageSize: number): Observable<PaginatedResponse<Bet>> {
-    return this.betService.getBets(page, pageSize).pipe(
+  loadBets ({ page, limit }: PageRequestDto): Observable<PaginatedResponse<Bet>> {
+    return this.betService.getBets({ page, limit }).pipe(
       tap(response => {
         this.betsSignal.set(response.data);
         this.totalBetsSignal.set(response.total);
@@ -43,11 +46,17 @@ export class BettingService {
     );
   }
 
-  placeBet (event: GameEvent, stakeMinor: number): Observable<Bet> {
+  placeBet ({ event, stakeMinor }: PlaceBetDto): Observable<Bet> {
     const walletId = this.walletService.wallet()?.id;
     if (!walletId) throw new Error('Wallet not found');
 
-    const request: BetRequest = { walletId, eventId: event.id, selection: event.label, stakeMinor, idempotencyKey: UuidHelper.generate() };
-    return this.betService.placeBet(request).pipe(tap(() => this.walletService.getWallet(walletId).subscribe()));
+    return this.idempotencyKeys.run({
+      scope: 'bet',
+      fingerprint: `${walletId}:${event.id}:${stakeMinor}`,
+      request: idempotencyKey => {
+        const request: BetRequest = { walletId, eventId: event.id, selection: event.label, stakeMinor, idempotencyKey };
+        return this.betService.placeBet(request).pipe(tap(() => this.walletService.getWallet(walletId).subscribe()));
+      }
+    });
   }
 }

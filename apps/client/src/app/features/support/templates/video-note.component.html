@@ -1,0 +1,12 @@
+<button type="button" class="relative block w-52 h-52 overflow-hidden rounded-full bg-black shadow-md" [attr.aria-label]="playing() ? labels.PAUSE : labels.PLAY" (click)="toggle()">
+  <video #player class="h-full w-full object-cover" preload="auto" playsinline [muted]="true" [src]="url()" (loadeddata)="showPreviewFrame(player)" (play)="playing.set(true)" (pause)="playing.set(false)" (ended)="playing.set(false)"></video>
+
+  @if (!playing()) {
+    <span class="absolute inset-0 grid place-items-center bg-black/20">
+      <span class="grid place-items-center w-12 h-12 rounded-full bg-black/50 text-white">
+        <svg class="w-6 h-6 translate-x-px" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"></path></svg>
+      </span>
+    </span>
+    <span class="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-2 py-0.5 text-[11px] tabular-nums text-white">{{ length() }}</span>
+  }
+</button>

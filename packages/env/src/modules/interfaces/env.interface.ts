@@ -4,6 +4,7 @@ export interface Environment {
     DEFAULT_PORT: 3000;
     DEFAULT_HOST: '0.0.0.0';
     API_PREFIX: 'api/v';
+    BODY_LIMIT: '100kb';
   };
   RESOURCES: {
     ADMIN: 'admin';
@@ -11,11 +12,13 @@ export interface Environment {
     AUTH: 'auth';
     BET: 'bets';
     GAME_EVENTS: 'game-events';
+    HEALTH: 'health';
     LEDGER: 'ledgers';
     METRICS: 'metrics';
     NOTIFICATION: 'notifications';
     PAYMENT: 'payments';
     PAYMENT_METHOD: 'payment-methods';
+    SUPPORT: 'support';
     WALLET: 'wallets';
     WALLET_TRANSACTION: 'wallet-transactions';
     USER: 'users';
@@ -29,10 +32,11 @@ export interface Environment {
     TITLE: string;
     DESCRIPTION: string;
     VERSION: string;
+    PATH: string;
   };
   CORS: {
-    ORIGIN: string;
     CREDENTIALS: boolean;
+    ORIGIN_SEPARATOR: ',';
   };
   LOGGING: {
     BOOTSTRAP_CONTEXT: 'Bootstrap';

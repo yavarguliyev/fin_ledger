@@ -11,7 +11,7 @@ export const CreateSessionResponseSchema = z.object({
 
   configService: z.custom<ConfigService>().optional(),
 
-  isAuth: z.boolean({ message: 'Is auth must be a boolean' }).optional()
+  refreshToken: z.string({ message: 'Refresh token must be a string' }).optional()
 });
 
 export type CreateSessionResponseDto = z.infer<typeof CreateSessionResponseSchema>;

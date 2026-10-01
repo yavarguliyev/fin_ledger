@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AGGREGATE_TYPES, DomainEventType } from '@common/shared-libs';
+import { AGGREGATE_TYPES, OutboxDestination } from '@common/shared-libs';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
@@ -10,7 +10,9 @@ export const CreateEventSchema = z.object({
 
   aggregateType: z.enum(AGGREGATE_TYPES, { message: 'Aggregate type must be a valid aggregate type' }),
 
-  eventType: z.enum(DomainEventType, { message: 'Event type must be a valid domain event type' }),
+  eventType: z.string({ message: 'Event type must be a string' }).min(1, { message: 'Event type is required' }),
+
+  destination: z.enum(OutboxDestination, { message: 'Destination must be a valid OutboxDestination enum' }).optional(),
 
   adapter: z.custom<DatabaseAdapter>().optional()
 });

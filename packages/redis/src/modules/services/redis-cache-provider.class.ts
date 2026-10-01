@@ -11,6 +11,11 @@ import { CacheKeyDto } from '../dtos/cache/cache-key.dto';
 import { CachePatternDto } from '../dtos/cache/cache-pattern.dto';
 import { CacheSetDto } from '../dtos/cache/cache-set.dto';
 import { CacheSetIfNotExistsDto } from '../dtos/cache/cache-set-if-not-exists.dto';
+import { RateLimitHitDto } from '../dtos/rate-limit/rate-limit-hit.dto';
+import { RateLimitHitRecord } from '../interfaces/rate-limit-hit-record.interface';
+import { RATE_LIMIT_SCRIPT } from '../constants/rate-limit/rate-limit-script.constant';
+import { RATE_LIMIT_KEYS } from '../constants/rate-limit/rate-limit-keys.constant';
+import { REDIS_DEFAULTS } from '../constants/connection/redis-defaults.constant';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly client: Redis;
@@ -18,7 +23,7 @@ export class RedisCacheProvider implements CacheProvider {
   private readonly clientId: ClientIds;
 
   constructor ({ config }: RedisConfigRefDto) {
-    this.clientId = config.clientId || ClientIds.DEAFULT;
+    this.clientId = config.clientId || ClientIds.DEFAULT;
     this.logger = new Logger(`${RedisCacheProvider.name}:${this.clientId}`);
     this.client = this.createClient({ config });
     this.client.on('error', (error: Error) => this.logger.warn(`Redis connection error: ${BaseHelper.errorResponse({ error }).message}`));
@@ -56,7 +61,7 @@ export class RedisCacheProvider implements CacheProvider {
     let cursor = '0';
 
     do {
-      const [next, matchedKeys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', 100);
+      const [next, matchedKeys] = await this.client.scan(cursor, 'MATCH', pattern, 'COUNT', REDIS_DEFAULTS.SCAN_BATCH_SIZE);
       cursor = next;
       keys.push(...matchedKeys);
     } while (cursor !== '0');
@@ -68,6 +73,20 @@ export class RedisCacheProvider implements CacheProvider {
     const serialized = this.serialize({ value });
     const result = await this.client.set(key, serialized, 'EX', ttlSeconds, 'NX');
     return result === 'OK';
+  }
+
+  async hitRateLimit ({ key, ttlMs, limit, blockDurationMs }: RateLimitHitDto): Promise<RateLimitHitRecord> {
+    const [totalHits, timeToExpireMs, timeToBlockExpireMs] = (await this.client.eval(
+      RATE_LIMIT_SCRIPT,
+      2,
+      key,
+      `${key}${RATE_LIMIT_KEYS.BLOCKED_SUFFIX}`,
+      ttlMs,
+      limit,
+      blockDurationMs
+    )) as [number, number, number];
+
+    return { totalHits, timeToExpireMs, timeToBlockExpireMs };
   }
 
   async disconnect (): Promise<void> {
@@ -84,7 +103,7 @@ export class RedisCacheProvider implements CacheProvider {
 
       return new Redis({
         sentinels: [...sentinel.sentinels],
-        name: sentinel.name ?? 'mymaster',
+        name: sentinel.name ?? REDIS_DEFAULTS.SENTINEL_MASTER_NAME,
         ...(sentinel.password != null && { password: sentinel.password }),
         ...(sentinel.db != null && { db: sentinel.db })
       });

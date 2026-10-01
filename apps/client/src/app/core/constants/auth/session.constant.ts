@@ -1,0 +1,19 @@
+export const SESSION = {
+  REMEMBERED_EMAIL_KEY: 'remembered_email',
+  ACTIVE_HINT_KEY: 'session_active',
+  ACTIVE_HINT_VALUE: '1',
+  REFRESH_PATH: '/auth/refresh',
+  LOGOUT_PATH: '/auth/logout',
+  AUTH_HEADER: 'Authorization',
+  BEARER_PREFIX: 'Bearer ',
+  LOGOUT_ALL_PATH: '/auth/logout-all',
+  LOGIN_ROUTE: '/auth/login',
+  DEFAULT_THEME: 'light',
+  UNAUTHORIZED: 401,
+  NO_SESSION_MESSAGE: 'Not signed in',
+  MILLISECONDS_PER_SECOND: 1_000,
+  EXPIRY_SKEW_MS: 15_000,
+  PLAYER_ROUTE: '/betting',
+  STAFF_ROUTE: '/dashboard',
+  PROFILE_ROUTE: '/profile'
+} as const;

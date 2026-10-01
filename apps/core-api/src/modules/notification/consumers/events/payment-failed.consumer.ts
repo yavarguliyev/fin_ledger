@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { BaseHelper, DomainEventType, NotificationType } from '@common/libs';
+import { BaseHelper, DomainEventType, NotificationType, NotificationTitle } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
 import { PaymentEventPayloadDto } from '../../dtos/event/payment-event-payload.dto';
 
 @Injectable()
 export class PaymentFailedConsumer extends NotificationBaseConsumer<PaymentEventPayloadDto> {
-  protected readonly title = 'Payment Failed';
+  protected readonly title = NotificationTitle.PAYMENT_FAILED;
   protected readonly eventType = DomainEventType.PAYMENT_FAILED;
   protected readonly notificationType = NotificationType.PAYMENT_FAILED;
 

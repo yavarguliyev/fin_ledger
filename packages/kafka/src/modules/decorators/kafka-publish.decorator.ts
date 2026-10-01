@@ -21,7 +21,6 @@ export const KafkaPublish = (options: KafkaPublishOptionsDto): MethodDecorator =
       const payload = result as UnknownRecord;
 
       await kafkaService.publish({ payload, topic: options.topic, ...(key && { key }) });
-
       return result;
     };
 

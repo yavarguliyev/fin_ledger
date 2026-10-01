@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, DatabaseAdapter, PasswordAlgorithm, UserRoles } from '@common/libs';
+import { BaseRepository, PostgresService, PasswordAlgorithm } from '@common/libs';
 
+import { FindByEmailDto } from '../dtos/repository/find-by-email.dto';
 import { AuthDto } from '../dtos/auth/auth.dto';
+import { CreateAuthUserDto } from '../dtos/repository/create-auth-user.dto';
 
 @Injectable()
 export class AuthRepository extends BaseRepository<AuthDto> {
@@ -11,15 +13,24 @@ export class AuthRepository extends BaseRepository<AuthDto> {
       tableName: 'users',
       columnMappings: {
         displayName: 'display_name',
+        pendingEmail: 'pending_email',
         passwordHash: 'password_hash',
         passwordAlgo: 'password_algo',
         profileImagesKey: 'profile_images_key',
         profileImages: 'profile_images',
         profileImageIndex: 'profile_image_index',
         lastLoginAt: 'last_login_at',
+        failedLoginAttempts: 'failed_login_attempts',
+        lockedUntil: 'locked_until',
+        lastLoginIp: 'last_login_ip',
         isEmailVerified: 'is_email_verified',
         emailVerifiedAt: 'email_verified_at',
+        termsAcceptedAt: 'terms_accepted_at',
+        mfaSecretEncrypted: 'mfa_secret_encrypted',
+        mfaEnabledAt: 'mfa_enabled_at',
+        mfaLastUsedStep: 'mfa_last_used_step',
         passwordChangedAt: 'password_changed_at',
+        selfExclusionUntil: 'self_exclusion_until',
         deletedAt: 'deleted_at',
         createdAt: 'created_at',
         updatedAt: 'updated_at'
@@ -31,6 +42,7 @@ export class AuthRepository extends BaseRepository<AuthDto> {
     return [
       'id',
       'email',
+      'pendingEmail',
       'displayName',
       'passwordHash',
       'passwordAlgo',
@@ -40,22 +52,30 @@ export class AuthRepository extends BaseRepository<AuthDto> {
       'profileImageIndex',
       'status',
       'lastLoginAt',
+      'failedLoginAttempts',
+      'lockedUntil',
+      'lastLoginIp',
       'isEmailVerified',
+      'termsAcceptedAt',
+      'mfaSecretEncrypted',
+      'mfaEnabledAt',
+      'mfaLastUsedStep',
+      'selfExclusionUntil',
       'deletedAt',
       'createdAt',
       'updatedAt'
     ];
   }
 
-  async findByEmail (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
-    return this.findOne({ where: { email, isEmailVerified: true, deletedAt: null }, adapter });
+  async findByEmail ({ email, adapter }: FindByEmailDto): Promise<AuthDto | null> {
+    return this.findOne({ where: { email, isEmailVerified: true, deletedAt: null }, ...(adapter && { adapter }) });
   }
 
-  async findByEmailAny (email: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
-    return this.findOne({ where: { email }, adapter });
+  async findByEmailAny ({ email, adapter }: FindByEmailDto): Promise<AuthDto | null> {
+    return this.findOne({ where: { email }, ...(adapter && { adapter }) });
   }
 
-  async createUser (email: string, passwordHash: string, role: UserRoles, displayName: string, adapter?: DatabaseAdapter): Promise<AuthDto | null> {
+  async createUser ({ email, passwordHash, role, displayName, termsAcceptedAt, adapter }: CreateAuthUserDto): Promise<AuthDto | null> {
     return this.create({
       data: {
         email,
@@ -64,9 +84,10 @@ export class AuthRepository extends BaseRepository<AuthDto> {
         passwordChangedAt: new Date().toISOString(),
         role,
         displayName,
-        isEmailVerified: false
+        isEmailVerified: false,
+        termsAcceptedAt
       },
-      adapter
+      ...(adapter && { adapter })
     });
   }
 }

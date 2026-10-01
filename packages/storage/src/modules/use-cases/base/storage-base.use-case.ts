@@ -25,6 +25,16 @@ export abstract class StorageBaseUseCase {
     if (!exists) throw new NotFoundException('File not found');
   }
 
+  protected async resolveTargetFiles ({ key, indexes }: FileSelectionDto): Promise<TargetFilesDto> {
+    const files = await this.getFilesWithPrefix({ key });
+    return { files, targetFiles: this.filterFilesByIndexes({ files, indexes }) };
+  }
+
+  protected async isSingleFile ({ key }: ObjectKeyDto): Promise<boolean> {
+    const files = await this.storageStrategy.listByPrefix({ prefix: key });
+    return files.length === 0 || (files.length === 1 && files[0] === key);
+  }
+
   protected async getFilesWithPrefix ({ key }: ObjectKeyDto): Promise<string[]> {
     const files = await this.storageStrategy.listByPrefix({ prefix: key });
     if (files.length === 0) throw new NotFoundException(`No files found for key: ${key}`);
@@ -41,15 +51,5 @@ export abstract class StorageBaseUseCase {
 
     if (filtered.length === 0) throw new NotFoundException(`Invalid indexes provided`);
     return filtered;
-  }
-
-  protected async resolveTargetFiles ({ key, indexes }: FileSelectionDto): Promise<TargetFilesDto> {
-    const files = await this.getFilesWithPrefix({ key });
-    return { files, targetFiles: this.filterFilesByIndexes({ files, indexes }) };
-  }
-
-  protected async isSingleFile ({ key }: ObjectKeyDto): Promise<boolean> {
-    const files = await this.storageStrategy.listByPrefix({ prefix: key });
-    return files.length === 0 || (files.length === 1 && files[0] === key);
   }
 }

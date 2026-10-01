@@ -13,6 +13,12 @@ export enum PaymentMethodType {
   GOOGLE_PAY = 'GOOGLE_PAY'
 }
 
+export enum PaymentOperation {
+  DEPOSIT = 'deposit',
+  PAYOUT = 'payout',
+  REFUND = 'refund'
+}
+
 export enum PaymentStatus {
   CANCELLED = 'CANCELLED',
   COMPENSATED = 'COMPENSATED',

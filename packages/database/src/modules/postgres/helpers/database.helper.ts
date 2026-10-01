@@ -9,9 +9,12 @@ import { DatabaseErrorInputDto } from '../../dtos/helper/database-error.dto';
 import { UpdatedAtClauseDto } from '../../dtos/helper/updated-at-clause.dto';
 
 export class DatabaseHelper {
-  private static readonly INT8_OID = 20;
   private static registered = false;
+
+  private static readonly INT8_OID = 20;
+  private static readonly DATE_OID = 1082;
   private static readonly RETRYABLE_CODES = new Set(['40001', '40P01', '55P03', '57014', '08000', '08003', '08006', '08001', '08004']);
+  private static readonly TRANSACTION_RETRY_CODES = new Set(['40001', '40P01', '55P03']);
   private static readonly isDatabaseError = ({ error }: DatabaseErrorInputDto): boolean => error instanceof DatabaseError;
 
   static isRetryableDatabaseError ({ error }: DatabaseErrorInputDto): boolean {
@@ -20,25 +23,33 @@ export class DatabaseHelper {
     return false;
   }
 
+  static isRetryableTransactionError ({ error }: DatabaseErrorInputDto): boolean {
+    return error instanceof DatabaseError && !!error.code && DatabaseHelper.TRANSACTION_RETRY_CODES.has(error.code);
+  }
+
   static translateDatabaseError ({ error }: DatabaseErrorInputDto): unknown {
     if (!this.isDatabaseError({ error }) || !(error instanceof DatabaseError) || !error.code) return error;
 
     if (this.RETRYABLE_CODES.has(error.code)) {
-      return new InfrastructureError({ message: `Database is temporarily unavailable (${error.code})`, code: 'DATABASE_UNAVAILABLE', retryable: true, httpStatus: 503 });
+      return new InfrastructureError({
+        message: `Database is temporarily unavailable (${error.code})`,
+        code: 'DATABASE_UNAVAILABLE',
+        retryable: true,
+        httpStatus: 503
+      });
     }
 
     const translation = TRANSLATIONS[error.code];
     if (!translation) return error;
 
-    const constraint = error.constraint ? `: ${error.constraint}` : '';
-    return new ApplicationError({ message: `${translation.message}${constraint}`, code: translation.code, statusCode: translation.status });
+    return new ApplicationError({ message: translation.message, code: translation.code, statusCode: translation.status, cause: error });
   }
 
   static registerPostgresTypeParsers (): void {
     if (this.registered) return;
-
     this.registered = true;
 
+    types.setTypeParser(this.DATE_OID, (value: string): string => value);
     types.setTypeParser(this.INT8_OID, (value: string): number => {
       const parsed = Number(value);
 

@@ -7,21 +7,19 @@ import {
   EntryType,
   WalletStatus,
   WalletTransactionType,
-  EXTRACT_ID_KEY,
-  KAFKA_SERVICE,
-  KafkaPublish,
-  KafkaService,
+  OutboxDestination,
   OutboxRepository,
   PostgresService
 } from '@common/libs';
 
+import { PublishWalletAnalyticsDto } from '../../dtos/step/publish-wallet-analytics.dto';
+import { RecordWalletAnalyticsDto } from '../../dtos/step/record-wallet-analytics.dto';
 import { WalletRepository } from '../../repositories/wallet.repository';
 import { LedgerService } from '../../../ledger/ledger.service';
 import { WalletOperationDto } from '../../dtos/input/wallet-operation.dto';
 import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/payload/analytics-event-payload.dto';
 import { WalletOperationResultDto } from '../../dtos/transaction/wallet-operation-result.dto';
 import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
-import { AnalyticsHelper } from '../../../analytics/helpers/analytics.helper';
 import { WalletHelper } from '../../helpers/wallet.helper';
 
 export abstract class WalletBaseUseCase<TInput, TOutput> {
@@ -48,19 +46,34 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
   @Inject(WalletTransactionRepository)
   protected readonly walletTransactionRepository!: WalletTransactionRepository;
 
-  @Inject(KAFKA_SERVICE)
-  protected readonly [KAFKA_SERVICE]!: KafkaService;
-
   abstract execute(input: TInput): Promise<TOutput>;
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_CREDITED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'walletId' }) })
-  protected async publishWalletCredited (eventPayload: AnalyticsEventPayloadDto): Promise<AnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
+  protected async publishWalletCredited (dto: PublishWalletAnalyticsDto): Promise<AnalyticsEventPayloadDto> {
+    return this.recordWalletAnalytics({ ...dto, eventType: AnalyticsEventTopic.WALLET_CREDITED });
   }
 
-  @KafkaPublish({ topic: AnalyticsEventTopic.WALLET_DEBITED, key: ({ result }) => EXTRACT_ID_KEY({ result, field: 'walletId' }) })
-  protected async publishWalletDebited (eventPayload: AnalyticsEventPayloadDto): Promise<AnalyticsEventPayloadDto> {
-    return Promise.resolve(eventPayload);
+  protected async publishWalletDebited (dto: PublishWalletAnalyticsDto): Promise<AnalyticsEventPayloadDto> {
+    return this.recordWalletAnalytics({ ...dto, eventType: AnalyticsEventTopic.WALLET_DEBITED });
+  }
+
+  private async publishWalletAnalytics ({ eventPayload, adapter }: PublishWalletAnalyticsDto): Promise<void> {
+    const credited = this.currentDomainEventType === DomainEventType.WALLET_CREDITED;
+    const publish = credited ? this.publishWalletCredited.bind(this) : this.publishWalletDebited.bind(this);
+
+    await publish({ eventPayload, ...(adapter && { adapter }) });
+  }
+
+  private async recordWalletAnalytics ({ eventType, eventPayload, adapter }: RecordWalletAnalyticsDto): Promise<AnalyticsEventPayloadDto> {
+    await this.outboxRepository.createEvent({
+      aggregateType: 'Wallet',
+      aggregateId: eventPayload.walletId,
+      eventType,
+      payload: { ...eventPayload },
+      destination: OutboxDestination.KAFKA,
+      ...(adapter && { adapter })
+    });
+
+    return eventPayload;
   }
 
   protected async processWallet (dto: WalletOperationDto): Promise<WalletOperationResultDto> {
@@ -88,18 +101,16 @@ export abstract class WalletBaseUseCase<TInput, TOutput> {
 
     if (adapter) {
       const inTx = await WalletHelper.processWalletTransaction({ adapter, ...input });
+      await this.publishWalletAnalytics({ eventPayload: inTx.eventPayload, adapter });
       return { wallet: inTx.wallet, ledgerTransactionId: inTx.ledgerTransactionId };
     }
 
-    const result = await this.postgresService
-      .getWriteConnection()
-      .transaction({ callback: tx => WalletHelper.processWalletTransaction({ ...input, adapter: tx }) });
-
-    void AnalyticsHelper.emitKafkaWalletAnalytics({
-      ...result.eventPayload,
-      eventType: this.currentDomainEventType,
-      publishWalletCredited: payload => this.publishWalletCredited(payload),
-      publishWalletDebited: payload => this.publishWalletDebited(payload)
+    const result = await this.postgresService.getWriteConnection().transaction({
+      callback: async tx => {
+        const processed = await WalletHelper.processWalletTransaction({ ...input, adapter: tx });
+        await this.publishWalletAnalytics({ eventPayload: processed.eventPayload, adapter: tx });
+        return processed;
+      }
     });
 
     return { wallet: result.wallet, ledgerTransactionId: result.ledgerTransactionId };

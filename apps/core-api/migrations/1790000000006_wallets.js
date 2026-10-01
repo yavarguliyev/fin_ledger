@@ -1,4 +1,5 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('wallets', {
@@ -18,11 +19,13 @@ export const up = pgm => {
     reserved_balance_minor: { type: 'money_minor_nonneg', notNull: true, default: 0 },
 
     version: { type: 'integer', notNull: true, default: 0 },
-    status: { type: 'wallet_status', notNull: true, default: 'ACTIVE' },
+    status: { type: 'text', notNull: true, default: 'ACTIVE' },
 
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'wallets', column: 'status', name: 'wallet_status' });
 
   pgm.addConstraint('wallets', 'fk_wallets_ledger_account_currency', {
     foreignKeys: { columns: ['ledger_account_id', 'currency'], references: 'ledger_accounts(id, currency)' }

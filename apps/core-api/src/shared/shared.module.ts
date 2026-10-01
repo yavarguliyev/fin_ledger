@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { InfrastructureModule, ClientIds, SessionService } from '@common/libs';
+import { InfrastructureModule, ClientIds, RefreshService, SessionService, StreamTicketService } from '@common/libs';
 
 @Module({
   imports: [InfrastructureModule.forRoot({ clientId: ClientIds.API_GATEWAY })],
-  providers: [SessionService],
-  exports: [InfrastructureModule, SessionService]
+  providers: [SessionService, RefreshService, StreamTicketService],
+  exports: [InfrastructureModule, SessionService, RefreshService, StreamTicketService]
 })
 export class SharedModule {}

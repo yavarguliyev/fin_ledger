@@ -7,16 +7,36 @@ import { RunShutdownDto } from '../dtos/lifecycle/run-shutdown.dto';
 import { ShutdownContextDto } from '../dtos/lifecycle/shutdown-context.dto';
 import { SHUTDOWN_DEFAULTS } from '../constants/app/shutdown-defaults.constant';
 import { ErrorResponseInputDto } from '../dtos/helper/error-response-input.dto';
+import { BaseHelper } from '../helpers/base.helper';
 
 export class GracefulShutdown {
   static register (params: GracefulShutdownDto): void {
     const context = GracefulShutdown.toContext(params);
     const signals = params.signals ?? [...SHUTDOWN_DEFAULTS.SIGNALS];
-
     signals.forEach(signal => process.once(signal, () => void GracefulShutdown.run({ context, signal })));
-
     if (params.handleFatalErrors === false) return;
     GracefulShutdown.registerFatalErrorHandlers(context);
+  }
+
+  private static describe ({ error }: ErrorResponseInputDto): string {
+    return BaseHelper.errorResponse({ error }).message;
+  }
+
+  private static forceExit (params: ForceExitDto): never {
+    const { logger, exitCode, reason } = params;
+    logger.warn?.(`Forcing exit: ${reason}`);
+    return process.exit(exitCode);
+  }
+
+  private static registerFatalErrorHandlers (context: ShutdownContextDto): void {
+    process.on('unhandledRejection', reason => {
+      context.logger.error?.(`Unhandled rejection: ${GracefulShutdown.describe({ error: reason })}`);
+    });
+
+    process.on('uncaughtException', error => {
+      context.logger.error?.(`Uncaught exception: ${error.message}`, error.stack);
+      void GracefulShutdown.run({ context, signal: 'uncaughtException', exitCode: SHUTDOWN_DEFAULTS.FAILURE_EXIT_CODE });
+    });
   }
 
   private static toContext (params: GracefulShutdownDto): ShutdownContextDto {
@@ -32,46 +52,13 @@ export class GracefulShutdown {
     };
   }
 
-  private static registerFatalErrorHandlers (context: ShutdownContextDto): void {
-    process.on('unhandledRejection', reason => {
-      context.logger.error?.(`Unhandled rejection: ${GracefulShutdown.describe({ error: reason })}`);
-    });
-
-    process.on('uncaughtException', error => {
-      context.logger.error?.(`Uncaught exception: ${error.message}`, error.stack);
-      void GracefulShutdown.run({ context, signal: 'uncaughtException' });
-    });
-  }
-
-  private static async run (params: RunShutdownDto): Promise<void> {
-    const { context, signal } = params;
-    const { logger, exitCode, timeoutMs } = context;
-
-    if (context.shuttingDown) return GracefulShutdown.forceExit({ logger, exitCode, reason: `second ${signal} received` });
-
-    context.shuttingDown = true;
-    logger.log?.(`${signal} received, shutting down (up to ${timeoutMs}ms)`);
-
-    try {
-      const closed = await GracefulShutdown.closeApp(context);
-      if (!closed) return GracefulShutdown.forceExit({ logger, exitCode, reason: `shutdown exceeded ${timeoutMs}ms` });
-
-      logger.log?.('Shutdown complete');
-    } catch (error) {
-      logger.error?.(`Shutdown failed: ${GracefulShutdown.describe({ error: error })}`);
-      return GracefulShutdown.forceExit({ logger, exitCode: SHUTDOWN_DEFAULTS.FAILURE_EXIT_CODE, reason: 'shutdown threw' });
-    }
-
-    process.exit(exitCode);
-  }
-
   private static async closeApp (params: CloseAppDto): Promise<boolean> {
     const { app, timeoutMs, onShutdown } = params;
+
     let timer: NodeJS.Timeout | undefined;
 
     const expired = new Promise<boolean>(resolve => {
       timer = setTimeout(() => resolve(false), timeoutMs);
-      timer.unref();
     });
 
     const closed = (async (): Promise<boolean> => {
@@ -88,14 +75,25 @@ export class GracefulShutdown {
     }
   }
 
-  private static forceExit (params: ForceExitDto): never {
-    const { logger, exitCode, reason } = params;
-    logger.warn?.(`Forcing exit: ${reason}`);
+  private static async run (params: RunShutdownDto): Promise<void> {
+    const { context, signal } = params;
+    const { logger, timeoutMs } = context;
+    const exitCode = params.exitCode ?? context.exitCode;
 
-    return process.exit(exitCode);
-  }
+    if (context.shuttingDown) return GracefulShutdown.forceExit({ logger, exitCode, reason: `second ${signal} received` });
 
-  private static describe ({ error }: ErrorResponseInputDto): string {
-    return error instanceof Error ? error.message : String(error);
+    context.shuttingDown = true;
+    logger.log?.(`${signal} received, shutting down (up to ${timeoutMs}ms)`);
+
+    try {
+      const closed = await GracefulShutdown.closeApp(context);
+      if (!closed) return GracefulShutdown.forceExit({ logger, exitCode, reason: `shutdown exceeded ${timeoutMs}ms` });
+      logger.log?.('Shutdown complete');
+    } catch (error) {
+      logger.error?.(`Shutdown failed: ${GracefulShutdown.describe({ error: error })}`);
+      return GracefulShutdown.forceExit({ logger, exitCode: SHUTDOWN_DEFAULTS.FAILURE_EXIT_CODE, reason: 'shutdown threw' });
+    }
+
+    process.exit(exitCode);
   }
 }

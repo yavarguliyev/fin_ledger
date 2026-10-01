@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { WalletStatus } from '@common/libs';
+import { WALLET_STATUSES } from '@common/contracts';
 
 export const AssertWalletStatusSchema = z.object({
-  status: z.enum(WalletStatus, { message: 'Status must be a valid wallet status' }).optional(),
+  status: z.enum(WALLET_STATUSES, { message: 'Status must be a valid wallet status' }).optional(),
 
-  allowedStatuses: z.array(z.enum(WalletStatus, { message: 'Status must be a valid wallet status' }))
+  allowedStatuses: z.array(z.enum(WALLET_STATUSES, { message: 'Status must be a valid wallet status' }))
 });
 
 export type AssertWalletStatusDto = z.infer<typeof AssertWalletStatusSchema>;

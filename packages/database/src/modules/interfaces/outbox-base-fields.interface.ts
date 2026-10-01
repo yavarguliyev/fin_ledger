@@ -1,4 +1,4 @@
-import { OutboxStatus } from '@common/shared-libs';
+import { OutboxDestination, OutboxStatus } from '@common/shared-libs';
 
 import { CreateEventInput } from './create-event-input.interface';
 
@@ -10,4 +10,6 @@ export interface OutboxBaseFields extends CreateEventInput {
   readonly createdAt: Date;
   readonly publishedAt: Date | null;
   readonly status: OutboxStatus;
+  readonly traceId: string | null;
+  readonly destination: OutboxDestination;
 }

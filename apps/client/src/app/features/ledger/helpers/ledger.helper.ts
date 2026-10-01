@@ -1,6 +1,8 @@
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { LedgerEntry } from '../../../core/interfaces/ledger/ledger-entry.interface';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
+import { TABLE } from '../../../core/constants/ui/table.constant';
+import { LEDGER_TABLE } from '../../../core/constants/ui/ledger-table.constant';
 
 export class LedgerHelper {
   static getLedgerTableColumns (): TableColumn<LedgerEntry>[] {
@@ -19,7 +21,7 @@ export class LedgerHelper {
         type: 'badge',
         align: 'center',
         mobileVisible: true,
-        badgeClass: (value: unknown): string => (value === 'DEBIT' ? 'bg-danger/10 text-danger' : 'bg-success/10 text-success')
+        badgeClass: ({ value }): string => (value === LEDGER_TABLE.DEBIT ? LEDGER_TABLE.DEBIT_CLASS : LEDGER_TABLE.CREDIT_CLASS)
       },
       {
         key: 'amountMinor',
@@ -27,7 +29,7 @@ export class LedgerHelper {
         type: 'currency',
         align: 'center',
         mobileVisible: true,
-        format: (value: unknown, row: LedgerEntry): string => CurrencyHelper.formatCurrency(value as number, row.currency)
+        format: ({ value, row }): string => CurrencyHelper.formatCurrency({ amountMinor: value as number, currency: row.currency })
       },
       { key: 'description', label: 'Description', type: 'text', align: 'center', mobileVisible: true },
       {
@@ -36,7 +38,7 @@ export class LedgerHelper {
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        format: (value: unknown): string => (value && typeof value === 'string' ? value : '—')
+        format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
       },
       { key: 'createdAt', label: 'Date', type: 'date', align: 'center', mobileVisible: true }
     ];

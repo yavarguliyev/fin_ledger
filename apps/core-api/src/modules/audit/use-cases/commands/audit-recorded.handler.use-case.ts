@@ -13,7 +13,6 @@ export class AuditRecordedHandler extends AuditBaseUseCase<KafkaMessageRecord<Au
   @KafkaSubscribe({ topic: AuditEventTopic.RECORDED })
   async execute ({ value }: KafkaMessageRecord<AuditEventDto>): Promise<void> {
     const entry = CreateAuditLogSchema.parse(value);
-
     await this.auditLogRepository.createLog({ ...entry, ...(entry.actorUserId ? {} : { actorService: entry.actorService ?? 'core-api' }) });
   }
 }

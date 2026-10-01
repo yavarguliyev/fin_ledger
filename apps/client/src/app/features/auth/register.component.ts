@@ -7,11 +7,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { PasswordHelper } from '../../core/helpers/forms/password.helper';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
+import { FormErrorHelper } from '../../core/helpers/forms/form-error.helper';
+import { FieldErrorComponent } from '../../shared/components/field-error/field-error.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent],
   templateUrl: './templates/register.component.html'
 })
 export class RegisterComponent {
@@ -28,12 +30,23 @@ export class RegisterComponent {
   readonly form = this.fb.group(
     {
       displayName: this.fb.control('', {
-        validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(3), ValidatorsHelper.createMaxLengthValidator(50)],
+        validators: [
+          ValidatorsHelper.createRequiredValidator(),
+          ValidatorsHelper.createMinLengthValidator(3),
+          ValidatorsHelper.createMaxLengthValidator(50)
+        ],
         nonNullable: false
       }),
-      email: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()], nonNullable: false }),
+      email: this.fb.control('', {
+        validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createEmailValidator()],
+        nonNullable: false
+      }),
       password: this.fb.control('', {
-        validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinLengthValidator(8), ValidatorsHelper.createPatternValidator(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)],
+        validators: [
+          ValidatorsHelper.createRequiredValidator(),
+          ValidatorsHelper.createMinLengthValidator(8),
+          ValidatorsHelper.createPatternValidator(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
+        ],
         nonNullable: false
       }),
       confirmPassword: this.fb.control('', { validators: [ValidatorsHelper.createRequiredValidator()], nonNullable: false }),
@@ -71,6 +84,8 @@ export class RegisterComponent {
   }
 
   onSubmit (): void {
+    FormErrorHelper.clear({ form: this.form });
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -88,17 +103,18 @@ export class RegisterComponent {
       .register({
         email: this.form.controls.email.value ?? '',
         password: this.form.controls.password.value ?? '',
-        displayName: this.form.controls.displayName.value ?? ''
+        displayName: this.form.controls.displayName.value ?? '',
+        termsAccepted
       })
       .subscribe({
-        next: () => {
+        next: response => {
           this.loading.set(false);
-          this.toast.success('Account created successfully! Please contact an administrator to verify your email before logging in.');
+          this.toast.success(response.message);
           void this.router.navigate(['/auth/login']);
         },
         error: (err: Error) => {
           this.loading.set(false);
-          this.error.set(err.message);
+          this.error.set(FormErrorHelper.report({ form: this.form, error: err, fallback: err.message }));
         }
       });
   }

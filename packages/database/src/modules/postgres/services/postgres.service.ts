@@ -1,11 +1,14 @@
 import { Inject, Injectable, InternalServerErrorException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { DATABASE_CONFIG } from '@common/shared-libs';
+import { DATABASE_CONFIG, RequestScope } from '@common/shared-libs';
 
 import { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 import { DATABASE_ADAPTER_MAP } from '../../constants/adapter/database.constant';
 import { DatabaseConfig } from '../../interfaces/database-config.interface';
 import { AddConnectionDto } from '../../dtos/service/add-connection.dto';
 import { ConnectionNameDto } from '../../dtos/service/connection-name.dto';
+import { DATABASE_CONNECTIONS } from '../../constants/adapter/connections.constant';
+import { PoolStats } from '../../interfaces/pool-stats.interface';
+import { PostgreSQLAdapter } from '../adapters/postgresql.adapter';
 
 @Injectable()
 export class PostgresService implements OnModuleInit, OnModuleDestroy {
@@ -16,22 +19,37 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
 
   constructor (@Inject(DATABASE_CONFIG) private readonly config: DatabaseConfig) {}
 
-  async onModuleInit (): Promise<void> {
-    await this.addConnection({ name: 'default', config: this.config });
-  }
-
   getWriteConnection = ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter => this.getConnection({ name });
 
   getConnection ({ name }: ConnectionNameDto = {}): DatabaseAdapter {
-    if (!name && this.defaultAdapter) return this.defaultAdapter;
-    if (name && this.adapters.has(name)) return this.adapters.get(name)!;
-    throw new InternalServerErrorException(`Database connection '${name || 'default'}' not found`);
+    const resolved = this.resolveConnectionName({ ...(name && { name }) });
+
+    if (resolved && this.adapters.has(resolved)) return this.adapters.get(resolved)!;
+    if (!resolved && this.defaultAdapter) return this.defaultAdapter;
+
+    throw new InternalServerErrorException(`Database connection '${resolved || DATABASE_CONNECTIONS.DEFAULT}' not found`);
+  }
+
+  poolStats ({ name }: ConnectionNameDto = {}): PoolStats {
+    const adapter = this.getConnection(name ? { name } : {});
+    return adapter instanceof PostgreSQLAdapter ? adapter.poolStats() : { totalCount: 0, idleCount: 0, waitingCount: 0 };
   }
 
   getReadConnection ({ name = 'default' }: ConnectionNameDto = {}): DatabaseAdapter {
     const readKey = `${name}_read`;
     if (this.adapters.has(readKey)) return this.adapters.get(readKey)!;
     return this.getConnection({ name });
+  }
+
+  async onModuleInit (): Promise<void> {
+    await this.addConnection({ name: DATABASE_CONNECTIONS.DEFAULT, config: this.config });
+
+    if (this.config.workerUsername && this.config.workerPassword) {
+      await this.addConnection({
+        name: DATABASE_CONNECTIONS.WORKER,
+        config: { ...this.config, username: this.config.workerUsername, password: this.config.workerPassword }
+      });
+    }
   }
 
   async addConnection ({ name, config, isReadOnly = false }: AddConnectionDto): Promise<void> {
@@ -71,5 +89,11 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy (): Promise<void> {
     await this.closeAllConnections();
+  }
+
+  private resolveConnectionName ({ name }: ConnectionNameDto = {}): string | undefined {
+    const isDefault = !name || name === DATABASE_CONNECTIONS.DEFAULT;
+    if (isDefault && RequestScope.isSystem() && this.adapters.has(DATABASE_CONNECTIONS.WORKER)) return DATABASE_CONNECTIONS.WORKER;
+    return name;
   }
 }

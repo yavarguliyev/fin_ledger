@@ -1,5 +1,5 @@
 [build]
-command = "npx ng build"
+command = "npx ng build --configuration=production && node scripts/write-runtime-config.js"
 publish = "dist/demo/browser"
 
 [[redirects]]

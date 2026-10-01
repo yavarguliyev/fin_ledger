@@ -1,0 +1,18 @@
+export const DEVICE_TRACKING = {
+  LOGIN_PATH: '/auth/login',
+  SHARED_DEVICES_PATH: '/admin/shared-devices',
+  FIRST_EMAIL: 'device-first@integration.test',
+  SECOND_EMAIL: 'device-second@integration.test',
+  PASSWORD: 'Device#Pass2026',
+  REGISTER_PATH: '/auth/register',
+  VERIFY_EMAIL_PATH: '/auth/verify-email',
+  STAFF_EMAIL: 'admin@realtime-wallet-payments.com',
+  ADMIN_EMAIL: 'global_admin@realtime-wallet-payments.com',
+  KNOWN_DEVICE: 'integration-device-known',
+  OTHER_DEVICE: 'integration-device-other',
+  SHARED_DEVICE: 'integration-device-shared',
+  OK: 200,
+  CREATED: 201,
+  FORBIDDEN: 403,
+  SHARED_ACCOUNTS: 2
+} as const;

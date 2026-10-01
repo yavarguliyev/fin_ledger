@@ -16,7 +16,9 @@ export const ProviderChargeResultSchema = z.object({
 
   failureReason: z.string().optional(),
 
-  failure: ProviderFailureSchema.optional()
+  failure: ProviderFailureSchema.optional(),
+
+  clientSecret: z.string().optional()
 });
 
 export type ProviderChargeResultDto = z.infer<typeof ProviderChargeResultSchema>;

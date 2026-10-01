@@ -44,14 +44,26 @@ export class WalletTransactionRepository extends BaseRepository<WalletTransactio
   }
 
   async createTransaction (input: CreateWalletTransactionDto): Promise<WalletTransactionRecordDto | null> {
-    const { status = WalletTransactionStatus.COMPLETED, reference, ledgerTransactionId, adapter, ...rest } = input;
+    const {
+      status = WalletTransactionStatus.COMPLETED,
+      reference,
+      ledgerTransactionId,
+      idempotencyKey,
+      balanceAfterMinor,
+      externalReference,
+      adapter,
+      ...rest
+    } = input;
 
     return this.create({
       data: {
         ...rest,
         status,
         ...(reference && { reference }),
-        ...(ledgerTransactionId && { ledgerTransactionId })
+        ...(ledgerTransactionId && { ledgerTransactionId }),
+        ...(idempotencyKey && { idempotencyKey }),
+        ...(externalReference && { externalReference }),
+        ...(balanceAfterMinor !== undefined && { balanceAfterMinor })
       },
       adapter
     });

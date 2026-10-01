@@ -1,12 +1,13 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('ledger_accounts', {
     id: 'id',
-    owner_type: { type: 'account_owner_type', notNull: true },
+    owner_type: { type: 'text', notNull: true },
     user_id: { type: 'uuid', references: 'users(id)', onDelete: 'RESTRICT' },
     code: { type: 'varchar(64)' },
-    account_type: { type: 'account_type', notNull: true },
+    account_type: { type: 'text', notNull: true },
     currency: 'currency',
     balance_minor: { type: 'money_minor', notNull: true, default: 0 },
     is_active: { type: 'boolean', notNull: true, default: true },
@@ -14,6 +15,9 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'ledger_accounts', column: 'owner_type', name: 'account_owner_type' });
+  addEnumCheck(pgm, { table: 'ledger_accounts', column: 'account_type', name: 'account_type' });
 
   pgm.addConstraint('ledger_accounts', 'fk_ledger_accounts_currency', { foreignKeys: { columns: 'currency', references: 'currencies(code)' } });
 

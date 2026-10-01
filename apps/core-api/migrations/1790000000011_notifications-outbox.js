@@ -1,17 +1,18 @@
 export { shorthands } from './utils/shorthands.js';
+import { addEnumCheck } from './utils/enum-check.js';
 
 export const up = pgm => {
   pgm.createTable('notifications', {
     id: 'id',
     user_id: { type: 'uuid', notNull: true, references: 'users(id)', onDelete: 'CASCADE' },
 
-    channel: { type: 'notification_channel', notNull: true, default: 'IN_APP' },
+    channel: { type: 'text', notNull: true, default: 'IN_APP' },
     type: { type: 'varchar(50)', notNull: true },
     title: { type: 'varchar(200)', notNull: true },
     content: { type: 'text', notNull: true },
     data: { type: 'jsonb', check: "data IS NULL OR jsonb_typeof(data) = 'object'" },
 
-    status: { type: 'notification_status', notNull: true, default: 'PENDING' },
+    status: { type: 'text', notNull: true, default: 'PENDING' },
 
     dedupe_key: { type: 'varchar(255)' },
 
@@ -23,6 +24,10 @@ export const up = pgm => {
     created_at: 'created_at',
     updated_at: 'updated_at'
   });
+
+  addEnumCheck(pgm, { table: 'notifications', column: 'channel', name: 'notification_channel' });
+  addEnumCheck(pgm, { table: 'notifications', column: 'status', name: 'notification_status' });
+  addEnumCheck(pgm, { table: 'notifications', column: 'type', name: 'notification_type' });
 
   pgm.createIndex('notifications', 'dedupe_key', {
     name: 'uq_notifications_dedupe_key',
@@ -61,7 +66,7 @@ export const up = pgm => {
     payload: { type: 'jsonb', notNull: true, check: "jsonb_typeof(payload) = 'object'" },
 
     trace_id: { type: 'varchar(64)' },
-    status: { type: 'outbox_status', notNull: true, default: 'PENDING' },
+    status: { type: 'text', notNull: true, default: 'PENDING' },
 
     attempts: { type: 'smallint', notNull: true, default: 0, check: 'attempts >= 0' },
     max_attempts: { type: 'smallint', notNull: true, default: 10 },
@@ -74,6 +79,8 @@ export const up = pgm => {
     created_at: 'created_at',
     published_at: { type: 'timestamptz' }
   });
+
+  addEnumCheck(pgm, { table: 'outbox_events', column: 'status', name: 'outbox_status' });
 
   pgm.addConstraint('outbox_events', 'uq_outbox_aggregate_version', {
     unique: ['aggregate_type', 'aggregate_id', 'aggregate_version']

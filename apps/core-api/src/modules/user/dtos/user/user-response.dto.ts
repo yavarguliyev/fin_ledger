@@ -21,6 +21,12 @@ export const UserResponseSchema = z.object({
 
   deletedAt: z.iso.datetime({ message: 'Deleted at must be a valid ISO datetime' }).nullable(),
 
+  countryCode: z.string({ message: 'Country code must be a string' }).nullable(),
+
+  dateOfBirth: z.string({ message: 'Date of birth must be a string' }).nullable(),
+
+  kycStatus: z.string({ message: 'KYC status must be a string' }),
+
   createdAt: z.iso.datetime({ message: 'Created at must be a valid ISO datetime' }),
 
   updatedAt: z.iso.datetime({ message: 'Updated at must be a valid ISO datetime' })

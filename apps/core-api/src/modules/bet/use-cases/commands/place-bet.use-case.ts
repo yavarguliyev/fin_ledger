@@ -6,6 +6,7 @@ import { BetHelper } from '../../helpers/bet.helper';
 import { BetDto } from '../../dtos/bet/bet.dto';
 import { PlaceBetDto } from '../../dtos/input/place-bet.dto';
 import { PlaceBetTransactionDto } from '../../dtos/step/place-bet-transaction.dto';
+import { SelfExclusionHelper } from '../../../user/helpers/self-exclusion.helper';
 
 @Injectable()
 export class PlaceBetUseCase extends BetBaseUseCase<PlaceBetDto, BetDto> {
@@ -16,14 +17,15 @@ export class PlaceBetUseCase extends BetBaseUseCase<PlaceBetDto, BetDto> {
   async execute (dto: PlaceBetDto): Promise<BetDto> {
     const existing = await this.betRepository.findByUserAndIdempotencyKey({ userId: dto.userId, idempotencyKey: dto.idempotencyKey });
     if (existing) return existing;
-
     const placed = await this.postgresService.getWriteConnection().transaction({ callback: adapter => this.place({ ...dto, adapter }) });
-
     return this.settleBetUseCase.execute({ betId: placed.id });
   }
 
   private async place (dto: PlaceBetTransactionDto): Promise<BetDto> {
     const { userId, walletId, eventId, selection, stakeMinor, idempotencyKey, adapter } = dto;
+
+    const player = await this.authRepository.findById({ id: userId, adapter });
+    SelfExclusionHelper.assertNotExcluded({ selfExclusionUntil: player?.selfExclusionUntil });
 
     const event = BetHelper.assertEventAcceptsBets(await this.gameEventRepository.findById({ id: eventId, adapter }));
     const wallet = BetHelper.assertOwnedWallet({ wallet: await this.walletService.getWallet({ walletId }), userId });

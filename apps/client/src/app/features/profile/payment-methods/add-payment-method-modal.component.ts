@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { PaymentMethod } from '../../../core/interfaces/payment-method/payment-method.interface';
+import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { ProviderOption } from '../../../core/interfaces/payment-method/provider-option.interface';
 
 @Component({
@@ -42,7 +42,7 @@ export class AddPaymentMethodModalComponent {
     this.submitting.set(true);
     const returnUrl = `${window.location.origin}/profile`;
 
-    this.paymentMethodService.createSetupSession(provider, returnUrl).subscribe({
+    this.paymentMethodService.createSetupSession({ provider, returnUrl }).subscribe({
       next: (res: { url: string; sessionId: string }) => {
         if (res.url) {
           window.location.href = res.url;

@@ -3,7 +3,11 @@ import { UnknownRecord } from '@common/shared-libs';
 
 import type { DatabaseAdapter } from '../../interfaces/database-adapter.interface';
 
-export const UpdateWhereSchema = <T>(): z.ZodObject<{ where: z.ZodCustom<UnknownRecord>; data: z.ZodCustom<Partial<T>>; adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>> }> =>
+export const UpdateWhereSchema = <T>(): z.ZodObject<{
+  where: z.ZodCustom<UnknownRecord>;
+  data: z.ZodCustom<Partial<T>>;
+  adapter: z.ZodOptional<z.ZodCustom<DatabaseAdapter>>;
+}> =>
   z.object({
     where: z.custom<UnknownRecord>(),
 

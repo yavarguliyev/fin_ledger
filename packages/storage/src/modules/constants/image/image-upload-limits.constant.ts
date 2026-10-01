@@ -1,0 +1,6 @@
+export const IMAGE_UPLOAD_LIMITS = {
+  FIELD_NAME: 'files',
+  MAX_FILES: 5,
+  MAX_FILE_SIZE_BYTES: 5 * 1024 * 1024,
+  MAX_INPUT_PIXELS: 40_000_000
+} as const;

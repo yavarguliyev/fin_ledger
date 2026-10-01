@@ -5,7 +5,9 @@ import { ShutdownContextSchema } from './shutdown-context.dto';
 export const RunShutdownSchema = z.object({
   context: ShutdownContextSchema,
 
-  signal: z.string({ message: 'Signal must be a string' })
+  signal: z.string({ message: 'Signal must be a string' }),
+
+  exitCode: z.number({ message: 'exitCode must be a number' }).optional()
 });
 
 export type RunShutdownDto = z.infer<typeof RunShutdownSchema>;

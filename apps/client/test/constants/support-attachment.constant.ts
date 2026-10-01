@@ -1,0 +1,31 @@
+export const SUPPORT_ATTACHMENT_TEST = {
+  PNG_TYPE: 'image/png',
+  EXE_TYPE: 'application/x-msdownload',
+  NAME: 'receipt.png',
+  SMALL_BYTES: 2048,
+  OVER_LIMIT_BYTES: 10 * 1024 * 1024 + 1,
+  TOO_MANY: 6,
+  BYTES: 512,
+  KILOBYTES: 1536,
+  MEGABYTES: 3 * 1024 * 1024,
+  BYTES_LABEL: '512 B',
+  KILOBYTES_LABEL: '1.5 KB',
+  MEGABYTES_LABEL: '3.0 MB',
+  MESSAGE: {
+    id: 'message-1',
+    conversationId: 'conversation-1',
+    senderUserId: 'user-1',
+    senderName: null,
+    senderIsStaff: false,
+    kind: 'TEXT',
+    source: 'WEB',
+    body: 'Hello',
+    attachment: null,
+    editedAt: null,
+    deletedAt: null,
+    seen: true,
+    createdAt: '2026-10-01T10:00:00.000Z'
+  },
+  EDITED_BODY: 'Hello again',
+  EDITED_AT: '2026-10-01T10:05:00.000Z'
+} as const;

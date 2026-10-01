@@ -1,0 +1,21 @@
+import { NestFactory } from '@nestjs/core';
+import { Logger } from '@nestjs/common';
+import { TaskWorkerService } from '@common/libs';
+
+import { WorkerModule } from './worker.module';
+import { WORKER } from './shared/constants/modules/worker.constant';
+
+async function bootstrapWorker (): Promise<void> {
+  const logger = new Logger(WORKER.CONTEXT);
+  const app = await NestFactory.createApplicationContext(WorkerModule, { bufferLogs: false });
+
+  app.enableShutdownHooks();
+  app.get(TaskWorkerService).start();
+
+  logger.log(WORKER.STARTED_MESSAGE);
+}
+
+void bootstrapWorker().catch((error: Error) => {
+  new Logger(WORKER.CONTEXT).error(`Worker bootstrap failed: ${error.message}`, error.stack);
+  process.exit(WORKER.FAILURE_EXIT_CODE);
+});

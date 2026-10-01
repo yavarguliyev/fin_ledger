@@ -33,7 +33,7 @@ export class PaymentMethodController {
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: CreateSetupSessionRequestSchema }) dto: CreateSetupSessionRequestDto
   ): Promise<SetupSessionResultDto> {
-    return this.paymentMethodService.createSetupSession({ ...dto, email: req.user.email });
+    return this.paymentMethodService.createSetupSession({ ...dto, email: req.user.email, userId: req.user.userId });
   }
 
   @Post(':provider/confirm')

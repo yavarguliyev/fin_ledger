@@ -2,8 +2,10 @@ import { Injectable, signal, computed } from '@angular/core';
 
 import { ConfirmToast } from '../interfaces/ui/confirm-toast.interface';
 import { Toast } from '../interfaces/ui/toast.interface';
-import { ToastType } from '../types/ui/toast-type.type';
 import { UuidHelper } from '../helpers/common/uuid.helper';
+import { ShowToastDto } from '../dtos/ui/show-toast.dto';
+import { RequestConfirmDto } from '../dtos/ui/request-confirm.dto';
+import { TOAST } from '../constants/ui/toast.constant';
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {
@@ -13,26 +15,20 @@ export class ToastService {
   readonly toasts = computed(() => this.toastsSignal());
   readonly confirmToast = computed(() => this.confirmToastSignal());
 
-  show (message: string, type: ToastType = 'info'): void {
-    const id = UuidHelper.generate();
-    this.toastsSignal.update(list => [...list, { id, type, message }]);
-    setTimeout(() => this.dismiss(id), 5000);
-  }
-
   success (message: string): void {
-    this.show(message, 'success');
+    this.show({ message, type: 'success' });
   }
 
   error (message: string): void {
-    this.show(message, 'error');
+    this.show({ message, type: 'error' });
   }
 
   warning (message: string): void {
-    this.show(message, 'warning');
+    this.show({ message, type: 'warning' });
   }
 
   info (message: string): void {
-    this.show(message, 'info');
+    this.show({ message, type: 'info' });
   }
 
   dismiss (id: string): void {
@@ -43,7 +39,13 @@ export class ToastService {
     this.confirmToastSignal.set(null);
   }
 
-  confirm (message: string, onConfirm: () => void, onCancel?: () => void): void {
+  show ({ message, type = TOAST.DEFAULT_TYPE }: ShowToastDto): void {
+    const id = UuidHelper.generate();
+    this.toastsSignal.update(list => [...list, { id, type, message }]);
+    setTimeout(() => this.dismiss(id), TOAST.DISMISS_MS);
+  }
+
+  confirm ({ message, onConfirm, onCancel }: RequestConfirmDto): void {
     const id = UuidHelper.generate();
     this.confirmToastSignal.set({
       id,

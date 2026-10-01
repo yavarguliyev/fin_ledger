@@ -1,0 +1,23 @@
+export const SUPPORT = {
+  BASE_PATH: '/support',
+  ROUTE: '/support',
+  CONVERSATIONS_PATH: '/conversations',
+  MESSAGES_PATH: '/messages',
+  READ_PATH: '/read',
+  PRESENCE_PATH: '/presence',
+  HEARTBEAT_PATH: '/presence/heartbeat',
+  LEAVE_PATH: '/presence/leave',
+  LAST_SEEN_PATH: '/presence/last-seen',
+  CONTACTS_PATH: '/contacts',
+  ONLINE_STATE: 'ONLINE',
+  OFFLINE_STATE: 'OFFLINE',
+  TICKET_PATH: '/stream-ticket',
+  STREAM_PATH: '/stream',
+  TICKET_PARAM: 'ticket',
+  HEARTBEAT_MS: 20000,
+  UNREAD_POLL_MS: 25000,
+  RECONNECT_BASE_MS: 1000,
+  RECONNECT_MAX_MS: 30000,
+  BODY_MAX_LENGTH: 4000,
+  PAGE_SIZE: 50
+} as const;

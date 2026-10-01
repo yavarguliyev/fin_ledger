@@ -49,7 +49,19 @@ export class WhereBuilder extends BaseBuilder {
 
     if (Array.isArray(options.where)) {
       for (const condition of options.where) {
-        conditions.push(`${this.mapColumn({ column: condition.field })} ${condition.operator} $${paramIndex++}`);
+        const column = this.mapColumn({ column: condition.field });
+
+        if (condition.operator === 'IS NULL' || condition.operator === 'IS NOT NULL') {
+          conditions.push(`${column} ${condition.operator}`);
+          continue;
+        }
+
+        const placeholder = `$${paramIndex++}`;
+
+        if (condition.operator === 'IN') conditions.push(`${column} = ANY(${placeholder})`);
+        else if (condition.operator === 'NOT IN') conditions.push(`${column} <> ALL(${placeholder})`);
+        else conditions.push(`${column} ${condition.operator} ${placeholder}`);
+
         params.push(condition.value);
       }
     }
@@ -69,9 +81,6 @@ export class WhereBuilder extends BaseBuilder {
       paramIndex++;
     }
 
-    return {
-      conditions,
-      paramIndex
-    };
+    return { conditions, paramIndex };
   }
 }

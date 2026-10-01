@@ -31,11 +31,14 @@ export class NotificationRepository extends BaseExtendedRepository<NotificationD
   async createNotification (dto: CreateNotificationDto): Promise<NotificationDto | null> {
     const isSent = dto.status === NotificationStatus.SENT || dto.status === NotificationStatus.READ;
 
+    const { status, ...rest } = dto;
+
     return this.create({
       data: {
-        ...dto,
+        ...rest,
+        ...(status && { status }),
         ...(isSent && { sentAt: new Date().toISOString() }),
-        ...(dto.status === NotificationStatus.READ && { readAt: new Date().toISOString() })
+        ...(status === NotificationStatus.READ && { readAt: new Date().toISOString() })
       }
     });
   }

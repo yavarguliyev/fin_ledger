@@ -12,6 +12,7 @@ export class GameEventRepository extends BaseExtendedRepository<GameEventDto> {
       tableName: 'game_events',
       columnMappings: {
         startsAt: 'starts_at',
+        settledAt: 'settled_at',
         bettingClosesAt: 'betting_closes_at',
         createdAt: 'created_at',
         updatedAt: 'updated_at'
@@ -20,7 +21,7 @@ export class GameEventRepository extends BaseExtendedRepository<GameEventDto> {
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'label', 'odds', 'status', 'startsAt', 'bettingClosesAt', 'createdAt', 'updatedAt'];
+    return ['id', 'sport', 'competition', 'label', 'odds', 'status', 'result', 'startsAt', 'bettingClosesAt', 'settledAt', 'createdAt', 'updatedAt'];
   }
 
   async findEvents ({ status }: ListGameEventsDto): Promise<GameEventDto[]> {

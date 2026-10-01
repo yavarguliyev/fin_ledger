@@ -3,9 +3,15 @@ import { CommonModule } from '@angular/common';
 
 import { NotificationService } from '../../core/services/notification.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
-import { AppNotification } from '../../core/interfaces/notification/app-notification.interface';
+import { AppNotification } from '../../core/types/notification/app-notification.type';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
+import { NotificationType } from '../../core/types/notification/notification-type.type';
+import {
+  NOTIFICATION_CLASSES,
+  NOTIFICATION_ICONS,
+  NOTIFICATION_DISPLAY_FALLBACK
+} from '../../core/constants/notification/notification-display.constant';
 
 @Component({
   selector: 'app-notifications',
@@ -71,19 +77,11 @@ export class NotificationsComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  typeIcon (type: string): string {
-    const map: Record<string, string> = { payment: '💳', wallet: '👛', system: '⚙️', bet: '🎯' };
-    return map[type] ?? '🔔';
+  typeIcon (type: NotificationType): string {
+    return NOTIFICATION_ICONS[type] ?? NOTIFICATION_DISPLAY_FALLBACK.ICON;
   }
 
-  typeClass (type: string): string {
-    const map: Record<string, string> = {
-      payment: 'bg-success/10 text-success',
-      wallet: 'bg-primary/10 text-primary',
-      system: 'bg-ink-100 text-ink-500',
-      bet: 'bg-warning/10 text-warning'
-    };
-
-    return map[type] ?? 'bg-ink-100 text-ink-500';
+  typeClass (type: NotificationType): string {
+    return NOTIFICATION_CLASSES[type] ?? NOTIFICATION_DISPLAY_FALLBACK.CLASS;
   }
 }

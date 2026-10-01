@@ -41,7 +41,15 @@ export class WalletRepository extends BaseExtendedRepository<WalletDto> {
   }
 
   async createWallet (input: CreateWalletDto): Promise<WalletDto | null> {
-    const { availableBalanceMinor = 0, reservedBalanceMinor = 0, version = 0, status = WalletStatus.ACTIVE, adapter, ...rest } = input;
+    const {
+      availableBalanceMinor = 0,
+      reservedBalanceMinor = 0,
+      version = 0,
+      status = WalletStatus.ACTIVE,
+      ledgerAccountId,
+      adapter,
+      ...rest
+    } = input;
 
     return this.create({
       data: {
@@ -49,7 +57,8 @@ export class WalletRepository extends BaseExtendedRepository<WalletDto> {
         availableBalanceMinor,
         reservedBalanceMinor,
         version,
-        status
+        status,
+        ...(ledgerAccountId && { ledgerAccountId })
       },
       adapter
     });

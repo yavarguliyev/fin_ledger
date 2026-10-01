@@ -52,7 +52,7 @@ export class WalletHelper {
       walletId: wallet.id,
       availableBalanceMinor: newAvailable,
       reservedBalanceMinor: newReserved,
-      expectedVersion: wallet.version!,
+      expectedVersion: wallet.version,
       adapter
     });
 
@@ -105,9 +105,10 @@ export class WalletHelper {
       direction: balanceWalletTransactionType
     });
 
-    const eventPayload = WalletHelper.buildAnalyticsEventPayload({ walletId, amountMinor, currency, transactionId, reference, currentBettingType });
-    await WalletHelper.createEvent({ eventPayload: { ...eventPayload, userId: wallet.userId }, eventType, aggregateType, outboxRepository, adapter: adapter! });
+    const payload = WalletHelper.buildAnalyticsEventPayload({ walletId, amountMinor, currency, transactionId, reference, currentBettingType });
+    const eventPayload = { ...payload, userId: wallet.userId };
 
+    await WalletHelper.createEvent({ eventPayload, eventType, aggregateType, outboxRepository, adapter: adapter! });
     return { wallet: updatedWallet, ledgerTransactionId, eventPayload };
   }
 }

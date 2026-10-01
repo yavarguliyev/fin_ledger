@@ -8,6 +8,12 @@ export interface DatabaseConfig {
   readonly connectionTimeoutMillis?: number;
   readonly idleTimeoutMillis?: number;
   readonly replicaHosts?: string[];
+  readonly statementTimeoutMillis?: number;
+  readonly idleInTransactionTimeoutMillis?: number;
+  readonly maxLifetimeSeconds?: number;
+  readonly applicationName?: string;
+  readonly workerUsername?: string;
+  readonly workerPassword?: string;
 
   readonly type: DatabaseType;
 

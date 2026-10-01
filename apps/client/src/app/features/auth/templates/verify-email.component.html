@@ -4,7 +4,7 @@
     @if (loading()) {
       <div class="text-center">
         <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        <p class="mt-4 text-base text-text-secondary">Redirecting...</p>
+        <p class="mt-4 text-base text-text-secondary">Verifying your email…</p>
       </div>
     }
 
@@ -16,8 +16,9 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </div>
-        <h2 class="mt-6 text-2xl font-bold text-text-primary">Invalid Link</h2>
+        <h2 class="mt-6 text-2xl font-bold text-text-primary">Verification failed</h2>
         <p class="mt-2 text-sm text-red-600">{{ error() }}</p>
+        <a routerLink="/auth/login" class="mt-6 inline-block text-sm font-medium text-primary hover:underline">Go to sign in</a>
       </div>
     }
   </div>

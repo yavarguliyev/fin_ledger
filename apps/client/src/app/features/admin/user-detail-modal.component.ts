@@ -14,6 +14,6 @@ export class UserDetailModalComponent {
   readonly user = input.required<AdminUser | null>();
 
   formatCurrency (amount: number, currency: string): string {
-    return CurrencyHelper.formatCurrency(amount, currency);
+    return CurrencyHelper.formatCurrency({ amountMinor: amount, currency });
   }
 }
