@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CALLS_TEST } from '../constants/support-calls.constant';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
@@ -22,6 +23,7 @@ describe('Support calls', () => {
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_CALLS_TEST.CUSTOMER_EMAIL, SUPPORT_CALLS_TEST.STRANGER_EMAIL] });
     await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CALLS_TEST.CUSTOMER_EMAIL]] });
     customer = await ApiHelper.login({ email: SUPPORT_CALLS_TEST.CUSTOMER_EMAIL });
     stranger = await ApiHelper.login({ email: SUPPORT_CALLS_TEST.STRANGER_EMAIL });

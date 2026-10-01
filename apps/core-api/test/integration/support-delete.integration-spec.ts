@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_DELETE_TEST } from '../constants/support-delete.constant';
@@ -31,6 +32,7 @@ describe('Support message edit window and deletion', () => {
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_DELETE_TEST.CUSTOMER_EMAIL] });
     await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
     customer = await ApiHelper.login({ email: SUPPORT_DELETE_TEST.CUSTOMER_EMAIL });
     staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });

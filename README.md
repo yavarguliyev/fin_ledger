@@ -8,7 +8,7 @@
 
 1. [Features](#-features)
 2. [Architecture Overview](#-architecture-overview)
-3. [How the Important Parts Work](#-how-the-important-parts-work)
+3. [Interaction Flow: How it Works](#-interaction-flow-how-it-works)
 4. [Security Model](#-security-model)
 5. [Background Jobs & the Outbox Relay](#-background-jobs--the-outbox-relay)
 6. [Database Migrations & Security Setup](#-database-migrations--security-setup)
@@ -87,31 +87,22 @@
 # 🏗 Architecture Overview
 
 The system is a **Domain-Driven Design (DDD) modular monolith** with an **event-driven transactional outbox**. One
-codebase runs as two kinds of process — the **API** (HTTP and live streams) and the **worker** (background jobs) — and
-both share the same PostgreSQL database, which is the single source of truth for money.
-
-Three ideas carry most of the weight:
-
-| Idea | In one sentence | Why it is there |
-| :--- | :--- | :--- |
-| **Double-entry ledger** | Every movement writes balanced debit and credit rows that are never updated or deleted. | Money cannot be created or destroyed by a bug; the books can always be re-derived. |
-| **Transactional outbox** | Events are written in the same transaction as the change, and a relay publishes them afterwards. | A message can never describe a change that rolled back, and a change can never fail to produce its message. |
-| **Row-level security** | The database itself decides which rows an account can see. | A forgotten `WHERE` clause returns nothing instead of leaking another customer's data. |
-
-## The big picture
+codebase runs as two kinds of process — the **API** (HTTP and live streams) and the **worker** (background work) — and
+both share one PostgreSQL database, the single source of truth for money.
 
 ```mermaid
 flowchart LR
     Browser["📱 Angular client"]
     Peer["📱 Other participant"]
+    PSP["💳 Payment providers (PSPs)<br/>one adapter per provider"]
 
     subgraph App["Core API (NestJS)"]
-        API["🧠 API process<br/>REST · live streams"]
+        API["🧠 API process<br/>REST · live streams (SSE)"]
         Worker["⚙️ Worker process<br/>jobs · outbox relay · consumers"]
     end
 
     subgraph Data["Data"]
-        DB[("💾 PostgreSQL<br/>ledger · state · outbox · jobs")]
+        DB[("💾 PostgreSQL<br/>ledger · state · outbox · jobs<br/>row-level security")]
         Redis[("⚡ Redis<br/>sessions · presence · rate limits")]
         Files[("🗄️ MinIO / S3<br/>images · attachments · recordings")]
     end
@@ -121,240 +112,98 @@ flowchart LR
         Kafka["📨 Kafka<br/>email · audit · analytics"]
     end
 
-    PSP["💳 Payment providers (PSPs)<br/>one adapter per provider"]
+    subgraph Monitoring["Monitoring"]
+        Prom["📈 Prometheus"] --> Grafana["🖥️ Grafana"]
+    end
 
     Browser <-->|REST + SSE| API
     Browser -.->|"calls: peer-to-peer WebRTC"| Peer
     API --> DB
     API --> Redis
     API --> Files
-    API <--> PSP
+    API <-->|charges · payouts · webhooks| PSP
     Worker --> DB
     Worker --> Rabbit
     Worker --> Kafka
     Rabbit --> Worker
     Kafka --> Worker
+    Prom -.->|scrapes /metrics| API
 ```
 
-**How to read it:**
-- The **browser** only talks to the API: REST for actions, one Server-Sent Events stream per feature for live updates.
-- The **API** never publishes to a broker. It writes events into PostgreSQL, and the **worker** relays them.
-- **Calls** carry audio and video directly between the two browsers; the API only passes the setup messages.
-- **Payments** go through a provider-agnostic layer (`@common/payment-provider`): each PSP is an adapter behind the
-  same interface, with routing and failover between them. Stripe is the first adapter; more can be added without
-  changing the payment flows.
-- **Monitoring** (not drawn): Prometheus scrapes `/metrics`, Grafana shows it. ClickHouse runs in the dev stack but is
-  not fed yet — see `PROJECT-BACKLOG.md` (`NEW-P2-7`, `NEW-P2-8`).
+| Part | Role |
+| :--- | :--- |
+| **Angular client** | Talks only to the API: REST for actions, Server-Sent Events for live updates. Calls go browser to browser. |
+| **API process** | Guards → controller → one-line module service → **use case** (all business rules) → repository. |
+| **Worker process** | Runs the job queue, relays outbox events to the brokers and consumes them. *(Today the API also runs background work; splitting it is planned — `SCALE-1`.)* |
+| **PostgreSQL** | Double-entry ledger, all state, `outbox_events` and the `jobs` queue. Row-level security decides which rows each login can see. |
+| **Redis** | Sessions, presence, rate-limit counters and short-lived challenges. |
+| **MinIO / S3** | Profile images, chat attachments, voice and video messages, behind signed links. |
+| **RabbitMQ / Kafka** | Fed only by the outbox relay: notifications on RabbitMQ; email, audit and analytics on Kafka. |
+| **Payment providers** | A provider-agnostic layer (`@common/payment-provider`); Stripe is the first adapter. |
+| **Prometheus / Grafana** | Metrics and dashboards. ClickHouse also runs in the dev stack but is not fed yet (`NEW-P2-8`). |
 
-> [!NOTE]
-> Today the API process also runs the background jobs, so a single process is enough locally. Splitting them so that
-> only the worker does background work is planned (`SCALE-1` in `PROJECT-BACKLOG.md`).
+Three ideas carry most of the weight:
 
-## Inside the API
-
-```mermaid
-flowchart LR
-    Req["HTTP request"] --> Guard["🛡️ Guards<br/>session · roles · rate limit"]
-    Guard --> Ctrl["🚪 Controller<br/>validates the DTO"]
-    Ctrl --> Svc["📮 Module service<br/>one line, delegates"]
-    Svc --> UC["🧠 Use case<br/>the business rules"]
-    UC --> Repo["🗃️ Repository"]
-    Repo --> DB[("💾 PostgreSQL<br/>RLS enforced")]
-```
-
-Every request takes the same path: guards check who you are, the controller validates input, the module service hands
-it to one **use case**, and only the use case contains business logic. Repositories are the only code that writes SQL.
+| Idea | In one sentence | Why it is there |
+| :--- | :--- | :--- |
+| **Double-entry ledger** | Every movement writes balanced debit and credit rows that are never updated or deleted. | Money cannot be created or destroyed by a bug; the books can always be re-derived. |
+| **Transactional outbox** | Events are written in the same transaction as the change, and a relay publishes them afterwards. | A message can never describe a change that rolled back, and a change can never fail to produce its message. |
+| **Row-level security** | The database itself decides which rows an account can see. | A forgotten `WHERE` clause returns nothing instead of leaking another customer's data. |
 
 ---
 
-# 🧩 How the Important Parts Work
+# 🧩 Interaction Flow: How it Works
 
-Each flow below covers one part of the application, in as few steps as possible.
-
-## 1. Signing in and staying signed in
+Every feature — a bet, a deposit, a withdrawal, a chat message, a call — follows the same path.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Client as 📱 Client
-    participant API as 🧠 API
-    participant Redis as ⚡ Redis
+flowchart LR
+    User["👤 User<br/>bet · deposit · withdraw<br/>chat · call"]
+    PSP["💳 Payment providers"]
 
-    User->>Client: Email + password (or passkey)
-    Client->>API: POST /auth/login
-    API->>API: Check password (Argon2id), then 2FA if enabled
-    API->>Redis: Create session
-    API-->>Client: Short-lived access token + refresh cookie
-    Note over Client,API: When the access token is about to expire, the client calls /auth/refresh with the cookie
-    User->>Client: Log out
-    Client->>API: POST /auth/logout
-    API->>Redis: Delete session, mark the user offline
-```
-
-- **Access token:** RS256 JWT, short-lived, sent as `Authorization: Bearer`.
-- **Refresh cookie:** `HttpOnly`, rotated on every refresh; reuse of an old one revokes every session of that user.
-- **Admins and global admins** must set up two-factor before they can use the app.
-
-## 2. Placing a bet (moving money)
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant API as 🧠 API
-    participant DB as 💾 PostgreSQL
-
-    User->>API: Place a $25 bet
-    rect rgb(238, 246, 255)
-        Note over API,DB: One database transaction
-        API->>DB: Lock the wallet and check the balance
-        API->>DB: Debit the wallet + write balanced ledger rows
-        API->>DB: Write the event into outbox_events
+    subgraph Step1["① API process"]
+        Guard["🛡️ Guards<br/>session · roles · rate limit<br/>2FA · passkey step-up"]
+        UC["🧠 Use case<br/>business rules · idempotency"]
     end
-    API-->>User: ✅ Confirmed with the new balance
+
+    subgraph Step2["② One PostgreSQL transaction"]
+        State[("📄 State<br/>wallet · payment · message")]
+        Ledger[("📒 Ledger<br/>debit = credit")]
+        Outbox[("📬 outbox_events")]
+    end
+
+    subgraph Step3["③ Worker process"]
+        Relay["🔁 Outbox relay"]
+        Jobs["⚙️ Scheduled jobs<br/>reconcile · replay · clean up"]
+    end
+
+    subgraph Messaging["Messaging"]
+        Rabbit["🐰 RabbitMQ<br/>notifications"]
+        Kafka["📨 Kafka<br/>email · audit · analytics"]
+    end
+
+    Live["📡 Live updates (SSE)<br/>notifications · chat · presence · calls"]
+
+    User -->|request| Guard --> UC
+    UC <-->|charge · payout| PSP
+    UC --> State
+    UC --> Ledger
+    UC --> Outbox
+    UC -->|instant response| User
+    Outbox --> Relay
+    Relay --> Rabbit
+    Relay --> Kafka
+    Rabbit --> Live
+    Live --> User
+    PSP -.->|webhooks| UC
+    Jobs -.->|resolve open payments| UC
 ```
 
-Everything in the shaded box commits together or not at all, so money and its event can never disagree. Notifications
-and emails go out afterwards through the outbox (flow 5).
-
-## 3. Deposits
-
-```mermaid
-flowchart LR
-    A([Deposit request]) --> B{Allowed?<br/>limits · self-exclusion}
-    B -->|No| X([Refused])
-    B -->|Yes| C[Create payment PENDING]
-    C --> D[Charge the provider]
-    D -->|Paid| E([Credit wallet + ledger + event<br/>in one transaction])
-    D -->|Declined| F([FAILED])
-    D -->|No answer| G([REQUIRES_ACTION<br/>reconciliation decides])
-```
-
-- Every deposit carries an **idempotency key**, so a double click or a retry charges once.
-- An unclear answer from the provider is never treated as a failure; the reconciliation job asks the provider later.
-- Card details never reach our servers: cards are added on the provider's own hosted page, and we keep only a token.
-
-## 4. Withdrawals
-
-```mermaid
-flowchart LR
-    A([Withdraw $50]) --> S{Passkey step-up<br/>if enabled}
-    S --> B[Reserve $50<br/>available → reserved]
-    B --> C[Ask the provider to pay out]
-    C -->|Paid| D([Settle: money leaves])
-    C -->|Declined| E([Release back to available])
-    C -->|No answer| F([Keep reserved,<br/>reconciliation decides])
-```
-
-Money is **reserved first** and only leaves once the provider confirms, so a failed payout can always be undone.
-
-## 5. Events: the outbox
-
-```mermaid
-flowchart LR
-    T["Business transaction"] -->|same COMMIT| O[("📬 outbox_events")]
-    O --> R["🔁 Relay<br/>(worker)"]
-    R -->|notifications| Q["🐰 RabbitMQ"]
-    R -->|email · audit · analytics| K["📨 Kafka"]
-    Q --> N["Notification consumer → live stream"]
-    K --> M["Email · audit · analytics consumers"]
-```
-
-Events are never published from a request. The relay picks up committed rows and publishes them; if a broker is down
-the rows wait and are sent when it returns.
-
-## 6. Live updates in the browser
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Client as 📱 Client
-    participant API as 🧠 API
-
-    Client->>API: POST …/stream-ticket (with access token)
-    API-->>Client: One-time ticket (30 seconds)
-    Client->>API: GET …/stream?ticket=… (EventSource)
-    API-->>Client: Events as they happen
-    Note over Client,API: On disconnect the client reconnects with backoff and a new ticket
-```
-
-A short one-time ticket is used because `EventSource` cannot send an `Authorization` header. Notifications and the
-support chat each have their own stream.
-
-## 7. Support chat
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Player
-    participant API as 🧠 API
-    participant DB as 💾 PostgreSQL
-    participant Files as 🗄️ MinIO
-    actor Staff
-
-    Player->>API: Pick a staff member → open conversation
-    Player->>API: Send text, files, a voice or a video message
-    API->>Files: Store files (type checked from their bytes)
-    API->>DB: Save the message
-    API-->>Staff: Pushed live on the support stream
-    Staff->>API: Open the conversation (mark read)
-    API-->>Player: Pushed live: ticks turn blue
-```
-
-- Each player has a **separate private conversation per staff member**; other staff cannot read it.
-- **Presence:** the app sends a heartbeat every 20 seconds; logging out shows "Last seen" immediately.
-- **Edit** for 15 minutes; **delete for everyone** within 48 hours; **delete for me** at any time — own messages only.
-
-## 8. Voice and video calls
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Caller
-    participant API as 🧠 API
-    actor Callee
-
-    Caller->>API: Start call (offer)
-    API-->>Callee: Ringing (live stream)
-    Callee->>API: Accept (answer)
-    API-->>Caller: Answer
-    Caller-->>Callee: Connection details exchanged through the API
-    Note over Caller,Callee: Audio · video · screen share flow directly between the browsers
-    Caller->>API: Hang up
-    API-->>Callee: Call ended + "Voice call · 02:13" in the chat
-```
-
-The API only relays the setup; the media never passes through our servers. Calls work on the same network today;
-across the internet they need STUN/TURN servers (`SUPPORT_ICE_SERVERS`, see `NEW-P1-1` in `PROJECT-BACKLOG.md`).
-
-## 9. Background jobs
-
-```mermaid
-flowchart LR
-    S["Scheduler<br/>(every N seconds)"] -->|enqueue| J[("💾 jobs table")]
-    U["Any use case"] -->|enqueue| J
-    J -->|"claim: FOR UPDATE SKIP LOCKED"| W["⚙️ Worker"]
-    W -->|success| D([done])
-    W -->|failure| B([retry with backoff, then park])
-```
-
-Recurring jobs: payment reconciliation, webhook replay, ledger integrity check, data retention. An advisory lock makes
-sure each schedule runs once even with several instances.
-
-## 10. Who can see which rows (row-level security)
-
-```mermaid
-flowchart LR
-    R["User request"] --> A["app_api login<br/>RLS enforced"]
-    A --> P{"Row belongs to<br/>this user? or staff?"}
-    P -->|yes| OK([visible])
-    P -->|no| NO([invisible])
-    B["Background work<br/>RequestScope.runSystem"] --> W["app_worker login<br/>bypasses RLS"]
-```
-
-Requests run as `app_api`, which PostgreSQL limits to the user's own rows. Background work runs as `app_worker` and
-must be wrapped in `RequestScope.runSystem(...)` — without it, it silently reads zero rows instead of leaking data.
+1. **① Request** — guards check who you are and what you may do; one use case applies the business rules.
+2. **② One transaction** — state, balanced ledger rows and the outbox event commit together or not at all, so money
+   and its event can never disagree. The user gets the answer right away.
+3. **③ Afterwards** — the worker relays committed events to the brokers; notifications reach the browser live, and
+   scheduled jobs resolve anything a payment provider left open.
 
 ---
 
@@ -410,26 +259,6 @@ Two separate mechanisms, often confused:
 | **Written** | Inside the transaction that owns the state change | By any caller, or on a recurring schedule |
 | **Claimed by** | The relay, in publish order | Workers, via `FOR UPDATE SKIP LOCKED` |
 | **On failure** | Retried until published | Exponential backoff, then parked |
-
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Tx as 💾 Business Transaction
-    participant Outbox as 📬 outbox_events
-    participant Relay as 🔁 Outbox Relay
-    participant Rabbit as 🐰 RabbitMQ
-    participant Kafka as 📨 Kafka
-
-    Tx->>Outbox: INSERT event (same COMMIT as the state change)
-    Note over Tx,Outbox: Both commit together, or neither does
-    Relay->>Outbox: Claim PENDING rows
-    alt destination = RABBITMQ
-        Relay->>Rabbit: Publish (notifications)
-    else destination = KAFKA
-        Relay->>Kafka: Publish (email, audit, analytics)
-    end
-    Relay->>Outbox: Mark PUBLISHED
-```
 
 ### Rules the codebase relies on
 
@@ -1065,15 +894,6 @@ npm run build:client
 
 Both brokers are fed by the **same outbox relay**, chosen per event by the `destination` column: **RabbitMQ** carries
 user-facing notifications, **Apache Kafka** carries email, audit and analytics streams.
-
-```mermaid
-graph LR
-    API[🧠 NestJS Core] -->|"write in transaction"| Outbox[(📬 outbox_events)]
-    Outbox --> Relay[🔁 Outbox Relay]
-    Relay -->|RABBITMQ| Rabbit[🐰 Notifications]
-    Relay -->|KAFKA| Kafka[📨 Email · Audit · Analytics]
-    Kafka --> Consumers[⚙️ Email · audit · analytics consumers]
-```
 
 ### Event Lifecycle:
 

@@ -1,6 +1,6 @@
 export const SUPPORT_PRESENCE_TEST = {
-  CUSTOMER_EMAIL: 'player2@realtime-wallet-payments.com',
-  OTHER_EMAIL: 'player17@realtime-wallet-payments.com',
+  CUSTOMER_EMAIL: 'presence-customer@support-tests.realtime-wallet-payments.com',
+  OTHER_EMAIL: 'presence-other@support-tests.realtime-wallet-payments.com',
   STAFF_EMAIL: 'moderator@realtime-wallet-payments.com',
   HEARTBEAT_PATH: '/support/presence/heartbeat',
   PRESENCE_PATH: '/support/presence',

@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_PRESENCE_TEST } from '../constants/support-presence.constant';
 import { PresenceEntry } from '../interfaces/support-chat.interface';
@@ -21,6 +22,7 @@ describe('Support presence', () => {
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL, SUPPORT_PRESENCE_TEST.OTHER_EMAIL] });
     customer = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL });
     other = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.OTHER_EMAIL });
     staff = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.STAFF_EMAIL });

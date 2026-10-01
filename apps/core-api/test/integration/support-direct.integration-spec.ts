@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_PRESENCE_TEST } from '../constants/support-presence.constant';
@@ -26,6 +27,7 @@ describe('Support direct conversations', () => {
     ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_CHAT_TEST.CONTACTS_PATH, token: customer });
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL] });
     await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.OTHER_EMAIL]] });
 
     customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
@@ -44,8 +46,9 @@ describe('Support direct conversations', () => {
     const listed = await contacts();
     const ids = listed.body.map(({ userId }) => userId);
 
-    expect(listed.body).toHaveLength(SUPPORT_CHAT_TEST.STAFF_CONTACT_COUNT);
     expect(ids).toEqual(expect.arrayContaining([moderatorId, adminId]));
+    expect(listed.body.every(({ role }) => SUPPORT_CHAT_TEST.STAFF_ROLES.includes(role))).toBe(true);
+    expect(ids).not.toContain(await idOf(SUPPORT_CHAT_TEST.CUSTOMER_EMAIL));
   });
 
   it('gives a player a separate conversation with each staff member', async () => {

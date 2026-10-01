@@ -1,5 +1,5 @@
 export const SUPPORT_RECORDINGS_TEST = {
-  CUSTOMER_EMAIL: 'player13@realtime-wallet-payments.com',
+  CUSTOMER_EMAIL: 'recordings-customer@support-tests.realtime-wallet-payments.com',
   FILES_FIELD: 'files',
   DURATION_FIELD: 'durationSeconds',
   AUDIO_TYPE: 'audio/webm;codecs=opus',

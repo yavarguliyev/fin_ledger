@@ -1,5 +1,5 @@
 export const SUPPORT_ATTACHMENTS_TEST = {
-  CUSTOMER_EMAIL: 'player9@realtime-wallet-payments.com',
+  CUSTOMER_EMAIL: 'attachments-customer@support-tests.realtime-wallet-payments.com',
   FIELD_NAME: 'files',
   EDIT_FIELD_NAME: 'file',
   MAX_FILES: 5,

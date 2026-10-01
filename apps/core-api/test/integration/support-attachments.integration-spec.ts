@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_ATTACHMENTS_TEST } from '../constants/support-attachments.constant';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
@@ -27,6 +28,7 @@ describe('Support attachments and edits', () => {
   const png = { content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.PNG_BYTES), name: SUPPORT_ATTACHMENTS_TEST.PNG_NAME, type: SUPPORT_ATTACHMENTS_TEST.PNG_TYPE };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL] });
     await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL]] });
 
     customer = await ApiHelper.login({ email: SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL });

@@ -12,7 +12,7 @@ describe('Durable job queue', () => {
     return rows[0]?.id;
   };
 
-  const claim = (): Promise<JobRow[]> => DbHelper.query<JobRow>({ sql: JOBS_TEST.CLAIM_SQL, params: [JOBS_TEST.BATCH] });
+  const claim = (): Promise<JobRow[]> => DbHelper.query<JobRow>({ sql: JOBS_TEST.CLAIM_SQL, params: [JOBS_TEST.BATCH, JOBS_TEST.NAME] });
 
   const statusOf = async (jobId: string): Promise<{ status: string; attempts: number } | undefined> => {
     const [row] = await DbHelper.query<{ status: string; attempts: number }>({ sql: JOBS_TEST.STATUS_SQL, params: [jobId] });

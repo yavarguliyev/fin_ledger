@@ -1,6 +1,6 @@
 export const SUPPORT_CALLS_TEST = {
-  CUSTOMER_EMAIL: 'player11@realtime-wallet-payments.com',
-  STRANGER_EMAIL: 'player12@realtime-wallet-payments.com',
+  CUSTOMER_EMAIL: 'calls-customer@support-tests.realtime-wallet-payments.com',
+  STRANGER_EMAIL: 'calls-stranger@support-tests.realtime-wallet-payments.com',
   CALLS_PATH: '/support/calls',
   CONFIG_PATH: '/support/calls/config',
   SDP: 'v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\ns=-\r\n',

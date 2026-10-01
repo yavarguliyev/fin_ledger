@@ -1,4 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_RECORDINGS_TEST } from '../constants/support-recordings.constant';
@@ -24,6 +25,7 @@ describe('Support voice and video messages', () => {
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [SUPPORT_RECORDINGS_TEST.CUSTOMER_EMAIL] });
     await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_RECORDINGS_TEST.CUSTOMER_EMAIL]] });
     customer = await ApiHelper.login({ email: SUPPORT_RECORDINGS_TEST.CUSTOMER_EMAIL });
 
