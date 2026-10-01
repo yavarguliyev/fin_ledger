@@ -622,7 +622,7 @@ RLS, row-level security is not protecting anything.
 
 ## 1. Prerequisites
 
-- **Node.js**: v22.x or higher
+- **Node.js**: v24.9 or higher (NestJS 12 ships ES modules that Jest can only load from Node 24.9)
 - **npm**: v10.x or higher
 - **Docker & Docker Compose**: For local infrastructure services
 - **OpenSSL**: For generating RSA key pairs
