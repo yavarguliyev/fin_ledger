@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input, output } from '@angular/core';
 
 import { DeleteScope } from '../../../core/types/support/delete-scope.type';
 import { MessageRulesHelper } from '../../../core/helpers/support/message-rules.helper';
@@ -8,6 +8,7 @@ import { SupportMessage } from '../../../core/types/support/support-message.type
 @Component({
   selector: 'app-delete-dialog',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: '../templates/delete-dialog.component.html'
 })
 export class DeleteDialogComponent {

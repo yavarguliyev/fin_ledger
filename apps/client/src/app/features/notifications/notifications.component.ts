@@ -6,6 +6,12 @@ import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { AppNotification } from '../../core/types/notification/app-notification.type';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
+import { LoadStatus } from '../../core/types/ui/load-status.type';
 import { NotificationType } from '../../core/types/notification/notification-type.type';
 import {
   NOTIFICATION_CLASSES,
@@ -16,13 +22,16 @@ import {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule, RelativeTimePipe, PaginationComponent],
+  imports: [CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
   templateUrl: './templates/notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {
   private readonly notif = inject(NotificationService);
 
   readonly activeFilter = signal<string>('All');
+  readonly status = signal<LoadStatus>(LOAD_STATUS.LOADING);
+  readonly statuses = LOAD_STATUS;
+  readonly states = LOAD_STATE;
   readonly filters = ['All', 'Unread', 'Read'];
   readonly unread = computed(() => this.notif.unreadCount());
 
@@ -60,7 +69,15 @@ export class NotificationsComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.notif.getNotifications(100).subscribe();
+    this.load();
+  }
+
+  load (): void {
+    this.status.set(LOAD_STATUS.LOADING);
+    this.notif.getNotifications(100).subscribe({
+      next: () => this.status.set(LOAD_STATUS.READY),
+      error: () => this.status.set(LOAD_STATUS.ERROR)
+    });
   }
 
   markOne (n: AppNotification): void {

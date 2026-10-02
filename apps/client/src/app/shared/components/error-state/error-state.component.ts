@@ -1,0 +1,16 @@
+import { Component, input, output } from '@angular/core';
+
+import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
+
+@Component({
+  selector: 'app-error-state',
+  standalone: true,
+  templateUrl: './error-state.component.html'
+})
+export class ErrorStateComponent {
+  readonly title = input<string>(LOAD_STATE.ERROR_TITLE);
+  readonly message = input<string>(LOAD_STATE.ERROR_MESSAGE);
+  readonly retrying = input(false);
+  readonly retry = output();
+  readonly labels = LOAD_STATE;
+}

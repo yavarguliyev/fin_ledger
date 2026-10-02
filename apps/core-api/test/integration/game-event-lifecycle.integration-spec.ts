@@ -61,12 +61,12 @@ describe('Game event lifecycle', () => {
 
     expect(created.status).toBe(201);
     expect(created.body?.status).toBe('SCHEDULED');
-    await expect(placeBet(created.body?.id as string)).resolves.toMatchObject({ status: 201 });
+    await expect(placeBet(created.body?.id)).resolves.toMatchObject({ status: 201 });
   });
 
   it('refuses a bet once the event is live', async () => {
     const created = await createEvent();
-    const eventId = created.body?.id as string;
+    const eventId = created.body?.id;
 
     await expect(setStatus(eventId, 'LIVE')).resolves.toMatchObject({ status: 200, body: { status: 'LIVE' } });
 
@@ -77,7 +77,7 @@ describe('Game event lifecycle', () => {
 
   it('refuses a transition the lifecycle does not allow', async () => {
     const created = await createEvent();
-    const eventId = created.body?.id as string;
+    const eventId = created.body?.id;
 
     await expect(setStatus(eventId, 'SETTLED')).resolves.toMatchObject({ status: 409 });
     await expect(setStatus(eventId, 'CANCELLED')).resolves.toMatchObject({ status: 200 });
@@ -86,7 +86,7 @@ describe('Game event lifecycle', () => {
 
   it('records a result only once the event has finished', async () => {
     const created = await createEvent();
-    const eventId = created.body?.id as string;
+    const eventId = created.body?.id;
 
     const early = await ApiHelper.request({ method: 'PATCH', path: `/game-events/${eventId}/result`, token: admin, body: { result: 'HOME' } });
     expect(early.status).toBe(409);
@@ -107,6 +107,6 @@ describe('Game event lifecycle', () => {
   it("keeps the lifecycle out of a player's hands", async () => {
     const created = await createEvent();
 
-    await expect(setStatus(created.body?.id as string, 'LIVE', player)).resolves.toMatchObject({ status: 403 });
+    await expect(setStatus(created.body?.id, 'LIVE', player)).resolves.toMatchObject({ status: 403 });
   });
 });

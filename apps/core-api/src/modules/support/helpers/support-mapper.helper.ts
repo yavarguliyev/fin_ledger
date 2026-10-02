@@ -3,9 +3,12 @@ import { SupportConversationContract, SupportMessageContract } from '@common/lib
 import { ConversationRowRefDto } from '../dtos/conversation/conversation-row-ref.dto';
 import { MessageRowRefDto } from '../dtos/message/message-row-ref.dto';
 import { SupportAccessHelper } from './support-access.helper';
+import { SupportReplyHelper } from './support-reply.helper';
 
 export class SupportMapperHelper {
   static toMessage ({ row }: MessageRowRefDto): SupportMessageContract {
+    const replyTo = SupportReplyHelper.fromRow({ row });
+
     return {
       id: row.id,
       conversationId: row.conversationId,
@@ -19,7 +22,8 @@ export class SupportMapperHelper {
       editedAt: row.editedAt,
       deletedAt: row.deletedAt,
       seen: row.seen ?? false,
-      createdAt: row.createdAt
+      createdAt: row.createdAt,
+      ...(replyTo && { replyTo })
     };
   }
 

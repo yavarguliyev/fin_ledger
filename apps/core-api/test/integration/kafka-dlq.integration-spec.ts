@@ -55,7 +55,7 @@ describe('Kafka retry and dead-letter handling', () => {
 
   beforeAll(() => {
     const connection = {
-      query: async ({ sql, params }: { sql: string; params?: unknown[] }) => ({ rows: await DbHelper.query({ sql, ...(params && { params }) }) })
+      query: async ({ sql, params }: { sql: string; params?: unknown[] }): Promise<{ rows: unknown[] }> => ({ rows: await DbHelper.query({ sql, ...(params && { params }) }) })
     };
 
     inboxRepository = new InboxRepository({ getConnection: () => connection } as never);
@@ -74,12 +74,12 @@ describe('Kafka retry and dead-letter handling', () => {
   it('runs every handler even when one of them keeps throwing', async () => {
     const calls: string[] = [];
 
-    const failing = function failing(): Promise<void> {
+    const failing = function failing (): Promise<void> {
       calls.push('failing');
       return Promise.reject(new Error('handler always throws'));
     };
 
-    const healthy = function healthy(): Promise<void> {
+    const healthy = function healthy (): Promise<void> {
       calls.push('healthy');
       return Promise.resolve();
     };
@@ -91,7 +91,7 @@ describe('Kafka retry and dead-letter handling', () => {
   });
 
   it('moves an exhausted message to the retry topic, then to the dead-letter topic, with headers', async () => {
-    const failing = function failing(): Promise<void> {
+    const failing = function failing (): Promise<void> {
       return Promise.reject(new Error('handler always throws'));
     };
 
@@ -134,7 +134,7 @@ describe('Kafka retry and dead-letter handling', () => {
   it('does not run a handler twice when the same message is redelivered', async () => {
     let handled = 0;
 
-    const counting = function counting(): Promise<void> {
+    const counting = function counting (): Promise<void> {
       handled += 1;
       return Promise.resolve();
     };
@@ -149,7 +149,7 @@ describe('Kafka retry and dead-letter handling', () => {
   });
 
   it('records the message against the consumer that handled it', async () => {
-    const counting = function counting(): Promise<void> {
+    const counting = function counting (): Promise<void> {
       return Promise.resolve();
     };
 

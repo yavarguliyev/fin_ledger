@@ -57,6 +57,12 @@ export const SUPPORT_SQL = {
            m.edited_at AS "editedAt",
            m.deleted_at AS "deletedAt",
            m.created_at AS "createdAt",
+           m.reply_to_message_id AS "replyToMessageId",
+           reply.sender_user_id AS "replyToSenderUserId",
+           reply_sender.display_name AS "replyToSenderName",
+           CASE WHEN reply.deleted_at IS NULL THEN reply.body END AS "replyToBody",
+           reply.kind AS "replyToKind",
+           reply.deleted_at IS NOT NULL AS "replyToDeleted",
            EXISTS (
              SELECT 1 FROM support_read_receipts r
               WHERE r.conversation_id = m.conversation_id
@@ -65,6 +71,8 @@ export const SUPPORT_SQL = {
            ) AS "seen"
       FROM support_messages m
       LEFT JOIN users sender ON sender.id = m.sender_user_id
+      LEFT JOIN support_messages reply ON reply.id = m.reply_to_message_id
+      LEFT JOIN users reply_sender ON reply_sender.id = reply.sender_user_id
      WHERE m.conversation_id = $1
        AND ($2::timestamptz IS NULL OR m.created_at < $2::timestamptz)
        AND NOT EXISTS (SELECT 1 FROM support_hidden_messages h WHERE h.message_id = m.id AND h.user_id = $4)

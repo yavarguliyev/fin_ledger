@@ -1,0 +1,26 @@
+export const MONITORING = {
+  CONTROLLER_PATH: 'monitoring',
+  ALERTS_PATH: 'alerts',
+  TOKEN_KEY: 'ALERT_WEBHOOK_TOKEN',
+  AUTHORIZATION_HEADER: 'authorization',
+  BEARER_PREFIX: 'Bearer ',
+  DIGEST: 'sha256',
+  UNAUTHORIZED_MESSAGE: 'Invalid alert webhook token',
+  ADMINS_SQL: `SELECT id, email FROM users
+                WHERE role IN ('GLOBAL_ADMIN', 'ADMIN') AND status = 'ACTIVE' AND deleted_at IS NULL`,
+  FIRING: 'firing',
+  ALERTNAME_LABEL: 'alertname',
+  SEVERITY_LABEL: 'severity',
+  SUMMARY_ANNOTATION: 'summary',
+  DESCRIPTION_ANNOTATION: 'description',
+  FIRING_PREFIX: 'Alert firing',
+  RESOLVED_PREFIX: 'Alert resolved',
+  UNKNOWN: 'unknown',
+  SEPARATOR: ': ',
+  SEVERITY_OPEN: ' [',
+  SEVERITY_CLOSE: ']',
+  SENTENCE_GAP: ' ',
+  AGGREGATE_TYPE: 'User',
+  EMAIL_PURPOSE: 'monitoring-alert',
+  ADMIN_PATH: '/admin'
+} as const;

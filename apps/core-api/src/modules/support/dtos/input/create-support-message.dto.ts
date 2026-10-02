@@ -10,7 +10,9 @@ export const CreateSupportMessageSchema = z.object({
 
   source: z.enum(SUPPORT_MESSAGE_SOURCES, { message: 'Source must be a valid message source' }),
 
-  body: z.string({ message: 'Body must be a string' })
+  body: z.string({ message: 'Body must be a string' }),
+
+  replyToMessageId: z.string({ message: 'Reply target must be a string' }).optional()
 });
 
 export type CreateSupportMessageDto = z.infer<typeof CreateSupportMessageSchema>;

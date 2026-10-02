@@ -66,12 +66,15 @@
       </div>
 
       <div class="flex items-center gap-1">
+        @if (chat.activeId()) {
+          <app-chat-search />
+        }
         <button
           type="button"
           [disabled]="!chat.activeId() || calls.state.busy()"
           [title]="callLabels.VOICE_CALL"
           [attr.aria-label]="callLabels.VOICE_CALL"
-          (click)="onCall(callLabels.AUDIO)"
+          (click)="actions.call(callLabels.AUDIO)"
           class="grid place-items-center w-9 h-9 rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -88,7 +91,7 @@
           [disabled]="!chat.activeId() || calls.state.busy()"
           [title]="callLabels.VIDEO_CALL"
           [attr.aria-label]="callLabels.VIDEO_CALL"
-          (click)="onCall(callLabels.VIDEO)"
+          (click)="actions.call(callLabels.VIDEO)"
           class="grid place-items-center w-9 h-9 rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +138,25 @@
               [markerId]="newMessages.markerId()"
               (editRequested)="compose.startEdit({ message: $event })"
               (deleteRequested)="compose.askDelete({ message: $event })"
+              (replyRequested)="compose.startReply({ message: $event })"
+              (quoteRequested)="reveal.reveal({ messageId: $event })"
             />
+            @for (item of actions.pendingHere(); track item.localId) {
+              <div class="flex justify-end px-4 pb-1">
+                <div
+                  class="max-w-[75%] rounded-2xl rounded-br-md bg-[#d9fdd3]/60 dark:bg-[#005c4b]/60 px-3.5 py-2 text-sm text-ink-900 dark:text-white"
+                >
+                  <p class="whitespace-pre-wrap break-words">{{ item.body }}</p>
+                  <p class="mt-1 flex items-center justify-end gap-1 text-[11px] text-ink-500 dark:text-white/60">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+                      <path stroke-linecap="round" stroke-width="2" d="M12 7v5l3 2"></path>
+                    </svg>
+                    {{ offlineLabels.WAITING_LABEL }}
+                  </p>
+                </div>
+              </div>
+            }
           </div>
         }
       </div>
@@ -167,11 +188,13 @@
       [sending]="compose.sending()"
       [disabled]="!chat.activeId()"
       [editing]="compose.editing()"
-      (submitted)="onSend($event)"
-      (saved)="onSave($event)"
+      [replying]="compose.replying()"
+      (replyCancelled)="compose.cancelReply()"
+      (submitted)="actions.send($event)"
+      (saved)="actions.save($event)"
       (cancelled)="compose.cancelEdit()"
-      (recorded)="onRecorded($event)"
-      (typed)="onTyped()"
+      (recorded)="actions.recorded($event)"
+      (typed)="actions.typed()"
     />
   </section>
 
@@ -179,5 +202,10 @@
     <app-presence-panel [entries]="presenceStore.entries()" [total]="presenceStore.total()" />
   }
 
-  <app-delete-dialog [message]="compose.deleting()" [userId]="chat.myUserId()" (chosen)="onDelete($event)" (cancelled)="compose.cancelDelete()" />
+  <app-delete-dialog
+    [message]="compose.deleting()"
+    [userId]="chat.myUserId()"
+    (chosen)="actions.delete($event)"
+    (cancelled)="compose.cancelDelete()"
+  />
 </div>

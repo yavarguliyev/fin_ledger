@@ -1,10 +1,18 @@
 route:
-  receiver: default
+  receiver: core-api
   group_by: ['alertname']
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
 
 receivers:
-  # Alerts are visible at http://localhost:9093. Add email_configs or slack_configs here to be notified.
-  - name: default
+  # Firing and resolved alerts become admin notifications in the app and an e-mail to every admin
+  # (console transport until SMTP is configured). ALERT_WEBHOOK_TOKEN must match apps/core-api/.env.
+  - name: core-api
+    webhook_configs:
+      - url: 'http://host.docker.internal:3000/api/v1/monitoring/alerts'
+        send_resolved: true
+        http_config:
+          authorization:
+            type: Bearer
+            credentials_file: /tmp/alert-webhook-token

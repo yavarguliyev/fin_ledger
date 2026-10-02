@@ -58,7 +58,8 @@ export class SupportChatHelper {
     const existing = current.find(message => message.id === incoming.id);
     if (!existing) return SupportChatHelper.mergeMessages({ current, incoming });
 
-    return current.map(message => (message.id === incoming.id ? { ...incoming, seen: !!(existing.seen || incoming.seen) } : message));
+    const replyTo = incoming.replyTo === undefined ? existing.replyTo : incoming.replyTo;
+    return current.map(message => (message.id === incoming.id ? { ...incoming, replyTo, seen: !!(existing.seen || incoming.seen) } : message));
   }
 
   static upsertConversation ({ current, incoming }: UpsertConversationDto): SupportConversation[] {

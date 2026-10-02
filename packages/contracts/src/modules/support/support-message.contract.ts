@@ -16,6 +16,22 @@ export const SupportAttachmentContractSchema = z.object({
 
 export type SupportAttachmentContract = z.infer<typeof SupportAttachmentContractSchema>;
 
+export const SupportReplyContractSchema = z.object({
+  id: z.string({ message: 'Reply ID must be a string' }),
+
+  senderUserId: z.string({ message: 'Reply sender must be a string' }).nullable(),
+
+  senderName: z.string({ message: 'Reply sender name must be a string' }).nullable(),
+
+  body: z.string({ message: 'Reply body must be a string' }).nullable(),
+
+  kind: z.enum(SUPPORT_MESSAGE_KINDS, { message: 'Reply kind must be a valid support message kind' }),
+
+  deleted: z.boolean({ message: 'Reply deleted must be a boolean' })
+});
+
+export type SupportReplyContract = z.infer<typeof SupportReplyContractSchema>;
+
 export const SupportMessageContractSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
@@ -34,6 +50,8 @@ export const SupportMessageContractSchema = z.object({
   body: z.string({ message: 'Body must be a string' }).nullable(),
 
   attachment: SupportAttachmentContractSchema.nullable(),
+
+  replyTo: SupportReplyContractSchema.nullable().optional(),
 
   editedAt: z.string({ message: 'Edited at must be a string' }).nullable(),
 

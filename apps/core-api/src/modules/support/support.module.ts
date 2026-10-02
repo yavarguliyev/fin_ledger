@@ -3,6 +3,7 @@ import { ClientIds, StorageModule } from '@common/libs';
 
 import { ListConversationsUseCase } from './use-cases/queries/conversation/list-conversations.use-case';
 import { ListMessagesUseCase } from './use-cases/queries/message/list-messages.use-case';
+import { SearchMessagesUseCase } from './use-cases/queries/message/search-messages.use-case';
 import { MarkConversationReadUseCase } from './use-cases/commands/conversation/mark-conversation-read.use-case';
 import { AnnounceTypingUseCase } from './use-cases/commands/conversation/announce-typing.use-case';
 import { OpenConversationUseCase } from './use-cases/commands/conversation/open-conversation.use-case';
@@ -50,6 +51,7 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     OpenConversationUseCase,
     ListConversationsUseCase,
     ListMessagesUseCase,
+    SearchMessagesUseCase,
     SendMessageUseCase,
     MarkConversationReadUseCase,
     AnnounceTypingUseCase,

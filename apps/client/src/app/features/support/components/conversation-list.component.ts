@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { SupportConversation } from '../../../core/types/support/support-conversation.type';
 
@@ -8,6 +8,7 @@ import { SupportAvatarComponent } from './support-avatar.component';
 @Component({
   selector: 'app-conversation-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, SupportAvatarComponent],
   templateUrl: '../templates/conversation-list.component.html'
 })

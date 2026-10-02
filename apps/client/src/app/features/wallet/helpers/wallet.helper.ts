@@ -1,4 +1,5 @@
 import { FilterOption } from '../../../core/interfaces/ui/filter-option.interface';
+import { DataTableConfig } from '../../../core/interfaces/ui/data-table-config.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { Transaction } from '../../../core/types/wallet/transaction.type';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
@@ -57,6 +58,18 @@ export class WalletHelper {
         mobileVisible: false
       }
     ];
+  }
+
+  static transactionTable (): DataTableConfig<Transaction> {
+    return {
+      title: 'Transaction History',
+      columns: WalletHelper.getWalletTableColumns(),
+      showFilters: true,
+      filterOptions: WalletHelper.getTransactionFilterOptions(),
+      showExport: true,
+      exportLabel: 'Export CSV',
+      emptyMessage: 'No transactions'
+    };
   }
 
   static getTransactionFilterOptions (): FilterOption[] {

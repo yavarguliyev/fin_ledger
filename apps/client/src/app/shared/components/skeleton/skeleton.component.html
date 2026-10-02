@@ -1,0 +1,11 @@
+<div class="space-y-3 p-5" role="status" aria-busy="true">
+  @for (line of lines(); track line) {
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 shrink-0 rounded-full skeleton"></div>
+      <div class="flex-1 space-y-2">
+        <div class="h-3 w-2/5 rounded skeleton"></div>
+        <div class="h-3 w-4/5 rounded skeleton"></div>
+      </div>
+    </div>
+  }
+</div>

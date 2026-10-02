@@ -18,27 +18,37 @@ import { SupportChatHelper } from '../helpers/support/support-chat.helper';
 import { SupportChatStore } from './support-chat.store';
 import { SupportMessage } from '../types/support/support-message.type';
 import { ToastService } from './toast.service';
+import { SupportOfflineQueueStore } from './support-offline-queue.store';
+import { OfflineQueueHelper } from '../helpers/support/offline-queue.helper';
 
 @Injectable({ providedIn: 'root' })
 export class SupportComposeStore {
   private readonly api = inject(SupportApiService);
   private readonly chat = inject(SupportChatStore);
   private readonly toast = inject(ToastService);
+  private readonly offlineQueue = inject(SupportOfflineQueueStore);
   private readonly sendingSignal = signal(false);
   private readonly editingSignal = signal<SupportMessage | null>(null);
+  private readonly replyingSignal = signal<SupportMessage | null>(null);
   private readonly deletingSignal = signal<SupportMessage | null>(null);
 
   readonly sending = this.sendingSignal.asReadonly();
   readonly editing = this.editingSignal.asReadonly();
+  readonly replying = this.replyingSignal.asReadonly();
   readonly deleting = this.deletingSignal.asReadonly();
 
   send ({ conversationId, body, files }: ComposeSendDto): void {
     if (this.rejected({ files })) return;
+    const replyToMessageId = files.length === 0 ? this.replyingSignal()?.id : undefined;
+    const text = { conversationId, body, ...(replyToMessageId && { replyToMessageId }) };
+    this.replyingSignal.set(null);
+    if (files.length === 0 && !navigator.onLine) return this.offlineQueue.queue(text);
 
     const request: Observable<SupportMessage | SupportMessage[]> =
-      files.length > 0 ? this.api.sendAttachments({ conversationId, body, files }) : this.api.sendMessage({ conversationId, body });
+      files.length > 0 ? this.api.sendAttachments({ conversationId, body, files }) : this.api.sendMessage(text);
+    const onNetworkFailure = files.length === 0 ? (): void => this.offlineQueue.queue(text) : undefined;
 
-    this.run({ request, failure: SUPPORT_MESSAGES.SEND_FAILED });
+    this.run({ request, failure: SUPPORT_MESSAGES.SEND_FAILED, ...(onNetworkFailure && { onNetworkFailure }) });
   }
 
   sendRecording ({ conversationId, file, durationSeconds }: SendRecordingDto): void {
@@ -47,7 +57,17 @@ export class SupportComposeStore {
   }
 
   startEdit ({ message }: MessageRefDto): void {
+    this.replyingSignal.set(null);
     this.editingSignal.set(message);
+  }
+
+  startReply ({ message }: MessageRefDto): void {
+    this.editingSignal.set(null);
+    this.replyingSignal.set(message);
+  }
+
+  cancelReply (): void {
+    this.replyingSignal.set(null);
   }
 
   cancelEdit (): void {
@@ -90,6 +110,7 @@ export class SupportComposeStore {
   reset (): void {
     this.sendingSignal.set(false);
     this.editingSignal.set(null);
+    this.replyingSignal.set(null);
     this.deletingSignal.set(null);
   }
 
@@ -99,7 +120,7 @@ export class SupportComposeStore {
     return !!problem;
   }
 
-  private run ({ request, failure }: ComposeRequestDto): void {
+  private run ({ request, failure, onNetworkFailure }: ComposeRequestDto): void {
     this.sendingSignal.set(true);
 
     request.subscribe({
@@ -109,6 +130,7 @@ export class SupportComposeStore {
       },
       error: (error: unknown) => {
         this.sendingSignal.set(false);
+        if (onNetworkFailure && OfflineQueueHelper.isNetworkFailure({ error })) return onNetworkFailure();
         if (!SupportChatHelper.isSilent({ error })) this.toast.error(SupportChatHelper.failureMessage({ error, fallback: failure }));
       }
     });

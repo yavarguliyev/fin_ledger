@@ -12,7 +12,9 @@ export const SendMessageSchema = z.object({
 
   kind: z.enum(SUPPORT_MESSAGE_KINDS, { message: 'Kind must be a valid message kind' }).optional(),
 
-  source: z.enum(SUPPORT_MESSAGE_SOURCES, { message: 'Source must be a valid message source' }).optional()
+  source: z.enum(SUPPORT_MESSAGE_SOURCES, { message: 'Source must be a valid message source' }).optional(),
+
+  replyToMessageId: z.string({ message: 'Reply target must be a string' }).optional()
 });
 
 export type SendMessageDto = z.infer<typeof SendMessageSchema>;

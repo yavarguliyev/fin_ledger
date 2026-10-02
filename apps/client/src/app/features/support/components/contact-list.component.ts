@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 
 import { LastSeenHelper } from '../helpers/last-seen.helper';
 import { PresenceEntry } from '../../../core/types/support/presence-entry.type';
@@ -12,6 +12,7 @@ import { SupportConversation } from '../../../core/types/support/support-convers
 @Component({
   selector: 'app-contact-list',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SupportAvatarComponent],
   templateUrl: '../templates/contact-list.component.html'
 })

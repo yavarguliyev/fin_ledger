@@ -153,6 +153,7 @@ services:
     volumes:
       - clickhouse_data:/var/lib/clickhouse
       - clickhouse_logs:/var/log/clickhouse-server
+      - ./clickhouse/config.d/prometheus.xml:/etc/clickhouse-server/config.d/prometheus.xml:ro
     networks:
       - ddd_mesh
     healthcheck:
@@ -264,8 +265,13 @@ services:
     container_name: ddd_alertmanager
     ports:
       - "9093:9093"
+    entrypoint: ['/bin/sh', '-c']
     command:
-      - '--config.file=/etc/alertmanager-config/alertmanager.yml'
+      - 'printf %s "$$ALERT_WEBHOOK_TOKEN" > /tmp/alert-webhook-token && exec /bin/alertmanager --config.file=/etc/alertmanager-config/alertmanager.yml --storage.path=/alertmanager'
+    environment:
+      ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     volumes:
       - ./alertmanager:/etc/alertmanager-config:ro
     networks:

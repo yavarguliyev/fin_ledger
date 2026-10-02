@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, computed, inject, input, output, signal } from '@angular/core';
 
 import { CallNoticeHelper } from '../../../core/helpers/support/call-notice.helper';
 import { MediaRecorderService } from '../../../core/services/media-recorder.service';
@@ -9,6 +9,7 @@ import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recor
 @Component({
   selector: 'app-recorder-bar',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: '../templates/recorder-bar.component.html'
 })
 export class RecorderBarComponent implements OnInit, OnDestroy {

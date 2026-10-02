@@ -1,12 +1,14 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { ChatPeerService } from './services/chat-peer.service';
 import { NewMessagesService } from './services/new-messages.service';
+import { ChatActionsService } from './services/chat-actions.service';
+import { MessageRevealService } from './services/message-reveal.service';
+import { StalenessHelper } from './helpers/staleness.helper';
 import { ContactListComponent } from './components/contact-list.component';
 import { ConversationListComponent } from './components/conversation-list.component';
 import { MessageComposerComponent } from './components/message-composer.component';
 import { DeleteDialogComponent } from './components/delete-dialog.component';
-import { DeleteScope } from '../../core/types/support/delete-scope.type';
 import { MessageThreadComponent } from './components/message-thread.component';
 import { PresencePanelComponent } from './components/presence-panel.component';
 import { SUPPORT } from '../../core/constants/support/support.constant';
@@ -16,30 +18,33 @@ import { SupportChatStore } from '../../core/services/support-chat.store';
 import { SupportHistoryService } from '../../core/services/support-history.service';
 import { ChatScrollDirective } from './directives/chat-scroll.directive';
 import { FileDropDirective } from './directives/file-drop.directive';
+import { ChatSearchComponent } from './components/chat-search.component';
 import { SupportComposeStore } from '../../core/services/support-compose.store';
 import { SupportCallStore } from '../../core/services/support-call.store';
 import { SUPPORT_CALL } from '../../core/constants/support/support-call.constant';
-import { CallMedia } from '../../core/types/support/call-media.type';
-import { RecordedClipDto } from '../../core/interfaces/support/recorded-clip.interface';
-import { ComposeSubmitDto } from '../../core/interfaces/support/compose-submit.interface';
-import { EditSaveDto } from '../../core/interfaces/support/edit-save.interface';
 import { SupportPresenceStore } from '../../core/services/support-presence.store';
-import { SupportTypingStore } from '../../core/services/support-typing.store';
+import { OFFLINE_QUEUE } from '../../core/constants/support/offline-queue.constant';
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective],
-  providers: [ChatPeerService, NewMessagesService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent],
+  providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService],
   templateUrl: './templates/support.component.html'
 })
 export class SupportComponent implements OnInit, OnDestroy {
-  private readonly onFocus = (): void => this.refresh();
+  private lastRefreshAt = Date.now();
+  private readonly onFocus = (): void => {
+    if (StalenessHelper.isStale({ lastAt: this.lastRefreshAt, now: Date.now(), maxAgeMs: SUPPORT.FOCUS_STALE_MS })) this.refresh();
+  };
 
   readonly chat = inject(SupportChatStore);
   readonly history = inject(SupportHistoryService);
   readonly presenceStore = inject(SupportPresenceStore);
-  private readonly typing = inject(SupportTypingStore);
+  readonly offlineLabels = OFFLINE_QUEUE;
+  readonly actions = inject(ChatActionsService);
+  readonly reveal = inject(MessageRevealService);
   readonly peer = inject(ChatPeerService);
   readonly newMessages = inject(NewMessagesService);
   readonly compose = inject(SupportComposeStore);
@@ -89,42 +94,13 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.chat.openWith({ staffUserId });
   }
 
-  onSend ({ body, files }: ComposeSubmitDto): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) this.compose.send({ conversationId, body, files });
-  }
-
-  onSave ({ body, file }: EditSaveDto): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) this.compose.saveEdit({ conversationId, body, file });
-  }
-
-  onTyped (): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) this.typing.notify({ conversationId });
-  }
-
-  onRecorded (clip: RecordedClipDto): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) this.compose.sendRecording({ conversationId, ...clip });
-  }
-
-  onCall (media: CallMedia): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) void this.calls.place({ conversationId, media, peerName: this.peer.name() });
-  }
-
-  onDelete (scope: DeleteScope): void {
-    const conversationId = this.chat.activeId();
-    if (conversationId) this.compose.confirmDelete({ conversationId, scope });
-  }
-
   private resyncPresence (): void {
     this.presenceStore.load();
     this.presenceStore.loadContacts();
   }
 
   private refresh (): void {
+    this.lastRefreshAt = Date.now();
     this.chat.resync();
     this.chat.loadConversations();
     this.peer.track();

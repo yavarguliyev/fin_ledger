@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 import { PresenceEntry } from '../../../core/types/support/presence-entry.type';
 
 import { SUPPORT_MESSAGES } from '../../../core/constants/support/support-messages.constant';
@@ -9,6 +9,7 @@ import { SupportAvatarComponent } from './support-avatar.component';
 @Component({
   selector: 'app-presence-panel',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [SupportAvatarComponent],
   templateUrl: '../templates/presence-panel.component.html'
 })

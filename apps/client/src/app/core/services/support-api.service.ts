@@ -3,6 +3,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 
 import { AppConfigService } from './app-config.service';
+import { MessageHit } from '../interfaces/support/message-hit.interface';
+import { SearchMessagesDto } from '../interfaces/support/search-messages.interface';
 import { ConversationRefDto } from '../interfaces/support/conversation-ref.interface';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { ListSupportMessagesDto } from '../interfaces/support/list-support-messages.interface';
@@ -40,8 +42,8 @@ export class SupportApiService {
     return this.send(this.http.get<SupportConversation[]>(`${this.apiUrl}${SUPPORT.CONVERSATIONS_PATH}`));
   }
 
-  sendMessage ({ conversationId, body }: SendSupportMessageDto): Observable<SupportMessage> {
-    return this.send(this.http.post<SupportMessage>(this.threadUrl({ conversationId }), { body }));
+  sendMessage ({ conversationId, body, replyToMessageId }: SendSupportMessageDto): Observable<SupportMessage> {
+    return this.send(this.http.post<SupportMessage>(this.threadUrl({ conversationId }), { body, ...(replyToMessageId && { replyToMessageId }) }));
   }
 
   sendAttachments ({ conversationId, body, files, durationSeconds }: SendAttachmentsDto): Observable<SupportMessage[]> {
@@ -102,6 +104,11 @@ export class SupportApiService {
 
   streamUrl ({ ticket }: StreamTicketRefDto): string {
     return `${this.apiUrl}${SUPPORT.STREAM_PATH}?${SUPPORT.TICKET_PARAM}=${encodeURIComponent(ticket)}`;
+  }
+
+  searchMessages ({ conversationId, q }: SearchMessagesDto): Observable<MessageHit[]> {
+    const query = new URLSearchParams({ [SUPPORT.SEARCH_PARAM]: q });
+    return this.send(this.http.get<MessageHit[]>(`${this.threadUrl({ conversationId })}${SUPPORT.SEARCH_PATH}?${query.toString()}`));
   }
 
   listMessages ({ conversationId, limit, before }: ListSupportMessagesDto): Observable<SupportMessage[]> {

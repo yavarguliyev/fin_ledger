@@ -67,7 +67,8 @@ describe('Deposits the provider has not settled yet', () => {
     const { status, body } = await deposit('pm_card_threeDSecure2Required', 'open-3ds');
 
     expect(status).toBe(201);
-    expect(body).toMatchObject({ status: 'REQUIRES_ACTION', clientSecret: expect.stringContaining('_secret_') });
+    expect(body).toMatchObject({ status: 'REQUIRES_ACTION' });
+    expect(String(body.clientSecret)).toContain('_secret_');
 
     await expect(stored(body.id)).resolves.toEqual({ status: 'REQUIRES_ACTION', failure_code: null, has_charge_id: true, credited: false });
     await expect(balance()).resolves.toBe(before);

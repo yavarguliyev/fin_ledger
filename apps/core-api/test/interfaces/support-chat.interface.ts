@@ -14,6 +14,13 @@ export interface SupportMessage {
   kind: string;
   source: string;
   seen?: boolean;
+  replyTo?: SupportReply | null;
+}
+
+export interface SupportReply {
+  id: string;
+  body: string | null;
+  deleted: boolean;
 }
 
 export interface PresenceEntry {

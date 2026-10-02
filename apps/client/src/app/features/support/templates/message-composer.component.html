@@ -8,6 +8,23 @@
     </div>
   }
 
+  @if (replying(); as target) {
+    <div class="mx-3 mt-2 flex items-start gap-2 rounded-lg border-l-4 border-primary bg-ink-50 dark:bg-night-bg px-3 py-2 text-xs">
+      <div class="min-w-0 flex-1">
+        <p class="font-semibold text-primary">{{ view.REPLYING_LABEL }} {{ target.senderName ?? view.YOU_LABEL }}</p>
+        <p class="truncate text-ink-500 dark:text-ink-300">{{ target.body ?? target.attachment?.fileName ?? view.QUOTE_ATTACHMENT }}</p>
+      </div>
+      <button
+        type="button"
+        class="text-ink-400 hover:text-ink-900 dark:hover:text-white"
+        [attr.aria-label]="view.CANCEL_REPLY"
+        (click)="replyCancelled.emit()"
+      >
+        ✕
+      </button>
+    </div>
+  }
+
   @if (files().length > 0) {
     <ul class="flex flex-wrap gap-2 px-4 pt-2">
       @for (file of files(); track $index) {

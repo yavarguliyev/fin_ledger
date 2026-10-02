@@ -21,11 +21,22 @@ import { SendMessageRequestDto, SendMessageRequestSchema } from './dtos/request/
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 import { SUPPORT_ATTACHMENT } from './constants/attachment/support-attachment.constant';
 import { SupportService } from './support.service';
+import { SearchMessagesRequestDto, SearchMessagesRequestSchema } from './dtos/request/search-messages-request.dto';
+import { MessageHitResponseDto } from './dtos/response/message-hit-response.dto';
 
 @ApiTags(SHARED_CONSTANTS.SUPPORT.key)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.SUPPORT, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
 export class SupportMessageController {
   constructor (private readonly supportService: SupportService) {}
+
+  @UseGuards(SessionGuard)
+  @Get('conversations/:id/messages/search')
+  async searchMessages (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: SearchMessagesRequestSchema }) dto: SearchMessagesRequestDto
+  ): Promise<MessageHitResponseDto[]> {
+    return this.supportService.searchMessages({ ...dto, actorId: req.user.userId, role: req.user.role ?? '' });
+  }
 
   @UseGuards(SessionGuard)
   @Get('conversations/:id/messages')
@@ -49,7 +60,8 @@ export class SupportMessageController {
       conversationId: params.id,
       senderUserId: req.user.userId,
       role: req.user.role ?? '',
-      body: dto.body
+      body: dto.body,
+      ...(dto.replyToMessageId && { replyToMessageId: dto.replyToMessageId })
     });
   }
 

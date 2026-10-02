@@ -27,7 +27,7 @@ scrape_configs:
   # ClickHouse metrics
   - job_name: 'clickhouse'
     static_configs:
-      - targets: ['clickhouse:8123']
+      - targets: ['clickhouse:9363']
         labels:
           service: 'clickhouse'
     metrics_path: '/metrics'

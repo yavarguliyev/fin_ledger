@@ -15,6 +15,9 @@ import { ListConversationsUseCase } from './use-cases/queries/conversation/list-
 import { ListThreadDto } from './dtos/input/list-thread.dto';
 import { ListContactsUseCase } from './use-cases/queries/presence/list-contacts.use-case';
 import { ListMessagesUseCase } from './use-cases/queries/message/list-messages.use-case';
+import { SearchMessagesUseCase } from './use-cases/queries/message/search-messages.use-case';
+import { SearchThreadDto } from './dtos/input/search-thread.dto';
+import { MessageHitResponseDto } from './dtos/response/message-hit-response.dto';
 import { ListPresenceDto } from './dtos/input/list-presence.dto';
 import { ListPresenceUseCase } from './use-cases/queries/presence/list-presence.use-case';
 import { MarkConversationReadUseCase } from './use-cases/commands/conversation/mark-conversation-read.use-case';
@@ -45,6 +48,7 @@ export class SupportService {
     private readonly openConversationUseCase: OpenConversationUseCase,
     private readonly listConversationsUseCase: ListConversationsUseCase,
     private readonly listMessagesUseCase: ListMessagesUseCase,
+    private readonly searchMessagesUseCase: SearchMessagesUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly markReadUseCase: MarkConversationReadUseCase,
     private readonly announceTypingUseCase: AnnounceTypingUseCase,
@@ -71,6 +75,10 @@ export class SupportService {
 
   async listMessages (dto: ListThreadDto): Promise<SupportMessageContract[]> {
     return this.listMessagesUseCase.execute(dto);
+  }
+
+  async searchMessages (dto: SearchThreadDto): Promise<MessageHitResponseDto[]> {
+    return this.searchMessagesUseCase.execute(dto);
   }
 
   async sendMessage (dto: SendMessageDto): Promise<SupportMessageContract> {

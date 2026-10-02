@@ -1,4 +1,4 @@
-import { Component, ElementRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
 
 import { RecordedClipDto } from '../../../core/interfaces/support/recorded-clip.interface';
 import { RecorderBarComponent } from './recorder-bar.component';
@@ -20,6 +20,7 @@ import { FileTransferHelper } from '../helpers/file-transfer.helper';
 @Component({
   selector: 'app-message-composer',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RecorderBarComponent],
   templateUrl: '../templates/message-composer.component.html'
 })
@@ -30,6 +31,9 @@ export class MessageComposerComponent {
   readonly sending = input(false);
   readonly disabled = input(false);
   readonly editing = input<SupportMessage | null>(null);
+  readonly replying = input<SupportMessage | null>(null);
+  readonly replyCancelled = output();
+  readonly view = SUPPORT_VIEW;
   readonly submitted = output<ComposeSubmitDto>();
   readonly saved = output<EditSaveDto>();
   readonly cancelled = output();
@@ -51,6 +55,10 @@ export class MessageComposerComponent {
       this.draft.set(message?.body ?? '');
       this.files.set([]);
       queueMicrotask(() => this.resize());
+    });
+
+    effect(() => {
+      if (this.replying()) queueMicrotask(() => this.field()?.nativeElement.focus());
     });
   }
 

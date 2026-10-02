@@ -5,6 +5,7 @@ export enum EmailTemplateType {
   MFA_DISABLED = 'email.user.mfa-disabled',
   NEW_DEVICE = 'email.user.new-device',
   MFA_ENABLED = 'email.user.mfa-enabled',
+  MONITORING_ALERT = 'email.admin.monitoring-alert',
   PASSWORD_CHANGED = 'email.user.password-changed',
   SELF_EXCLUSION_STARTED = 'email.user.self-exclusion-started',
   PASSWORD_RESET = 'email.user.password-reset',

@@ -38,8 +38,8 @@ describe('Login and user status lifecycle', () => {
     const blocked = await login('player4@realtime-wallet-payments.com');
     const wrongPassword = await login('player3@realtime-wallet-payments.com', 'Wrong#Pass2026');
 
-    expect(blocked.body).toEqual(expect.objectContaining({ error: expect.objectContaining({ message: 'Invalid credentials' }) }));
-    expect(wrongPassword.body).toEqual(expect.objectContaining({ error: expect.objectContaining({ message: 'Invalid credentials' }) }));
+    expect(blocked.body).toMatchObject({ error: { message: 'Invalid credentials' } });
+    expect(wrongPassword.body).toMatchObject({ error: { message: 'Invalid credentials' } });
   });
 
   it('requires accepting the terms at registration and records when they were accepted', async () => {

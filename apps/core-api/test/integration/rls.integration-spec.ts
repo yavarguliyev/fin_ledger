@@ -18,7 +18,7 @@ describe('Row-level security', () => {
 
     try {
       await app.query('SELECT set_config($1, $2, true)', ['app.current_user_id', actorId ?? '']);
-      const result = await app.query(sql, params);
+      const result = await app.query<Record<string, unknown>>(sql, params);
       return result.rows;
     } finally {
       await app.query('COMMIT');

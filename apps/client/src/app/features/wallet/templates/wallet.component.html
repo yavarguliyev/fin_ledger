@@ -14,6 +14,12 @@
     <app-wallet-switcher (walletChange)="onWalletChange($event)" />
   }
 
+  @if (failed() && !loading()) {
+    <div class="rounded-2xl border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface">
+      <app-error-state [message]="states.WALLET_ERROR" (retry)="refresh()" />
+    </div>
+  }
+
   @if (loading() && !wallet()) {
     <div class="h-48 rounded-2xl skeleton"></div>
   } @else if (wallet() && isUser()) {
@@ -75,10 +81,10 @@
       <app-receipt-link [reference]="row.reference" [status]="row.status" />
     } @else {
       <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-          {{ typeIcon(row.type) }}
+        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="tx.typeClass(row.type)">
+          {{ tx.typeIcon(row.type) }}
         </span>
-        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+        <span class="font-medium text-ink-800 dark:text-ink-100">{{ tx.formatType(row.type) }}</span>
       </div>
     }
   </ng-template>
@@ -87,10 +93,10 @@
   <ng-template #mobileTx let-row="row">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-          {{ typeIcon(row.type) }}
+        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="tx.typeClass(row.type)">
+          {{ tx.typeIcon(row.type) }}
         </span>
-        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+        <span class="font-medium text-ink-800 dark:text-ink-100">{{ tx.formatType(row.type) }}</span>
       </div>
       <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger' : 'text-success'">
         {{ row.amountMinor | currencyFormat: row.currency }}
@@ -100,7 +106,7 @@
       <span class="text-xs text-ink-500 dark:text-ink-400">{{ row.createdAt | relativeTime }}</span>
       <span class="flex items-center gap-1">
         <app-receipt-link [reference]="row.reference" [status]="row.status" />
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="tx.statusClass(row.status)">{{ row.status }}</span>
       </span>
     </div>
   </ng-template>

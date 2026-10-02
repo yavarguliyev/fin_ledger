@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { THREAD_BUBBLE } from '../constants/thread-bubble.constant';
@@ -18,6 +18,7 @@ import { SUPPORT_MESSAGE_RULES } from '../../../core/constants/support/support-m
 @Component({
   selector: 'app-message-thread',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent],
   templateUrl: '../templates/message-thread.component.html'
 })
@@ -28,6 +29,8 @@ export class MessageThreadComponent {
   readonly markerId = input<string | null>(null);
   readonly editRequested = output<SupportMessage>();
   readonly deleteRequested = output<SupportMessage>();
+  readonly replyRequested = output<SupportMessage>();
+  readonly quoteRequested = output<string>();
   readonly rules = SUPPORT_MESSAGE_RULES;
   readonly attachment = SUPPORT_ATTACHMENT;
   readonly labels = SUPPORT_MESSAGES;
@@ -39,6 +42,12 @@ export class MessageThreadComponent {
 
   isOwn (message: SupportMessage): boolean {
     return !!this.userId() && message.senderUserId === this.userId();
+  }
+
+  quoteAuthor (message: SupportMessage): string {
+    const reply = message.replyTo;
+    if (!reply) return '';
+    return reply.senderUserId === this.userId() ? this.view.YOU_LABEL : (reply.senderName ?? this.view.FALLBACK_NAME);
   }
 
   isSystem (message: SupportMessage): boolean {

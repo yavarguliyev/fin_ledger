@@ -7,7 +7,7 @@ import { SEED_PASSWORD } from '../constants/seed-password.constant';
 describe('Passkey step-up before withdrawal', () => {
   let token = '';
 
-  const withdraw = (suffix: string) =>
+  const withdraw = (suffix: string): ReturnType<typeof ApiHelper.request<{ error?: { message: string } }>> =>
     ApiHelper.request<{ error?: { message: string } }>({
       method: 'POST',
       path: PASSKEY_STEP_UP_TEST.WITHDRAW_PATH,

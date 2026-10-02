@@ -29,5 +29,12 @@ export const SUPPORT_VIEW = {
   UNSEEN_CAP: 99,
   UNSEEN_OVERFLOW: '99+',
   DROP_HINT: 'Drop files to send',
-  TYPING_LABEL: 'typing…'
+  TYPING_LABEL: 'typing…',
+  MESSAGE_ID_PREFIX: 'message-',
+  REPLY_ACTION: 'Reply',
+  REPLYING_LABEL: 'Replying to',
+  CANCEL_REPLY: 'Cancel reply',
+  YOU_LABEL: 'You',
+  QUOTE_DELETED: 'Message deleted',
+  QUOTE_ATTACHMENT: 'Attachment'
 } as const;

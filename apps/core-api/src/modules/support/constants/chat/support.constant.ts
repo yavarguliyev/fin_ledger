@@ -8,6 +8,7 @@ export const SUPPORT = {
   PAGE_SIZE_MAX: 100,
   CONVERSATION_PAGE_SIZE: 30,
   NOT_FOUND_MESSAGE: 'Conversation not found',
+  REPLY_TARGET_MESSAGE: 'You can only reply to a message in this conversation',
   EMPTY_MESSAGE: 'A message needs text or an attachment',
   STAFF_CANNOT_OPEN_MESSAGE: 'Staff answer conversations, they do not open them',
   LAST_SEEN_STAFF_ONLY_MESSAGE: 'Only the support team can see when someone was last online',

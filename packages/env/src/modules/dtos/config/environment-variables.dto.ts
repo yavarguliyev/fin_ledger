@@ -114,6 +114,7 @@ export const EnvironmentVariablesSchema = z.object({
   MFA_ENCRYPTION_KEY: z.string({ message: 'MFA_ENCRYPTION_KEY must be a string' }).min(1, { message: 'MFA_ENCRYPTION_KEY is required' }),
   EMAIL_LINK_ENCRYPTION_KEY: z.string({ message: 'EMAIL_LINK_ENCRYPTION_KEY must be a string' }).min(1, { message: 'EMAIL_LINK_ENCRYPTION_KEY is required' }),
   MFA_ISSUER: z.string({ message: 'MFA_ISSUER must be a string' }).optional(),
+  ALERT_WEBHOOK_TOKEN: z.string({ message: 'ALERT_WEBHOOK_TOKEN must be a string' }).min(32, { message: 'ALERT_WEBHOOK_TOKEN must be at least 32 characters' }).optional(),
 
   WEBHOOK_REPLAY_INTERVAL_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_INTERVAL_MS must be a number' }).int().positive().optional(),
   OUTBOX_BATCH_SIZE: z.coerce.number({ message: 'OUTBOX_BATCH_SIZE must be a number' }).int().positive().optional(),

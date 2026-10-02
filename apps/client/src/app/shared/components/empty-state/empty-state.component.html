@@ -1,0 +1,14 @@
+<div class="flex flex-col items-center gap-2 px-5 py-10 text-center">
+  @if (icon()) {
+    <span class="grid h-12 w-12 place-items-center rounded-full bg-ink-100 dark:bg-night-bg text-xl" aria-hidden="true">{{ icon() }}</span>
+  }
+  <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ title() }}</p>
+  @if (message()) {
+    <p class="max-w-sm text-sm text-ink-500 dark:text-ink-400">{{ message() }}</p>
+  }
+  @if (actionLabel()) {
+    <button type="button" class="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark" (click)="action.emit()">
+      {{ actionLabel() }}
+    </button>
+  }
+</div>

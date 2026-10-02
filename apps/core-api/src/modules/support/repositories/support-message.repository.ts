@@ -10,6 +10,10 @@ import { AddAttachmentMessageDto } from '../dtos/input/add-attachment-message.dt
 import { EditMessageRowDto } from '../dtos/input/edit-message-row.dto';
 import { HideMessageDto } from '../dtos/input/hide-message.dto';
 import { MessageRefDto } from '../dtos/input/message-ref.dto';
+import { MESSAGE_SEARCH } from '../constants/chat/message-search.constant';
+import { MessageHitResponseDto } from '../dtos/response/message-hit-response.dto';
+import { SearchMessagesDto } from '../dtos/input/search-messages.dto';
+import { SearchTermHelper } from '../helpers/search-term.helper';
 import { SUPPORT_MESSAGE_SQL } from '../constants/chat/support-message-sql.constant';
 
 @Injectable()
@@ -27,6 +31,7 @@ export class SupportMessageRepository extends BaseExtendedRepository<SupportMess
         sizeBytes: 'size_bytes',
         durationSeconds: 'duration_seconds',
         externalId: 'external_id',
+        replyToMessageId: 'reply_to_message_id',
         editedAt: 'edited_at',
         deletedAt: 'deleted_at',
         createdAt: 'created_at'
@@ -49,7 +54,8 @@ export class SupportMessageRepository extends BaseExtendedRepository<SupportMess
       'durationSeconds',
       'editedAt',
       'deletedAt',
-      'createdAt'
+      'createdAt',
+      'replyToMessageId'
     ];
   }
 
@@ -92,5 +98,14 @@ export class SupportMessageRepository extends BaseExtendedRepository<SupportMess
     });
 
     return result.rows.reverse();
+  }
+
+  async search ({ conversationId, actorId, term }: SearchMessagesDto): Promise<MessageHitResponseDto[]> {
+    const result = await this.service.getWriteConnection().query<MessageHitResponseDto>({
+      sql: MESSAGE_SEARCH.SQL,
+      params: [conversationId, SearchTermHelper.likePattern({ term }), actorId, MESSAGE_SEARCH.LIMIT]
+    });
+
+    return result.rows;
   }
 }

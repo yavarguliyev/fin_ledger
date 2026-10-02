@@ -19,7 +19,7 @@
         </div>
       }
       @if (isSystem(message)) {
-        <div class="my-2 flex justify-center">
+        <div class="my-2 flex justify-center" [id]="view.MESSAGE_ID_PREFIX + message.id">
           <span class="flex items-center gap-1.5 rounded-lg bg-white dark:bg-night-card px-3 py-1.5 text-xs text-ink-600 dark:text-ink-300 shadow-sm">
             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
               <path
@@ -31,7 +31,7 @@
           </span>
         </div>
       } @else {
-        <div class="group flex items-end gap-2" [class.flex-row-reverse]="isOwn(message)">
+        <div class="group flex items-end gap-2" [id]="view.MESSAGE_ID_PREFIX + message.id" [class.flex-row-reverse]="isOwn(message)">
           <div class="max-w-[75%]" [class]="bubbleClass(message)">
             @if (message.deletedAt) {
               <p class="flex items-center gap-1.5 text-sm italic text-ink-400 dark:text-white/50">
@@ -41,6 +41,19 @@
                 </svg>
                 {{ isOwn(message) ? rules.YOU_DELETED_TEXT : rules.DELETED_TEXT }}
               </p>
+            }
+
+            @if (message.replyTo; as quote) {
+              <button
+                type="button"
+                class="mb-1.5 block w-full rounded-lg border-l-4 border-primary bg-black/5 dark:bg-white/10 px-2.5 py-1.5 text-left text-xs"
+                (click)="quoteRequested.emit(quote.id)"
+              >
+                <span class="block font-semibold text-primary">{{ quoteAuthor(message) }}</span>
+                <span class="block truncate text-ink-600 dark:text-white/70" [class.italic]="quote.deleted">
+                  {{ quote.deleted ? view.QUOTE_DELETED : (quote.body ?? view.QUOTE_ATTACHMENT) }}
+                </span>
+              </button>
             }
 
             @if (message.attachment; as file) {
@@ -122,6 +135,24 @@
           </div>
 
           <div class="mb-1 flex items-center gap-0.5 transition-opacity md:opacity-0 md:group-hover:opacity-100 focus-within:opacity-100">
+            @if (!message.deletedAt) {
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 dark:hover:bg-night-card"
+                [title]="view.REPLY_ACTION"
+                [attr.aria-label]="view.REPLY_ACTION"
+                (click)="replyRequested.emit(message)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"
+                  ></path>
+                </svg>
+              </button>
+            }
             @if (canEdit(message)) {
               <button
                 type="button"

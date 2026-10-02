@@ -20,11 +20,13 @@ import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper'
 import { WalletHelper } from './helpers/wallet.helper';
 import { ReceiptLinkComponent } from '../../shared/components/receipt-link/receipt-link.component';
 import { RECEIPT } from '../../core/constants/payment/receipt.constant';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent, ErrorStateComponent],
   templateUrl: './templates/wallet.component.html'
 })
 export class WalletComponent implements OnInit {
@@ -33,6 +35,7 @@ export class WalletComponent implements OnInit {
   readonly receiptColumn = RECEIPT.COLUMN_KEY;
 
   readonly loading = signal(true);
+  readonly failed = signal(false);
   readonly wallet = computed(() => this.walletService.wallet());
   readonly allTx = signal<Transaction[]>([]);
   readonly isUser = this.auth.isPlayer;
@@ -50,10 +53,8 @@ export class WalletComponent implements OnInit {
     return transactions.filter(tx => tx.type === filter);
   });
 
-  readonly typeIcon = (value: string): string => TransactionHelper.typeIcon(value);
-  readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
-  readonly formatType = (value: string): string => TransactionHelper.formatType(value);
-  readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
+  readonly tx = TransactionHelper;
+  readonly states = LOAD_STATE;
 
   readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
   readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
@@ -68,15 +69,7 @@ export class WalletComponent implements OnInit {
     availablePageSizes: [10, 25, 50, 100]
   }));
 
-  readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
-    title: 'Transaction History',
-    columns: WalletHelper.getWalletTableColumns(),
-    showFilters: true,
-    filterOptions: WalletHelper.getTransactionFilterOptions(),
-    showExport: true,
-    exportLabel: 'Export CSV',
-    emptyMessage: 'No transactions'
-  }));
+  readonly tableConfig = computed<DataTableConfig<Transaction>>(() => WalletHelper.transactionTable());
 
   ngOnInit (): void {
     this.refresh();
@@ -110,13 +103,14 @@ export class WalletComponent implements OnInit {
     }
 
     this.loading.set(true);
+    this.failed.set(false);
     this.walletService.loadWallets().subscribe({
       next: () => {
         const walletId = this.walletService.wallet()?.id;
         if (walletId) this.loadTransactions(walletId);
         else this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.fail()
     });
   }
 
@@ -138,7 +132,12 @@ export class WalletComponent implements OnInit {
         this.totalItems.set(response.total);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.fail()
     });
+  }
+
+  private fail (): void {
+    this.loading.set(false);
+    this.failed.set(true);
   }
 }

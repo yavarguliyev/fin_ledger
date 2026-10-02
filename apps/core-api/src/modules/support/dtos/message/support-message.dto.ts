@@ -34,6 +34,18 @@ export const SupportMessageSchema = z.object({
 
   seen: z.boolean({ message: 'Seen must be a boolean' }).optional(),
 
+  replyToMessageId: z.string().nullable().optional(),
+
+  replyToSenderUserId: z.string().nullable().optional(),
+
+  replyToSenderName: z.string().nullable().optional(),
+
+  replyToBody: z.string().nullable().optional(),
+
+  replyToKind: z.enum(SUPPORT_MESSAGE_KINDS).nullable().optional(),
+
+  replyToDeleted: z.boolean().nullable().optional(),
+
   createdAt: z.string({ message: 'Created at must be a string' })
 });
 

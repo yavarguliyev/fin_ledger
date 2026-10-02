@@ -20,6 +20,7 @@ import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
 import { RetentionModule } from './retention/retention.module';
 import { AdminModule } from './admin/admin.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { SharedModule } from '../shared/shared.module';
 import { TasksModule } from '@common/tasks';
@@ -34,6 +35,7 @@ import { TASK_RUNTIME } from '../shared/constants/modules/task-runtime.constant'
       useFactory: (redis: RedisCacheProvider) => RateLimitHelper.options({ storage: new RedisThrottlerStorage({ redis }) })
     }),
     AdminModule,
+    MonitoringModule,
     AnalyticsModule,
     AuditModule,
     EmailModule,

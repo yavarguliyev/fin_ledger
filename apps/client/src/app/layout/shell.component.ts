@@ -15,6 +15,7 @@ import { SupportPresenceStore } from '../core/services/support-presence.store';
 import { SupportStreamService } from '../core/services/support-stream.service';
 import { SupportCallStore } from '../core/services/support-call.store';
 import { SupportTypingStore } from '../core/services/support-typing.store';
+import { SupportOfflineQueueStore } from '../core/services/support-offline-queue.store';
 import { CallOverlayComponent } from './call-overlay.component';
 import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
 
@@ -35,6 +36,7 @@ export class ShellComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly calls = inject(SupportCallStore);
   private readonly typing = inject(SupportTypingStore);
+  private readonly offlineQueue = inject(SupportOfflineQueueStore);
 
   readonly isDark = computed(() => this.theme.isDark());
   readonly unread = computed(() => this.notif.unreadCount());
@@ -70,6 +72,7 @@ export class ShellComponent implements OnInit {
     this.chat.loadConversations();
     this.presenceStore.heartbeat();
     this.presenceStore.loadContacts();
+    this.offlineQueue.listen();
     this.chatStream.connect({
       onMessage: event => {
         this.chat.applyStreamEvent(event);
@@ -81,6 +84,7 @@ export class ShellComponent implements OnInit {
         this.chat.loadConversations();
         this.chat.resync();
         this.presenceStore.loadContacts();
+        this.offlineQueue.flush();
       }
     });
 

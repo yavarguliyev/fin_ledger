@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, input, signal, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, computed, input, signal, viewChild } from '@angular/core';
 
 import { CallNoticeHelper } from '../../../core/helpers/support/call-notice.helper';
 import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recording.constant';
@@ -6,6 +6,7 @@ import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recor
 @Component({
   selector: 'app-video-note',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: '../templates/video-note.component.html'
 })
 export class VideoNoteComponent {

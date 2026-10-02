@@ -1,10 +1,11 @@
-import { Component, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input } from '@angular/core';
 
 import { SupportAvatarHelper } from '../helpers/support-avatar.helper';
 
 @Component({
   selector: 'app-support-avatar',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: '../templates/support-avatar.component.html'
 })
 export class SupportAvatarComponent {

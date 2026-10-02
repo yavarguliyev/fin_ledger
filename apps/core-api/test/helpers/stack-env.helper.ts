@@ -3,6 +3,7 @@ import { CryptoHelper } from '@common/shared-libs';
 import { INTEGRATION_STACK as S } from '../constants/integration-stack.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { TEST_ORIGINS } from '../constants/test-origins.constant';
+import { MONITORING_ALERTS_TEST } from '../constants/monitoring-alerts.constant';
 import { StackEnv } from '../interfaces/stack-env.interface';
 
 export class StackEnvHelper {
@@ -44,6 +45,7 @@ export class StackEnvHelper {
       STORAGE_SECRET_KEY: S.MINIO_PASSWORD,
       MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: S.KEY_BYTES }).toString(S.KEY_ENCODING),
       EMAIL_LINK_ENCRYPTION_KEY: emailLinkKey,
+      ALERT_WEBHOOK_TOKEN: MONITORING_ALERTS_TEST.TOKEN,
       PASSKEY_RP_ID: TEST_ORIGINS.RP_ID,
       PASSKEY_ORIGIN: TEST_ORIGINS.FRONTEND
     };

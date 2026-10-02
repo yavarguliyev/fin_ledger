@@ -10,6 +10,7 @@ import { MfaEnabledHandler } from './use-cases/commands/mfa-enabled-handler.use-
 import { MfaDisabledHandler } from './use-cases/commands/mfa-disabled-handler.use-case';
 import { SelfExclusionHandler } from './use-cases/commands/self-exclusion-handler.use-case';
 import { NewDeviceHandler } from './use-cases/commands/new-device-handler.use-case';
+import { MonitoringAlertHandler } from './use-cases/commands/monitoring-alert-handler.use-case';
 
 @Module({
   imports: [MailerModule.forRoot({ clientId: ClientIds.API_GATEWAY })],
@@ -22,7 +23,8 @@ import { NewDeviceHandler } from './use-cases/commands/new-device-handler.use-ca
     MfaEnabledHandler,
     MfaDisabledHandler,
     SelfExclusionHandler,
-    NewDeviceHandler
+    NewDeviceHandler,
+    MonitoringAlertHandler
   ]
 })
 export class EmailModule {}
