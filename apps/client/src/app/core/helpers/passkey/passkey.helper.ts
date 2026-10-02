@@ -16,7 +16,6 @@ export class PasskeyHelper {
   static deviceLabel (): string {
     const agent = typeof navigator === 'undefined' ? '' : navigator.userAgent;
     const match = PASSKEY.LABELS.find(([keyword]) => agent.includes(keyword));
-
     return (match?.[1] ?? PASSKEY.DEFAULT_LABEL).slice(0, PASSKEY.LABEL_MAX_LENGTH);
   }
 

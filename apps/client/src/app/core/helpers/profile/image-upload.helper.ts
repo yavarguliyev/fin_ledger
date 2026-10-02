@@ -14,14 +14,15 @@ export class ImageUploadHelper {
     if (oversized.length === 0) return IMAGE_UPLOAD.TOO_LARGE;
 
     const named = oversized
-      .map(file => `${file.name}${IMAGE_UPLOAD.SIZE_OPEN}${(file.size / IMAGE_UPLOAD.BYTES_PER_MB).toFixed(IMAGE_UPLOAD.SIZE_DECIMALS)}${IMAGE_UPLOAD.SIZE_UNIT}${IMAGE_UPLOAD.SIZE_CLOSE}`)
-      .join(IMAGE_UPLOAD.LIST_SEPARATOR);
+        .map(file => `${file.name}${IMAGE_UPLOAD.SIZE_OPEN}${(file.size / IMAGE_UPLOAD.BYTES_PER_MB)
+        .toFixed(IMAGE_UPLOAD.SIZE_DECIMALS)}${IMAGE_UPLOAD.SIZE_UNIT}${IMAGE_UPLOAD.SIZE_CLOSE}`)
+        .join(IMAGE_UPLOAD.LIST_SEPARATOR);
+    
     return `${IMAGE_UPLOAD.TOO_LARGE_PREFIX}${named}${IMAGE_UPLOAD.TOO_LARGE_SUFFIX}`;
   }
 
   static partialMessage ({ uploaded, rejected }: UploadOutcomeDto): string | null {
     if (rejected.length === 0) return null;
-
     const total = uploaded + rejected.length;
     const reasons = rejected.map(({ fileName, reason }) => `${fileName}${IMAGE_UPLOAD.NAME_SEPARATOR}${reason}`).join(IMAGE_UPLOAD.REJECTION_SEPARATOR);
     return `${IMAGE_UPLOAD.PARTIAL_PREFIX}${uploaded}${IMAGE_UPLOAD.PARTIAL_OF}${total}${IMAGE_UPLOAD.PARTIAL_SUFFIX}${reasons}`;

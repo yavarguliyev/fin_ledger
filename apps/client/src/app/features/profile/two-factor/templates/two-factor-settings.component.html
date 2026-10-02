@@ -90,14 +90,18 @@
 <app-modal [isOpen]="disableOpen()" title="Turn off two-factor authentication" maxWidth="max-w-md" (close)="closeDisable()">
   <form [formGroup]="forms.challenge" (ngSubmit)="confirmDisable()" class="space-y-4" novalidate>
     <p class="text-sm text-ink-600 dark:text-ink-300">Enter your password and a code from your authenticator app (or a recovery code).</p>
-    <input
-      type="password"
-      formControlName="password"
-      autocomplete="current-password"
-      placeholder="Password"
-      aria-label="Password"
-      class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
-    />
+    <div class="relative">
+      <input
+        #twoFactorPassword1
+        type="password"
+        formControlName="password"
+        autocomplete="current-password"
+        placeholder="Password"
+        aria-label="Password"
+        class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 pr-11"
+      />
+      <app-password-toggle [field]="twoFactorPassword1" />
+    </div>
     <input
       type="text"
       formControlName="code"
@@ -121,13 +125,17 @@
 
     <div>
       <label for="regenerate-password" class="block text-sm font-medium text-ink-700 dark:text-ink-300 mb-1">Password</label>
-      <input
-        id="regenerate-password"
-        type="password"
-        autocomplete="current-password"
-        formControlName="password"
-        class="w-full px-3 py-2 rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-900 dark:text-white"
-      />
+      <div class="relative">
+        <input
+          id="regenerate-password"
+          #twoFactorPassword2
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          class="w-full px-3 py-2 rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-900 dark:text-white pr-11"
+        />
+        <app-password-toggle [field]="twoFactorPassword2" />
+      </div>
     </div>
 
     <div>

@@ -34,6 +34,35 @@ export class SupportCallStore {
   readonly screenStream = this.session.screenStream;
   readonly controls = inject(CallControlsService);
 
+  decline (): void {
+    this.end({ reason: SUPPORT_CALL.DECLINED });
+  }
+
+  hangUp (): void {
+    this.end({ reason: this.state.phase() === 'outgoing' ? SUPPORT_CALL.MISSED : SUPPORT_CALL.HANGUP });
+  }
+
+  applyEvent ({ event }: StreamEventRefDto): void {
+    const call = event.call;
+    if (!call) return;
+
+    if (event.type === SUPPORT_CALL.INCOMING_EVENT) return this.ring({ call });
+    if (call.callId !== this.link.callId) return;
+
+    if (event.type === SUPPORT_CALL.ANSWERED_EVENT && call.sdp) {
+      this.clearRing();
+      this.state.phase.set('connecting');
+      void this.session.accept({ sdp: call.sdp });
+    }
+
+    if (event.type === SUPPORT_CALL.CANDIDATE_EVENT && call.candidate) void this.session.addCandidate({ candidate: call.candidate });
+    if (event.type === SUPPORT_CALL.ENDED_EVENT) this.finish({ notice: CallNoticeHelper.forReason({ reason: call.reason }) });
+  }
+
+  reset (): void {
+    if (this.link.callId && this.state.busy()) this.end({ reason: SUPPORT_CALL.HANGUP });
+  }
+
   async place ({ conversationId, media, peerName }: PlaceCallDto): Promise<void> {
     if (this.state.busy()) return;
     this.state.begin({ phase: 'outgoing', media, peerName });
@@ -64,35 +93,6 @@ export class SupportCallStore {
       this.end({ reason: SUPPORT_CALL.FAILED });
       this.state.notice.set(CallNoticeHelper.forFailure({ error }));
     }
-  }
-
-  decline (): void {
-    this.end({ reason: SUPPORT_CALL.DECLINED });
-  }
-
-  hangUp (): void {
-    this.end({ reason: this.state.phase() === 'outgoing' ? SUPPORT_CALL.MISSED : SUPPORT_CALL.HANGUP });
-  }
-
-  applyEvent ({ event }: StreamEventRefDto): void {
-    const call = event.call;
-    if (!call) return;
-
-    if (event.type === SUPPORT_CALL.INCOMING_EVENT) return this.ring({ call });
-    if (call.callId !== this.link.callId) return;
-
-    if (event.type === SUPPORT_CALL.ANSWERED_EVENT && call.sdp) {
-      this.clearRing();
-      this.state.phase.set('connecting');
-      void this.session.accept({ sdp: call.sdp });
-    }
-
-    if (event.type === SUPPORT_CALL.CANDIDATE_EVENT && call.candidate) void this.session.addCandidate({ candidate: call.candidate });
-    if (event.type === SUPPORT_CALL.ENDED_EVENT) this.finish({ notice: CallNoticeHelper.forReason({ reason: call.reason }) });
-  }
-
-  reset (): void {
-    if (this.link.callId && this.state.busy()) this.end({ reason: SUPPORT_CALL.HANGUP });
   }
 
   private ring ({ call }: CallSignalRefDto): void {

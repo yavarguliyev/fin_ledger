@@ -6,7 +6,6 @@ export class NotificationMergeHelper {
   static backoffMs ({ attempt }: { attempt: number }): number {
     const base = Math.min(SSE_RECONNECT.BASE_DELAY_MS * 2 ** (attempt - 1), SSE_RECONNECT.MAX_DELAY_MS);
     const jitter = base * SSE_RECONNECT.JITTER_RATIO * Math.random();
-
     return Math.round(base - base * SSE_RECONNECT.JITTER_RATIO + jitter * 2);
   }
 

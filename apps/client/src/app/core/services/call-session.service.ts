@@ -18,15 +18,37 @@ export class CallSessionService {
   readonly remoteVideo = signal(false);
   readonly screenStream = signal<MediaStream | null>(null);
 
+  setMicrophone ({ enabled }: ToggleRefDto): void {
+    this.localStream()?.getAudioTracks().forEach(track => (track.enabled = enabled));
+  }
+
+  setCamera ({ enabled }: ToggleRefDto): void {
+    this.localStream()?.getVideoTracks().forEach(track => (track.enabled = enabled));
+  }
+
+  close (): void {
+    this.screenStream()?.getTracks().forEach(track => track.stop());
+    this.screenStream.set(null);
+    this.remoteVideo.set(false);
+    this.localStream()?.getTracks().forEach(track => track.stop());
+    this.peer?.close();
+    this.peer = null;
+    this.pending = [];
+    this.localStream.set(null);
+    this.remoteStream.set(null);
+  }
+
   async open ({ media, iceServers, onCandidate, onState }: OpenCallSessionDto): Promise<void> {
     const local = await navigator.mediaDevices.getUserMedia({ audio: true, video: media === SUPPORT_CALL.VIDEO });
     const peer = new RTCPeerConnection({ iceServers });
 
     local.getTracks().forEach(track => peer.addTrack(track, local));
     if (media !== SUPPORT_CALL.VIDEO) peer.addTransceiver(SUPPORT_CALL.VIDEO_TRACK, { direction: SUPPORT_CALL.SEND_RECEIVE });
+
     peer.onicecandidate = (event): void => {
       if (event.candidate) onCandidate(event.candidate.toJSON());
     };
+
     peer.ontrack = (event): void => this.watchRemote({ event });
     peer.onconnectionstatechange = (): void => onState(peer.connectionState);
 
@@ -65,14 +87,6 @@ export class CallSessionService {
     await this.peer.addIceCandidate(candidate).catch(() => undefined);
   }
 
-  setMicrophone ({ enabled }: ToggleRefDto): void {
-    this.localStream()?.getAudioTracks().forEach(track => (track.enabled = enabled));
-  }
-
-  setCamera ({ enabled }: ToggleRefDto): void {
-    this.localStream()?.getVideoTracks().forEach(track => (track.enabled = enabled));
-  }
-
   async startScreenShare (): Promise<void> {
     const screen = await navigator.mediaDevices.getDisplayMedia({
       video: { frameRate: SUPPORT_CALL.SCREEN_FRAME_RATE },
@@ -80,8 +94,10 @@ export class CallSessionService {
       selfBrowserSurface: SUPPORT_CALL.EXCLUDE,
       surfaceSwitching: SUPPORT_CALL.INCLUDE
     } as DisplayMediaStreamOptions);
+
     const [track] = screen.getVideoTracks();
     const sender = this.videoSender();
+
     if (!track || !sender) return screen.getTracks().forEach(item => item.stop());
 
     track.contentHint = SUPPORT_CALL.SCREEN_HINT;
@@ -102,18 +118,6 @@ export class CallSessionService {
 
     await sender.replaceTrack(this.localStream()?.getVideoTracks()[0] ?? null);
     await CallSenderHelper.tune({ sender, sharing: false });
-  }
-
-  close (): void {
-    this.screenStream()?.getTracks().forEach(track => track.stop());
-    this.screenStream.set(null);
-    this.remoteVideo.set(false);
-    this.localStream()?.getTracks().forEach(track => track.stop());
-    this.peer?.close();
-    this.peer = null;
-    this.pending = [];
-    this.localStream.set(null);
-    this.remoteStream.set(null);
   }
 
   private async flush (): Promise<void> {

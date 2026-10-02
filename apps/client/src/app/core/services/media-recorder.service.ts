@@ -27,6 +27,7 @@ export class MediaRecorderService {
 
     this.kind.set(kind);
     this.preview.set(voice ? null : stream);
+
     if (!voice) await new Promise(resolve => setTimeout(resolve, SUPPORT_RECORDING.WARMUP_MS));
     if (this.kind() !== kind) return stream.getTracks().forEach(track => track.stop());
 
@@ -35,10 +36,12 @@ export class MediaRecorderService {
       audioBitsPerSecond: SUPPORT_RECORDING.AUDIO_BITS,
       ...(!voice && { videoBitsPerSecond: SUPPORT_RECORDING.VIDEO_BITS })
     });
+
     this.chunks = [];
     this.recorder.ondataavailable = (event): void => {
       if (event.data.size > 0) this.chunks.push(event.data);
     };
+
     this.recorder.start(SUPPORT_RECORDING.TIMESLICE_MS);
 
     this.startedAt.set(Date.now());
@@ -49,6 +52,7 @@ export class MediaRecorderService {
     const recorder = this.recorder;
     const kind = this.kind();
     const startedAt = this.startedAt();
+
     if (!recorder || !kind || !startedAt) return null;
 
     await new Promise<void>(resolve => {

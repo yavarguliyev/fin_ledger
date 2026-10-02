@@ -12,11 +12,12 @@ import { FieldErrorComponent } from '../../../shared/components/field-error/fiel
 import { ACCOUNT } from '../../../core/constants/account/account.constant';
 import { HttpError } from '../../../core/interfaces/http/http-error.interface';
 import { AccountFailureDto } from '../../../core/interfaces/account/account-failure.interface';
+import { PasswordToggleComponent } from '../../../shared/components/password-toggle/password-toggle.component';
 
 @Component({
   selector: 'app-account-security',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, PasswordToggleComponent],
   templateUrl: './templates/account-security.component.html'
 })
 export class AccountSecurityComponent {

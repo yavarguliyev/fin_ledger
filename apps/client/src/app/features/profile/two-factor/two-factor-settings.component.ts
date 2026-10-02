@@ -14,11 +14,12 @@ import { MfaEnrollment } from '../../../core/interfaces/auth/mfa-enrollment.inte
 import { RunRequestDto } from '../interfaces/run-request.interface';
 import { MFA_MESSAGES } from '../../../core/constants/auth/mfa-messages.constant';
 import { MfaFormService } from './services/mfa-form.service';
+import { PasswordToggleComponent } from '../../../shared/components/password-toggle/password-toggle.component';
 
 @Component({
   selector: 'app-two-factor-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent],
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent, PasswordToggleComponent],
   providers: [MfaFormService],
   templateUrl: './templates/two-factor-settings.component.html'
 })

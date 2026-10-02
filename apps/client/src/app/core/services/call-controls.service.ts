@@ -21,13 +21,12 @@ export class CallControlsService {
     this.session.setCamera({ enabled: !this.state.cameraOff() });
   }
 
-  async toggleScreenShare (): Promise<void> {
-    if (this.sharing()) return this.session.stopScreenShare();
-
-    await this.session.startScreenShare().catch(() => undefined);
-  }
-
   reset (): void {
     void this.session.stopScreenShare();
+  }
+
+  async toggleScreenShare (): Promise<void> {
+    if (this.sharing()) return this.session.stopScreenShare();
+    await this.session.startScreenShare().catch(() => undefined);
   }
 }

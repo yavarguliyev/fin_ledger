@@ -19,9 +19,9 @@ export class AccountService {
   private readonly store = inject(SessionStore);
 
   changePassword (dto: ChangePasswordDto): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.config.apiUrl}${ACCOUNT.CHANGE_PASSWORD_PATH}`, dto, { withCredentials: true }).pipe(
-      tap(session => this.store.adopt({ session })),
-      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
+    return this.http
+      .post<AuthResponse>(`${this.config.apiUrl}${ACCOUNT.CHANGE_PASSWORD_PATH}`, dto, { withCredentials: true })
+      .pipe(tap(session => this.store.adopt({ session })), catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
   }
 
