@@ -8,7 +8,7 @@ import { ApiResponse } from '../interfaces/api-response.interface';
 import { LoginRequest } from '../interfaces/login-request.interface';
 
 export class ApiHelper {
-  static async request<T = unknown>({
+  static async request<T = unknown> ({
     method = 'GET',
     path,
     token,
@@ -32,7 +32,7 @@ export class ApiHelper {
     return { status: response.status, headers: response.headers, body: (text ? JSON.parse(text) : null) as T };
   }
 
-  static async stream({ path, token, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<number> {
+  static async stream ({ path, token, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<number> {
     const controller = new AbortController();
     const headers: Record<string, string> = { 'X-Forwarded-For': clientIp };
     if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -45,19 +45,20 @@ export class ApiHelper {
     }
   }
 
-  static refreshCookie<T>({ headers }: ApiResponse<T>): string {
+  static refreshCookie<T> ({ headers }: ApiResponse<T>): string {
     const cookie = headers.getSetCookie().find(entry => entry.startsWith(`${REFRESH_COOKIE_NAME}=`));
     if (!cookie) throw new Error('The response carried no refresh cookie');
     return cookie.split(';')[0] as string;
   }
 
-  static randomIp(): string {
+  static randomIp (): string {
     return `10.${[...CryptoHelper.randomBytes({ bytes: 3 })].join('.')}`;
   }
 
-  static async login({ email, password = SEED_PASSWORD }: LoginRequest): Promise<string> {
+  static async login ({ email, password = SEED_PASSWORD }: LoginRequest): Promise<string> {
     const response = await ApiHelper.request<{ accessToken: string }>({ method: 'POST', path: '/auth/login', body: { email, password } });
     if (response.status !== 201) throw new Error(`Login failed for ${email}: HTTP ${response.status}`);
+    if (!response.body.accessToken) throw new Error(`Login for ${email} returned no access token (two-factor still enabled?)`);
     return response.body.accessToken;
   }
 }

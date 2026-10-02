@@ -6,6 +6,7 @@ import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { MfaStatus } from '../interfaces/mfa-status.interface';
 import { RecoveryCodes } from '../interfaces/recovery-codes.interface';
 
@@ -33,6 +34,8 @@ describe('Two-factor policy: required for admins, codes can be replaced', () => 
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.ADMIN_EMAIL], role: MFA_POLICY_TEST.ADMIN_ROLE });
+    await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.PLAYER_EMAIL] });
     adminToken = await ApiHelper.login({ email: MFA_POLICY_TEST.ADMIN_EMAIL });
   });
 

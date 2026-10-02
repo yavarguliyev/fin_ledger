@@ -4,9 +4,10 @@ import { CryptoHelper } from '@common/shared-libs';
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 
 describe('Two-factor authentication setup', () => {
-  const email = 'player15@realtime-wallet-payments.com';
+  const email = 'mfa-setup-player@support-tests.realtime-wallet-payments.com';
 
   let token = '';
   let secret = '';
@@ -28,6 +29,7 @@ describe('Two-factor authentication setup', () => {
   };
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [email] });
     token = await ApiHelper.login({ email });
   });
 
@@ -102,7 +104,7 @@ describe('Two-factor authentication setup', () => {
 });
 
 describe('Two-factor login', () => {
-  const email = 'player16@realtime-wallet-payments.com';
+  const email = 'mfa-login-player@support-tests.realtime-wallet-payments.com';
 
   let secret = '';
   let recoveryCodes: string[] = [];
@@ -123,6 +125,7 @@ describe('Two-factor login', () => {
   const nextWindowCode = (): string => generateSync({ secret, epoch: Math.floor(Date.now() / 1000) + 30 });
 
   beforeAll(async () => {
+    await TestUserHelper.ensure({ emails: [email] });
     const token = await ApiHelper.login({ email });
     const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: '/auth/mfa/setup', token });
     secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
