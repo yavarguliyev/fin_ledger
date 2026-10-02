@@ -1,8 +1,5 @@
 <div class="space-y-6">
-  <app-page-header 
-    title="Betting" 
-    [subtitle]="'Available: ' + (availableBalance() | currencyFormat: currency())" 
-  />
+  <app-page-header title="Betting" [subtitle]="'Available: ' + (availableBalance() | currencyFormat: currency())" />
 
   <div class="grid lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-4">
@@ -115,12 +112,10 @@
           <div class="text-right shrink-0">
             <p class="text-base font-bold text-danger">{{ bet.stakeMinor | currencyFormat: bet.currency }}</p>
             @if (bet.status === 'PENDING') {
-              <p class="text-xs text-ink-400 dark:text-ink-500 mt-0.5">
-                To win {{ bet.potentialPayoutMinor | currencyFormat: bet.currency }}
-              </p>
+              <p class="text-xs text-ink-400 dark:text-ink-500 mt-0.5">To win {{ bet.potentialPayoutMinor | currencyFormat: bet.currency }}</p>
             } @else {
               <p class="text-xs mt-0.5" [class]="(bet.payoutMinor ?? 0) > 0 ? 'text-success font-semibold' : 'text-ink-400 dark:text-ink-500'">
-                Paid {{ (bet.payoutMinor ?? 0) | currencyFormat: bet.currency }}
+                Paid {{ bet.payoutMinor ?? 0 | currencyFormat: bet.currency }}
               </p>
             }
           </div>

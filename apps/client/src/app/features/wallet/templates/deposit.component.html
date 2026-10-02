@@ -1,8 +1,5 @@
 <div class="max-w-xl mx-auto space-y-6">
-  <app-page-header 
-    title="Deposit Funds" 
-    subtitle="Add money to your wallet" 
-  />
+  <app-page-header title="Deposit Funds" subtitle="Add money to your wallet" />
 
   <div class="flex items-center gap-2">
     @for (s of formService.steps; track s.idx) {
@@ -66,9 +63,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <label class="block text-sm font-medium text-ink-700 dark:text-ink-200">Select Payment Method</label>
-          <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-            + Manage methods
-          </a>
+          <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1"> + Manage methods </a>
         </div>
 
         @if (formService.loadingMethods()) {
@@ -102,11 +97,21 @@
                   <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-ink-200">
                     @if (m.type === 'BANK_ACCOUNT') {
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                        />
                       </svg>
                     } @else {
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                        />
                       </svg>
                     }
                   </div>
@@ -114,14 +119,16 @@
                     <p class="text-sm font-semibold text-ink-900 dark:text-white">
                       {{ m.bankName || (m.type === 'BANK_ACCOUNT' ? 'Bank Account' : 'Debit Card') }}
                       @if (m.lastFour) {
-                          <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ m.lastFour }}</span>
-                        }
+                        <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ m.lastFour }}</span>
+                      }
                     </p>
                     <p class="text-xs text-ink-500 dark:text-ink-400">{{ m.accountHolder }}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                  <span
+                    class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                  >
                     Verified
                   </span>
                   <div
@@ -209,7 +216,15 @@
         <div class="text-center py-6 animate-scaleIn">
           <svg viewBox="0 0 52 52" class="w-16 h-16 mx-auto mb-4">
             <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" stroke-width="2" />
-            <path fill="none" stroke="#10B981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="animate-drawCheck" />
+            <path
+              fill="none"
+              stroke="#10B981"
+              stroke-width="4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M14.1 27.2l7.1 7.2 16.7-16.8"
+              class="animate-drawCheck"
+            />
           </svg>
           <h3 class="text-lg font-bold text-ink-900 dark:text-white">Deposit Successful!</h3>
           <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ amountMinor() | currencyFormat: currency() }} added to your wallet</p>

@@ -1,7 +1,7 @@
 import { BadRequestException, DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RedisModule } from '@common/redis';
-import { ClientIdDto, STORAGE_OPTIONS, StorageStrategy } from '@common/shared-libs';
+import { ClientIdDto, ClientIds, STORAGE_OPTIONS, StorageStrategy } from '@common/shared-libs';
 
 import { BaseStrategy } from './strategies/base/base.strategy';
 import { S3StorageStrategy } from './strategies/s3-storage.strategy';
@@ -13,7 +13,19 @@ import { StorageModuleOptions } from './interfaces/storage-module-options.interf
 
 @Module({})
 export class StorageModule {
+  private static readonly modules = new Map<ClientIds, DynamicModule>();
+
   static forRoot ({ clientId }: ClientIdDto = {}): DynamicModule {
+    const key = clientId ?? ClientIds.DEFAULT;
+    const existing = StorageModule.modules.get(key);
+    if (existing) return existing;
+
+    const created = StorageModule.build({ ...(clientId && { clientId }) });
+    StorageModule.modules.set(key, created);
+    return created;
+  }
+
+  private static build ({ clientId }: ClientIdDto): DynamicModule {
     return {
       module: StorageModule,
       imports: [RedisModule.forRoot({ ...(clientId && { clientId }) })],

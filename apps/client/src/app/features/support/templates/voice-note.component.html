@@ -1,7 +1,20 @@
 <div class="flex w-56 items-center gap-3 py-1">
-  <audio #player preload="metadata" [src]="url()" (play)="playing.set(true)" (pause)="playing.set(false)" (timeupdate)="onTime(player)" (ended)="onEnded()"></audio>
+  <audio
+    #player
+    preload="metadata"
+    [src]="url()"
+    (play)="playing.set(true)"
+    (pause)="playing.set(false)"
+    (timeupdate)="onTime(player)"
+    (ended)="onEnded()"
+  ></audio>
 
-  <button type="button" class="grid place-items-center w-9 h-9 shrink-0 rounded-full bg-primary text-white" [attr.aria-label]="playing() ? labels.PAUSE : labels.PLAY" (click)="toggle()">
+  <button
+    type="button"
+    class="grid place-items-center w-9 h-9 shrink-0 rounded-full bg-primary text-white"
+    [attr.aria-label]="playing() ? labels.PAUSE : labels.PLAY"
+    (click)="toggle()"
+  >
     @if (playing()) {
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z"></path></svg>
     } @else {

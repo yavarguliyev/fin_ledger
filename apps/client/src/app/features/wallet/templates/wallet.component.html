@@ -25,7 +25,9 @@
       </div>
       <div class="rounded-2xl bg-warning/10 border border-warning/30 p-6">
         <p class="text-warning-dark dark:text-warning text-sm font-medium">Reserved</p>
-        <p class="text-3xl font-bold text-warning-dark dark:text-warning mt-1">{{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+        <p class="text-3xl font-bold text-warning-dark dark:text-warning mt-1">
+          {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}
+        </p>
         <p class="text-xs text-ink-500 dark:text-ink-400 mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
       </div>
     </div>
@@ -49,9 +51,9 @@
     </div>
   }
 
-  <app-data-table 
-    [config]="tableConfig()" 
-    [data]="filteredTx()" 
+  <app-data-table
+    [config]="tableConfig()"
+    [data]="filteredTx()"
     [loading]="loading()"
     [selectedFilter]="activeFilter()"
     [customCellTemplate]="typeCellTemplate() ?? null"
@@ -63,11 +65,7 @@
   <!-- Server-side pagination (attached to DataTable card) -->
   <div class="-mt-px">
     <div class="bg-white dark:bg-night-surface rounded-b-xl border border-t-0 border-ink-200 dark:border-night-border">
-      <app-pagination 
-        [config]="paginationConfig()" 
-        (pageChange)="onPageChange($event)" 
-        (pageSizeChange)="onPageSizeChange($event)" 
-      />
+      <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
     </div>
   </div>
 

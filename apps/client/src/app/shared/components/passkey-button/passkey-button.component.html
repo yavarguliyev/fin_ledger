@@ -16,7 +16,12 @@
         <span class="w-4 h-4 border-2 border-ink-300 border-t-primary rounded-full animate-spin"></span>
       } @else {
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-2.5 2-4.5 4.5-4.5S21 8.5 21 11m-9 0v3a7 7 0 01-1.5 4.3M7.5 20A11 11 0 003 11a9 9 0 0113.5-7.8M16.5 11v3c0 1.6-.3 3.2-.9 4.7M12 20.5c.5-1.4.8-2.9.8-4.5v-5"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 11c0-2.5 2-4.5 4.5-4.5S21 8.5 21 11m-9 0v3a7 7 0 01-1.5 4.3M7.5 20A11 11 0 003 11a9 9 0 0113.5-7.8M16.5 11v3c0 1.6-.3 3.2-.9 4.7M12 20.5c.5-1.4.8-2.9.8-4.5v-5"
+          ></path>
         </svg>
       }
       {{ busy() ? 'Waiting for your device…' : label() }}

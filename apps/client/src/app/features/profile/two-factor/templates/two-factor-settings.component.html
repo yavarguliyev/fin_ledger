@@ -26,7 +26,12 @@
         } @else {
           <span class="text-xs font-medium px-2 py-1 rounded-full bg-warning/10 text-warning">Not enabled</span>
         }
-        <button type="button" (click)="startSetup()" [disabled]="loading()" class="text-sm font-medium text-primary hover:underline disabled:opacity-60">
+        <button
+          type="button"
+          (click)="startSetup()"
+          [disabled]="loading()"
+          class="text-sm font-medium text-primary hover:underline disabled:opacity-60"
+        >
           Set up
         </button>
       }
@@ -37,7 +42,9 @@
 <app-modal [isOpen]="setupOpen()" title="Set up two-factor authentication" maxWidth="max-w-md" (close)="closeSetup()">
   @if (enrollment(); as current) {
     <div class="space-y-4">
-      <p class="text-sm text-ink-600 dark:text-ink-300">Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy…), then enter the 6-digit code it shows.</p>
+      <p class="text-sm text-ink-600 dark:text-ink-300">
+        Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy…), then enter the 6-digit code it shows.
+      </p>
       <img [src]="current.qrCodeDataUrl" alt="Two-factor QR code" class="mx-auto w-48 h-48 rounded-lg bg-white p-2" />
       <p class="text-xs text-ink-500 dark:text-ink-400 text-center">
         Can't scan it? Enter this key manually:
@@ -69,9 +76,13 @@
       </ul>
       <div class="flex gap-2">
         <button type="button" (click)="copyRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">Copy</button>
-        <button type="button" (click)="downloadRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">Download</button>
+        <button type="button" (click)="downloadRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">
+          Download
+        </button>
       </div>
-      <button type="button" (click)="closeSetup()" class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">I've saved them</button>
+      <button type="button" (click)="closeSetup()" class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">
+        I've saved them
+      </button>
     </div>
   }
 </app-modal>
@@ -135,7 +146,11 @@
       <p class="text-sm text-danger" role="alert">{{ error() }}</p>
     }
 
-    <button type="submit" [disabled]="loading()" class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60">
+    <button
+      type="submit"
+      [disabled]="loading()"
+      class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
+    >
       Create new codes
     </button>
   </form>

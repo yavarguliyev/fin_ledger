@@ -14,17 +14,11 @@
 
       @if (config().headerAction) {
         @if (config().headerAction!.link) {
-          <a
-            [routerLink]="config().headerAction!.link"
-            class="text-sm text-primary hover:text-primary-dark transition-colors"
-          >
+          <a [routerLink]="config().headerAction!.link" class="text-sm text-primary hover:text-primary-dark transition-colors">
             {{ config().headerAction!.label }}
           </a>
         } @else if (config().headerAction!.callback) {
-          <button
-            (click)="config().headerAction!.callback!()"
-            class="text-sm text-primary hover:text-primary-dark transition-colors"
-          >
+          <button (click)="config().headerAction!.callback!()" class="text-sm text-primary hover:text-primary-dark transition-colors">
             {{ config().headerAction!.label }}
           </button>
         }
@@ -107,10 +101,12 @@
                   } @else if (col.type === 'custom') {
                     <ng-container *ngTemplateOutlet="customCellTemplate()!; context: { row: row, column: col }"></ng-container>
                   } @else {
-                    <span [ngClass]="[
-                      col.type === 'number' ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-600 dark:text-ink-300',
-                      col.cellClass || ''
-                    ]">
+                    <span
+                      [ngClass]="[
+                        col.type === 'number' ? 'font-semibold text-ink-900 dark:text-white' : 'text-ink-600 dark:text-ink-300',
+                        col.cellClass || ''
+                      ]"
+                    >
                       {{ getCellText({ row, column: col }) }}
                     </span>
                   }
@@ -179,10 +175,6 @@
   </div>
 
   @if (paginationConfig()) {
-    <app-pagination 
-      [config]="paginationConfig()!" 
-      (pageChange)="onPageChangeHandler($event)" 
-      (pageSizeChange)="onPageSizeChangeHandler($event)" 
-    />
+    <app-pagination [config]="paginationConfig()!" (pageChange)="onPageChangeHandler($event)" (pageSizeChange)="onPageSizeChangeHandler($event)" />
   }
 </div>

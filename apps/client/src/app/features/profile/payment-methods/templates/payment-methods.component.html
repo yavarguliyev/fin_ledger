@@ -24,7 +24,12 @@
     <div class="rounded-xl border border-dashed border-ink-300 dark:border-night-border p-6 text-center space-y-2">
       <div class="w-10 h-10 mx-auto rounded-full bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-400">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+          />
         </svg>
       </div>
       <p class="text-sm font-medium text-ink-700 dark:text-ink-200">No payment methods added yet</p>
@@ -33,21 +38,42 @@
   } @else {
     <div class="grid sm:grid-cols-2 gap-3">
       @for (method of methods(); track method.id) {
-        <div class="border border-ink-200 dark:border-night-border rounded-xl p-4 bg-ink-50/50 dark:bg-night-bg/50 flex flex-col justify-between space-y-3">
+        <div
+          class="border border-ink-200 dark:border-night-border rounded-xl p-4 bg-ink-50/50 dark:bg-night-bg/50 flex flex-col justify-between space-y-3"
+        >
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
-              <div class="w-9 h-9 rounded-lg bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border flex items-center justify-center text-ink-700 dark:text-ink-200">
+              <div
+                class="w-9 h-9 rounded-lg bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border flex items-center justify-center text-ink-700 dark:text-ink-200"
+              >
                 @if (method.type === 'APPLE_PAY') {
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                      d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"
+                    />
+                  </svg>
                 } @else if (method.type === 'GOOGLE_PAY') {
-                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 24c6.624 0 12-5.376 12-12S18.624 0 12 0 0 5.376 0 12s5.376 12 12 12z" fill="#4285F4" opacity="0.1"/><path d="M12 5l1.09 3.35h3.52l-2.85 2.07 1.09 3.35L12 11.7l-2.85 2.07 1.09-3.35L7.39 8.35h3.52L12 5z" fill="currentColor"/></svg>
+                  <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 24c6.624 0 12-5.376 12-12S18.624 0 12 0 0 5.376 0 12s5.376 12 12 12z" fill="#4285F4" opacity="0.1" />
+                    <path d="M12 5l1.09 3.35h3.52l-2.85 2.07 1.09 3.35L12 11.7l-2.85 2.07 1.09-3.35L7.39 8.35h3.52L12 5z" fill="currentColor" />
+                  </svg>
                 } @else if (method.type === 'BANK_ACCOUNT') {
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
                   </svg>
                 } @else {
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
                   </svg>
                 }
               </div>
@@ -68,7 +94,12 @@
               title="Remove method"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
@@ -93,11 +124,7 @@
                 <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                 Pending Verification
               </span>
-              <button
-                type="button"
-                (click)="verifyMethod(method.id)"
-                class="text-[11px] font-semibold text-primary hover:underline"
-              >
+              <button type="button" (click)="verifyMethod(method.id)" class="text-[11px] font-semibold text-primary hover:underline">
                 Verify Now
               </button>
             }
@@ -108,8 +135,4 @@
   }
 </div>
 
-<app-add-payment-method-modal
-  [isOpen]="showAddModal()"
-  (closeModal)="closeAddModal()"
-  (methodAdded)="onMethodAdded()"
-/>
+<app-add-payment-method-modal [isOpen]="showAddModal()" (closeModal)="closeAddModal()" (methodAdded)="onMethodAdded()" />

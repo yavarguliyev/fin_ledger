@@ -24,7 +24,8 @@
     "@common/contracts": "1.0.0",
     "@simplewebauthn/browser": "^14.0.0",
     "rxjs": "^7.8.2",
-    "tslib": "^2.5.0"
+    "tslib": "^2.5.0",
+    "uuid": "^14.0.2"
   },
   "devDependencies": {
     "@angular/build": "^21.1.0",

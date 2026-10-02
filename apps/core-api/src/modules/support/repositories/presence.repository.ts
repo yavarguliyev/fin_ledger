@@ -21,8 +21,11 @@ export class PresenceRepository {
   }
 
   async list (): Promise<PresenceEntryDto[]> {
-    const keys = await this.cache.scan({ pattern: PRESENCE.SCAN_PATTERN });
-    const stored = await Promise.all(keys.map(key => this.cache.get<StoredPresenceDto>({ key })));
+    const cutoff = Date.now() - PRESENCE.ONLINE_TTL_SECONDS * PRESENCE.MS_PER_SECOND;
+    await this.cache.trimSortedSet({ key: PRESENCE.INDEX_KEY, max: cutoff });
+
+    const userIds = await this.cache.rangeSortedSet({ key: PRESENCE.INDEX_KEY, min: cutoff });
+    const stored = await this.cache.getMany<StoredPresenceDto>({ keys: userIds.map(userId => PresenceHelper.keyFor({ userId })) });
     return stored.filter((entry): entry is StoredPresenceDto => !!entry).map(entry => PresenceHelper.toEntry({ entry }));
   }
 
@@ -31,6 +34,7 @@ export class PresenceRepository {
     const value: StoredPresenceDto = { userId, displayName, role, lastSeenAt };
 
     await this.cache.set({ key: PresenceHelper.keyFor({ userId }), value, ttlSeconds: PRESENCE.ONLINE_TTL_SECONDS });
+    await this.cache.addToSortedSet({ key: PRESENCE.INDEX_KEY, member: userId, score: Date.parse(lastSeenAt) });
     await this.cache.set({ key: PresenceHelper.lastSeenKeyFor({ userId }), value: lastSeenAt, ttlSeconds: PRESENCE.LAST_SEEN_TTL_SECONDS });
 
     return value;
@@ -42,6 +46,7 @@ export class PresenceRepository {
 
     await this.cache.set({ key: PresenceHelper.lastSeenKeyFor({ userId }), value: lastSeenAt, ttlSeconds: PRESENCE.LAST_SEEN_TTL_SECONDS });
     await this.cache.delete({ key: PresenceHelper.keyFor({ userId }) });
+    await this.cache.removeFromSortedSet({ key: PRESENCE.INDEX_KEY, member: userId });
 
     return stored ? { ...stored, lastSeenAt } : null;
   }

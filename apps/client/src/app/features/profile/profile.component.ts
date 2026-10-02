@@ -22,6 +22,9 @@ import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { ProfileFormHelper } from './helpers/profile-form.helper';
 import { ProfileSaveService } from './services/profile-save.service';
 import { FieldErrorComponent } from '../../shared/components/field-error/field-error.component';
+import { DatePickerComponent } from '../../shared/components/date-picker/date-picker.component';
+import { CountrySelectComponent } from '../../shared/components/country-select/country-select.component';
+import { CalendarHelper } from '../../core/helpers/common/calendar.helper';
 import { ROLES } from '../../core/constants/auth/roles.constant';
 
 @Component({
@@ -36,7 +39,9 @@ import { ROLES } from '../../core/constants/auth/roles.constant';
     TwoFactorSettingsComponent,
     PasskeySettingsComponent,
     AccountSecurityComponent,
-    FieldErrorComponent
+    FieldErrorComponent,
+    DatePickerComponent,
+    CountrySelectComponent
   ],
   providers: [ProfileFormService, ProfileSaveService],
   templateUrl: './templates/profile.component.html'
@@ -67,6 +72,8 @@ export class ProfileComponent implements OnInit {
   readonly lastLoginIp = computed(() => this.auth.currentUser()?.lastLoginIp ?? null);
   readonly kycStatus = computed(() => this.auth.currentUser()?.kycStatus ?? null);
   readonly identityLocked = computed(() => this.kycStatus() === PROFILE.KYC_APPROVED);
+  readonly latestBirthDate = CalendarHelper.yearsAgo({ today: new Date(), years: PROFILE.MIN_AGE_YEARS });
+  readonly earliestBirthDate = CalendarHelper.yearsAgo({ today: new Date(), years: PROFILE.MAX_AGE_YEARS });
   readonly visibleImages = computed(() => this.formService.getVisibleImages(this.imageService.imageUrls()));
   readonly showMoreConfig = computed<ShowMoreConfig>(() => this.formService.getShowMoreConfig(this.imageService.imageUrls().length));
 

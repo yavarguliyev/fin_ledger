@@ -3,5 +3,7 @@ export const REDIS_DEFAULTS = {
   PORT: 6379,
   DB: 0,
   SENTINEL_MASTER_NAME: 'mymaster',
-  SCAN_BATCH_SIZE: 100
+  SCAN_BATCH_SIZE: 100,
+  MIN_SCORE: '-inf',
+  MAX_SCORE: '+inf'
 } as const;

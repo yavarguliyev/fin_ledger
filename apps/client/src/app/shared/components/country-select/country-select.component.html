@@ -1,0 +1,67 @@
+<div class="relative">
+  <div class="relative">
+    @if (selected(); as country) {
+      @if (!isOpen()) {
+        <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-lg" aria-hidden="true">{{ country.flag }}</span>
+      }
+    }
+    <input
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-controls]="text.LIST_ID"
+      [attr.aria-activedescendant]="isOpen() ? activeId() : null"
+      aria-autocomplete="list"
+      [disabled]="isDisabled()"
+      [value]="isOpen() ? query() : (selected()?.name ?? '')"
+      [placeholder]="text.PLACEHOLDER"
+      (focus)="open()"
+      (click)="open()"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+      class="w-full py-2.5 pr-10 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 disabled:opacity-60 disabled:cursor-not-allowed"
+      [class.pl-12]="selected() && !isOpen()"
+      [class.pl-4]="!selected() || isOpen()"
+    />
+    <svg
+      class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-ink-400"
+      viewBox="0 0 20 20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.75"
+      aria-hidden="true"
+    >
+      <path d="m6 8 4 4 4-4" stroke-linecap="round" stroke-linejoin="round"></path>
+    </svg>
+  </div>
+
+  @if (isOpen()) {
+    <ul
+      [id]="text.LIST_ID"
+      role="listbox"
+      [attr.aria-label]="ariaLabel()"
+      class="absolute z-30 mt-2 w-full max-h-64 overflow-y-auto rounded-xl border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface shadow-xl py-1"
+    >
+      @for (option of matches(); track option.code; let index = $index) {
+        <li
+          role="option"
+          [id]="text.OPTION_ID_PREFIX + option.code"
+          [attr.aria-selected]="option.code === value()"
+          (mousedown)="$event.preventDefault()"
+          (click)="choose(option)"
+          (mouseenter)="activeIndex.set(index)"
+          [class]="optionClass(index)"
+          [class.font-semibold]="option.code === value()"
+        >
+          <span class="text-lg" aria-hidden="true">{{ option.flag }}</span>
+          <span class="flex-1">{{ option.name }}</span>
+          <span class="text-xs text-ink-400">{{ option.code }}</span>
+        </li>
+      } @empty {
+        <li class="px-4 py-2 text-sm text-ink-500 dark:text-ink-400">{{ text.NO_MATCH }}</li>
+      }
+    </ul>
+  }
+</div>

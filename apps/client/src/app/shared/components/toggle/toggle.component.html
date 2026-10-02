@@ -1,11 +1,5 @@
 <div class="toggle-border">
-  <input 
-    [id]="id()" 
-    type="checkbox" 
-    [checked]="checked()"
-    [disabled]="disabled()"
-    (change)="onToggle($event)"
-  />
+  <input [id]="id()" type="checkbox" [checked]="checked()" [disabled]="disabled()" (change)="onToggle($event)" />
   <label [for]="id()">
     <div class="handle"></div>
   </label>

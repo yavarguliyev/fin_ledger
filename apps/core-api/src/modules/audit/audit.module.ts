@@ -6,6 +6,7 @@ import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
 import { AuditLogRepository } from './repositories/audit-log.repository';
 import { AuditRecordedHandler } from './use-cases/commands/audit-recorded.handler.use-case';
+import { MoneyAuditHandler } from './use-cases/commands/money-audit.handler.use-case';
 import { GetAuditLogsUseCase } from './use-cases/queries/get-audit-logs.use-case';
 import { SharedModule } from '../../shared/shared.module';
 import { AuthModule } from '../auth/auth.module';
@@ -13,7 +14,7 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [SharedModule, AuthModule],
   controllers: [AuditController],
-  providers: [AuditService, AuditLogRepository, AuditRecordedHandler, GetAuditLogsUseCase, { provide: APP_INTERCEPTOR, useClass: AuditInterceptor }],
+  providers: [AuditService, AuditLogRepository, AuditRecordedHandler, MoneyAuditHandler, GetAuditLogsUseCase, { provide: APP_INTERCEPTOR, useClass: AuditInterceptor }],
   exports: [AuditLogRepository]
 })
 export class AuditModule {}

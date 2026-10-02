@@ -18,8 +18,13 @@ export class ExperimentalWarningFilter {
   }
 
   private static isSilenced ({ warning, name }: NamedWarning): boolean {
+    if (name === EXPERIMENTAL_WARNINGS.TIMEOUT_NEGATIVE_NAME) return ExperimentalWarningFilter.raisedByKafka();
     if (name !== EXPERIMENTAL_WARNINGS.NAME) return false;
     return EXPERIMENTAL_WARNINGS.SILENCED.some(fragment => BaseHelper.errorResponse({ error: warning }).message.includes(fragment));
+  }
+
+  private static raisedByKafka (): boolean {
+    return (new Error().stack ?? '').includes(EXPERIMENTAL_WARNINGS.TIMEOUT_NEGATIVE_ORIGIN);
   }
 
   private static nameOf ({ warning, rest }: WarningRef): string {

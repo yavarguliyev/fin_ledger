@@ -3,7 +3,6 @@ import { Logger } from '@nestjs/common';
 import { ClientIds, BaseHelper } from '@common/shared-libs';
 
 import { CacheProvider } from '../interfaces/cache-provider.interface';
-import { RedisSentinelConfig } from '../interfaces/redis-sentinel-config.interface';
 import { RedisConfigRefDto } from '../dtos/provider/redis-config-ref.dto';
 import { SerializeDto } from '../dtos/provider/serialize.dto';
 import { DeserializeDto } from '../dtos/provider/deserialize.dto';
@@ -16,6 +15,11 @@ import { RateLimitHitRecord } from '../interfaces/rate-limit-hit-record.interfac
 import { RATE_LIMIT_SCRIPT } from '../constants/rate-limit/rate-limit-script.constant';
 import { RATE_LIMIT_KEYS } from '../constants/rate-limit/rate-limit-keys.constant';
 import { REDIS_DEFAULTS } from '../constants/connection/redis-defaults.constant';
+import { RedisClientHelper } from '../helpers/redis-client.helper';
+import { CacheKeysDto } from '../dtos/cache/cache-keys.dto';
+import { SortedSetAddDto } from '../dtos/cache/sorted-set-add.dto';
+import { SortedSetMemberDto } from '../dtos/cache/sorted-set-member.dto';
+import { SortedSetRangeDto } from '../dtos/cache/sorted-set-range.dto';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly client: Redis;
@@ -25,7 +29,7 @@ export class RedisCacheProvider implements CacheProvider {
   constructor ({ config }: RedisConfigRefDto) {
     this.clientId = config.clientId || ClientIds.DEFAULT;
     this.logger = new Logger(`${RedisCacheProvider.name}:${this.clientId}`);
-    this.client = this.createClient({ config });
+    this.client = RedisClientHelper.create({ config });
     this.client.on('error', (error: Error) => this.logger.warn(`Redis connection error: ${BaseHelper.errorResponse({ error }).message}`));
     this.logger.log(`Redis cache provider initialized for ${this.clientId}`);
   }
@@ -89,31 +93,32 @@ export class RedisCacheProvider implements CacheProvider {
     return { totalHits, timeToExpireMs, timeToBlockExpireMs };
   }
 
+  async getMany<T> ({ keys }: CacheKeysDto): Promise<(T | null)[]> {
+    if (keys.length === 0) return [];
+    const raws = await this.client.mget(...keys);
+    return raws.map(raw => (raw === null ? null : this.deserialize<T>({ raw })));
+  }
+
+  async addToSortedSet ({ key, member, score }: SortedSetAddDto): Promise<void> {
+    await this.client.zadd(key, score, member);
+  }
+
+  async removeFromSortedSet ({ key, member }: SortedSetMemberDto): Promise<void> {
+    await this.client.zrem(key, member);
+  }
+
+  async rangeSortedSet ({ key, min, max }: SortedSetRangeDto): Promise<string[]> {
+    return this.client.zrangebyscore(key, min ?? REDIS_DEFAULTS.MIN_SCORE, max ?? REDIS_DEFAULTS.MAX_SCORE);
+  }
+
+  async trimSortedSet ({ key, min, max }: SortedSetRangeDto): Promise<void> {
+    await this.client.zremrangebyscore(key, min ?? REDIS_DEFAULTS.MIN_SCORE, max ?? REDIS_DEFAULTS.MAX_SCORE);
+  }
+
   async disconnect (): Promise<void> {
     await this.client.quit();
   }
 
-  private isSentinelConfig = ({ config }: RedisConfigRefDto): boolean => 'sentinels' in config;
   private serialize = ({ value }: SerializeDto): string => JSON.stringify(value);
   private deserialize = <T>({ raw }: DeserializeDto): T => JSON.parse(raw) as T;
-
-  private createClient ({ config }: RedisConfigRefDto): Redis {
-    if (this.isSentinelConfig({ config })) {
-      const sentinel = config as RedisSentinelConfig;
-
-      return new Redis({
-        sentinels: [...sentinel.sentinels],
-        name: sentinel.name ?? REDIS_DEFAULTS.SENTINEL_MASTER_NAME,
-        ...(sentinel.password != null && { password: sentinel.password }),
-        ...(sentinel.db != null && { db: sentinel.db })
-      });
-    }
-
-    return new Redis({
-      host: config.host,
-      port: config.port,
-      ...(config.password != null && { password: config.password }),
-      ...(config.db != null && { db: config.db })
-    });
-  }
 }

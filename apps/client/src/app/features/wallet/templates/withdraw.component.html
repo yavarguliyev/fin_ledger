@@ -1,8 +1,5 @@
 <div class="max-w-xl mx-auto space-y-6">
-  <app-page-header 
-    title="Withdraw Funds" 
-    [subtitle]="'Available: ' + (available() | currencyFormat: currency())" 
-  />
+  <app-page-header title="Withdraw Funds" [subtitle]="'Available: ' + (available() | currencyFormat: currency())" />
 
   <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
     @if (!success()) {
@@ -35,9 +32,7 @@
         <div>
           <div class="flex items-center justify-between mb-2">
             <label class="block text-sm font-medium text-ink-700 dark:text-ink-200">Withdrawal Destination</label>
-            <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-              + Manage methods
-            </a>
+            <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1"> + Manage methods </a>
           </div>
 
           @if (loadingMethods()) {
@@ -47,7 +42,9 @@
           } @else if (verifiedMethods().length === 0) {
             <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-4 text-center space-y-2">
               <p class="text-sm font-medium text-ink-800 dark:text-ink-100">No verified payment methods found</p>
-              <p class="text-xs text-ink-500 dark:text-ink-400">Add and verify your bank account or debit card in your profile to enable withdrawals.</p>
+              <p class="text-xs text-ink-500 dark:text-ink-400">
+                Add and verify your bank account or debit card in your profile to enable withdrawals.
+              </p>
               <a
                 routerLink="/profile"
                 class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors mt-1"
@@ -68,14 +65,26 @@
                   class="cursor-pointer border rounded-xl p-3.5 flex items-center justify-between transition-all hover:border-primary/60"
                 >
                   <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-ink-200 font-bold">
+                    <div
+                      class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-ink-200 font-bold"
+                    >
                       @if (method.type === 'BANK_ACCOUNT') {
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          />
                         </svg>
                       } @else {
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                          />
                         </svg>
                       }
                     </div>
@@ -90,7 +99,9 @@
                     </div>
                   </div>
                   <div class="flex items-center gap-2">
-                    <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                    <span
+                      class="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                    >
                       Verified
                     </span>
                     <div
@@ -133,7 +144,15 @@
       <div class="text-center py-6 animate-scaleIn">
         <svg viewBox="0 0 52 52" class="w-16 h-16 mx-auto mb-4">
           <circle cx="26" cy="26" r="25" fill="none" stroke="#10B981" stroke-width="2" />
-          <path fill="none" stroke="#10B981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M14.1 27.2l7.1 7.2 16.7-16.8" class="animate-drawCheck" />
+          <path
+            fill="none"
+            stroke="#10B981"
+            stroke-width="4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M14.1 27.2l7.1 7.2 16.7-16.8"
+            class="animate-drawCheck"
+          />
         </svg>
         <h3 class="text-lg font-bold text-ink-900 dark:text-white">Withdrawal Initiated!</h3>
         <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ amountMinor() | currencyFormat: currency() }} is on its way</p>

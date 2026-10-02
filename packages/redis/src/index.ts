@@ -1,4 +1,8 @@
 export * from './modules/dtos/cache/cache-key.dto';
+export * from './modules/dtos/cache/cache-keys.dto';
+export * from './modules/dtos/cache/sorted-set-add.dto';
+export * from './modules/dtos/cache/sorted-set-member.dto';
+export * from './modules/dtos/cache/sorted-set-range.dto';
 export * from './modules/dtos/cache/cache-pattern.dto';
 export * from './modules/dtos/cache/cache-set-if-not-exists.dto';
 export * from './modules/dtos/cache/cache-set.dto';
@@ -23,6 +27,7 @@ export * from './modules/decorators/cache-evict.decorator';
 export * from './modules/decorators/cacheable.decorator';
 
 export * from './modules/helpers/cache.helper';
+export * from './modules/helpers/redis-client.helper';
 
 export * from './modules/interfaces/cache-provider.interface';
 export * from './modules/interfaces/get-cached-key.interface';
