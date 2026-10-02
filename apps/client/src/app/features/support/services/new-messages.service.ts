@@ -10,10 +10,12 @@ export class NewMessagesService {
   private readonly markerSignal = signal<string | null>(null);
   private readonly atBottomSignal = signal(true);
   private readonly seenTailSignal = signal<string | null>(null);
+  private readonly ownTailSignal = signal<string | null>(null);
   private openedUnread = 0;
   private tailId: string | null = null;
 
   readonly markerId = this.markerSignal.asReadonly();
+  readonly ownTail = this.ownTailSignal.asReadonly();
   readonly showJump = computed(() => !this.atBottomSignal() && this.chat.messages().length > 0);
   readonly unseen = computed(() =>
     NewMessagesHelper.countIncomingAfter({ messages: this.chat.messages(), afterId: this.seenTailSignal(), myUserId: this.chat.myUserId() })
@@ -39,6 +41,7 @@ export class NewMessagesService {
   private reset (): void {
     this.markerSignal.set(null);
     this.seenTailSignal.set(null);
+    this.ownTailSignal.set(null);
     this.atBottomSignal.set(true);
     this.openedUnread = this.chat.activeConversation()?.unreadCount ?? 0;
     this.tailId = null;
@@ -47,6 +50,9 @@ export class NewMessagesService {
   private track ({ messages }: TrackMessagesDto): void {
     const tail = messages.at(-1)?.id ?? null;
     if (!tail || tail === this.tailId) return;
+
+    const own = NewMessagesHelper.ownNewTail({ messages, previousTail: this.tailId, myUserId: this.chat.myUserId() });
+    if (own) this.ownTailSignal.set(own);
 
     if (!this.tailId) this.markerSignal.set(NewMessagesHelper.markerAfterOpen({ messages, unread: this.openedUnread }));
     else if (!this.atBottomSignal() && !this.markerSignal()) {

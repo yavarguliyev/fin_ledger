@@ -34,3 +34,20 @@ describe('NewMessagesHelper incoming messages', () => {
     expect(NewMessagesHelper.countIncomingAfter({ messages, afterId: null, myUserId: T.ME })).toBe(0);
   });
 });
+
+describe('NewMessagesHelper.ownNewTail', () => {
+  it('asks for a jump to the bottom when my own message lands at the end', () => {
+    const sent = [...messages, message(T.MISSING, T.ME)];
+
+    expect(NewMessagesHelper.ownNewTail({ messages: sent, previousTail: T.FOURTH, myUserId: T.ME })).toBe(T.MISSING);
+  });
+
+  it('leaves the reader in place for a message from the other side, or on the first load', () => {
+    expect(NewMessagesHelper.ownNewTail({ messages, previousTail: T.THIRD, myUserId: T.ME })).toBeNull();
+    expect(NewMessagesHelper.ownNewTail({ messages, previousTail: null, myUserId: T.ME })).toBeNull();
+  });
+
+  it('does nothing when no new message arrived', () => {
+    expect(NewMessagesHelper.ownNewTail({ messages, previousTail: T.FOURTH, myUserId: T.ME })).toBeNull();
+  });
+});

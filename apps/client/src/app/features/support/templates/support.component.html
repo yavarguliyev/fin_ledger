@@ -114,6 +114,7 @@
         [canLoadMore]="history.canLoadMore()"
         [loadingOlder]="history.loadingOlder()"
         (reachedTop)="history.loadOlder()"
+        [followTo]="newMessages.ownTail()"
         (atBottomChange)="newMessages.setAtBottom($event)"
       >
         @if (chat.loading()) {

@@ -1,4 +1,4 @@
-import { Directive, ElementRef, OnDestroy, OnInit, effect, inject, input, output } from '@angular/core';
+import { Directive, ElementRef, OnDestroy, OnInit, effect, inject, input, output, untracked } from '@angular/core';
 
 import { CHAT_SCROLL } from '../constants/chat-scroll.constant';
 import { ScrollAnchor } from '../interfaces/scroll-anchor.interface';
@@ -19,6 +19,7 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
   readonly conversationId = input<string | null>(null, { alias: 'appChatScroll' });
   readonly canLoadMore = input(false);
   readonly loadingOlder = input(false);
+  readonly followTo = input<string | null>(null);
   readonly reachedTop = output<void>();
   readonly atBottomChange = output<boolean>();
 
@@ -27,6 +28,11 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
       this.conversationId();
       this.stick(true);
       this.anchor = null;
+    });
+
+    effect(() => {
+      if (!this.followTo()) return;
+      untracked(() => requestAnimationFrame(() => this.jumpToLatest()));
     });
 
     effect(() => {
