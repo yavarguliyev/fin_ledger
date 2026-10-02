@@ -33,7 +33,7 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     this.intervalHandle = null;
   }
 
-  async publishPendingEvents (): Promise<void> {
+  async publishPendingEvents (): Promise<number> {
     const events = await this.outboxRepository.claimPendingBatch({
       limit: RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key,
       lockedBy: this.relayId,
@@ -49,6 +49,8 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
         destination: event.destination
       });
     }
+
+    return events.length;
   }
 
   async publishEvent ({ eventId, eventType, payload, attempts, destination }: PublishOutboxEventDto): Promise<void> {
@@ -73,7 +75,8 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     this.isPolling = true;
 
     try {
-      await this.publishPendingEvents();
+      let published = await this.publishPendingEvents();
+      while (!this.stopped && published >= RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key) published = await this.publishPendingEvents();
     } catch (error) {
       this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
     } finally {
