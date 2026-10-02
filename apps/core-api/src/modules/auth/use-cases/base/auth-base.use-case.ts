@@ -4,6 +4,7 @@ import { EmailTemplateType, OutboxDestination, OutboxRepository, RefreshService,
 
 import { PublishUserEmailDto } from '../../../email/dtos/step/publish-user-email.dto';
 import { RecordEmailEventDto } from '../../../email/dtos/step/record-email-event.dto';
+import { EmailLinkHelper } from '../../../email/helpers/email-link.helper';
 import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 export abstract class AuthBaseUseCase<TInput, TOutput> {
@@ -51,7 +52,7 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
       aggregateType: 'User',
       aggregateId: userId,
       eventType,
-      payload: { ...eventPayload },
+      payload: EmailLinkHelper.seal({ payload: eventPayload, key: EmailLinkHelper.keyFrom({ configService: this.configService }) }),
       destination: OutboxDestination.KAFKA,
       ...(adapter && { adapter })
     });

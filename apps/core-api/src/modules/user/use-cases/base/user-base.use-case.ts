@@ -4,6 +4,7 @@ import { EmailTemplateType, OutboxDestination, OutboxRepository, SendEmailDto, S
 
 import { PublishUserEmailDto } from '../../../email/dtos/step/publish-user-email.dto';
 import { RecordEmailEventDto } from '../../../email/dtos/step/record-email-event.dto';
+import { EmailLinkHelper } from '../../../email/helpers/email-link.helper';
 
 import { UserRepository } from '../../repositories/user.repository';
 import { UserStorageHelper } from '../../helpers/user-storage.helper';
@@ -38,7 +39,7 @@ export abstract class UserBaseCase<TInput, TOutput> {
       aggregateType: 'User',
       aggregateId: userId,
       eventType,
-      payload: { ...eventPayload },
+      payload: EmailLinkHelper.seal({ payload: eventPayload, key: EmailLinkHelper.keyFrom({ configService: this.configService }) }),
       destination: OutboxDestination.KAFKA,
       ...(adapter && { adapter })
     });
@@ -49,7 +50,7 @@ export abstract class UserBaseCase<TInput, TOutput> {
       aggregateType: 'User',
       aggregateId: userId,
       eventType: EmailTemplateType.EMAIL_VERIFICATION,
-      payload: { ...eventPayload },
+      payload: EmailLinkHelper.seal({ payload: eventPayload, key: EmailLinkHelper.keyFrom({ configService: this.configService }) }),
       destination: OutboxDestination.KAFKA,
       ...(adapter && { adapter })
     });

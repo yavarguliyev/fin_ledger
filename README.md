@@ -664,6 +664,9 @@ DB_WORKER_PASSWORD=worker_password
 MFA_ENCRYPTION_KEY=
 MFA_ISSUER=Wallet
 
+# E-mail links are encrypted in the outbox and Kafka. 32 random bytes, base64 (openssl rand -base64 32)
+EMAIL_LINK_ENCRYPTION_KEY=
+
 # Passkeys. Both default from FRONTEND_URL, so local development needs neither
 PASSKEY_RP_NAME=Wallet
 PASSKEY_RP_ID=localhost

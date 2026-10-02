@@ -28,7 +28,7 @@ export class IntegrationStackHelper {
   private static readonly APP_WORKER_USERNAME = 'app_worker';
   private static readonly RABBITMQ_HTTP_PORT = 15_672;
 
-  static async start(): Promise<IntegrationStack> {
+  static async start (): Promise<IntegrationStack> {
     const [kafkaPort, apiPort] = await Promise.all([IntegrationStackHelper.freePort(), IntegrationStackHelper.freePort()]);
     const redisPassword = CryptoHelper.randomToken({ bytes: 12 });
 
@@ -70,6 +70,7 @@ export class IntegrationStackHelper {
     const redisPort = redis.getPort();
     const workDir = mkdtempSync(path.join(tmpdir(), 'core-api-integration-'));
 
+    const emailLinkKey = CryptoHelper.randomBytes({ bytes: 32 }).toString('base64');
     const env: NodeJS.ProcessEnv = {
       PATH: process.env['PATH'],
       NODE_ENV: 'development',
@@ -118,6 +119,7 @@ export class IntegrationStackHelper {
       PAYMENT_RECONCILE_STALE_AFTER_MS: '30000',
       TRUST_PROXY: '1',
       MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64'),
+      EMAIL_LINK_ENCRYPTION_KEY: emailLinkKey,
       MFA_ISSUER: 'Integration Wallet',
       REFRESH_GRACE_MS: '800',
       PASSKEY_RP_ID: TEST_ORIGINS.RP_ID,
@@ -147,12 +149,13 @@ export class IntegrationStackHelper {
     process.env[TEST_ENV_KEYS.RABBITMQ_MANAGEMENT_URL] =
       `http://${rabbitmq.getHost()}:${rabbitmq.getMappedPort(IntegrationStackHelper.RABBITMQ_HTTP_PORT)}`;
 
+    process.env[TEST_ENV_KEYS.EMAIL_LINK_KEY] = emailLinkKey;
     process.env[TEST_ENV_KEYS.REDIS_URL] = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
 
     return { api, containers: [postgres, redis, rabbitmq, kafka], workDir };
   }
 
-  static async stop({ api, containers, workDir }: IntegrationStack): Promise<void> {
+  static async stop ({ api, containers, workDir }: IntegrationStack): Promise<void> {
     if (api.exitCode === null) {
       api.kill('SIGTERM');
       await Promise.race([once(api, 'exit'), sleep(15_000)]);
@@ -162,7 +165,7 @@ export class IntegrationStackHelper {
     rmSync(workDir, { recursive: true, force: true });
   }
 
-  private static async startKafka({ port }: PortRef): Promise<StartedTestContainer> {
+  private static async startKafka ({ port }: PortRef): Promise<StartedTestContainer> {
     return new GenericContainer(TEST_IMAGES.KAFKA)
       .withEnvironment({
         KAFKA_NODE_ID: '1',
@@ -182,7 +185,7 @@ export class IntegrationStackHelper {
       .start();
   }
 
-  private static async waitForApi({ url, api, logs }: WaitForApi): Promise<void> {
+  private static async waitForApi ({ url, api, logs }: WaitForApi): Promise<void> {
     const deadline = Date.now() + IntegrationStackHelper.READY_TIMEOUT_MS;
 
     while (Date.now() < deadline) {
@@ -201,7 +204,7 @@ export class IntegrationStackHelper {
     throw new Error(`core-api did not become ready in time:\n${logs.join('')}`);
   }
 
-  private static async freePort(): Promise<number> {
+  private static async freePort (): Promise<number> {
     const server = createServer();
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
