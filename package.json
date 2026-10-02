@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "packageManager": "npm@10.9.2",
-  "workspaces": [
-    "packages/*",
-    "apps/core-api",
-    "apps/client"
-  ],
+  "workspaces": ["packages/*", "apps/core-api", "apps/client"],
   "scripts": {
     "install:all": "npm install",
     "install:deps": "npm install",
@@ -29,8 +25,8 @@
     "lint": "turbo run lint",
     "lint:fix": "eslint \"**/src/**/*.ts\" --fix",
     "typecheck": "turbo run typecheck",
-    "format": "prettier --write \"**/*.{ts,json,mjs,js}\"",
-    "format:check": "prettier --check \"**/*.{ts,json,mjs,js}\"",
+    "format": "prettier --write \"**/*.{json,mjs,js}\" && npm run lint:fix",
+    "format:check": "prettier --check \"**/*.{json,mjs,js}\" && turbo run lint",
     "migrate:up": "node-pg-migrate up --migrations-dir apps/core-api/migrations",
     "migrate:down": "node-pg-migrate down --migrations-dir apps/core-api/migrations",
     "migrate:create": "node-pg-migrate create --migrations-dir apps/core-api/migrations",

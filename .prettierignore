@@ -4,3 +4,7 @@ coverage
 .angular
 .turbo
 *.md
+*.ts
+*.mts
+*.cts
+package-lock.json
