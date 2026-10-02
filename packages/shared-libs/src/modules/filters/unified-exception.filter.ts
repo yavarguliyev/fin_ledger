@@ -9,10 +9,9 @@ import { ExposedHttpErrorRecord } from '../interfaces/exposed-http-error-record.
 import { MapExceptionRecord } from '../interfaces/map-exception-record.interface';
 import { JWT_ERROR_NAMES } from '../constants/auth/jwt-error-names.constant';
 import { ERROR_RESPONSES } from '../constants/errors/error-responses.constant';
-import { EXCEPTION_LOG_DEFAULTS } from '../constants/errors/exception-log-defaults.constant';
 import { HTTP_STATUS_RANGES } from '../constants/errors/http-status-ranges.constant';
-import { BaseHelper } from '../helpers/base.helper';
 import { CryptoHelper } from '../helpers/crypto.helper';
+import { ExceptionLogHelper } from '../helpers/exception-log.helper';
 import { MapExceptionDto } from '../dtos/filter/map-exception.dto';
 import { LogExceptionDto } from '../dtos/filter/log-exception.dto';
 import { ExceptionRefDto } from '../dtos/filter/exception-ref.dto';
@@ -46,10 +45,6 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
     return isClientError ? { message: exception.message, status: exception.status } : null;
   }
 
-  private isWarning ({ exception }: ExceptionRefDto): boolean {
-    return this.resolveStatus({ exception }) < HTTP_STATUS_RANGES.SERVER_ERROR_MIN;
-  }
-
   private clientMessage ({ status, message }: ClientMessageDto): string {
     if (status < HTTP_STATUS_RANGES.SERVER_ERROR_MIN) return message;
     return status === HTTP_STATUS_RANGES.UNAVAILABLE ? ERROR_RESPONSES.UNAVAILABLE_MESSAGE : ERROR_RESPONSES.INTERNAL.MESSAGE;
@@ -65,22 +60,9 @@ export class UnifiedExceptionFilter implements ExceptionFilter {
   }
 
   private logException ({ exception, correlationId, request }: LogExceptionDto): void {
-    const error = BaseHelper.errorResponse({ error: exception });
-    const method = request.method || EXCEPTION_LOG_DEFAULTS.METHOD;
-    const url = request.url || EXCEPTION_LOG_DEFAULTS.URL;
-    const exceptionType = exception?.constructor?.name || EXCEPTION_LOG_DEFAULTS.TYPE;
-    const cause =
-      exception instanceof Error && exception.cause !== undefined ? BaseHelper.errorResponse({ error: exception.cause }).message : undefined;
-    const message = `[${method}] ${url} - ${exceptionType}: ${error.message}`;
-    const logContext = JSON.stringify({ correlationId, method, url, type: exceptionType, message: error.message, ...(cause && { cause }) });
-
-    if (this.isWarning({ exception })) {
-      this.logger.warn(message, logContext);
-      return;
-    }
-
-    this.logger.error(message, exception instanceof Error ? exception.stack || '' : '', logContext);
+    ExceptionLogHelper.write({ logger: this.logger, exception, correlationId, request, status: this.resolveStatus({ exception }) });
   }
+
 
   private mapHttpException ({ exception, correlationId }: MapHttpExceptionDto): MapExceptionRecord {
     const status = exception.getStatus();

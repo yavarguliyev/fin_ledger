@@ -20,6 +20,7 @@ import { LastSeenResponseDto } from './dtos/response/last-seen-response.dto';
 import { PresenceEntryDto } from './dtos/presence/presence-entry.dto';
 import { OkResponseDto } from './dtos/response/ok-response.dto';
 import { StreamTicketResponseDto } from './dtos/response/stream-ticket-response.dto';
+import { PresenceCountDto } from './dtos/presence/presence-count.dto';
 
 @ApiTags(SHARED_CONSTANTS.SUPPORT.key)
 @Controller({ path: ENVIRONMENT_CONSTANTS.RESOURCES.SUPPORT, version: ENVIRONMENT_CONSTANTS.VERSION.V1 })
@@ -70,6 +71,12 @@ export class SupportController {
   @Get('contacts')
   async listContacts (@Req() req: RequestContext): Promise<PresenceEntryDto[]> {
     return this.supportService.listContacts({ actorId: req.user.userId, role: req.user.role ?? '' });
+  }
+
+  @UseGuards(SessionGuard)
+  @Get('presence/count')
+  async countPresence (@Req() req: RequestContext): Promise<PresenceCountDto> {
+    return this.supportService.countPresence({ actorId: req.user.userId, role: req.user.role ?? '' });
   }
 
   @UseGuards(SessionGuard)

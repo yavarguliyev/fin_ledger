@@ -2,6 +2,7 @@ import { MaybePresenceDto } from '../../interfaces/support/maybe-presence.interf
 import { MergePresenceDto } from '../../interfaces/support/merge-presence.interface';
 import { PresenceEntry } from '../../types/support/presence-entry.type';
 import { SUPPORT } from '../../constants/support/support.constant';
+import { PresenceTotalDto } from '../../interfaces/support/presence-total.interface';
 
 export class PresenceHelper {
   static isOnline ({ presence }: MaybePresenceDto): boolean {
@@ -19,5 +20,9 @@ export class PresenceHelper {
   static upsertOnline ({ current, presence }: MergePresenceDto): PresenceEntry[] {
     const others = current.filter(entry => entry.userId !== presence.userId);
     return presence.state === SUPPORT.ONLINE_STATE ? [...others, presence] : others;
+  }
+
+  static displayTotal ({ listed, counted }: PresenceTotalDto): number {
+    return listed < SUPPORT.PRESENCE_PAGE_SIZE ? listed : Math.max(listed, counted);
   }
 }

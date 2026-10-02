@@ -35,3 +35,8 @@ export * from './modules/services/outbox-publisher.service';
 export * from './modules/services/rabbitmq.service';
 
 export * from './modules/rabbitmq.module';
+export * from './modules/constants/outbox/outbox-settings.constant';
+export * from './modules/dtos/outbox/outbox-settings.dto';
+export * from './modules/dtos/outbox/outbox-settings-source.dto';
+export * from './modules/helpers/outbox-settings.helper';
+export * from './modules/dtos/outbox/outbox-setting-read.dto';

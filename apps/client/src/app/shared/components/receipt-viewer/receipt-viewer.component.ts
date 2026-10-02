@@ -9,8 +9,7 @@ import { ModalComponent } from '../modal/modal.component';
   selector: 'app-receipt-viewer',
   standalone: true,
   imports: [ModalComponent],
-  templateUrl: './receipt-viewer.component.html',
-  host: { '(document:keydown.escape)': 'onEscape()' }
+  templateUrl: './receipt-viewer.component.html'
 })
 export class ReceiptViewerComponent {
   private readonly sanitizer = inject(DomSanitizer);
@@ -21,8 +20,4 @@ export class ReceiptViewerComponent {
     const url = this.store.url();
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(`${url}${RECEIPT.VIEWER_FRAGMENT}`) : null;
   });
-
-  onEscape (): void {
-    if (this.store.isOpen()) this.store.close();
-  }
 }

@@ -41,4 +41,9 @@ describe('PresenceHelper', () => {
       state: PRESENCE_TEST.OFFLINE
     });
   });
+
+  it('shows the live list length below the cap and the server count once the list is capped', () => {
+    expect(PresenceHelper.displayTotal({ listed: PRESENCE_TEST.FEW, counted: PRESENCE_TEST.STALE_COUNT })).toBe(PRESENCE_TEST.FEW);
+    expect(PresenceHelper.displayTotal({ listed: PRESENCE_TEST.CAP, counted: PRESENCE_TEST.MANY })).toBe(PRESENCE_TEST.MANY);
+  });
 });

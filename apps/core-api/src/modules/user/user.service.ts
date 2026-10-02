@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FileUrlsResponse, UploadFileResponse } from '@common/libs';
+import { FileUrlsResponse } from '@common/libs';
 
 import { GetCurrentUserUseCase } from './use-cases/queries/get-current-user.use-case';
 import { UpdateUserUseCase } from './use-cases/commands/update-user.use-case';
@@ -31,6 +31,7 @@ import { SelfExclusionResponseDto } from './dtos/response/self-exclusion-respons
 import { SetDepositLimitDto } from './dtos/deposit-limits/set-deposit-limit.dto';
 import { DepositLimitResponseDto } from './dtos/deposit-limits/deposit-limit-response.dto';
 import { DepositLimitViewDto } from './dtos/deposit-limits/deposit-limit-view.dto';
+import { UploadImagesResponseDto } from './dtos/storage/upload-images-response.dto';
 
 @Injectable()
 export class UserService {
@@ -75,7 +76,7 @@ export class UserService {
     return this.getDepositLimitsUseCase.execute(dto);
   }
 
-  async uploadFiles (dto: UploadFilesDto): Promise<UploadFileResponse> {
+  async uploadFiles (dto: UploadFilesDto): Promise<UploadImagesResponseDto> {
     return this.uploadFilesUseCase.execute(dto);
   }
 

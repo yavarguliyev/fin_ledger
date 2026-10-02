@@ -5,6 +5,8 @@ export const SUPPORT = {
   MESSAGES_PATH: '/messages',
   READ_PATH: '/read',
   PRESENCE_PATH: '/presence',
+  PRESENCE_COUNT_PATH: '/presence/count',
+  PRESENCE_PAGE_SIZE: 100,
   HEARTBEAT_PATH: '/presence/heartbeat',
   LEAVE_PATH: '/presence/leave',
   LAST_SEEN_PATH: '/presence/last-seen',

@@ -33,7 +33,7 @@ scrape_configs:
           service: 'clickhouse'
     metrics_path: '/metrics'
 
-  # Node.js API metrics (when you add prometheus client)
+  # Node.js API metrics: served at the server root (/metrics, outside the /api prefix) on the API port
   - job_name: 'nestjs-api'
     static_configs:
       - targets: ['host.docker.internal:3000']

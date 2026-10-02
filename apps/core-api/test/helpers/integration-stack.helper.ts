@@ -20,6 +20,9 @@ import { PortRef } from '../interfaces/port-ref.interface';
 import { WaitForApi } from '../interfaces/wait-for-api.interface';
 
 export class IntegrationStackHelper {
+  private static readonly MINIO_PORT = 9000;
+  private static readonly MINIO_USER = 'integration';
+  private static readonly MINIO_PASSWORD = 'integration-secret';
   private static readonly APP_DIR = path.resolve(__dirname, '../..');
   private static readonly REPO_ROOT = path.resolve(IntegrationStackHelper.APP_DIR, '../..');
   private static readonly JWT_ISSUER = 'core-api-integration';
@@ -32,12 +35,14 @@ export class IntegrationStackHelper {
     const [kafkaPort, apiPort] = await Promise.all([IntegrationStackHelper.freePort(), IntegrationStackHelper.freePort()]);
     const redisPassword = CryptoHelper.randomToken({ bytes: 12 });
 
-    const [postgres, redis, rabbitmq, kafka] = await Promise.all([
+    const [postgres, redis, rabbitmq, kafka, minio] = await Promise.all([
       new PostgreSqlContainer(TEST_IMAGES.POSTGRES).withDatabase('core_api_test').start(),
       new RedisContainer(TEST_IMAGES.REDIS).withPassword(redisPassword).start(),
       new RabbitMQContainer(TEST_IMAGES.RABBITMQ).start(),
-      IntegrationStackHelper.startKafka({ port: kafkaPort })
+      IntegrationStackHelper.startKafka({ port: kafkaPort }),
+      IntegrationStackHelper.startMinio()
     ]);
+    const storageEndpoint = `http://${minio.getHost()}:${minio.getMappedPort(IntegrationStackHelper.MINIO_PORT)}`;
 
     const databaseUrl = postgres.getConnectionUri();
     execFileSync(
@@ -104,13 +109,14 @@ export class IntegrationStackHelper {
       KAFKA_BROKER_PORT: String(kafkaPort),
       KAFKA_CONSUMER_GROUP_ID: 'core-api-integration',
       STORAGE_STRATEGY: 's3',
-      STORAGE_ENDPOINT: 'http://127.0.0.1:1',
-      STORAGE_ACCESS_KEY: 'integration',
-      STORAGE_SECRET_KEY: 'integration',
+      STORAGE_ENDPOINT: storageEndpoint,
+      STORAGE_PUBLIC_ENDPOINT: storageEndpoint,
+      STORAGE_ACCESS_KEY: IntegrationStackHelper.MINIO_USER,
+      STORAGE_SECRET_KEY: IntegrationStackHelper.MINIO_PASSWORD,
       STORAGE_BUCKET_NAME: 'integration',
       STORAGE_REGION: 'us-east-1',
       STORAGE_FORCE_PATH_STYLE: 'true',
-      STORAGE_ENSURE_BUCKET: 'false',
+      STORAGE_ENSURE_BUCKET: 'true',
       PAYMENT_SIMULATION: 'true',
       WEBHOOK_REPLAY_INTERVAL_MS: '500',
       WEBHOOK_REPLAY_STALE_AFTER_MS: '5000',
@@ -152,7 +158,7 @@ export class IntegrationStackHelper {
     process.env[TEST_ENV_KEYS.EMAIL_LINK_KEY] = emailLinkKey;
     process.env[TEST_ENV_KEYS.REDIS_URL] = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
 
-    return { api, containers: [postgres, redis, rabbitmq, kafka], workDir };
+    return { api, containers: [postgres, redis, rabbitmq, kafka, minio], workDir };
   }
 
   static async stop ({ api, containers, workDir }: IntegrationStack): Promise<void> {
@@ -163,6 +169,15 @@ export class IntegrationStackHelper {
 
     await Promise.all(containers.map(container => container.stop()));
     rmSync(workDir, { recursive: true, force: true });
+  }
+
+  private static async startMinio (): Promise<StartedTestContainer> {
+    return new GenericContainer(TEST_IMAGES.MINIO)
+      .withEnvironment({ MINIO_ROOT_USER: IntegrationStackHelper.MINIO_USER, MINIO_ROOT_PASSWORD: IntegrationStackHelper.MINIO_PASSWORD })
+      .withCommand(['server', '/data'])
+      .withExposedPorts(IntegrationStackHelper.MINIO_PORT)
+      .withWaitStrategy(Wait.forHttp('/minio/health/live', IntegrationStackHelper.MINIO_PORT))
+      .start();
   }
 
   private static async startKafka ({ port }: PortRef): Promise<StartedTestContainer> {

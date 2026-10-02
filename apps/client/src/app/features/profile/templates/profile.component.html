@@ -55,7 +55,7 @@
     @if (imageService.hasImages()) {
       <div class="mb-5">
         <h3 class="text-sm font-medium text-ink-700 dark:text-ink-200 mb-3">Image Gallery</h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           @for (image of visibleImages(); track image.index) {
             <div class="relative group">
               <img

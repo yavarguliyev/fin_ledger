@@ -178,6 +178,8 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     networks:
       - ddd_mesh
     healthcheck:

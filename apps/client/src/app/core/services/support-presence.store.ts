@@ -14,9 +14,11 @@ export class SupportPresenceStore {
   private readonly entriesSignal = signal<PresenceEntry[]>([]);
   private readonly contactsSignal = signal<PresenceEntry[]>([]);
   private readonly lastSeenSignal = signal<Record<string, PresenceEntry>>({});
+  private readonly countSignal = signal(0);
 
   readonly entries = computed(() => this.entriesSignal());
   readonly contacts = computed(() => this.contactsSignal());
+  readonly total = computed(() => PresenceHelper.displayTotal({ listed: this.entriesSignal().length, counted: this.countSignal() }));
 
   heartbeat (): void {
     this.api.heartbeat().subscribe({ error: () => undefined });
@@ -26,10 +28,12 @@ export class SupportPresenceStore {
     this.entriesSignal.set([]);
     this.contactsSignal.set([]);
     this.lastSeenSignal.set({});
+    this.countSignal.set(0);
   }
 
   load (): void {
     this.api.listPresence().subscribe({ next: entries => this.entriesSignal.set(entries), error: () => undefined });
+    this.api.countPresence().subscribe({ next: ({ total }) => this.countSignal.set(total), error: () => undefined });
   }
 
   loadContacts (): void {

@@ -8,6 +8,7 @@ import { PaymentMethod } from '../../../core/types/payment-method/payment-method
 import { AddPaymentMethodModalComponent } from './add-payment-method-modal.component';
 import { PaymentMethodHelper } from './helpers/payment-method.helper';
 import { PAYMENT_PROVIDERS } from '../../../core/constants/payment/payment-providers.constant';
+import { PAYMENT_METHOD_LABELS } from '../../../core/constants/payment/payment-method-labels.constant';
 
 @Component({
   selector: 'app-payment-methods',
@@ -67,13 +68,17 @@ export class PaymentMethodsComponent implements OnInit {
     });
   }
 
-  removeMethod (id: string): void {
+  confirmRemove (method: PaymentMethod): void {
+    this.toast.confirm({ message: PaymentMethodHelper.removalPrompt({ method }), onConfirm: () => this.removeMethod(method.id) });
+  }
+
+  private removeMethod (id: string): void {
     this.paymentMethodService.remove(id).subscribe({
       next: () => {
-        this.toast.success('Payment method removed');
+        this.toast.success(PAYMENT_METHOD_LABELS.REMOVED);
         this.loadMethods();
       },
-      error: (err: Error) => this.toast.error(err.message || 'Failed to remove')
+      error: (err: Error) => this.toast.error(err.message || PAYMENT_METHOD_LABELS.REMOVE_FAILED)
     });
   }
 

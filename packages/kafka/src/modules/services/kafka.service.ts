@@ -1,11 +1,12 @@
 import { Inject, Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Producer, logLevel } from 'kafkajs';
-import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_TOPICS } from '@common/shared-libs';
+import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_RETENTION, KAFKA_TOPICS } from '@common/shared-libs';
 
 import { KafkaPublishDto } from '../dtos/service/kafka-publish.dto';
 import { KafkaSendDto } from '../dtos/service/kafka-send.dto';
 import { KafkaHelper } from '../helpers/kafka.helper';
+import { TopicRetentionHelper } from '../helpers/topic-retention.helper';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
@@ -40,6 +41,12 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
     await this.producer.connect();
     await KafkaHelper.ensureKafkaTopicsExist({ kafka, topics: KAFKA_TOPICS, logger: this.logger });
+    await TopicRetentionHelper.apply({
+      kafka,
+      topics: KAFKA_RETENTION.SHORT_RETENTION_TOPICS,
+      retentionMs: KAFKA_RETENTION.SHORT_RETENTION_MS,
+      logger: this.logger
+    });
 
     this.logger.log(`Kafka producer initialized for ${this.clientId}`);
   }

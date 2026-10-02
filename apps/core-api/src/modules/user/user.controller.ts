@@ -8,7 +8,6 @@ import {
   IMAGE_UPLOAD_LIMITS,
   UploadFile,
   FileUrlsResponse,
-  UploadFileResponse,
   Roles,
   UserRoles,
   RolesGuard,
@@ -25,6 +24,7 @@ import { SelfExclusionResponseDto } from './dtos/response/self-exclusion-respons
 import { SetDepositLimitRequestDto, SetDepositLimitRequestSchema } from './dtos/deposit-limits/set-deposit-limit-request.dto';
 import { DepositLimitResponseDto } from './dtos/deposit-limits/deposit-limit-response.dto';
 import { DepositLimitViewDto } from './dtos/deposit-limits/deposit-limit-view.dto';
+import { UploadImagesResponseDto } from './dtos/storage/upload-images-response.dto';
 
 @ApiTags(SHARED_CONSTANTS.USER.key)
 @ApiBearerAuth('bearer')
@@ -74,7 +74,7 @@ export class UserController {
       limits: { fileSize: IMAGE_UPLOAD_LIMITS.MAX_FILE_SIZE_BYTES, files: IMAGE_UPLOAD_LIMITS.MAX_FILES }
     })
   )
-  async uploadFiles (@Req() req: RequestContext, @UploadedFiles() files: UploadFile[]): Promise<UploadFileResponse> {
+  async uploadFiles (@Req() req: RequestContext, @UploadedFiles() files: UploadFile[]): Promise<UploadImagesResponseDto> {
     return this.userService.uploadFiles({ userId: req.user.userId, files });
   }
 

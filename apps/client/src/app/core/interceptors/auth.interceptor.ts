@@ -45,7 +45,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return refreshService.refresh().pipe(
         switchMap(session => {
           if (!session) {
-            authService.logout();
+            authService.expire();
             return throwError(() => error);
           }
 

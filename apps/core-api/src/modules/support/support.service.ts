@@ -35,6 +35,8 @@ import { EditMessageDto } from './dtos/input/edit-message.dto';
 import { EditMessageUseCase } from './use-cases/commands/message/edit-message.use-case';
 import { DeleteMessageDto } from './dtos/input/delete-message.dto';
 import { DeleteMessageUseCase } from './use-cases/commands/message/delete-message.use-case';
+import { CountPresenceUseCase } from './use-cases/queries/presence/count-presence.use-case';
+import { PresenceCountDto } from './dtos/presence/presence-count.dto';
 
 @Injectable()
 export class SupportService {
@@ -46,6 +48,7 @@ export class SupportService {
     private readonly markReadUseCase: MarkConversationReadUseCase,
     private readonly heartbeatUseCase: HeartbeatUseCase,
     private readonly listPresenceUseCase: ListPresenceUseCase,
+    private readonly countPresenceUseCase: CountPresenceUseCase,
     private readonly leavePresenceUseCase: LeavePresenceUseCase,
     private readonly lastSeenUseCase: LastSeenUseCase,
     private readonly issueStreamTicketUseCase: IssueSupportStreamTicketUseCase,
@@ -94,6 +97,10 @@ export class SupportService {
 
   async listPresence (dto: ListPresenceDto): Promise<PresenceEntryDto[]> {
     return this.listPresenceUseCase.execute(dto);
+  }
+
+  async countPresence (dto: ListPresenceDto): Promise<PresenceCountDto> {
+    return this.countPresenceUseCase.execute(dto);
   }
 
   async listContacts (dto: ListPresenceDto): Promise<PresenceEntryDto[]> {

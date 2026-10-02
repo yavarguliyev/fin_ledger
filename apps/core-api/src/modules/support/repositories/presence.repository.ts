@@ -31,6 +31,10 @@ export class PresenceRepository {
     return stored.filter((entry): entry is StoredPresenceDto => !!entry).map(entry => PresenceHelper.toEntry({ entry }));
   }
 
+  async count ({ staffOnly }: PresenceScopeDto): Promise<number> {
+    return this.cache.countSortedSet({ key: staffOnly ? PRESENCE.STAFF_INDEX_KEY : PRESENCE.INDEX_KEY, min: PresenceHelper.onlineCutoff() });
+  }
+
   async statuses ({ userIds }: UserIdsRefDto): Promise<PresenceStatusDto[]> {
     const online = await this.cache.getMany<StoredPresenceDto>({ keys: userIds.map(userId => PresenceHelper.keyFor({ userId })) });
     const lastSeen = await this.cache.getMany<string>({ keys: userIds.map(userId => PresenceHelper.lastSeenKeyFor({ userId })) });

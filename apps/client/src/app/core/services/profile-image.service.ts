@@ -3,6 +3,10 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
+import { IMAGE_UPLOAD } from '../constants/profile/image-upload.constant';
+import { UploadNoticeDto } from '../interfaces/profile/upload-notice.interface';
+import { ImageUploadHelper } from '../helpers/profile/image-upload.helper';
+import { ErrorMessageHelper } from '../helpers/http/error-message.helper';
 import { ImageIndexDto } from '../interfaces/ui/image-index.interface';
 
 @Injectable({ providedIn: 'root' })
@@ -73,31 +77,37 @@ export class ProfileImageService {
         this.userService.updateProfile({ profileImages: response.files, imageAction: 'add' }).subscribe({
           next: () => {
             this.isUploading.set(false);
-            setTimeout(() => {
-              this.userService.getImageUrl().subscribe({
-                next: imageResponse => {
-                  this.imageUrls.set(imageResponse.files);
-                  this.toast.success('Images uploaded successfully');
-                },
-                error: () => {
-                  this.loadImageUrls();
-                  this.toast.success('Images uploaded successfully');
-                }
-              });
-            }, 500);
+            const partial = ImageUploadHelper.partialMessage({ uploaded: response.files.length, rejected: response.rejected ?? [] });
+            setTimeout(() => this.refreshAfterUpload({ partial }), IMAGE_UPLOAD.REFRESH_DELAY_MS);
           },
-          error: () => {
+          error: (error: unknown) => {
             this.isUploading.set(false);
-            this.toast.error('Failed to update profile with new images');
+            this.toast.error(ErrorMessageHelper.from({ error, fallback: IMAGE_UPLOAD.ATTACH_FAILED }));
           }
         });
       },
-      error: () => {
+      error: (error: unknown) => {
         this.isUploading.set(false);
-        this.toast.error('Failed to upload images');
+        this.toast.error(ImageUploadHelper.messageFor({ error, files }));
       }
     });
   }
+
+  private refreshAfterUpload ({ partial }: UploadNoticeDto): void {
+    const announce = (): void => (partial ? this.toast.warning(partial) : this.toast.success(IMAGE_UPLOAD.UPLOADED));
+
+    this.userService.getImageUrl().subscribe({
+      next: imageResponse => {
+        this.imageUrls.set(imageResponse.files);
+        announce();
+      },
+      error: () => {
+        this.loadImageUrls();
+        announce();
+      }
+    });
+  }
+
 
   private applyDeleteAll (): void {
     this.userService.updateProfile({ imageAction: 'delete_all' }).subscribe({

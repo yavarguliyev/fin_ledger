@@ -4,5 +4,9 @@ export const PRESENCE_TEST = {
   ONLINE: 'ONLINE',
   OFFLINE: 'OFFLINE',
   LATER: '2026-10-01T11:00:00.000Z',
-  UNKNOWN: ''
+  UNKNOWN: '',
+  FEW: 3,
+  STALE_COUNT: 9,
+  CAP: 100,
+  MANY: 1250
 } as const;

@@ -6,6 +6,7 @@ export const METRICS = {
   POOL_WAITING: 'db_pool_connections_waiting',
   OUTBOX_PENDING: 'outbox_events_pending',
   OUTBOX_DEAD: 'outbox_events_dead',
+  OUTBOX_LAG: 'outbox_oldest_pending_seconds',
   LEDGER_DRIFTED_ACCOUNTS: 'ledger_drifted_accounts',
   LEDGER_DRIFTED_WALLETS: 'ledger_drifted_wallets',
   LEDGER_UNBALANCED_CURRENCIES: 'ledger_unbalanced_currencies',
@@ -17,5 +18,8 @@ export const METRICS = {
   UNKNOWN_ROUTE: 'unmatched',
   DLQ_PROBE_EVENT: 'wallet.credited',
   NANOSECONDS_PER_SECOND: 1_000_000_000,
-  PENDING_SQL: "SELECT count(*) FILTER (WHERE status = 'PENDING') AS pending, count(*) FILTER (WHERE status = 'DEAD') AS dead FROM outbox_events"
+  PENDING_SQL: `SELECT count(*) FILTER (WHERE status = 'PENDING') AS pending,
+                        count(*) FILTER (WHERE status = 'DEAD') AS dead,
+                        COALESCE(EXTRACT(EPOCH FROM now() - min(created_at) FILTER (WHERE status = 'PENDING')), 0) AS lag_seconds
+                   FROM outbox_events`
 } as const;

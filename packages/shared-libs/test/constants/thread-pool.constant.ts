@@ -1,0 +1,11 @@
+export const THREAD_POOL_SPEC = {
+  KEY: 'UV_THREADPOOL_SIZE',
+  EXPLICIT: '12',
+  EXPLICIT_SIZE: 12,
+  SMALL_MACHINE: 2,
+  MID_MACHINE: 8,
+  BIG_MACHINE: 64,
+  MIN: 4,
+  MAX: 16,
+  INVALID: 'lots'
+} as const;

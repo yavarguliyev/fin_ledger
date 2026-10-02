@@ -32,4 +32,11 @@ export class PaymentMethodHelper {
     if (method.lastFour) return `${PAYMENT_METHOD_LABELS.MASK}${method.lastFour}`;
     return method.bankName ?? PaymentMethodHelper.getPaymentMethodLabel({ method });
   }
+
+  static removalPrompt ({ method }: PaymentMethodRefDto): string {
+    const label = PaymentMethodHelper.getPaymentMethodLabel({ method });
+    const account = PaymentMethodHelper.maskedAccount({ method });
+    const name = account === label ? label : [label, account].join(PAYMENT_METHOD_LABELS.LABEL_SEPARATOR);
+    return `${PAYMENT_METHOD_LABELS.REMOVE_PROMPT_PREFIX}${name}${PAYMENT_METHOD_LABELS.REMOVE_PROMPT_SUFFIX}`;
+  }
 }

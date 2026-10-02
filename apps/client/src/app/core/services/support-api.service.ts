@@ -21,6 +21,7 @@ import { StreamTicket } from '../interfaces/notification/stream-ticket.interface
 import { StreamTicketRefDto } from '../interfaces/notification/stream-ticket-ref.interface';
 import { SupportConversation } from '../types/support/support-conversation.type';
 import { SupportMessage } from '../types/support/support-message.type';
+import { PresenceCount } from '../interfaces/support/presence-count.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportApiService {
@@ -85,6 +86,10 @@ export class SupportApiService {
 
   listPresence (): Observable<PresenceEntry[]> {
     return this.send(this.http.get<PresenceEntry[]>(`${this.apiUrl}${SUPPORT.PRESENCE_PATH}`));
+  }
+
+  countPresence (): Observable<PresenceCount> {
+    return this.send(this.http.get<PresenceCount>(`${this.apiUrl}${SUPPORT.PRESENCE_COUNT_PATH}`));
   }
 
   streamTicket (): Observable<StreamTicket> {

@@ -22,9 +22,11 @@ describe('HTTP hardening', () => {
     const { headers } = await ApiHelper.request({ method: 'POST', path: '/auth/login', body: {} });
 
     expect(headers.get('x-content-type-options')).toBe('nosniff');
-    expect(headers.get('x-frame-options')).toBe('SAMEORIGIN');
-    expect(headers.get('strict-transport-security')).toContain('max-age=');
-    expect(headers.get('content-security-policy')).toContain("default-src 'self'");
+    expect(headers.get('x-frame-options')).toBe('DENY');
+    expect(headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains');
+    expect(headers.get('content-security-policy')).toContain("default-src 'none'");
+    expect(headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
+    expect(headers.get('referrer-policy')).toBe('no-referrer');
     expect(headers.get('x-powered-by')).toBeNull();
   });
 

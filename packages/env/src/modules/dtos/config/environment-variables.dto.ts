@@ -116,6 +116,8 @@ export const EnvironmentVariablesSchema = z.object({
   MFA_ISSUER: z.string({ message: 'MFA_ISSUER must be a string' }).optional(),
 
   WEBHOOK_REPLAY_INTERVAL_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_INTERVAL_MS must be a number' }).int().positive().optional(),
+  OUTBOX_BATCH_SIZE: z.coerce.number({ message: 'OUTBOX_BATCH_SIZE must be a number' }).int().positive().optional(),
+  OUTBOX_POLL_INTERVAL_MS: z.coerce.number({ message: 'OUTBOX_POLL_INTERVAL_MS must be a number' }).int().positive().optional(),
   WEBHOOK_REPLAY_STALE_AFTER_MS: z.coerce.number({ message: 'WEBHOOK_REPLAY_STALE_AFTER_MS must be a number' }).int().nonnegative().optional(),
 
   PAYMENT_RECONCILE_INTERVAL_MS: z.coerce.number({ message: 'PAYMENT_RECONCILE_INTERVAL_MS must be a number' }).int().positive().optional(),

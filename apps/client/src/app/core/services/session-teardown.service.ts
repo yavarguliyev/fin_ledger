@@ -12,6 +12,7 @@ import { SESSION } from '../constants/auth/session.constant';
 import { SessionStore } from './session-store.service';
 import { ThemeService } from './theme.service';
 import { WalletService } from './wallet.service';
+import { SessionEndDto } from '../interfaces/auth/session-end.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SessionTeardownService {
@@ -27,8 +28,12 @@ export class SessionTeardownService {
   private readonly supportPresence = inject(SupportPresenceStore);
   private readonly supportStream = inject(SupportStreamService);
 
-  run (): void {
+  leave (): void {
     this.supportApi.leavePresence().subscribe({ error: () => undefined });
+  }
+
+  run ({ notifyServer }: SessionEndDto): void {
+    if (notifyServer) this.leave();
     this.supportStream.disconnect();
     this.supportCalls.reset();
     this.supportChat.reset();

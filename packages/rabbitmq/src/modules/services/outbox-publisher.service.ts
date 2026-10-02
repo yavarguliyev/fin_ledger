@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy, Optional } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OutboxRepository } from '@common/database';
 import { KafkaService } from '@common/kafka';
 import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SERVICE, RequestScope } from '@common/shared-libs';
@@ -6,6 +7,8 @@ import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SER
 import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
+import { OutboxSettingsHelper } from '../helpers/outbox-settings.helper';
+import { OutboxSettingsDto } from '../dtos/outbox/outbox-settings.dto';
 
 @Injectable()
 export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleDestroy {
@@ -15,15 +18,19 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
 
   private readonly relayId = `${process.pid}-${CryptoHelper.uuid()}`;
   private readonly logger = new Logger(OutboxPublisherService.name);
+  private readonly settings: OutboxSettingsDto;
 
   constructor (
     private readonly outboxRepository: OutboxRepository,
     @Inject(RABBITMQ_SERVICE) private readonly rabbitmqService: RabbitmqService,
-    private readonly kafkaService: KafkaService
-  ) {}
+    private readonly kafkaService: KafkaService,
+    @Optional() configService?: ConfigService
+  ) {
+    this.settings = OutboxSettingsHelper.from({ ...(configService && { configService }) });
+  }
 
   onApplicationBootstrap (): void {
-    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.poll()), RABBITMQ_CONSTANTS.OUTBOX_POLL_INTERVAL_MS.key);
+    this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.poll()), this.settings.pollIntervalMs);
     this.intervalHandle.unref();
   }
 
@@ -35,7 +42,7 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
 
   async publishPendingEvents (): Promise<number> {
     const events = await this.outboxRepository.claimPendingBatch({
-      limit: RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key,
+      limit: this.settings.batchSize,
       lockedBy: this.relayId,
       lockSeconds: RABBITMQ_CONSTANTS.OUTBOX_LOCK_SECONDS.key
     });
@@ -76,7 +83,7 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
 
     try {
       let published = await this.publishPendingEvents();
-      while (!this.stopped && published >= RABBITMQ_CONSTANTS.OUTBOX_BATCH_SIZE.key) published = await this.publishPendingEvents();
+      while (!this.stopped && published >= this.settings.batchSize) published = await this.publishPendingEvents();
     } catch (error) {
       this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
     } finally {

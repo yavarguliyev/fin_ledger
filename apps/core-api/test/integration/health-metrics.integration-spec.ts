@@ -37,7 +37,8 @@ describe('Health and metrics endpoints', () => {
       'core_api_db_pool_connections_total',
       'core_api_db_pool_connections_waiting',
       'core_api_outbox_events_pending',
-      'core_api_outbox_events_dead'
+      'core_api_outbox_events_dead',
+      'core_api_outbox_oldest_pending_seconds'
     ].forEach(metric => expect(body).toContain(metric));
 
     expect(body).toContain('core_api_process_cpu_user_seconds_total');

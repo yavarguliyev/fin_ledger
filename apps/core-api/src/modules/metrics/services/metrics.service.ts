@@ -13,6 +13,7 @@ const GAUGES = [
   METRICS.POOL_WAITING,
   METRICS.OUTBOX_PENDING,
   METRICS.OUTBOX_DEAD,
+  METRICS.OUTBOX_LAG,
   METRICS.LEDGER_DRIFTED_ACCOUNTS,
   METRICS.LEDGER_DRIFTED_WALLETS,
   METRICS.LEDGER_UNBALANCED_CURRENCIES
@@ -76,11 +77,12 @@ export class MetricsService {
   }
 
   private async refreshOutbox (): Promise<void> {
-    const result = await this.postgresService.getConnection().query<{ pending: string; dead: string }>({ sql: METRICS.PENDING_SQL });
+    const result = await this.postgresService.getConnection().query<{ pending: string; dead: string; lag_seconds: string }>({ sql: METRICS.PENDING_SQL });
     const [row] = result.rows;
 
     this.gauges[METRICS.OUTBOX_PENDING]?.set(Number(row?.pending ?? 0));
     this.gauges[METRICS.OUTBOX_DEAD]?.set(Number(row?.dead ?? 0));
+    this.gauges[METRICS.OUTBOX_LAG]?.set(Number(row?.lag_seconds ?? 0));
   }
 
   private async refreshLedger (): Promise<void> {

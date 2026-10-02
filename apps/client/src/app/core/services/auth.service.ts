@@ -56,7 +56,10 @@ export class AuthService {
   }
 
   logoutEverywhere (): Observable<unknown> {
-    return this.http.post(`${this.config.apiUrl}${SESSION.LOGOUT_ALL_PATH}`, {}, { withCredentials: true }).pipe(tap(() => this.teardown.run()));
+    this.teardown.leave();
+    return this.http
+      .post(`${this.config.apiUrl}${SESSION.LOGOUT_ALL_PATH}`, {}, { withCredentials: true })
+      .pipe(tap(() => this.teardown.run({ notifyServer: false })));
   }
 
   landingRoute (): string {
@@ -116,18 +119,22 @@ export class AuthService {
     );
   }
 
+  expire (): void {
+    this.teardown.run({ notifyServer: false });
+  }
+
   logout (): void {
     const token = this.token();
 
     if (!token) {
-      this.teardown.run();
+      this.teardown.run({ notifyServer: false });
       return;
     }
 
     const headers = { [SESSION.AUTH_HEADER]: `${SESSION.BEARER_PREFIX}${token}` };
 
     this.loggingOutSignal.set(true);
-    this.teardown.run();
+    this.teardown.run({ notifyServer: true });
 
     this.http.post(`${this.config.apiUrl}${SESSION.LOGOUT_PATH}`, {}, { withCredentials: true, headers }).subscribe({
       next: () => this.loggingOutSignal.set(false),

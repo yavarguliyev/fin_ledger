@@ -5,6 +5,8 @@ export const PRESENCE = {
   INDEX_KEY: 'presence-index',
   STAFF_INDEX_KEY: 'presence-index:staff',
   PAGE_SIZE: 100,
+  SELF_ENTRY: 1,
+  NO_ENTRIES: 0,
   SWEEP_LOCK_KEY: 'presence-sweep-lock',
   SWEEP_LOCK_SECONDS: 10,
   SWEEP_LOCK_VALUE: 1,

@@ -1,0 +1,22 @@
+export const IMAGE_UPLOAD = {
+  PAYLOAD_TOO_LARGE: 413,
+  TOO_LARGE: 'Each image must be 10 MB or smaller',
+  MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024,
+  BYTES_PER_MB: 1024 * 1024,
+  SIZE_DECIMALS: 1,
+  SIZE_UNIT: ' MB',
+  SIZE_OPEN: ' (',
+  SIZE_CLOSE: ')',
+  TOO_LARGE_PREFIX: 'Too large: ',
+  TOO_LARGE_SUFFIX: '. Each image must be 10 MB or smaller.',
+  LIST_SEPARATOR: ', ',
+  UPLOAD_FAILED: 'Failed to upload images',
+  ATTACH_FAILED: 'The images were uploaded but could not be added to your profile',
+  UPLOADED: 'Images uploaded successfully',
+  PARTIAL_PREFIX: 'Uploaded ',
+  PARTIAL_OF: ' of ',
+  PARTIAL_SUFFIX: ' images. ',
+  NAME_SEPARATOR: ': ',
+  REJECTION_SEPARATOR: ' · ',
+  REFRESH_DELAY_MS: 500
+} as const;

@@ -118,7 +118,7 @@
   </section>
 
   @if (chat.isStaff()) {
-    <app-presence-panel [entries]="presenceStore.entries()" />
+    <app-presence-panel [entries]="presenceStore.entries()" [total]="presenceStore.total()" />
   }
 
   <app-delete-dialog [message]="compose.deleting()" [userId]="chat.myUserId()" (chosen)="onDelete($event)" (cancelled)="compose.cancelDelete()" />

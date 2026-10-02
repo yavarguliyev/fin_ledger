@@ -14,6 +14,7 @@ import { SupportAvatarComponent } from './support-avatar.component';
 })
 export class PresencePanelComponent {
   readonly entries = input<PresenceEntry[]>([]);
+  readonly total = input<number>(0);
   readonly labels = SUPPORT_MESSAGES;
   readonly view = SUPPORT_VIEW;
 

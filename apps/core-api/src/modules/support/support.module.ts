@@ -31,6 +31,7 @@ import { ListPresenceUseCase } from './use-cases/queries/presence/list-presence.
 import { LastSeenUseCase } from './use-cases/queries/presence/last-seen.use-case';
 import { LeavePresenceUseCase } from './use-cases/commands/presence/leave-presence.use-case';
 import { SweepPresenceUseCase } from './use-cases/commands/presence/sweep-presence.use-case';
+import { CountPresenceUseCase } from './use-cases/queries/presence/count-presence.use-case';
 import { PresenceRepository } from './repositories/presence.repository';
 import { SupportStreamProvider } from './providers/support-stream.provider';
 import { IssueSupportStreamTicketUseCase } from './use-cases/commands/stream/issue-support-stream-ticket.use-case';
@@ -56,6 +57,7 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     ListPresenceUseCase,
     LeavePresenceUseCase,
     SweepPresenceUseCase,
+    CountPresenceUseCase,
     LastSeenUseCase,
     IssueSupportStreamTicketUseCase,
     StreamSupportEventsUseCase,
