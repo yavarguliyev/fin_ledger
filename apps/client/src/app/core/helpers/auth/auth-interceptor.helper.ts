@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { PUBLIC_ALLOWED_COMPONENTS } from '../../constants/auth/public-allowed-components.constant';
 import { SESSION } from '../../constants/auth/session.constant';
-import { UrlRefDto } from '../../dtos/http/url-ref.dto';
+import { UrlRefDto } from '../../interfaces/http/url-ref.interface';
 
 export class AuthInterceptorHelper {
   static isPublic ({ url }: UrlRefDto): boolean {

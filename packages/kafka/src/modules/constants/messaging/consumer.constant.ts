@@ -12,5 +12,7 @@ export const KAFKA_CONSUMER = {
   OFFSET_HEADER: 'x-origin-offset',
   HANDLER_HEADER: 'x-handler',
   RETRY_AT_HEADER: 'x-retry-at',
-  ERROR_MAX_LENGTH: 500
+  ERROR_MAX_LENGTH: 500,
+  NAME_PROPERTY: 'name',
+  HANDLER_NAME_SEPARATOR: '.'
 } as const;

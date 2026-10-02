@@ -1,8 +1,8 @@
 import { PaymentMethod } from '../../../../core/types/payment-method/payment-method.type';
 import { PAYMENT_METHOD_LABELS } from '../../../../core/constants/payment/payment-method-labels.constant';
-import { BrandRefDto } from '../../../../core/dtos/payment/brand-ref.dto';
-import { PaymentMethodRefDto } from '../../../../core/dtos/payment/payment-method-ref.dto';
-import { PaymentMethodListDto } from '../../../../core/dtos/payment/payment-method-list.dto';
+import { BrandRefDto } from '../../../../core/interfaces/payment/brand-ref.interface';
+import { PaymentMethodRefDto } from '../../../../core/interfaces/payment/payment-method-ref.interface';
+import { PaymentMethodListDto } from '../../../../core/interfaces/payment/payment-method-list.interface';
 import { PAYMENT_METHOD_STATUS } from '../../../../core/constants/payment/payment-method-status.constant';
 
 export class PaymentMethodHelper {

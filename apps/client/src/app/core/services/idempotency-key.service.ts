@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
-import { IdempotencyKeyDto } from '../dtos/idempotency/idempotency-key.dto';
-import { RunIdempotentDto } from '../dtos/idempotency/run-idempotent.dto';
+import { IdempotencyKeyDto } from '../interfaces/idempotency/idempotency-key.interface';
+import { RunIdempotentDto } from '../interfaces/idempotency/run-idempotent.interface';
 import { HttpRequestError } from '../errors/http-request.error';
 import { UuidHelper } from '../helpers/common/uuid.helper';
 import { IdempotencyKeyEntry } from '../interfaces/http/idempotency-key-entry.interface';

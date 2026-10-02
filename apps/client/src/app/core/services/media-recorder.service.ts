@@ -1,9 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 
-import { RecordedClipDto } from '../dtos/support/recorded-clip.dto';
+import { RecordedClipDto } from '../interfaces/support/recorded-clip.interface';
 import { RecordingHelper } from '../helpers/support/recording.helper';
 import { RecordingKind } from '../types/support/recording-kind.type';
-import { StartRecordingDto } from '../dtos/support/start-recording.dto';
+import { StartRecordingDto } from '../interfaces/support/start-recording.interface';
 import { SUPPORT_RECORDING } from '../constants/support/support-recording.constant';
 
 @Injectable({ providedIn: 'root' })

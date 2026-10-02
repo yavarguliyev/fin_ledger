@@ -1,4 +1,4 @@
-import { HttpRequestErrorDto } from '../dtos/http/http-request-error.dto';
+import { HttpRequestErrorDto } from '../interfaces/http/http-request-error.interface';
 import { UNKNOWN_OUTCOME_STATUSES } from '../constants/http/unknown-outcome-statuses.constant';
 
 export class HttpRequestError extends Error {

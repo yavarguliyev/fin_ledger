@@ -7,7 +7,7 @@ import { LedgerEntry } from '../interfaces/ledger/ledger-entry.interface';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { AccountEntriesDto } from '../dtos/ledger/account-entries.dto';
+import { AccountEntriesDto } from '../interfaces/ledger/account-entries.interface';
 
 @Injectable({ providedIn: 'root' })
 export class LedgerService {

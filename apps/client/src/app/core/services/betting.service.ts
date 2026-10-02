@@ -10,8 +10,8 @@ import { GameEvent } from '../interfaces/betting/game-event.interface';
 import { Wallet } from '../types/wallet/wallet.type';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { IdempotencyKeyService } from './idempotency-key.service';
-import { PlaceBetDto } from '../dtos/betting/place-bet.dto';
-import { PageRequestDto } from '../dtos/common/page-request.dto';
+import { PlaceBetDto } from '../interfaces/betting/place-bet.interface';
+import { PageRequestDto } from '../interfaces/common/page-request.interface';
 
 @Injectable({ providedIn: 'root' })
 export class BettingService {

@@ -3,7 +3,7 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
 import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { PaymentRequest } from '../../../core/interfaces/wallet/payment-request.interface';
-import { BuildPaymentPayloadDto } from '../dtos/build-payment-payload.dto';
+import { BuildPaymentPayloadDto } from '../interfaces/build-payment-payload.interface';
 import { PaymentMethodHelper } from '../../profile/payment-methods/helpers/payment-method.helper';
 
 @Injectable()

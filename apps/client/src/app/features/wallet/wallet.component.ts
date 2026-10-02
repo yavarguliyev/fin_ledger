@@ -18,16 +18,19 @@ import { WalletSwitcherComponent } from './wallet-switcher.component';
 import { DateHelper } from '../../core/helpers/common/date.helper';
 import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { WalletHelper } from './helpers/wallet.helper';
+import { ReceiptLinkComponent } from '../../shared/components/receipt-link/receipt-link.component';
+import { RECEIPT } from '../../core/constants/payment/receipt.constant';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent],
   templateUrl: './templates/wallet.component.html'
 })
 export class WalletComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
+  readonly receiptColumn = RECEIPT.COLUMN_KEY;
 
   readonly loading = signal(true);
   readonly wallet = computed(() => this.walletService.wallet());

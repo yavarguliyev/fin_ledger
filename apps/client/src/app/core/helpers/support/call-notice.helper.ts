@@ -1,6 +1,6 @@
-import { CallFailureDto } from '../../dtos/support/call-failure.dto';
-import { CallReasonRefDto } from '../../dtos/support/call-reason-ref.dto';
-import { SinceRefDto } from '../../dtos/support/since-ref.dto';
+import { CallFailureDto } from '../../interfaces/support/call-failure.interface';
+import { CallReasonRefDto } from '../../interfaces/support/call-reason-ref.interface';
+import { SinceRefDto } from '../../interfaces/support/since-ref.interface';
 import { HttpRequestError } from '../../errors/http-request.error';
 import { SUPPORT_CALL } from '../../constants/support/support-call.constant';
 

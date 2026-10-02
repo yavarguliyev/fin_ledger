@@ -2,14 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 
-import { AnswerCallDto } from '../dtos/support/answer-call.dto';
+import { AnswerCallDto } from '../interfaces/support/answer-call.interface';
 import { AppConfigService } from './app-config.service';
-import { CallCandidateDto } from '../dtos/support/call-candidate.dto';
-import { CallConfigDto } from '../dtos/support/call-config.dto';
-import { CallIdDto } from '../dtos/support/call-id.dto';
-import { EndCallDto } from '../dtos/support/end-call.dto';
+import { CallCandidateDto } from '../interfaces/support/call-candidate.interface';
+import { CallConfigDto } from '../interfaces/support/call-config.interface';
+import { CallIdDto } from '../interfaces/support/call-id.interface';
+import { EndCallDto } from '../interfaces/support/end-call.interface';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { StartCallDto } from '../dtos/support/start-call.dto';
+import { StartCallDto } from '../interfaces/support/start-call.interface';
 import { SUPPORT } from '../constants/support/support.constant';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';
 

@@ -2,10 +2,10 @@ import { Component, ElementRef, computed, input, output, signal, viewChildren } 
 
 import { OTP } from '../../../core/constants/auth/otp.constant';
 import { OtpHelper } from '../../../core/helpers/auth/otp.helper';
-import { OtpFillDto } from '../../../core/dtos/auth/otp-fill.dto';
-import { OtpMoveDto } from '../../../core/dtos/auth/otp-move.dto';
-import { OtpWriteDto } from '../../../core/dtos/auth/otp-write.dto';
-import { OtpEventDto } from '../../../core/dtos/ui/otp-event.dto';
+import { OtpFillDto } from '../../../core/interfaces/auth/otp-fill.interface';
+import { OtpMoveDto } from '../../../core/interfaces/auth/otp-move.interface';
+import { OtpWriteDto } from '../../../core/interfaces/auth/otp-write.interface';
+import { OtpEventDto } from '../../../core/interfaces/ui/otp-event.interface';
 
 @Component({
   selector: 'app-otp-input',

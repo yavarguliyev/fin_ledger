@@ -2,7 +2,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormGroup } from '@angular/forms';
 
 import { ProfileFields } from '../../../core/types/auth/profile-fields.type';
-import { WatchFormChangesDto } from '../dtos/watch-form-changes.dto';
+import { WatchFormChangesDto } from '../interfaces/watch-form-changes.interface';
 
 export class ProfileFormHelper {
   static watchFormChanges ({ profileForm, formService, destroyRef }: WatchFormChangesDto): void {

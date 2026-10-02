@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, input, output, signal }
 
 import { CallNoticeHelper } from '../../../core/helpers/support/call-notice.helper';
 import { MediaRecorderService } from '../../../core/services/media-recorder.service';
-import { RecordedClipDto } from '../../../core/dtos/support/recorded-clip.dto';
+import { RecordedClipDto } from '../../../core/interfaces/support/recorded-clip.interface';
 import { RecordingKind } from '../../../core/types/support/recording-kind.type';
 import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recording.constant';
 

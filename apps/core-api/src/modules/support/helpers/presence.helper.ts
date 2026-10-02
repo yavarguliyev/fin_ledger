@@ -5,6 +5,7 @@ import { PRESENCE } from '../constants/presence/presence.constant';
 import { PresenceEntryDto } from '../dtos/presence/presence-entry.dto';
 import { StoredPresenceRefDto } from '../dtos/presence/stored-presence-ref.dto';
 import { UserRefDto } from '../dtos/input/user-ref.dto';
+import { PresenceStatusDto } from '../dtos/presence/presence-status.dto';
 
 export class PresenceHelper {
   static keyFor ({ userId }: UserRefDto): string {
@@ -13,6 +14,14 @@ export class PresenceHelper {
 
   static lastSeenKeyFor ({ userId }: UserRefDto): string {
     return `${PRESENCE.LAST_SEEN_PREFIX}${userId}`;
+  }
+
+  static onlineCutoff (): number {
+    return Date.now() - PRESENCE.ONLINE_TTL_SECONDS * PRESENCE.MS_PER_SECOND;
+  }
+
+  static offline ({ userId, lastSeenAt }: PresenceStatusDto): PresenceEntryDto {
+    return { userId, displayName: PRESENCE.UNKNOWN, role: PRESENCE.UNKNOWN, state: PresenceState.OFFLINE, lastSeenAt };
   }
 
   static toEntry ({ entry }: StoredPresenceRefDto): PresenceEntryDto {

@@ -5,5 +5,6 @@ export const REDIS_DEFAULTS = {
   SENTINEL_MASTER_NAME: 'mymaster',
   SCAN_BATCH_SIZE: 100,
   MIN_SCORE: '-inf',
-  MAX_SCORE: '+inf'
+  MAX_SCORE: '+inf',
+  LIMIT: 'LIMIT'
 } as const;

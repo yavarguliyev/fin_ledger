@@ -5,6 +5,8 @@ import type { CacheKeysDto } from '../dtos/cache/cache-keys.dto';
 import type { SortedSetAddDto } from '../dtos/cache/sorted-set-add.dto';
 import type { SortedSetMemberDto } from '../dtos/cache/sorted-set-member.dto';
 import type { SortedSetRangeDto } from '../dtos/cache/sorted-set-range.dto';
+import type { SortedSetLatestDto } from '../dtos/cache/sorted-set-latest.dto';
+import type { CacheSetIfNotExistsDto } from '../dtos/cache/cache-set-if-not-exists.dto';
 
 export interface CacheProvider {
   get<T>(dto: CacheKeyDto): Promise<T | null>;
@@ -18,5 +20,7 @@ export interface CacheProvider {
   removeFromSortedSet(dto: SortedSetMemberDto): Promise<void>;
   rangeSortedSet(dto: SortedSetRangeDto): Promise<string[]>;
   trimSortedSet(dto: SortedSetRangeDto): Promise<void>;
+  latestInSortedSet(dto: SortedSetLatestDto): Promise<string[]>;
+  setIfNotExists(dto: CacheSetIfNotExistsDto): Promise<boolean>;
   disconnect(): Promise<void> | void;
 }

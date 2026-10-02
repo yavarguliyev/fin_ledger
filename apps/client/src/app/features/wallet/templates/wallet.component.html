@@ -71,12 +71,16 @@
 
   <!-- Custom cell template for transaction type -->
   <ng-template #typeCell let-row="row" let-column="column">
-    <div class="flex items-center gap-2">
-      <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-        {{ typeIcon(row.type) }}
-      </span>
-      <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
-    </div>
+    @if (column.key === receiptColumn) {
+      <app-receipt-link [reference]="row.reference" [status]="row.status" />
+    } @else {
+      <div class="flex items-center gap-2">
+        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
+          {{ typeIcon(row.type) }}
+        </span>
+        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+      </div>
+    }
   </ng-template>
 
   <!-- Custom mobile template -->
@@ -94,7 +98,10 @@
     </div>
     <div class="flex items-center justify-between mt-1">
       <span class="text-xs text-ink-500 dark:text-ink-400">{{ row.createdAt | relativeTime }}</span>
-      <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+      <span class="flex items-center gap-1">
+        <app-receipt-link [reference]="row.reference" [status]="row.status" />
+        <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+      </span>
     </div>
   </ng-template>
 </div>

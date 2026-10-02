@@ -9,7 +9,7 @@ import { PaginatedResponse } from '../interfaces/http/paginated-response.interfa
 import { AppConfigService } from './app-config.service';
 import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.constant';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { WalletTransactionsDto } from '../dtos/wallet/wallet-transactions.dto';
+import { WalletTransactionsDto } from '../interfaces/wallet/wallet-transactions.interface';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {

@@ -4,8 +4,8 @@ import { Observable, catchError } from 'rxjs';
 
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { MfaCodeDto } from '../dtos/auth/mfa-code.dto';
-import { DisableMfaDto } from '../dtos/auth/disable-mfa.dto';
+import { MfaCodeDto } from '../interfaces/auth/mfa-code.interface';
+import { DisableMfaDto } from '../interfaces/auth/disable-mfa.interface';
 import { MfaStatus } from '../interfaces/auth/mfa-status.interface';
 import { MfaEnrollment } from '../interfaces/auth/mfa-enrollment.interface';
 import { MfaRecoveryCodes } from '../interfaces/auth/mfa-recovery-codes.interface';

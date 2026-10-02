@@ -3,7 +3,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { COUNTRY_SELECT } from '../../../core/constants/ui/country-select.constant';
 import { CountryHelper } from '../../../core/helpers/common/country.helper';
-import { CountryOptionDto } from '../../../core/dtos/ui/country-option.dto';
+import { CountryOptionDto } from '../../../core/interfaces/ui/country-option.interface';
 
 @Component({
   selector: 'app-country-select',

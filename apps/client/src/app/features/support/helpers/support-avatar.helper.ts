@@ -1,4 +1,4 @@
-import { NameRefDto } from '../dtos/name-ref.dto';
+import { NameRefDto } from '../interfaces/name-ref.interface';
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
 
 export class SupportAvatarHelper {

@@ -10,9 +10,9 @@ import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-conf
 import { DataTableConfig } from '../../../core/interfaces/ui/data-table-config.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { SELECT_CHEVRON } from '../../../core/constants/ui/select.constant';
-import { CellRefDto } from '../../../core/dtos/ui/cell-ref.dto';
-import { ColumnRefDto } from '../../../core/dtos/ui/column-ref.dto';
-import { ToggleChangeDto } from '../../../core/dtos/ui/toggle-change.dto';
+import { CellRefDto } from '../../../core/interfaces/ui/cell-ref.interface';
+import { ColumnRefDto } from '../../../core/interfaces/ui/column-ref.interface';
+import { ToggleChangeDto } from '../../../core/interfaces/ui/toggle-change.interface';
 import { DataTableHelper } from './helpers/data-table.helper';
 
 @Component({

@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
 
-import { CallBeginDto } from '../dtos/support/call-begin.dto';
+import { CallBeginDto } from '../interfaces/support/call-begin.interface';
 import { CallMedia } from '../types/support/call-media.type';
 import { CallPhase } from '../types/support/call-phase.type';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';

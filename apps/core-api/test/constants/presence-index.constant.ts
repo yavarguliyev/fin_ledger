@@ -13,7 +13,7 @@ export const PRESENCE_INDEX_TEST = {
   DISPLAY_NAME: 'Load probe',
   COMMANDSTATS: 'commandstats',
   CALLS_PATTERN: (command: string): RegExp => new RegExp(`cmdstat_${command}:calls=(\\d+)`),
-  COMMANDS: ['scan', 'get', 'mget', 'zrangebyscore'],
-  EXPECTED_CALLS: { scan: 0, mget: 1, zrangebyscore: 1 },
+  COMMANDS: ['scan', 'get', 'mget', 'zrevrangebyscore'],
+  EXPECTED_CALLS: { scan: 0, mget: 1, zrevrangebyscore: 1 },
   OK: 200
 } as const;

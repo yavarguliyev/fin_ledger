@@ -1,0 +1,22 @@
+export const RECEIPT = {
+  PATH_PREFIX: '/payments/',
+  PATH_SUFFIX: '/receipt',
+  REFERENCE_PREFIXES: ['deposit: ', 'withdrawal: '],
+  BLOB_TYPE: 'blob',
+  PDF_TYPE: 'application/pdf',
+  VIEWER_TITLE: 'Payment receipt',
+  VIEWER_WIDTH: 'max-w-4xl',
+  VIEWER_FRAGMENT: '#toolbar=1&navpanes=0&view=FitH',
+  IFRAME_TITLE: 'Receipt preview',
+  LOADING: 'Loading receipt…',
+  CLOSE_LABEL: 'Close',
+  FILE_PREFIX: 'receipt-',
+  FILE_EXTENSION: '.pdf',
+  DOWNLOAD_LABEL: 'Download receipt',
+  VIEW_LABEL: 'View receipt',
+  SHORT_LABEL: 'Receipt',
+  COLUMN_KEY: 'id',
+  FAILED: 'Could not load the receipt',
+  ANCHOR: 'a',
+  COMPLETED_STATUS: 'COMPLETED'
+} as const;

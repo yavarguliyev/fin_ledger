@@ -7,7 +7,7 @@ import { ThemeService } from '../core/services/theme.service';
 import { NotificationService } from '../core/services/notification.service';
 import { ProfileImageService } from '../core/services/profile-image.service';
 import { NavItem } from '../core/interfaces/ui/nav-item.interface';
-import { NavItemsRefDto } from '../core/dtos/ui/nav-items-ref.dto';
+import { NavItemsRefDto } from '../core/interfaces/ui/nav-items-ref.interface';
 import { ROLE_SETS } from '../core/constants/auth/role-sets.constant';
 import { SUPPORT } from '../core/constants/support/support.constant';
 import { SupportChatStore } from '../core/services/support-chat.store';
@@ -15,11 +15,12 @@ import { SupportPresenceStore } from '../core/services/support-presence.store';
 import { SupportStreamService } from '../core/services/support-stream.service';
 import { SupportCallStore } from '../core/services/support-call.store';
 import { CallOverlayComponent } from './call-overlay.component';
+import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent],
   templateUrl: './templates/shell.component.html'
 })
 export class ShellComponent implements OnInit {

@@ -15,6 +15,9 @@ import { PageHeaderComponent } from '../../shared/components/page-header/page-he
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
+import { ReceiptService } from '../../core/services/receipt.service';
+import { ReceiptViewerStore } from '../../core/services/receipt-viewer.store';
+import { RECEIPT } from '../../core/constants/payment/receipt.constant';
 
 @Component({
   selector: 'app-deposit',
@@ -29,12 +32,16 @@ export class DepositComponent implements OnInit {
   private readonly paymentService = inject(PaymentService);
   private readonly idempotencyKeys = inject(IdempotencyKeyService);
   private readonly toast = inject(ToastService);
+  private readonly receipts = inject(ReceiptService);
+  private readonly viewer = inject(ReceiptViewerStore);
 
   readonly router = inject(Router);
   readonly formService = inject(DepositFormService);
 
   readonly loading = signal(false);
   readonly success = signal(false);
+  readonly completedPaymentId = signal<string | null>(null);
+  readonly receiptText = RECEIPT;
 
   readonly termsControl = this.fb.nonNullable.control(false);
 
@@ -91,6 +98,7 @@ export class DepositComponent implements OnInit {
             return;
           }
 
+          this.completedPaymentId.set(payment.id);
           this.success.set(true);
           this.toast.success(DEPOSIT_MESSAGES.COMPLETED);
         },
@@ -99,5 +107,16 @@ export class DepositComponent implements OnInit {
           this.toast.error(ErrorMessageHelper.from({ error: err, fallback: DEPOSIT_MESSAGES.FAILED }));
         }
       });
+  }
+
+  viewReceipt (): void {
+    const paymentId = this.completedPaymentId();
+    if (paymentId) this.viewer.open({ paymentId });
+  }
+
+  downloadReceipt (): void {
+    const paymentId = this.completedPaymentId();
+    if (!paymentId) return;
+    this.receipts.download({ paymentId }).subscribe({ error: () => this.toast.error(RECEIPT.FAILED) });
   }
 }

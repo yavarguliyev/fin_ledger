@@ -228,12 +228,28 @@
           </svg>
           <h3 class="text-lg font-bold text-ink-900 dark:text-white">Deposit Successful!</h3>
           <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ amountMinor() | currencyFormat: currency() }} added to your wallet</p>
-          <button
-            (click)="router.navigate(['/wallet'])"
-            class="mt-6 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
-          >
-            Back to Wallet
-          </button>
+          <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
+            @if (completedPaymentId()) {
+              <button
+                (click)="viewReceipt()"
+                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+              >
+                {{ receiptText.VIEW_LABEL }}
+              </button>
+              <button
+                (click)="downloadReceipt()"
+                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+              >
+                {{ receiptText.DOWNLOAD_LABEL }}
+              </button>
+            }
+            <button
+              (click)="router.navigate(['/wallet'])"
+              class="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
+            >
+              Back to Wallet
+            </button>
+          </div>
         </div>
       }
     </div>

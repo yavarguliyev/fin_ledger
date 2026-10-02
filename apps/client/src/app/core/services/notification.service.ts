@@ -8,7 +8,7 @@ import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { SSE_RECONNECT } from '../constants/notification/sse.constant';
 import { SSE_STREAM } from '../constants/notification/stream.constant';
 import { StreamTicket } from '../interfaces/notification/stream-ticket.interface';
-import { StreamTicketRefDto } from '../dtos/notification/stream-ticket-ref.dto';
+import { StreamTicketRefDto } from '../interfaces/notification/stream-ticket-ref.interface';
 import { NotificationMergeHelper } from '../helpers/notification/notification-merge.helper';
 import { SessionStore } from './session-store.service';
 

@@ -1,7 +1,7 @@
 import { CURRENCY } from '../../constants/wallet/currency.constant';
-import { CurrencyAmountDto } from '../../dtos/wallet/currency-amount.dto';
-import { CurrencyRefDto } from '../../dtos/wallet/currency-ref.dto';
-import { MinorAmountDto } from '../../dtos/wallet/minor-amount.dto';
+import { CurrencyAmountDto } from '../../interfaces/wallet/currency-amount.interface';
+import { CurrencyRefDto } from '../../interfaces/wallet/currency-ref.interface';
+import { MinorAmountDto } from '../../interfaces/wallet/minor-amount.interface';
 
 export class CurrencyHelper {
   static toMinor ({ amount, currency = CURRENCY.DEFAULT }: CurrencyAmountDto): number {

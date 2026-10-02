@@ -1,6 +1,6 @@
 import { ProfileFields } from '../../../core/types/auth/profile-fields.type';
-import { ProfileFieldsChangeDto } from '../dtos/profile-fields-change.dto';
-import { ProfileFieldsRefDto } from '../dtos/profile-fields-ref.dto';
+import { ProfileFieldsChangeDto } from '../interfaces/profile-fields-change.interface';
+import { ProfileFieldsRefDto } from '../interfaces/profile-fields-ref.interface';
 
 export class ProfileFieldsHelper {
   static normalize ({ fields }: ProfileFieldsRefDto): ProfileFields {

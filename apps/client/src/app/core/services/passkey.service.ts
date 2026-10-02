@@ -7,13 +7,13 @@ import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { PASSKEY } from '../constants/passkey/passkey.constant';
 import { AuthResponse } from '../interfaces/auth/auth-response.interface';
-import { PasskeyOwnerDto } from '../dtos/passkey/passkey-owner.dto';
+import { PasskeyOwnerDto } from '../interfaces/passkey/passkey-owner.interface';
 import { PasskeyRegistered } from '../interfaces/passkey/passkey-registered.interface';
 import { PasskeySummary } from '../interfaces/passkey/passkey-summary.interface';
-import { RegisterPasskeyDto } from '../dtos/passkey/register-passkey.dto';
-import { RemovePasskeyDto } from '../dtos/passkey/remove-passkey.dto';
-import { VerifyPasskeyLoginDto } from '../dtos/passkey/verify-passkey-login.dto';
-import { VerifyStepUpDto } from '../dtos/passkey/verify-step-up.dto';
+import { RegisterPasskeyDto } from '../interfaces/passkey/register-passkey.interface';
+import { RemovePasskeyDto } from '../interfaces/passkey/remove-passkey.interface';
+import { VerifyPasskeyLoginDto } from '../interfaces/passkey/verify-passkey-login.interface';
+import { VerifyStepUpDto } from '../interfaces/passkey/verify-step-up.interface';
 
 @Injectable({ providedIn: 'root' })
 export class PasskeyService {

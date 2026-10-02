@@ -1,7 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { SessionStore } from './session-store.service';
-import { ConversationRefDto } from '../dtos/support/conversation-ref.dto';
+import { ConversationRefDto } from '../interfaces/support/conversation-ref.interface';
 import { RoleHelper } from '../helpers/auth/role.helper';
 import { SUPPORT_MESSAGES } from '../constants/support/support-messages.constant';
 import { SUPPORT_ATTACHMENT } from '../constants/support/support-attachment.constant';
@@ -9,12 +9,12 @@ import { SupportApiService } from './support-api.service';
 import { SupportChatHelper } from '../helpers/support/support-chat.helper';
 import { SupportConversation } from '../types/support/support-conversation.type';
 import { SupportMessage } from '../types/support/support-message.type';
-import { MessageRefDto } from '../dtos/support/message-ref.dto';
-import { MessageIdRefDto } from '../dtos/support/message-id-ref.dto';
-import { ReportFailureDto } from '../dtos/support/report-failure.dto';
+import { MessageRefDto } from '../interfaces/support/message-ref.interface';
+import { MessageIdRefDto } from '../interfaces/support/message-id-ref.interface';
+import { ReportFailureDto } from '../interfaces/support/report-failure.interface';
 import { SupportStreamEvent } from '../interfaces/support/support-stream-event.interface';
 import { ToastService } from './toast.service';
-import { StaffRefDto } from '../dtos/support/staff-ref.dto';
+import { StaffRefDto } from '../interfaces/support/staff-ref.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportChatStore {

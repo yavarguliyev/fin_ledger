@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 
 import { CALL_RINGTONE } from '../constants/support/call-ringtone.constant';
-import { FrequencyRefDto } from '../dtos/support/frequency-ref.dto';
-import { RingRefDto } from '../dtos/support/ring-ref.dto';
+import { FrequencyRefDto } from '../interfaces/support/frequency-ref.interface';
+import { RingRefDto } from '../interfaces/support/ring-ref.interface';
 
 @Injectable({ providedIn: 'root' })
 export class CallRingtoneService {

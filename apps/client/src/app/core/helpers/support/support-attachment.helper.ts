@@ -1,5 +1,5 @@
-import { ByteSizeDto } from '../../dtos/support/byte-size.dto';
-import { FilesRefDto } from '../../dtos/support/files-ref.dto';
+import { ByteSizeDto } from '../../interfaces/support/byte-size.interface';
+import { FilesRefDto } from '../../interfaces/support/files-ref.interface';
 import { SUPPORT_ATTACHMENT } from '../../constants/support/support-attachment.constant';
 
 export class SupportAttachmentHelper {

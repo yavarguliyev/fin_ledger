@@ -20,6 +20,7 @@ import { CacheKeysDto } from '../dtos/cache/cache-keys.dto';
 import { SortedSetAddDto } from '../dtos/cache/sorted-set-add.dto';
 import { SortedSetMemberDto } from '../dtos/cache/sorted-set-member.dto';
 import { SortedSetRangeDto } from '../dtos/cache/sorted-set-range.dto';
+import { SortedSetLatestDto } from '../dtos/cache/sorted-set-latest.dto';
 
 export class RedisCacheProvider implements CacheProvider {
   private readonly client: Redis;
@@ -109,6 +110,10 @@ export class RedisCacheProvider implements CacheProvider {
 
   async rangeSortedSet ({ key, min, max }: SortedSetRangeDto): Promise<string[]> {
     return this.client.zrangebyscore(key, min ?? REDIS_DEFAULTS.MIN_SCORE, max ?? REDIS_DEFAULTS.MAX_SCORE);
+  }
+
+  async latestInSortedSet ({ key, min, limit }: SortedSetLatestDto): Promise<string[]> {
+    return this.client.zrevrangebyscore(key, REDIS_DEFAULTS.MAX_SCORE, min, REDIS_DEFAULTS.LIMIT, 0, limit);
   }
 
   async trimSortedSet ({ key, min, max }: SortedSetRangeDto): Promise<void> {

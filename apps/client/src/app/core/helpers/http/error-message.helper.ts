@@ -1,5 +1,5 @@
 import { HttpRequestError } from '../../errors/http-request.error';
-import { ErrorMessageDto } from '../../dtos/http/error-message.dto';
+import { ErrorMessageDto } from '../../interfaces/http/error-message.interface';
 
 export class ErrorMessageHelper {
   static from ({ error, fallback }: ErrorMessageDto): string {

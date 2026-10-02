@@ -1,7 +1,7 @@
 import { COUNTRY_SELECT } from '../../constants/ui/country-select.constant';
-import { CountryCodeDto } from '../../dtos/ui/country-code.dto';
-import { CountryFilterDto } from '../../dtos/ui/country-filter.dto';
-import { CountryOptionDto } from '../../dtos/ui/country-option.dto';
+import { CountryCodeDto } from '../../interfaces/ui/country-code.interface';
+import { CountryFilterDto } from '../../interfaces/ui/country-filter.interface';
+import { CountryOptionDto } from '../../interfaces/ui/country-option.interface';
 
 export class CountryHelper {
   static options (): CountryOptionDto[] {

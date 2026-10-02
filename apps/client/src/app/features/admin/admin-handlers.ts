@@ -8,9 +8,9 @@ import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { HttpError } from '../../core/interfaces/http/http-error.interface';
 import { AccountStatusHelper } from './helpers/account-status.helper';
-import { UserIdRefDto } from '../../core/dtos/user/user-id-ref.dto';
-import { UserToggleDto } from '../../core/dtos/admin/user-toggle.dto';
-import { WalletToggleDto } from '../../core/dtos/admin/wallet-toggle.dto';
+import { UserIdRefDto } from '../../core/interfaces/user/user-id-ref.interface';
+import { UserToggleDto } from '../../core/interfaces/admin/user-toggle.interface';
+import { WalletToggleDto } from '../../core/interfaces/admin/wallet-toggle.interface';
 import { AdminUserHelper } from './helpers/admin-user.helper';
 
 export class AdminHandlers {

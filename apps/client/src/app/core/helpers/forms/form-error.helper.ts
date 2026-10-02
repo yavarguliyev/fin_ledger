@@ -1,8 +1,8 @@
 import { HttpRequestError } from '../../errors/http-request.error';
 import { HTTP_ERRORS } from '../../constants/http/http-errors.constant';
-import { ApplyFormErrorsDto } from '../../dtos/forms/apply-form-errors.dto';
-import { ControlRefDto } from '../../dtos/forms/control-ref.dto';
-import { ReportFormErrorsDto } from '../../dtos/forms/report-form-errors.dto';
+import { ApplyFormErrorsDto } from '../../interfaces/forms/apply-form-errors.interface';
+import { ControlRefDto } from '../../interfaces/forms/control-ref.interface';
+import { ReportFormErrorsDto } from '../../interfaces/forms/report-form-errors.interface';
 
 export class FormErrorHelper {
   static clear ({ form }: ApplyFormErrorsDto): void {

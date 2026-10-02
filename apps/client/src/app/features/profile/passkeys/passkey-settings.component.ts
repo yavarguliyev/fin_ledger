@@ -6,7 +6,7 @@ import { PasskeyCeremonyService } from '../../../core/services/passkey-ceremony.
 import { PasskeyHelper } from '../../../core/helpers/passkey/passkey.helper';
 import { PasskeyService } from '../../../core/services/passkey.service';
 import { PasskeySummary } from '../../../core/interfaces/passkey/passkey-summary.interface';
-import { RemovePasskeyDto } from '../../../core/dtos/passkey/remove-passkey.dto';
+import { RemovePasskeyDto } from '../../../core/interfaces/passkey/remove-passkey.interface';
 import { SupportChatHelper } from '../../../core/helpers/support/support-chat.helper';
 import { ToastService } from '../../../core/services/toast.service';
 

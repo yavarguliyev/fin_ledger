@@ -1,9 +1,9 @@
 import { ActionIconsConfig } from '../../../../core/interfaces/ui/action-icons-config.interface';
 import { TABLE } from '../../../../core/constants/ui/table.constant';
 import { BADGE_CLASSES } from '../../../../core/constants/ui/badge-class.constant';
-import { BadgeStatusDto } from '../../../../core/dtos/ui/badge-status.dto';
-import { CellRefDto } from '../../../../core/dtos/ui/cell-ref.dto';
-import { ColumnRefDto } from '../../../../core/dtos/ui/column-ref.dto';
+import { BadgeStatusDto } from '../../../../core/interfaces/ui/badge-status.interface';
+import { CellRefDto } from '../../../../core/interfaces/ui/cell-ref.interface';
+import { ColumnRefDto } from '../../../../core/interfaces/ui/column-ref.interface';
 
 export class DataTableHelper {
   static getAlignmentClass<T> ({ column }: ColumnRefDto<T>): string {

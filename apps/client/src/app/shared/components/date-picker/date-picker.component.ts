@@ -3,7 +3,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { DATE_PICKER } from '../../../core/constants/ui/date-picker.constant';
 import { CalendarHelper } from '../../../core/helpers/common/calendar.helper';
-import { CalendarShiftDto } from '../../../core/dtos/ui/calendar-shift.dto';
+import { CalendarShiftDto } from '../../../core/interfaces/ui/calendar-shift.interface';
 
 @Component({
   selector: 'app-date-picker',

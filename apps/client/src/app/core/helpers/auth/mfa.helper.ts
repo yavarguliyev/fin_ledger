@@ -1,6 +1,6 @@
-import { LoginResultRefDto } from '../../dtos/auth/login-result-ref.dto';
-import { RecoveryCodesFileDto } from '../../dtos/auth/recovery-codes-file.dto';
-import { RecoveryCodesRefDto } from '../../dtos/auth/recovery-codes-ref.dto';
+import { LoginResultRefDto } from '../../interfaces/auth/login-result-ref.interface';
+import { RecoveryCodesFileDto } from '../../interfaces/auth/recovery-codes-file.interface';
+import { RecoveryCodesRefDto } from '../../interfaces/auth/recovery-codes-ref.interface';
 import { MFA_CODES } from '../../constants/auth/mfa-codes.constant';
 import { AuthResponse } from '../../interfaces/auth/auth-response.interface';
 import { MfaChallenge } from '../../interfaces/auth/mfa-challenge.interface';

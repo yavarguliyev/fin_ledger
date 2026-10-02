@@ -4,7 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { HttpRequestError } from '../../errors/http-request.error';
 import { HTTP_ERRORS } from '../../constants/http/http-errors.constant';
 import { SESSION } from '../../constants/auth/session.constant';
-import { FieldIssueDto } from '../../dtos/http/field-issue.dto';
+import { FieldIssueDto } from '../../interfaces/http/field-issue.interface';
 
 export class HttpErrorHelper {
   static handleHttpError (error: HttpErrorResponse): Observable<never> {

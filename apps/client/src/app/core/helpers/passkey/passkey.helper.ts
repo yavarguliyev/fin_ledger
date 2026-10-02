@@ -1,7 +1,7 @@
 import { browserSupportsWebAuthn, platformAuthenticatorIsAvailable } from '@simplewebauthn/browser';
 
 import { PASSKEY } from '../../constants/passkey/passkey.constant';
-import { CaughtErrorDto } from '../../dtos/common/caught-error.dto';
+import { CaughtErrorDto } from '../../interfaces/common/caught-error.interface';
 
 export class PasskeyHelper {
   static isAvailable (): boolean {

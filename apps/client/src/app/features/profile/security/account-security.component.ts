@@ -11,7 +11,7 @@ import { FormErrorHelper } from '../../../core/helpers/forms/form-error.helper';
 import { FieldErrorComponent } from '../../../shared/components/field-error/field-error.component';
 import { ACCOUNT } from '../../../core/constants/account/account.constant';
 import { HttpError } from '../../../core/interfaces/http/http-error.interface';
-import { AccountFailureDto } from '../../../core/dtos/account/account-failure.dto';
+import { AccountFailureDto } from '../../../core/interfaces/account/account-failure.interface';
 
 @Component({
   selector: 'app-account-security',

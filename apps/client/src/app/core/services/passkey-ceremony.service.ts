@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { startAuthentication, startRegistration } from '@simplewebauthn/browser';
 
 import { PasskeyHelper } from '../helpers/passkey/passkey.helper';
-import { PasskeyLabelDto } from '../dtos/passkey/passkey-label.dto';
+import { PasskeyLabelDto } from '../interfaces/passkey/passkey-label.interface';
 import { PasskeyOutcome } from '../types/passkey/passkey-outcome.type';
 import { PasskeyService } from './passkey.service';
 import { SessionStore } from './session-store.service';

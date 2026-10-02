@@ -1,10 +1,10 @@
 import { DATE_PICKER } from '../../constants/ui/date-picker.constant';
-import { CalendarDateDto } from '../../dtos/ui/calendar-date.dto';
-import { CalendarIsoDto } from '../../dtos/ui/calendar-iso.dto';
-import { CalendarMonthDto } from '../../dtos/ui/calendar-month.dto';
-import { CalendarRangeDto } from '../../dtos/ui/calendar-range.dto';
-import { CalendarShiftDto } from '../../dtos/ui/calendar-shift.dto';
-import { YearsAgoDto } from '../../dtos/ui/years-ago.dto';
+import { CalendarDateDto } from '../../interfaces/ui/calendar-date.interface';
+import { CalendarIsoDto } from '../../interfaces/ui/calendar-iso.interface';
+import { CalendarMonthDto } from '../../interfaces/ui/calendar-month.interface';
+import { CalendarRangeDto } from '../../interfaces/ui/calendar-range.interface';
+import { CalendarShiftDto } from '../../interfaces/ui/calendar-shift.interface';
+import { YearsAgoDto } from '../../interfaces/ui/years-ago.interface';
 
 export class CalendarHelper {
   static parse ({ iso }: CalendarIsoDto): CalendarDateDto | null {

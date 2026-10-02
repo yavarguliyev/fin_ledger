@@ -7,7 +7,7 @@ import { Bet } from '../types/betting/bet.type';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { PageRequestDto } from '../dtos/common/page-request.dto';
+import { PageRequestDto } from '../interfaces/common/page-request.interface';
 
 @Injectable({ providedIn: 'root' })
 export class BetService {

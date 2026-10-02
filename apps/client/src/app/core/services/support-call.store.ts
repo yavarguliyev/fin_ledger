@@ -1,19 +1,19 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
-import { MediaRefDto } from '../dtos/support/media-ref.dto';
-import { CallNoticeDto } from '../dtos/support/call-notice.dto';
+import { MediaRefDto } from '../interfaces/support/media-ref.interface';
+import { CallNoticeDto } from '../interfaces/support/call-notice.interface';
 import { CallNoticeHelper } from '../helpers/support/call-notice.helper';
-import { CallReasonDto } from '../dtos/support/call-reason.dto';
+import { CallReasonDto } from '../interfaces/support/call-reason.interface';
 import { CallRingtoneService } from './call-ringtone.service';
 import { CallControlsService } from './call-controls.service';
 import { CallLinkService } from './call-link.service';
 import { CallSessionService } from './call-session.service';
 import { CallStateService } from './call-state.service';
 import { CallSignal } from '../interfaces/support/call-signal.interface';
-import { CallSignalRefDto } from '../dtos/support/call-signal-ref.dto';
-import { PlaceCallDto } from '../dtos/support/place-call.dto';
-import { StreamEventRefDto } from '../dtos/support/stream-event-ref.dto';
+import { CallSignalRefDto } from '../interfaces/support/call-signal-ref.interface';
+import { PlaceCallDto } from '../interfaces/support/place-call.interface';
+import { StreamEventRefDto } from '../interfaces/support/stream-event-ref.interface';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';
 import { SupportCallApiService } from './support-call-api.service';
 

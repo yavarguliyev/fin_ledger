@@ -5,6 +5,7 @@ import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { ApiRequest } from '../interfaces/api-request.interface';
 import { ApiResponse } from '../interfaces/api-response.interface';
+import { ApiDownload } from '../interfaces/api-download.interface';
 import { LoginRequest } from '../interfaces/login-request.interface';
 
 export class ApiHelper {
@@ -30,6 +31,12 @@ export class ApiHelper {
 
     const text = await response.text();
     return { status: response.status, headers: response.headers, body: (text ? JSON.parse(text) : null) as T };
+  }
+
+  static async download ({ path, token, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<ApiDownload> {
+    const headers: Record<string, string> = { 'X-Forwarded-For': clientIp, ...(token && { Authorization: `Bearer ${token}` }) };
+    const response = await fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${path}`, { headers });
+    return { status: response.status, headers: response.headers, bytes: Buffer.from(await response.arrayBuffer()) };
   }
 
   static async stream ({ path, token, clientIp = ApiHelper.randomIp() }: ApiRequest): Promise<number> {

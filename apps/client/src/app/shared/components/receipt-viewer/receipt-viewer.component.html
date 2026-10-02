@@ -1,0 +1,33 @@
+<app-modal [isOpen]="store.isOpen()" [title]="text.VIEWER_TITLE" [maxWidth]="text.VIEWER_WIDTH" (close)="store.close()">
+  <div class="h-[70vh] w-full overflow-hidden rounded-xl border border-ink-200 dark:border-night-border bg-ink-100 dark:bg-night-bg">
+    @if (safeUrl(); as url) {
+      <iframe [src]="url" [title]="text.IFRAME_TITLE" class="h-full w-full"></iframe>
+    } @else {
+      <div class="flex h-full items-center justify-center gap-3 text-sm text-ink-500 dark:text-ink-400">
+        <span class="h-5 w-5 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></span>
+        {{ text.LOADING }}
+      </div>
+    }
+  </div>
+
+  <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+    <button
+      type="button"
+      (click)="store.close()"
+      class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+    >
+      {{ text.CLOSE_LABEL }}
+    </button>
+    <button
+      type="button"
+      (click)="store.download()"
+      [disabled]="!safeUrl()"
+      class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
+    >
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+      {{ text.DOWNLOAD_LABEL }}
+    </button>
+  </div>
+</app-modal>

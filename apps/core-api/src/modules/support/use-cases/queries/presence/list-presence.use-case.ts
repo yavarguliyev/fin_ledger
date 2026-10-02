@@ -10,8 +10,9 @@ export class ListPresenceUseCase {
   constructor (private readonly presenceRepository: PresenceRepository) {}
 
   async execute ({ actorId, role }: ListPresenceDto): Promise<PresenceEntryDto[]> {
-    const everyone = await this.presenceRepository.list();
-    const visible = SupportAccessHelper.isStaff({ role }) ? everyone : everyone.filter(entry => SupportAccessHelper.isStaff({ role: entry.role }));
+    const isStaff = SupportAccessHelper.isStaff({ role });
+    const listed = await this.presenceRepository.list({ staffOnly: !isStaff });
+    const visible = isStaff ? listed : listed.filter(entry => SupportAccessHelper.isStaff({ role: entry.role }));
     return visible.filter(entry => entry.userId !== actorId);
   }
 }

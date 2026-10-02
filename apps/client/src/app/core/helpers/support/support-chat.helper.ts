@@ -1,14 +1,14 @@
-import { CaughtErrorDto } from '../../dtos/common/caught-error.dto';
-import { ClearUnreadDto } from '../../dtos/support/clear-unread.dto';
+import { CaughtErrorDto } from '../../interfaces/common/caught-error.interface';
+import { ClearUnreadDto } from '../../interfaces/support/clear-unread.interface';
 import { HttpRequestError } from '../../errors/http-request.error';
-import { MarkSeenDto } from '../../dtos/support/mark-seen.dto';
-import { MergeMessagesDto } from '../../dtos/support/merge-messages.dto';
-import { MessageGroupDto } from '../../dtos/support/message-group.dto';
-import { MessageRefDto } from '../../dtos/support/message-ref.dto';
-import { MessagesRefDto } from '../../dtos/support/messages-ref.dto';
+import { MarkSeenDto } from '../../interfaces/support/mark-seen.interface';
+import { MergeMessagesDto } from '../../interfaces/support/merge-messages.interface';
+import { MessageGroupDto } from '../../interfaces/support/message-group.interface';
+import { MessageRefDto } from '../../interfaces/support/message-ref.interface';
+import { MessagesRefDto } from '../../interfaces/support/messages-ref.interface';
 import { SupportConversation } from '../../types/support/support-conversation.type';
 import { SupportMessage } from '../../types/support/support-message.type';
-import { UpsertConversationDto } from '../../dtos/support/upsert-conversation.dto';
+import { UpsertConversationDto } from '../../interfaces/support/upsert-conversation.interface';
 
 export class SupportChatHelper {
   static isSilent ({ error }: CaughtErrorDto): boolean {

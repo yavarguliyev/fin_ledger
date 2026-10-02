@@ -2,7 +2,7 @@ import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nest
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryService } from '@nestjs/core';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
-import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler, UnknownRecord } from '@common/shared-libs';
+import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler } from '@common/shared-libs';
 import { InboxRepository } from '@common/database';
 
 import { KafkaMessageRecord } from '../interfaces/kafka-message-record.interface';
@@ -14,6 +14,7 @@ import { KafkaHelper } from '../helpers/kafka.helper';
 import { DispatchHelper } from '../helpers/dispatch.helper';
 import { RetryHelper } from '../helpers/retry.helper';
 import { TopicHelper } from '../helpers/topic.helper';
+import { SubscriberHelper } from '../helpers/subscriber.helper';
 import { KafkaService } from './kafka.service';
 
 @Injectable()
@@ -102,17 +103,14 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
   }
 
   private registerSingleSubscriber ({ instance, methodName, options }: RegisterSubscriberDto): void {
-    const instanceRecord = instance as UnknownRecord;
-    const handler = instanceRecord[methodName as string];
-
-    if (typeof handler !== 'function') return;
+    const boundHandler = SubscriberHelper.bind({ instance, methodName });
+    if (!boundHandler) return;
 
     const topic = typeof options.topic === 'string' ? options.topic : options.topic.source;
-    const boundHandler = handler.bind(instance) as MessageHandler<KafkaMessageRecord>;
     const existingHandlers = this.subscribers.get(topic) || [];
 
     this.subscribers.set(topic, [...existingHandlers, boundHandler]);
-    this.logger.log(`Registered: ${instance.constructor.name}.${String(methodName)} -> ${topic}`);
+    this.logger.log(`Registered: ${boundHandler.name} -> ${topic}`);
   }
 
   private async initializeConsumer (): Promise<void> {

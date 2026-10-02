@@ -1,4 +1,4 @@
-import { LastSeenRefDto } from '../dtos/last-seen-ref.dto';
+import { LastSeenRefDto } from '../interfaces/last-seen-ref.interface';
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
 
 export class LastSeenHelper {

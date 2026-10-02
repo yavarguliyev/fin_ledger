@@ -3,5 +3,6 @@ export const PRESENCE_TEST = {
   OTHER: { userId: 'staff-2', displayName: 'Admin', role: 'ADMIN', state: 'ONLINE', lastSeenAt: null },
   ONLINE: 'ONLINE',
   OFFLINE: 'OFFLINE',
-  LATER: '2026-10-01T11:00:00.000Z'
+  LATER: '2026-10-01T11:00:00.000Z',
+  UNKNOWN: ''
 } as const;

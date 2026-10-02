@@ -3,8 +3,8 @@ import { DestroyRef, Injectable, NgZone, inject } from '@angular/core';
 import { SUPPORT } from '../constants/support/support.constant';
 import { SupportApiService } from './support-api.service';
 import { SupportStreamEvent } from '../interfaces/support/support-stream-event.interface';
-import { SupportStreamHandlerDto } from '../dtos/support/support-stream-handler.dto';
-import { AttachSupportStreamDto } from '../dtos/support/attach-support-stream.dto';
+import { SupportStreamHandlerDto } from '../interfaces/support/support-stream-handler.interface';
+import { AttachSupportStreamDto } from '../interfaces/support/attach-support-stream.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportStreamService {

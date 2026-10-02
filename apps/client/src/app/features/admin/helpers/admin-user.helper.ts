@@ -2,7 +2,7 @@ import { AdminUser } from '../../../core/interfaces/admin/admin-user.interface';
 import { UserRole } from '../../../core/types/auth/user-role.type';
 import { ADMIN_TABLE } from '../../../core/constants/admin/admin-table.constant';
 import { CURRENCY } from '../../../core/constants/wallet/currency.constant';
-import { UserRecordRefDto } from '../../../core/dtos/admin/user-record-ref.dto';
+import { UserRecordRefDto } from '../../../core/interfaces/admin/user-record-ref.interface';
 
 export class AdminUserHelper {
   static fromRecord ({ user }: UserRecordRefDto): AdminUser {

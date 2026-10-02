@@ -11,8 +11,8 @@ import { Wallet } from '../types/wallet/wallet.type';
 import { AuthService } from './auth.service';
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { UpdateWalletStatusDto } from '../dtos/wallet/update-wallet-status.dto';
-import { UpdateEmailVerificationDto } from '../dtos/user/update-email-verification.dto';
+import { UpdateWalletStatusDto } from '../interfaces/wallet/update-wallet-status.interface';
+import { UpdateEmailVerificationDto } from '../interfaces/user/update-email-verification.interface';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {

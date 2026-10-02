@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
-import { CallIdDto } from '../dtos/support/call-id.dto';
-import { CallReasonDto } from '../dtos/support/call-reason.dto';
+import { CallIdDto } from '../interfaces/support/call-id.interface';
+import { CallReasonDto } from '../interfaces/support/call-reason.interface';
 import { CallSessionService } from './call-session.service';
-import { CandidateRefDto } from '../dtos/support/candidate-ref.dto';
-import { OpenCallLinkDto } from '../dtos/support/open-call-link.dto';
+import { CandidateRefDto } from '../interfaces/support/candidate-ref.interface';
+import { OpenCallLinkDto } from '../interfaces/support/open-call-link.interface';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';
 import { SupportCallApiService } from './support-call-api.service';
 

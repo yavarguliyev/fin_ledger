@@ -31,4 +31,14 @@ describe('PresenceHelper', () => {
 
     expect(PresenceHelper.upsertOnline({ current: once, presence: other })).toHaveLength(1);
   });
+
+  it('keeps the contact name and role when a timeout event only carries the id and last seen time', () => {
+    const expired: PresenceEntry = { ...other, displayName: PRESENCE_TEST.UNKNOWN, role: PRESENCE_TEST.UNKNOWN, state: PRESENCE_TEST.OFFLINE };
+
+    expect(PresenceHelper.replace({ current: [other], presence: expired })[0]).toMatchObject({
+      displayName: other.displayName,
+      role: other.role,
+      state: PRESENCE_TEST.OFFLINE
+    });
+  });
 });

@@ -8,6 +8,7 @@ export * from './modules/decorators/kafka-subscribe.decorator';
 export * from './modules/dtos/consumer/kafka-message-payload.dto';
 export * from './modules/dtos/consumer/register-subscriber.dto';
 export * from './modules/dtos/consumer/subscriber-instance.dto';
+export * from './modules/dtos/consumer/subscriber-method.dto';
 export * from './modules/dtos/decorator/kafka-key-resolver.dto';
 export * from './modules/dtos/decorator/kafka-publish-options.dto';
 export * from './modules/dtos/decorator/kafka-subscribe-options.dto';
@@ -28,6 +29,7 @@ export * from './modules/dtos/step/topic-name.dto';
 export * from './modules/helpers/dispatch.helper';
 export * from './modules/helpers/kafka.helper';
 export * from './modules/helpers/retry.helper';
+export * from './modules/helpers/subscriber.helper';
 export * from './modules/helpers/topic.helper';
 
 export * from './modules/interfaces/consumer-config-payload.interface';

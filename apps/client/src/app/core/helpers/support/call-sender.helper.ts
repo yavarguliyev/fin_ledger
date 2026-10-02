@@ -1,5 +1,5 @@
-import { PeerRefDto } from '../../dtos/support/peer-ref.dto';
-import { SenderTuningDto } from '../../dtos/support/sender-tuning.dto';
+import { PeerRefDto } from '../../interfaces/support/peer-ref.interface';
+import { SenderTuningDto } from '../../interfaces/support/sender-tuning.interface';
 import { SUPPORT_CALL } from '../../constants/support/support-call.constant';
 
 export class CallSenderHelper {

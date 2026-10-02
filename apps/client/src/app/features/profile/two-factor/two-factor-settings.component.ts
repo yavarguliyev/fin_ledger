@@ -11,7 +11,7 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
 import { MfaHelper } from '../../../core/helpers/auth/mfa.helper';
 import { MfaStatus } from '../../../core/interfaces/auth/mfa-status.interface';
 import { MfaEnrollment } from '../../../core/interfaces/auth/mfa-enrollment.interface';
-import { RunRequestDto } from '../dtos/run-request.dto';
+import { RunRequestDto } from '../interfaces/run-request.interface';
 import { MFA_MESSAGES } from '../../../core/constants/auth/mfa-messages.constant';
 import { MfaFormService } from './services/mfa-form.service';
 

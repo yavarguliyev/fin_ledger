@@ -1,9 +1,9 @@
 import { Observable, catchError, from, switchMap, throwError } from 'rxjs';
 
-import { CaughtErrorDto } from '../../dtos/common/caught-error.dto';
+import { CaughtErrorDto } from '../../interfaces/common/caught-error.interface';
 import { HttpRequestError } from '../../errors/http-request.error';
 import { PASSKEY } from '../../constants/passkey/passkey.constant';
-import { StepUpGuardDto } from '../../dtos/passkey/step-up-guard.dto';
+import { StepUpGuardDto } from '../../interfaces/passkey/step-up-guard.interface';
 
 export class StepUpRetryHelper {
   static isStepUpRequired ({ error }: CaughtErrorDto): boolean {

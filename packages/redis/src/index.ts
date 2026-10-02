@@ -3,6 +3,7 @@ export * from './modules/dtos/cache/cache-keys.dto';
 export * from './modules/dtos/cache/sorted-set-add.dto';
 export * from './modules/dtos/cache/sorted-set-member.dto';
 export * from './modules/dtos/cache/sorted-set-range.dto';
+export * from './modules/dtos/cache/sorted-set-latest.dto';
 export * from './modules/dtos/cache/cache-pattern.dto';
 export * from './modules/dtos/cache/cache-set-if-not-exists.dto';
 export * from './modules/dtos/cache/cache-set.dto';

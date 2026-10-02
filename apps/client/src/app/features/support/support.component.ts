@@ -16,9 +16,9 @@ import { SupportComposeStore } from '../../core/services/support-compose.store';
 import { SupportCallStore } from '../../core/services/support-call.store';
 import { SUPPORT_CALL } from '../../core/constants/support/support-call.constant';
 import { CallMedia } from '../../core/types/support/call-media.type';
-import { RecordedClipDto } from '../../core/dtos/support/recorded-clip.dto';
-import { ComposeSubmitDto } from '../../core/dtos/support/compose-submit.dto';
-import { EditSaveDto } from '../../core/dtos/support/edit-save.dto';
+import { RecordedClipDto } from '../../core/interfaces/support/recorded-clip.interface';
+import { ComposeSubmitDto } from '../../core/interfaces/support/compose-submit.interface';
+import { EditSaveDto } from '../../core/interfaces/support/edit-save.interface';
 import { SupportPresenceStore } from '../../core/services/support-presence.store';
 
 @Component({
@@ -55,8 +55,7 @@ export class SupportComponent implements OnInit, AfterViewChecked, OnDestroy {
     this.chat.loadConversations();
 
     this.timers = [
-      setInterval(() => this.presenceStore.load(), SUPPORT.HEARTBEAT_MS),
-      setInterval(() => this.presenceStore.loadContacts(), SUPPORT.HEARTBEAT_MS),
+      setInterval(() => this.resyncPresence(), SUPPORT.PRESENCE_RESYNC_MS),
       setInterval(() => this.refresh(), SUPPORT_VIEW.RESYNC_MS)
     ];
 
@@ -113,6 +112,11 @@ export class SupportComponent implements OnInit, AfterViewChecked, OnDestroy {
   onDelete (scope: DeleteScope): void {
     const conversationId = this.chat.activeId();
     if (conversationId) this.compose.confirmDelete({ conversationId, scope });
+  }
+
+  private resyncPresence (): void {
+    this.presenceStore.load();
+    this.presenceStore.loadContacts();
   }
 
   private refresh (): void {

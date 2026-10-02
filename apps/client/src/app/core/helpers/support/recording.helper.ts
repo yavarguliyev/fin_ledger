@@ -1,5 +1,5 @@
-import { MimeTypeRefDto } from '../../dtos/support/mime-type-ref.dto';
-import { RecordingKindRefDto } from '../../dtos/support/recording-kind-ref.dto';
+import { MimeTypeRefDto } from '../../interfaces/support/mime-type-ref.interface';
+import { RecordingKindRefDto } from '../../interfaces/support/recording-kind-ref.interface';
 import { SUPPORT_RECORDING } from '../../constants/support/support-recording.constant';
 
 export class RecordingHelper {

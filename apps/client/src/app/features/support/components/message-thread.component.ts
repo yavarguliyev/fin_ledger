@@ -8,7 +8,7 @@ import { SupportMessage } from '../../../core/types/support/support-message.type
 
 import { SUPPORT_MESSAGES } from '../../../core/constants/support/support-messages.constant';
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
-import { MessageGroupDto } from '../../../core/dtos/support/message-group.dto';
+import { MessageGroupDto } from '../../../core/interfaces/support/message-group.interface';
 import { SupportChatHelper } from '../../../core/helpers/support/support-chat.helper';
 import { SUPPORT_ATTACHMENT } from '../../../core/constants/support/support-attachment.constant';
 import { SupportAttachmentHelper } from '../../../core/helpers/support/support-attachment.helper';

@@ -1,5 +1,5 @@
-import { MessageOwnerDto } from '../../dtos/support/message-owner.dto';
-import { MessageRefDto } from '../../dtos/support/message-ref.dto';
+import { MessageOwnerDto } from '../../interfaces/support/message-owner.interface';
+import { MessageRefDto } from '../../interfaces/support/message-ref.interface';
 import { SUPPORT_MESSAGE_RULES } from '../../constants/support/support-message-rules.constant';
 import { SupportMessage } from '../../types/support/support-message.type';
 

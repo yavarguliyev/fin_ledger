@@ -2,11 +2,11 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 
 import { PresenceEntry } from '../types/support/presence-entry.type';
 import { PresenceHelper } from '../helpers/support/presence.helper';
-import { PresenceRefDto } from '../dtos/support/presence-ref.dto';
-import { StreamEventRefDto } from '../dtos/support/stream-event-ref.dto';
+import { PresenceRefDto } from '../interfaces/support/presence-ref.interface';
+import { StreamEventRefDto } from '../interfaces/support/stream-event-ref.interface';
 import { SUPPORT } from '../constants/support/support.constant';
 import { SupportApiService } from './support-api.service';
-import { UserIdRefDto } from '../dtos/support/user-id-ref.dto';
+import { UserIdRefDto } from '../interfaces/support/user-id-ref.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportPresenceStore {

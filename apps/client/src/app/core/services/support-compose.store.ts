@@ -1,13 +1,13 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ComposeRequestDto } from '../dtos/support/compose-request.dto';
-import { SendRecordingDto } from '../dtos/support/send-recording.dto';
-import { FilesRefDto } from '../dtos/support/files-ref.dto';
-import { ComposeEditDto } from '../dtos/support/compose-edit.dto';
-import { ComposeSendDto } from '../dtos/support/compose-send.dto';
-import { MessageRefDto } from '../dtos/support/message-ref.dto';
-import { ConfirmDeleteDto } from '../dtos/support/confirm-delete.dto';
+import { ComposeRequestDto } from '../interfaces/support/compose-request.interface';
+import { SendRecordingDto } from '../interfaces/support/send-recording.interface';
+import { FilesRefDto } from '../interfaces/support/files-ref.interface';
+import { ComposeEditDto } from '../interfaces/support/compose-edit.interface';
+import { ComposeSendDto } from '../interfaces/support/compose-send.interface';
+import { MessageRefDto } from '../interfaces/support/message-ref.interface';
+import { ConfirmDeleteDto } from '../interfaces/support/confirm-delete.interface';
 import { MessageRulesHelper } from '../helpers/support/message-rules.helper';
 import { SUPPORT_MESSAGE_RULES } from '../constants/support/support-message-rules.constant';
 import { SUPPORT_ATTACHMENT } from '../constants/support/support-attachment.constant';

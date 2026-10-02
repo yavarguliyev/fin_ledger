@@ -1,6 +1,6 @@
 import { AppNotification } from '../../types/notification/app-notification.type';
 import { SSE_RECONNECT } from '../../constants/notification/sse.constant';
-import { MergeNotificationsDto } from '../../dtos/notification/merge-notifications.dto';
+import { MergeNotificationsDto } from '../../interfaces/notification/merge-notifications.interface';
 
 export class NotificationMergeHelper {
   static backoffMs ({ attempt }: { attempt: number }): number {

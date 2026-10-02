@@ -3,12 +3,12 @@ import { TableColumn } from '../../../core/interfaces/ui/table-column.interface'
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
 import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
 import { ADMIN_TABLE } from '../../../core/constants/admin/admin-table.constant';
-import { AdminColumnsDto } from '../../../core/dtos/admin/admin-columns.dto';
-import { AccountStatusColumnDto } from '../../../core/dtos/admin/account-status-column.dto';
-import { ActionsColumnDto } from '../../../core/dtos/admin/actions-column.dto';
-import { ToggleColumnsDto } from '../../../core/dtos/admin/toggle-columns.dto';
-import { MinorAmountDto } from '../../../core/dtos/wallet/minor-amount.dto';
-import { DashboardStatsRefDto } from '../../../core/dtos/admin/dashboard-stats-ref.dto';
+import { AdminColumnsDto } from '../../../core/interfaces/admin/admin-columns.interface';
+import { AccountStatusColumnDto } from '../../../core/interfaces/admin/account-status-column.interface';
+import { ActionsColumnDto } from '../../../core/interfaces/admin/actions-column.interface';
+import { ToggleColumnsDto } from '../../../core/interfaces/admin/toggle-columns.interface';
+import { MinorAmountDto } from '../../../core/interfaces/wallet/minor-amount.interface';
+import { DashboardStatsRefDto } from '../../../core/interfaces/admin/dashboard-stats-ref.interface';
 import { StatCardHelper } from './stat-card.helper';
 
 export class AdminHelper {

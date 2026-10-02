@@ -1,4 +1,4 @@
-import { RowRefDto } from '../../dtos/ui/row-ref.dto';
+import { RowRefDto } from './row-ref.interface';
 
 export interface ActionConfig<T = unknown> {
   view?: boolean;

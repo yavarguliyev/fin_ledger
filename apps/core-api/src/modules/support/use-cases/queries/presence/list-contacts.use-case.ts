@@ -16,12 +16,10 @@ export class ListContactsUseCase {
   async execute ({ actorId }: ListPresenceDto): Promise<PresenceEntryDto[]> {
     const contacts = await this.contactRepository.listStaff({ userId: actorId });
 
-    return Promise.all(
-      contacts.map(async contact => {
-        const online = await this.presenceRepository.isOnline({ userId: contact.userId });
-        const lastSeenAt = await this.presenceRepository.lastSeen({ userId: contact.userId });
-        return PresenceHelper.forContact({ contact, online, lastSeenAt });
-      })
+    const statuses = await this.presenceRepository.statuses({ userIds: contacts.map(contact => contact.userId) });
+
+    return contacts.map((contact, index) =>
+      PresenceHelper.forContact({ contact, online: statuses[index]?.online ?? false, lastSeenAt: statuses[index]?.lastSeenAt ?? null })
     );
   }
 }

@@ -1,7 +1,7 @@
 import { ActionConfig } from './action-config.interface';
-import { CellFormatDto } from '../../dtos/ui/cell-format.dto';
-import { RowRefDto } from '../../dtos/ui/row-ref.dto';
-import { ToggleValueDto } from '../../dtos/ui/toggle-value.dto';
+import { CellFormatDto } from './cell-format.interface';
+import { RowRefDto } from './row-ref.interface';
+import { ToggleValueDto } from './toggle-value.interface';
 
 export interface TableColumn<T = unknown> {
   key: string;

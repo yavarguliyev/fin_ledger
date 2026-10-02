@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 
 import { PASSKEY_MESSAGES } from '../constants/passkey/passkey-messages.constant';
 import { PasskeyCeremonyService } from './passkey-ceremony.service';
-import { RequestRefDto } from '../dtos/common/request-ref.dto';
+import { RequestRefDto } from '../interfaces/common/request-ref.interface';
 import { StepUpRetryHelper } from '../helpers/passkey/step-up-retry.helper';
 import { ToastService } from './toast.service';
 

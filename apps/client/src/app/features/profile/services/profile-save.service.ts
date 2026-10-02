@@ -4,8 +4,8 @@ import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FormErrorHelper } from '../../../core/helpers/forms/form-error.helper';
 import { PROFILE } from '../../../core/constants/profile/profile.constant';
-import { ProfileFormRefDto } from '../dtos/profile-form-ref.dto';
-import { ProfileSaveFailureDto } from '../dtos/profile-save-failure.dto';
+import { ProfileFormRefDto } from '../interfaces/profile-form-ref.interface';
+import { ProfileSaveFailureDto } from '../interfaces/profile-save-failure.interface';
 import { ProfileFormService } from './profile-form.service';
 import { ProfileFormHelper } from '../helpers/profile-form.helper';
 

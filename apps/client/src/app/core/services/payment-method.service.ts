@@ -6,8 +6,8 @@ import { PaymentMethod } from '../types/payment-method/payment-method.type';
 import { AppConfigService } from './app-config.service';
 import { PaymentMethodStatus } from '../types/payment-method/payment-method-status.type';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
-import { CreateSetupSessionDto } from '../dtos/payment/create-setup-session.dto';
-import { ConfirmSetupSessionDto } from '../dtos/payment/confirm-setup-session.dto';
+import { CreateSetupSessionDto } from '../interfaces/payment/create-setup-session.interface';
+import { ConfirmSetupSessionDto } from '../interfaces/payment/confirm-setup-session.interface';
 import { SetupSession } from '../interfaces/payment/setup-session.interface';
 
 @Injectable({ providedIn: 'root' })

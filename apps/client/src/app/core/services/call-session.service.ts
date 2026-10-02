@@ -1,12 +1,12 @@
 import { Injectable, signal } from '@angular/core';
 
-import { CandidateRefDto } from '../dtos/support/candidate-ref.dto';
-import { OpenCallSessionDto } from '../dtos/support/open-call-session.dto';
-import { SdpRefDto } from '../dtos/support/sdp-ref.dto';
+import { CandidateRefDto } from '../interfaces/support/candidate-ref.interface';
+import { OpenCallSessionDto } from '../interfaces/support/open-call-session.interface';
+import { SdpRefDto } from '../interfaces/support/sdp-ref.interface';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';
-import { ToggleRefDto } from '../dtos/support/toggle-ref.dto';
+import { ToggleRefDto } from '../interfaces/support/toggle-ref.interface';
 import { CallSenderHelper } from '../helpers/support/call-sender.helper';
-import { TrackEventRefDto } from '../dtos/support/track-event-ref.dto';
+import { TrackEventRefDto } from '../interfaces/support/track-event-ref.interface';
 
 @Injectable({ providedIn: 'root' })
 export class CallSessionService {

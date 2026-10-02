@@ -1,13 +1,13 @@
 import { Component, ElementRef, effect, inject, input, output, signal, viewChild } from '@angular/core';
 
-import { RecordedClipDto } from '../../../core/dtos/support/recorded-clip.dto';
+import { RecordedClipDto } from '../../../core/interfaces/support/recorded-clip.interface';
 import { RecorderBarComponent } from './recorder-bar.component';
 import { RecordingKind } from '../../../core/types/support/recording-kind.type';
 import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recording.constant';
 import { ToastService } from '../../../core/services/toast.service';
 
-import { ComposeSubmitDto } from '../../../core/dtos/support/compose-submit.dto';
-import { EditSaveDto } from '../../../core/dtos/support/edit-save.dto';
+import { ComposeSubmitDto } from '../../../core/interfaces/support/compose-submit.interface';
+import { EditSaveDto } from '../../../core/interfaces/support/edit-save.interface';
 import { SUPPORT } from '../../../core/constants/support/support.constant';
 import { SUPPORT_ATTACHMENT } from '../../../core/constants/support/support-attachment.constant';
 import { SUPPORT_MESSAGES } from '../../../core/constants/support/support-messages.constant';

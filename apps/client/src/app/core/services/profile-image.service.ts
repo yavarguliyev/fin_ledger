@@ -3,7 +3,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
-import { ImageIndexDto } from '../dtos/ui/image-index.dto';
+import { ImageIndexDto } from '../interfaces/ui/image-index.interface';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileImageService {

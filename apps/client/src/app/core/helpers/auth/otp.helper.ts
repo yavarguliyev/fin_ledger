@@ -1,7 +1,7 @@
 import { OTP } from '../../constants/auth/otp.constant';
-import { OtpSlotsDto } from '../../dtos/auth/otp-slots.dto';
-import { OtpWriteSlotsDto } from '../../dtos/auth/otp-write-slots.dto';
-import { OtpFillSlotsDto } from '../../dtos/auth/otp-fill-slots.dto';
+import { OtpSlotsDto } from '../../interfaces/auth/otp-slots.interface';
+import { OtpWriteSlotsDto } from '../../interfaces/auth/otp-write-slots.interface';
+import { OtpFillSlotsDto } from '../../interfaces/auth/otp-fill-slots.interface';
 
 export class OtpHelper {
   static sanitize (text: string): string {

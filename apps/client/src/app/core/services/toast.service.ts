@@ -3,8 +3,8 @@ import { Injectable, signal, computed } from '@angular/core';
 import { ConfirmToast } from '../interfaces/ui/confirm-toast.interface';
 import { Toast } from '../interfaces/ui/toast.interface';
 import { UuidHelper } from '../helpers/common/uuid.helper';
-import { ShowToastDto } from '../dtos/ui/show-toast.dto';
-import { RequestConfirmDto } from '../dtos/ui/request-confirm.dto';
+import { ShowToastDto } from '../interfaces/ui/show-toast.interface';
+import { RequestConfirmDto } from '../interfaces/ui/request-confirm.interface';
 import { TOAST } from '../constants/ui/toast.constant';
 
 @Injectable({ providedIn: 'root' })

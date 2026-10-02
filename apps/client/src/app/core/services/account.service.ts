@@ -4,9 +4,9 @@ import { Observable, catchError, tap } from 'rxjs';
 
 import { AuthResponse } from '../interfaces/auth/auth-response.interface';
 import { MessageResponse } from '../interfaces/auth/message-response.interface';
-import { ChangePasswordDto } from '../dtos/account/change-password.dto';
-import { ChangeEmailDto } from '../dtos/account/change-email.dto';
-import { ConfirmEmailChangeDto } from '../dtos/account/confirm-email-change.dto';
+import { ChangePasswordDto } from '../interfaces/account/change-password.interface';
+import { ChangeEmailDto } from '../interfaces/account/change-email.interface';
+import { ConfirmEmailChangeDto } from '../interfaces/account/confirm-email-change.interface';
 import { ACCOUNT } from '../constants/account/account.constant';
 import { AppConfigService } from './app-config.service';
 import { SessionStore } from './session-store.service';

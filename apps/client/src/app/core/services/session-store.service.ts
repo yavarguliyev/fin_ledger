@@ -1,8 +1,8 @@
 import { Injectable, computed, signal } from '@angular/core';
 
 import { AuthUser } from '../types/auth/auth-user.type';
-import { SessionRefDto } from '../dtos/auth/session-ref.dto';
-import { UserRefDto } from '../dtos/auth/user-ref.dto';
+import { SessionRefDto } from '../interfaces/auth/session-ref.interface';
+import { UserRefDto } from '../interfaces/auth/user-ref.interface';
 import { SESSION } from '../constants/auth/session.constant';
 
 @Injectable({ providedIn: 'root' })

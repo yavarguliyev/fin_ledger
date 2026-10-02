@@ -5,6 +5,7 @@ import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
 import { TransactionHelper } from '../../../core/helpers/wallet/transaction.helper';
 import { TABLE } from '../../../core/constants/ui/table.constant';
 import { AMOUNT_CLASS } from '../../../core/constants/ui/amount-class.constant';
+import { RECEIPT } from '../../../core/constants/payment/receipt.constant';
 
 export class WalletHelper {
   static getWalletTableColumns (): TableColumn<Transaction>[] {
@@ -47,6 +48,13 @@ export class WalletHelper {
         align: 'center',
         mobileVisible: false,
         format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
+      },
+      {
+        key: RECEIPT.COLUMN_KEY,
+        label: RECEIPT.SHORT_LABEL,
+        type: 'custom',
+        align: 'center',
+        mobileVisible: false
       }
     ];
   }

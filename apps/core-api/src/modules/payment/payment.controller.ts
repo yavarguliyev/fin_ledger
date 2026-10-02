@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, StreamableFile, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ENVIRONMENT_CONSTANTS,
@@ -42,6 +42,13 @@ export class PaymentController {
   @Get('unresolved')
   async listUnresolved (): Promise<PaymentDto[]> {
     return this.paymentService.listUnresolved();
+  }
+
+  @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER] })
+  @Get(':id/receipt')
+  @UseGuards(PaymentAccessGuard)
+  async downloadReceipt (@ParamsQueryAndHeaders({ schema: PaymentIdRequestSchema }) dto: PaymentIdRequestDto): Promise<StreamableFile> {
+    return this.paymentService.getReceipt(dto);
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR, UserRoles.USER] })

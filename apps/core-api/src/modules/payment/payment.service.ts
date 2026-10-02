@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, StreamableFile } from '@nestjs/common';
 
 import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawal.use-case';
 import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-case';
 import { GetPaymentUseCase } from './use-cases/queries/get-payment.use-case';
+import { GetPaymentReceiptUseCase } from './use-cases/queries/get-payment-receipt.use-case';
 import { ListUnresolvedPaymentsUseCase } from './use-cases/queries/list-unresolved-payments.use-case';
 import { PaymentDto } from './dtos/payment/payment.dto';
 import { PaymentResultDto } from './dtos/payment/payment-result.dto';
@@ -15,7 +16,8 @@ export class PaymentService {
     private readonly requestWithdrawalUseCase: RequestWithdrawalUseCase,
     private readonly requestDepositUseCase: RequestDepositUseCase,
     private readonly getPaymentUseCase: GetPaymentUseCase,
-    private readonly listUnresolvedPaymentsUseCase: ListUnresolvedPaymentsUseCase
+    private readonly listUnresolvedPaymentsUseCase: ListUnresolvedPaymentsUseCase,
+    private readonly getPaymentReceiptUseCase: GetPaymentReceiptUseCase
   ) {}
 
   async deposit (dto: ProcessPaymentDto): Promise<PaymentResultDto> {
@@ -32,5 +34,9 @@ export class PaymentService {
 
   async getPayment (dto: PaymentIdRequestDto): Promise<PaymentDto> {
     return this.getPaymentUseCase.execute(dto);
+  }
+
+  async getReceipt (dto: PaymentIdRequestDto): Promise<StreamableFile> {
+    return this.getPaymentReceiptUseCase.execute(dto);
   }
 }
