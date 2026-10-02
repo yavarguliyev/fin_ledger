@@ -11,6 +11,7 @@ import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { AuthHelper } from '../../helpers/auth.helper';
 import { AuthTokenHelper } from '../../helpers/auth-token.helper';
 import { EmailHelper } from '../../../email/helpers/email.helper';
+import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterResponseDto> {
@@ -52,7 +53,7 @@ export class RegisterUserUseCase extends AuthBaseUseCase<RegisterDto, RegisterRe
       purpose: AuthTokenPurpose.EMAIL_VERIFICATION
     });
 
-    const verificationUrl = `${this.frontendUrl}/auth/verify-email?token=${token}`;
+    const verificationUrl = `${this.frontendUrl}${FRONTEND.VERIFY_EMAIL_PATH}${FRONTEND.TOKEN_QUERY}${token}`;
 
     await EmailHelper.emitKafkaUserEmailVerification({
       to: user.email,

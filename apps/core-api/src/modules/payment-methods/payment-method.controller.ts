@@ -18,6 +18,7 @@ import { CreateSetupSessionRequestDto, CreateSetupSessionRequestSchema } from '.
 import { ConfirmSetupSessionRequestDto, ConfirmSetupSessionRequestSchema } from './dtos/request/confirm-setup-session-request.dto';
 import { ListPaymentMethodsRequestDto, ListPaymentMethodsRequestSchema } from './dtos/request/list-payment-methods-request.dto';
 import { PaymentMethodIdRequestDto, PaymentMethodIdRequestSchema } from './dtos/request/payment-method-id-request.dto';
+import { PAYMENT_METHOD_AUDIT } from './constants/audit/payment-method-audit.constant';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.PAYMENT_METHOD.key)
@@ -55,7 +56,7 @@ export class PaymentMethodController {
 
   @Post(':id/verify')
   @Roles({ roles: [UserRoles.USER] })
-  @Audited({ action: 'PAYMENT_METHOD_VERIFIED', entityType: 'PaymentMethod', entityIdParam: 'id' })
+  @Audited({ action: PAYMENT_METHOD_AUDIT.VERIFIED, entityType: PAYMENT_METHOD_AUDIT.ENTITY_TYPE, entityIdParam: PAYMENT_METHOD_AUDIT.ENTITY_ID_PARAM })
   async verifyPaymentMethod (
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: PaymentMethodIdRequestSchema }) dto: PaymentMethodIdRequestDto
@@ -73,7 +74,7 @@ export class PaymentMethodController {
 
   @Delete(':id')
   @Roles({ roles: [UserRoles.USER] })
-  @Audited({ action: 'PAYMENT_METHOD_REMOVED', entityType: 'PaymentMethod', entityIdParam: 'id' })
+  @Audited({ action: PAYMENT_METHOD_AUDIT.REMOVED, entityType: PAYMENT_METHOD_AUDIT.ENTITY_TYPE, entityIdParam: PAYMENT_METHOD_AUDIT.ENTITY_ID_PARAM })
   async removePaymentMethod (
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: PaymentMethodIdRequestSchema }) dto: PaymentMethodIdRequestDto

@@ -7,6 +7,7 @@ import { UserBaseCase } from '../base/user-base.use-case';
 import { EmailHelper } from '../../../email/helpers/email.helper';
 import { AuthTokenRepository } from '../../../auth/repositories/auth-token.repository';
 import { AuthTokenHelper } from '../../../auth/helpers/auth-token.helper';
+import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateResponseDto> {
@@ -35,7 +36,7 @@ export class UserCreateUseCase extends UserBaseCase<UserCreateDto, UserCreateRes
       purpose: AuthTokenPurpose.ACCOUNT_INVITE
     });
 
-    const invitationUrl = `${this.configService.get<string>('FRONTEND_URL')}/auth/set-password?token=${token}`;
+    const invitationUrl = `${this.configService.get<string>(FRONTEND.URL_KEY)}${FRONTEND.SET_PASSWORD_PATH}${FRONTEND.TOKEN_QUERY}${token}`;
 
     await EmailHelper.emitKafkaUserEmailVerification({
       to: user.email,

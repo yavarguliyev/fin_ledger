@@ -19,6 +19,7 @@ import { UserIdRequestDto, UserIdRequestSchema } from './dtos/request/user-id-re
 import { UserCreateResponseDto } from './dtos/response/user-create-response.dto';
 import { DeleteUserResponseDto } from './dtos/response/delete-user-response.dto';
 import { UserService } from './user.service';
+import { USER_AUDIT } from './constants/audit/user-audit.constant';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.USER.key)
@@ -30,42 +31,42 @@ export class UserAdminController {
   constructor (private readonly userService: UserService) {}
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN] })
-  @Audited({ action: 'USER_CREATED', entityType: 'User' })
+  @Audited({ action: USER_AUDIT.CREATED, entityType: USER_AUDIT.ENTITY_TYPE })
   @Post()
   async createUser (@Body({ schema: UserCreateSchema }) dto: UserCreateDto): Promise<UserCreateResponseDto> {
     return this.userService.createUser(dto);
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR] })
-  @Audited({ action: 'USER_DELETED', entityType: 'User', entityIdParam: 'userId' })
+  @Audited({ action: USER_AUDIT.DELETED, entityType: USER_AUDIT.ENTITY_TYPE, entityIdParam: USER_AUDIT.ENTITY_ID_PARAM })
   @Delete(':userId')
   async deleteUser (@ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
     return this.userService.deleteUser(dto);
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN] })
-  @Audited({ action: 'USER_ANONYMIZED', entityType: 'User', entityIdParam: 'userId' })
+  @Audited({ action: USER_AUDIT.ANONYMIZED, entityType: USER_AUDIT.ENTITY_TYPE, entityIdParam: USER_AUDIT.ENTITY_ID_PARAM })
   @Post(':userId/anonymize')
   async anonymizeUser (@ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
     return this.userService.anonymizeUser(dto);
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN] })
-  @Audited({ action: 'USER_DELETED', entityType: 'User', entityIdParam: 'userId' })
+  @Audited({ action: USER_AUDIT.DELETED, entityType: USER_AUDIT.ENTITY_TYPE, entityIdParam: USER_AUDIT.ENTITY_ID_PARAM })
   @Delete(':userId/from-db')
   async deleteUserFromDb (@ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<DeleteUserResponseDto> {
     return this.userService.deleteUserFromDb(dto);
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'USER_SUSPENDED', entityType: 'User', entityIdParam: 'userId' })
+  @Audited({ action: USER_AUDIT.SUSPENDED, entityType: USER_AUDIT.ENTITY_TYPE, entityIdParam: USER_AUDIT.ENTITY_ID_PARAM })
   @Post(':userId/suspend')
   async suspendUser (@Req() req: RequestContext, @ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<UserDto> {
     return this.userService.changeStatus({ ...dto, actorId: req.user.userId, status: UserStatus.SUSPENDED });
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'USER_REACTIVATED', entityType: 'User', entityIdParam: 'userId' })
+  @Audited({ action: USER_AUDIT.REACTIVATED, entityType: USER_AUDIT.ENTITY_TYPE, entityIdParam: USER_AUDIT.ENTITY_ID_PARAM })
   @Post(':userId/reactivate')
   async reactivateUser (@Req() req: RequestContext, @ParamsQueryAndHeaders({ schema: UserIdRequestSchema }) dto: UserIdRequestDto): Promise<UserDto> {
     return this.userService.changeStatus({ ...dto, actorId: req.user.userId, status: UserStatus.ACTIVE });

@@ -8,6 +8,7 @@ import { ListGameEventsDto, ListGameEventsSchema } from './dtos/request/list-gam
 import { CreateGameEventDto, CreateGameEventSchema } from './dtos/input/create-game-event.dto';
 import { ChangeGameEventStatusDto, ChangeGameEventStatusSchema } from './dtos/input/change-game-event-status.dto';
 import { RecordGameEventResultDto, RecordGameEventResultSchema } from './dtos/input/record-game-event-result.dto';
+import { GAME_EVENT_AUDIT } from './constants/audit/game-event-audit.constant';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.GAME_EVENTS.key)
@@ -24,14 +25,14 @@ export class GameEventsController {
 
   @Post()
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'GAME_EVENT_CREATED', entityType: 'GameEvent' })
+  @Audited({ action: GAME_EVENT_AUDIT.CREATED, entityType: GAME_EVENT_AUDIT.ENTITY_TYPE })
   async createGameEvent (@Body({ schema: CreateGameEventSchema }) dto: CreateGameEventDto): Promise<GameEventDto> {
     return this.gameEventsService.createGameEvent(dto);
   }
 
   @Patch(':eventId/status')
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'GAME_EVENT_STATUS_CHANGED', entityType: 'GameEvent' })
+  @Audited({ action: GAME_EVENT_AUDIT.STATUS_CHANGED, entityType: GAME_EVENT_AUDIT.ENTITY_TYPE })
   async changeStatus (
     @Param('eventId') eventId: string,
     @Body({ schema: ChangeGameEventStatusSchema.omit({ eventId: true }) }) dto: Omit<ChangeGameEventStatusDto, 'eventId'>
@@ -41,7 +42,7 @@ export class GameEventsController {
 
   @Patch(':eventId/result')
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'GAME_EVENT_RESULT_RECORDED', entityType: 'GameEvent' })
+  @Audited({ action: GAME_EVENT_AUDIT.RESULT_RECORDED, entityType: GAME_EVENT_AUDIT.ENTITY_TYPE })
   async recordResult (
     @Param('eventId') eventId: string,
     @Body({ schema: RecordGameEventResultSchema.omit({ eventId: true }) }) dto: Omit<RecordGameEventResultDto, 'eventId'>

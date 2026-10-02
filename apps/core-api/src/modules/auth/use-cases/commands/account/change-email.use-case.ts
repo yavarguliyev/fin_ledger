@@ -8,6 +8,7 @@ import { AuthTokenHelper } from '../../../helpers/auth-token.helper';
 import { ChangeEmailDto } from '../../../dtos/input/change-email.dto';
 import { AccountMessageResponseDto } from '../../../dtos/response/account-message-response.dto';
 import { ACCOUNT_EMAIL, ACCOUNT_ERRORS } from '../../../constants/account/account-email.constant';
+import { FRONTEND } from '../../../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class ChangeEmailUseCase extends AuthBaseUseCase<ChangeEmailDto, AccountMessageResponseDto> {
@@ -42,7 +43,7 @@ export class ChangeEmailUseCase extends AuthBaseUseCase<ChangeEmailDto, AccountM
         purpose: ACCOUNT_EMAIL.EMAIL_CHANGE.PURPOSE,
         title: ACCOUNT_EMAIL.EMAIL_CHANGE.TITLE,
         body: ACCOUNT_EMAIL.EMAIL_CHANGE.BODY,
-        url: `${this.frontendUrl}${ACCOUNT_EMAIL.CONFIRM_PATH}?token=${token}`
+        url: `${this.frontendUrl}${ACCOUNT_EMAIL.CONFIRM_PATH}${FRONTEND.TOKEN_QUERY}${token}`
       }
     });
 

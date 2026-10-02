@@ -7,6 +7,7 @@ import { SelfExclusionResponseDto } from '../../dtos/response/self-exclusion-res
 import { SelfExclusionHelper } from '../../helpers/self-exclusion.helper';
 import { SELF_EXCLUSION } from '../../constants/self-exclusion/self-exclusion.constant';
 import { USER_STATUS_ERRORS } from '../../constants/errors/user-status-errors.constant';
+import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class SetSelfExclusionUseCase extends UserBaseCase<SetSelfExclusionDto, SelfExclusionResponseDto> {
@@ -32,7 +33,7 @@ export class SetSelfExclusionUseCase extends UserBaseCase<SetSelfExclusionDto, S
         purpose: SELF_EXCLUSION.EMAIL.PURPOSE,
         title: SELF_EXCLUSION.EMAIL.TITLE,
         body: SELF_EXCLUSION.EMAIL.BODY,
-        url: `${this.configService.get<string>('FRONTEND_URL')}${SELF_EXCLUSION.PROFILE_PATH}`
+        url: `${this.configService.get<string>(FRONTEND.URL_KEY)}${SELF_EXCLUSION.PROFILE_PATH}`
       }
     });
 

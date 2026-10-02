@@ -8,6 +8,7 @@ import { TrackDeviceDto } from '../dtos/device/track-device.dto';
 import { PersistSightingDto } from '../dtos/device/persist-sighting.dto';
 import { SharedDeviceDto } from '../dtos/device/shared-device.dto';
 import { DEVICE } from '../constants/device/device.constant';
+import { FRONTEND } from '../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class DeviceTrackerService {
@@ -62,7 +63,7 @@ export class DeviceTrackerService {
         purpose: DEVICE.EMAIL.PURPOSE,
         title: DEVICE.EMAIL.TITLE,
         body: DEVICE.EMAIL.BODY,
-        url: `${this.configService.get<string>('FRONTEND_URL')}${DEVICE.PROFILE_PATH}`
+        url: `${this.configService.get<string>(FRONTEND.URL_KEY)}${DEVICE.PROFILE_PATH}`
       }
     });
   }

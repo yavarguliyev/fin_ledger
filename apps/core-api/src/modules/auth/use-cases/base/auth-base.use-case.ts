@@ -4,6 +4,7 @@ import { EmailTemplateType, OutboxDestination, OutboxRepository, RefreshService,
 
 import { PublishUserEmailDto } from '../../../email/dtos/step/publish-user-email.dto';
 import { RecordEmailEventDto } from '../../../email/dtos/step/record-email-event.dto';
+import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 export abstract class AuthBaseUseCase<TInput, TOutput> {
   @Inject(ConfigService)
@@ -19,7 +20,7 @@ export abstract class AuthBaseUseCase<TInput, TOutput> {
   protected readonly outboxRepository!: OutboxRepository;
 
   protected get frontendUrl (): string {
-    return this.configService.get<string>('FRONTEND_URL')!;
+    return this.configService.get<string>(FRONTEND.URL_KEY)!;
   }
 
   protected abstract execute(input: TInput): Promise<TOutput>;

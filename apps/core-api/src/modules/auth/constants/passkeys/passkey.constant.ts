@@ -4,6 +4,7 @@ export const PASSKEY = {
   RP_NAME_KEY: 'PASSKEY_RP_NAME',
   RP_ID_KEY: 'PASSKEY_RP_ID',
   ORIGIN_KEY: 'PASSKEY_ORIGIN',
+  NO_ORIGIN: '',
   DEFAULT_RP_NAME: 'Wallet',
   ATTESTATION: 'none',
   USER_VERIFICATION: 'preferred',

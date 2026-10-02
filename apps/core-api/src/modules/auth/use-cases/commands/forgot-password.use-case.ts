@@ -8,6 +8,7 @@ import { AuthRepository } from '../../repositories/auth.repository';
 import { AuthTokenRepository } from '../../repositories/auth-token.repository';
 import { AuthTokenHelper } from '../../helpers/auth-token.helper';
 import { EmailHelper } from '../../../email/helpers/email.helper';
+import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()
 export class ForgotPasswordUseCase extends AuthBaseUseCase<ForgotPasswordDto, ForgotPasswordResponseDto> {
@@ -29,7 +30,7 @@ export class ForgotPasswordUseCase extends AuthBaseUseCase<ForgotPasswordDto, Fo
       userId: user.id,
       purpose: AuthTokenPurpose.PASSWORD_RESET
     });
-    const resetUrl = `${this.frontendUrl}/auth/reset-password?token=${token}`;
+    const resetUrl = `${this.frontendUrl}${FRONTEND.RESET_PASSWORD_PATH}${FRONTEND.TOKEN_QUERY}${token}`;
 
     await EmailHelper.emitKafkaPasswordReset({
       to: user.email,

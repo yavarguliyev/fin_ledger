@@ -1,0 +1,22 @@
+export const ADMIN_AUDIT_TEST = {
+  ADMIN_EMAIL: 'admin@realtime-wallet-payments.com',
+  OWNER_EMAIL: 'wallet-audit@support-tests.realtime-wallet-payments.com',
+  GAME_EVENTS_PATH: '/game-events',
+  WALLETS_PATH: '/wallets',
+  STATUS_SUFFIX: '/status',
+  RESULT_SUFFIX: '/result',
+  CURRENCY: 'USD',
+  SPORT: 'Football',
+  LABEL: 'Audit probe',
+  ODDS: 2.5,
+  HOUR_MS: 3_600_000,
+  LIVE: 'LIVE',
+  FINISHED: 'FINISHED',
+  RESULT: 'HOME',
+  SUSPENDED: 'SUSPENDED',
+  ACTIVE: 'ACTIVE',
+  GAME_EVENT_ENTITY: 'GameEvent',
+  GAME_EVENT_ACTIONS: ['GAME_EVENT_CREATED', 'GAME_EVENT_STATUS_CHANGED', 'GAME_EVENT_RESULT_RECORDED'],
+  WALLET_ENTITY: 'Wallet',
+  WALLET_STATUS_CHANGED: 'WALLET_STATUS_CHANGED'
+} as const;

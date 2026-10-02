@@ -8,6 +8,7 @@ import { OpenWalletRequestDto, OpenWalletRequestSchema } from './dtos/request/op
 import { WalletIdRequestDto, WalletIdRequestSchema } from './dtos/request/wallet-id-request.dto';
 import { UpdateWalletStatusDto, UpdateWalletStatusSchema } from './dtos/request/update-wallet-status.dto';
 import { WalletAccessGuard } from './guards/wallet-access.guard';
+import { WALLET_AUDIT } from './constants/audit/wallet-audit.constant';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.WALLET.key)
@@ -40,7 +41,7 @@ export class WalletController {
   }
 
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN, UserRoles.MODERATOR] })
-  @Audited({ action: 'WALLET_STATUS_CHANGED', entityType: 'Wallet', entityIdParam: 'walletId' })
+  @Audited({ action: WALLET_AUDIT.STATUS_CHANGED, entityType: WALLET_AUDIT.ENTITY_TYPE, entityIdParam: WALLET_AUDIT.ENTITY_ID_PARAM })
   @Patch(':walletId/status')
   async updateWalletStatus (@ParamsQueryAndHeaders({ schema: UpdateWalletStatusSchema }) dto: UpdateWalletStatusDto): Promise<WalletDto> {
     return this.walletService.updateWalletStatus(dto);

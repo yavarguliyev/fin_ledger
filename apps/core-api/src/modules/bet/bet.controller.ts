@@ -18,6 +18,7 @@ import { BetDto } from './dtos/bet/bet.dto';
 import { PlaceBetRequestDto, PlaceBetRequestSchema } from './dtos/request/place-bet-request.dto';
 import { ListBetsRequestDto, ListBetsRequestSchema } from './dtos/request/list-bets-request.dto';
 import { SettleBetDto, SettleBetSchema } from './dtos/request/settle-bet.dto';
+import { BET_AUDIT } from './constants/audit/bet-audit.constant';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.BET.key)
@@ -36,7 +37,7 @@ export class BetController {
 
   @Post(':betId/settlement')
   @Roles({ roles: [UserRoles.GLOBAL_ADMIN, UserRoles.ADMIN] })
-  @Audited({ action: 'BET_SETTLED', entityType: 'Bet', entityIdParam: 'betId' })
+  @Audited({ action: BET_AUDIT.SETTLED, entityType: BET_AUDIT.ENTITY_TYPE, entityIdParam: BET_AUDIT.ENTITY_ID_PARAM })
   async settleBet (@ParamsQueryAndHeaders({ schema: SettleBetSchema }) dto: SettleBetDto): Promise<BetDto> {
     return this.betService.settleBet(dto);
   }
