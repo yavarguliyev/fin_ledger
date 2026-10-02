@@ -169,14 +169,14 @@ services:
     ports:
       - "9090:9090"
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--config.file=/etc/prometheus-config/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/etc/prometheus/console_libraries'
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus:/etc/prometheus-config:ro
       - prometheus_data:/prometheus
     extra_hosts:
       - 'host.docker.internal:host-gateway'
@@ -204,6 +204,9 @@ services:
       GF_USERS_ALLOW_SIGN_UP: false
       GF_SERVER_ROOT_URL: http://localhost:3001
       GF_INSTALL_PLUGINS: grafana-clickhouse-datasource
+      CLICKHOUSE_DB: ${CLICKHOUSE_DB:-analytics}
+      CLICKHOUSE_USER: ${CLICKHOUSE_USER:-default}
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_pass}
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
@@ -217,6 +220,42 @@ services:
     depends_on:
       - prometheus
       - clickhouse
+
+  # =======================================================
+  # 9. EXPORTERS (Postgres and Redis internals for Prometheus)
+  # =======================================================
+  postgres-exporter:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.17.1
+    container_name: ddd_postgres_exporter
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres:${DB_PASSWORD:-password}@postgres:5432/${DB_DATABASE:-distributed_db}?sslmode=disable
+    networks:
+      - ddd_mesh
+    depends_on:
+      - postgres
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.74.0
+    container_name: ddd_redis_exporter
+    environment:
+      REDIS_ADDR: redis://redis-master:6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    networks:
+      - ddd_mesh
+    depends_on:
+      - redis-master
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: ddd_alertmanager
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager-config/alertmanager.yml'
+    volumes:
+      - ./alertmanager:/etc/alertmanager-config:ro
+    networks:
+      - ddd_mesh
 
 networks:
   ddd_mesh:

@@ -1,6 +1,9 @@
 import { CaughtErrorDto } from '../../interfaces/common/caught-error.interface';
 import { ClearUnreadDto } from '../../interfaces/support/clear-unread.interface';
+import { CombineMessagesDto } from '../../interfaces/support/combine-messages.interface';
 import { HttpRequestError } from '../../errors/http-request.error';
+import { SUPPORT_MESSAGES } from '../../constants/support/support-messages.constant';
+import { FailureMessageDto } from '../../interfaces/support/failure-message.interface';
 import { MarkSeenDto } from '../../interfaces/support/mark-seen.interface';
 import { MergeMessagesDto } from '../../interfaces/support/merge-messages.interface';
 import { MessageGroupDto } from '../../interfaces/support/message-group.interface';
@@ -11,6 +14,10 @@ import { SupportMessage } from '../../types/support/support-message.type';
 import { UpsertConversationDto } from '../../interfaces/support/upsert-conversation.interface';
 
 export class SupportChatHelper {
+  static failureMessage ({ error, fallback }: FailureMessageDto): string {
+    return error instanceof HttpRequestError && error.status === SUPPORT_MESSAGES.TOO_MANY_REQUESTS ? SUPPORT_MESSAGES.TOO_FAST : fallback;
+  }
+
   static isSilent ({ error }: CaughtErrorDto): boolean {
     return error instanceof HttpRequestError && error.silent;
   }
@@ -26,6 +33,15 @@ export class SupportChatHelper {
   static mergeMessages ({ current, incoming }: MergeMessagesDto): SupportMessage[] {
     if (current.some(message => message.id === incoming.id)) return current;
     return [...current, incoming].sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+
+  static combine ({ current, page }: CombineMessagesDto): SupportMessage[] {
+    const byId = new Map(current.map(message => [message.id, message]));
+    page.forEach(message => {
+      const existing = byId.get(message.id);
+      byId.set(message.id, existing ? { ...message, seen: !!(existing.seen || message.seen) } : message);
+    });
+    return [...byId.values()].sort((left, right) => left.createdAt.localeCompare(right.createdAt));
   }
 
   static upsertMessage ({ current, incoming }: MergeMessagesDto): SupportMessage[] {

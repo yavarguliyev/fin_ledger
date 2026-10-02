@@ -9,9 +9,13 @@ import { ConnectionNameDto } from '../../dtos/service/connection-name.dto';
 import { DATABASE_CONNECTIONS } from '../../constants/adapter/connections.constant';
 import { PoolStats } from '../../interfaces/pool-stats.interface';
 import { PostgreSQLAdapter } from '../adapters/postgresql.adapter';
+import { NotificationListener } from '../helpers/notification-listener.helper';
+import { ListenDto } from '../../dtos/notify/listen.dto';
 
 @Injectable()
 export class PostgresService implements OnModuleInit, OnModuleDestroy {
+  private readonly listeners: NotificationListener[] = [];
+
   private adapters = new Map<string, DatabaseAdapter>();
   private defaultAdapter: DatabaseAdapter | null = null;
   private isClosing = false;
@@ -70,12 +74,23 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
     if (!isReadOnly && !this.defaultAdapter) this.defaultAdapter = adapter;
   }
 
+  async listen ({ channel, onNotify }: ListenDto): Promise<NotificationListener> {
+    const config = this.config.workerUsername && this.config.workerPassword
+      ? { ...this.config, username: this.config.workerUsername, password: this.config.workerPassword }
+      : this.config;
+    const listener = new NotificationListener({ config, channel, onNotify });
+    this.listeners.push(listener);
+    await listener.start();
+    return listener;
+  }
+
   async closeAllConnections (): Promise<void> {
     if (this.isClosing || this.isClosed) return;
 
     this.isClosing = true;
 
     try {
+      await Promise.all(this.listeners.map(listener => listener.stop()));
       const disconnectPromises = Array.from(this.adapters.values()).map(adapter => adapter.disconnect());
       await Promise.all(disconnectPromises);
 

@@ -9,6 +9,12 @@ const targets = async () => {
   return (await response.json()).data.activeTargets;
 };
 
+const firingAlerts = async () => {
+  const response = await fetch(`${PROMETHEUS_URL}/api/v1/alerts`);
+  if (!response.ok) throw new Error(`Prometheus alerts answered HTTP ${response.status}`);
+  return (await response.json()).data.alerts.filter(alert => alert.state === 'firing');
+};
+
 const dashboards = async () => {
   const response = await fetch(`${GRAFANA_URL}/api/search?type=dash-db`, {
     headers: { Authorization: `Basic ${Buffer.from(GRAFANA_AUTH).toString('base64')}` }
@@ -26,6 +32,11 @@ try {
 
   const boards = await dashboards();
   console.log(`📊 Grafana dashboards: ${boards.length}${boards.length ? ` (${boards.map(board => board.title).join(', ')})` : ''}`);
+
+  const alerts = await firingAlerts();
+  console.log(
+    `🚨 Firing alerts: ${alerts.length}${alerts.length ? ` (${alerts.map(alert => `${alert.labels.alertname}/${alert.labels.severity}`).join(', ')})` : ''}`
+  );
 
   if (down.length > 0) {
     console.error(`Monitoring check failed: ${down.length} target(s) down.`);

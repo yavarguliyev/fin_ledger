@@ -15,6 +15,7 @@ import { ReportFailureDto } from '../interfaces/support/report-failure.interface
 import { SupportStreamEvent } from '../interfaces/support/support-stream-event.interface';
 import { ToastService } from './toast.service';
 import { StaffRefDto } from '../interfaces/support/staff-ref.interface';
+import { PrependMessagesDto } from '../interfaces/support/prepend-messages.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportChatStore {
@@ -74,7 +75,7 @@ export class SupportChatStore {
     if (!conversationId) return;
 
     this.api.listMessages({ conversationId }).subscribe({
-      next: messages => this.messagesSignal.set(messages),
+      next: messages => this.messagesSignal.set(SupportChatHelper.combine({ current: this.messagesSignal(), page: messages })),
       error: () => undefined
     });
   }
@@ -120,6 +121,11 @@ export class SupportChatStore {
         this.report({ error: err, message: SUPPORT_MESSAGES.LOAD_FAILED });
       }
     });
+  }
+
+  prependOlder ({ conversationId, messages }: PrependMessagesDto): void {
+    if (conversationId !== this.activeIdSignal()) return;
+    this.messagesSignal.set(SupportChatHelper.combine({ current: this.messagesSignal(), page: messages }));
   }
 
   upsertMessage ({ message }: MessageRefDto): void {

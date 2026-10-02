@@ -6,12 +6,14 @@ import { AuthResponse } from '../interfaces/auth/auth-response.interface';
 import { SESSION } from '../constants/auth/session.constant';
 import { AppConfigService } from './app-config.service';
 import { SessionStore } from './session-store.service';
+import { SessionSyncService } from './session-sync.service';
 
 @Injectable({ providedIn: 'root' })
 export class SessionRefreshService {
   private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
   private readonly store = inject(SessionStore);
+  private readonly sync = inject(SessionSyncService);
   private restoreAttempted = false;
   private inFlight: Observable<AuthResponse | null> | null = null;
 
@@ -33,7 +35,10 @@ export class SessionRefreshService {
     if (this.inFlight) return this.inFlight;
 
     this.inFlight = this.http.post<AuthResponse>(`${this.config.apiUrl}${SESSION.REFRESH_PATH}`, {}, { withCredentials: true }).pipe(
-      tap(session => this.store.adopt({ session })),
+      tap(session => {
+        this.store.adopt({ session });
+        this.sync.share({ session });
+      }),
       catchError(() => {
         this.store.forgetSignIn();
         return of(null);

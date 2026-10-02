@@ -89,6 +89,7 @@ export * from './modules/constants/betting/betting-draw.constant';
 
 export * from './modules/decorators/audited.decorator';
 export * from './modules/decorators/auth-rate-limit.decorator';
+export * from './modules/decorators/chat-rate-limit.decorator';
 export * from './modules/decorators/refresh-rate-limit.decorator';
 export * from './modules/decorators/params-query-and-headers.decorator';
 export * from './modules/decorators/user-rate-limit.decorator';

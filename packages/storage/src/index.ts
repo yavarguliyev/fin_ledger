@@ -41,3 +41,4 @@ export * from './modules/use-cases/commands/upload-file.use-case';
 export * from './modules/use-cases/queries/get-file-url.use-case';
 
 export * from './modules/storage.module';
+export * from './modules/dtos/helper/image-source.dto';

@@ -17,7 +17,8 @@ export class ExceptionLogHelper {
     const url = request.url || EXCEPTION_LOG_DEFAULTS.URL;
     const type = exception?.constructor?.name || EXCEPTION_LOG_DEFAULTS.TYPE;
     const cause = exception instanceof Error && exception.cause !== undefined ? BaseHelper.errorResponse({ error: exception.cause }).message : undefined;
-    const line = `[${method}] ${url} ${status} ${type}: ${error.message}${cause ? ` (cause: ${cause})` : ''} correlationId=${correlationId}`;
+    const message = error.message.startsWith(`${type}: `) ? error.message.slice(type.length + EXCEPTION_LOG_DEFAULTS.TYPE_SEPARATOR.length) : error.message;
+    const line = `[${method}] ${url} ${status} ${type}: ${message}${cause ? ` (cause: ${cause})` : ''} correlationId=${correlationId}`;
     const level = ExceptionLogHelper.levelFor({ status });
 
     if (level === EXCEPTION_LOG_DEFAULTS.LEVELS.ERROR) logger.error(line, exception instanceof Error ? exception.stack : undefined);

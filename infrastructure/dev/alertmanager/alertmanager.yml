@@ -1,0 +1,10 @@
+route:
+  receiver: default
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  # Alerts are visible at http://localhost:9093. Add email_configs or slack_configs here to be notified.
+  - name: default

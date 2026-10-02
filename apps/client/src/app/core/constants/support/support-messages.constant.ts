@@ -1,4 +1,6 @@
 export const SUPPORT_MESSAGES = {
+  TOO_FAST: 'You are sending messages too quickly. Wait a few seconds and try again.',
+  TOO_MANY_REQUESTS: 429,
   TITLE: 'Support',
   CUSTOMER_INTRO: 'Ask us anything. A member of our team will reply here.',
   STAFF_EMPTY_QUEUE: 'No conversations yet. When someone asks for help it appears here.',

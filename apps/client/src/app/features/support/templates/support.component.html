@@ -86,7 +86,13 @@
       </div>
     </header>
 
-    <div #scroller class="flex-1 overflow-y-auto">
+    <div
+      class="flex-1 overflow-y-auto"
+      [appChatScroll]="chat.activeId()"
+      [canLoadMore]="history.canLoadMore()"
+      [loadingOlder]="history.loadingOlder()"
+      (reachedTop)="history.loadOlder()"
+    >
       @if (chat.loading()) {
         <div class="grid h-full place-items-center">
           <span class="w-6 h-6 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
@@ -96,13 +102,20 @@
           {{ chat.isStaff() ? labels.NO_THREAD_SELECTED : labels.PICK_CONTACT }}
         </p>
       } @else {
-        <app-message-thread
-          [messages]="chat.messages()"
-          [userId]="chat.myUserId()"
-          [peerOnline]="peer.online()"
-          (editRequested)="compose.startEdit({ message: $event })"
-          (deleteRequested)="compose.askDelete({ message: $event })"
-        />
+        <div>
+          @if (history.loadingOlder()) {
+            <div class="flex justify-center py-3">
+              <span class="w-5 h-5 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
+            </div>
+          }
+          <app-message-thread
+            [messages]="chat.messages()"
+            [userId]="chat.myUserId()"
+            [peerOnline]="peer.online()"
+            (editRequested)="compose.startEdit({ message: $event })"
+            (deleteRequested)="compose.askDelete({ message: $event })"
+          />
+        </div>
       }
     </div>
 

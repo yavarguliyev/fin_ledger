@@ -8,7 +8,7 @@ const SESSION: AuthResponse = { tokenType: 'Bearer', accessToken: 'access-1', ex
 const NOW = 1_700_000_000_000;
 const MILLISECONDS_PER_SECOND = 1_000;
 
-describe('SessionStore', () => {
+describe('SessionStore session', () => {
   let store: SessionStore;
 
   beforeEach(() => {
@@ -42,6 +42,18 @@ describe('SessionStore', () => {
     expect(store.user()).toBe(renamed);
     expect(store.token()).toBe(SESSION.accessToken);
   });
+});
+
+describe('SessionStore sign-in hint', () => {
+  let store: SessionStore;
+
+  beforeEach(() => {
+    jest.spyOn(Date, 'now').mockReturnValue(NOW);
+    localStorage.clear();
+    store = new SessionStore();
+  });
+
+  afterEach(() => jest.restoreAllMocks());
 
   it('remembers that someone signed in, so a reload knows a refresh is worth trying', () => {
     expect(store.wasSignedIn()).toBe(false);

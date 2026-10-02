@@ -26,12 +26,13 @@ export class EmailInboxHelper {
       let received = 0;
 
       void consumer.run({
-        eachMessage: async ({ message }) => {
+        eachMessage: ({ message }) => {
           const email = JSON.parse(message.value?.toString() ?? '{}') as RawEmailEvent;
-          if (email.to !== to || ++received < count) return;
+          if (email.to !== to || ++received < count) return Promise.resolve();
 
           clearTimeout(timer);
           resolve(EmailInboxHelper.open(email));
+          return Promise.resolve();
         }
       });
     }).finally(() => consumer.disconnect());

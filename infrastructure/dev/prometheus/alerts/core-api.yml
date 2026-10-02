@@ -1,0 +1,93 @@
+groups:
+  - name: core-api
+    rules:
+      - alert: ApiDown
+        expr: up{job="nestjs-api"} == 0
+        for: 2m
+        labels: { severity: critical }
+        annotations:
+          summary: 'Core API is not answering /metrics'
+          description: 'Prometheus could not scrape {{ $labels.instance }} for 2 minutes.'
+      - alert: HighServerErrorRate
+        expr: |
+          sum(rate(core_api_http_request_duration_seconds_count{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(core_api_http_request_duration_seconds_count[5m])), 1e-9) > 0.05
+        for: 5m
+        labels: { severity: critical }
+        annotations:
+          summary: 'More than 5% of API requests fail with 5xx'
+      - alert: SlowRequests
+        expr: histogram_quantile(0.95, sum by (le) (rate(core_api_http_request_duration_seconds_bucket[5m]))) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: '95% of API requests take longer than 1 second'
+      - alert: DatabasePoolWaiting
+        expr: core_api_db_pool_connections_waiting > 0
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Requests are queueing for a database connection'
+      - alert: EventLoopBlocked
+        expr: core_api_nodejs_eventloop_lag_p99_seconds > 0.5
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'The API event loop is blocked for more than 500 ms at p99'
+
+  - name: messaging
+    rules:
+      - alert: OutboxLagging
+        expr: core_api_outbox_oldest_pending_seconds > 60
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Outbox events wait more than a minute to be published'
+          description: 'E-mails, notifications and audit entries are arriving late.'
+      - alert: OutboxDeadEvents
+        expr: increase(core_api_outbox_events_dead[15m]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: 'Outbox events gave up after all retries'
+      - alert: DeadLetterQueueGrowing
+        expr: sum(core_api_rabbitmq_dead_letter_depth) > 0
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Messages are sitting in a RabbitMQ dead-letter queue'
+
+  - name: money-integrity
+    rules:
+      - alert: LedgerOutOfBalance
+        expr: core_api_ledger_drifted_accounts > 0 or core_api_ledger_drifted_wallets > 0 or core_api_ledger_unbalanced_currencies > 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'Ledger balances do not match their entries'
+          description: 'Stop money movement and investigate before anything else.'
+
+  - name: infrastructure
+    rules:
+      - alert: PostgresDown
+        expr: pg_up == 0 or up{job="postgres"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'PostgreSQL is unreachable'
+      - alert: PostgresConnectionsHigh
+        expr: sum(pg_stat_database_numbackends) / max(pg_settings_max_connections) > 0.85
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'PostgreSQL is using more than 85% of its connections'
+      - alert: RedisDown
+        expr: redis_up == 0 or up{job="redis"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'Redis is unreachable'
+      - alert: RedisEvictingKeys
+        expr: increase(redis_evicted_keys_total[10m]) > 0
+        labels: { severity: warning }
+        annotations:
+          summary: 'Redis is evicting keys because memory is full'

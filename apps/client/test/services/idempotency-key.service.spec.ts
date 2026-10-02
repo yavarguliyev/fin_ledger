@@ -11,11 +11,11 @@ const RESULT = 'done';
 const UNKNOWN_STATUS = 504;
 const REJECTED_STATUS = 400;
 
-describe('IdempotencyKeyService', () => {
-  let service: IdempotencyKeyService;
-  let seen: string[];
+const harness = (): { seen: string[]; succeed: (fingerprint?: string) => Observable<string>; fail: (status: number, fingerprint?: string) => Observable<string> } => {
+  const service = new IdempotencyKeyService();
+  const seen: string[] = [];
 
-  const succeed = (fingerprint = FINGERPRINT): Observable<string> =>
+  const succeed = (fingerprint: string = FINGERPRINT): Observable<string> =>
     service.run({
       scope: SCOPE,
       fingerprint,
@@ -25,7 +25,7 @@ describe('IdempotencyKeyService', () => {
       }
     });
 
-  const fail = (status: number, fingerprint = FINGERPRINT): Observable<string> =>
+  const fail = (status: number, fingerprint: string = FINGERPRINT): Observable<string> =>
     service.run({
       scope: SCOPE,
       fingerprint,
@@ -35,13 +35,20 @@ describe('IdempotencyKeyService', () => {
       }
     });
 
-  const settle = async (source: Observable<unknown>): Promise<void> => {
-    await new Promise<void>(resolve => source.subscribe({ next: () => resolve(), error: () => resolve() }));
-  };
+  return { seen, succeed, fail };
+};
+
+const settle = async (source: Observable<unknown>): Promise<void> => {
+  await new Promise<void>(resolve => source.subscribe({ next: () => resolve(), error: () => resolve() }));
+};
+
+describe('IdempotencyKeyService after an outcome', () => {
+  let seen: string[];
+  let succeed: ReturnType<typeof harness>['succeed'];
+  let fail: ReturnType<typeof harness>['fail'];
 
   beforeEach(() => {
-    service = new IdempotencyKeyService();
-    seen = [];
+    ({ seen, succeed, fail } = harness());
   });
 
   it('reuses the key while the outcome is unknown, so a retry cannot double-charge', async () => {
@@ -64,6 +71,15 @@ describe('IdempotencyKeyService', () => {
     await settle(fail(REJECTED_STATUS));
 
     expect(seen[0]).not.toBe(seen[1]);
+  });
+});
+
+describe('IdempotencyKeyService when the request changes', () => {
+  let seen: string[];
+  let fail: ReturnType<typeof harness>['fail'];
+
+  beforeEach(() => {
+    ({ seen, fail } = harness());
   });
 
   it('takes a fresh key when the request itself changed', async () => {

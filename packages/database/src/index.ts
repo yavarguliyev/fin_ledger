@@ -95,3 +95,8 @@ export * from './modules/postgres/repositories/outbox.repository';
 export * from './modules/postgres/services/postgres.service';
 
 export * from './modules/database.module';
+export * from './modules/constants/notify/notify.constant';
+export * from './modules/dtos/notify/listen.dto';
+export * from './modules/dtos/notify/listener-retry.dto';
+export * from './modules/dtos/notify/notification-listener-options.dto';
+export * from './modules/postgres/helpers/notification-listener.helper';

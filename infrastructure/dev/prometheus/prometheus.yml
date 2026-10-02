@@ -9,12 +9,11 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: []
-          # - alertmanager:9093
+        - targets: ['alertmanager:9093']
 
-# Load rules once and periodically evaluate them
+# Alert rules, evaluated every evaluation_interval
 rule_files:
-  # - "alerts/*.yml"
+  - 'alerts/*.yml'
 
 # Scrape configurations
 scrape_configs:
@@ -41,19 +40,19 @@ scrape_configs:
           service: 'core-api'
     metrics_path: '/metrics'
 
-  # Redis exporter (optional - requires redis_exporter)
-  # - job_name: 'redis'
-  #   static_configs:
-  #     - targets: ['redis-exporter:9121']
-  #       labels:
-  #         service: 'redis'
+  # Redis internals (redis_exporter in docker-compose)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          service: 'redis'
 
-  # PostgreSQL exporter (optional - requires postgres_exporter)
-  # - job_name: 'postgres'
-  #   static_configs:
-  #     - targets: ['postgres-exporter:9187']
-  #       labels:
-  #         service: 'postgres'
+  # PostgreSQL internals (postgres_exporter in docker-compose)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'postgres'
 
   # RabbitMQ metrics (built-in)
   # - job_name: 'rabbitmq'

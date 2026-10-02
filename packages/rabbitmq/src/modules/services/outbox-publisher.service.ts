@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OutboxRepository } from '@common/database';
+import { OutboxRepository, PostgresService } from '@common/database';
 import { KafkaService } from '@common/kafka';
 import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SERVICE, RequestScope } from '@common/shared-libs';
 
@@ -9,12 +9,14 @@ import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
 import { OutboxSettingsHelper } from '../helpers/outbox-settings.helper';
 import { OutboxSettingsDto } from '../dtos/outbox/outbox-settings.dto';
+import { OUTBOX_SETTINGS } from '../constants/outbox/outbox-settings.constant';
 
 @Injectable()
 export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleDestroy {
   private intervalHandle: ReturnType<typeof setInterval> | null = null;
   private isPolling = false;
   private stopped = false;
+  private wakeRequested = false;
 
   private readonly relayId = `${process.pid}-${CryptoHelper.uuid()}`;
   private readonly logger = new Logger(OutboxPublisherService.name);
@@ -24,7 +26,8 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     private readonly outboxRepository: OutboxRepository,
     @Inject(RABBITMQ_SERVICE) private readonly rabbitmqService: RabbitmqService,
     private readonly kafkaService: KafkaService,
-    @Optional() configService?: ConfigService
+    @Optional() configService?: ConfigService,
+    @Optional() private readonly postgres?: PostgresService
   ) {
     this.settings = OutboxSettingsHelper.from({ ...(configService && { configService }) });
   }
@@ -32,6 +35,16 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
   onApplicationBootstrap (): void {
     this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.poll()), this.settings.pollIntervalMs);
     this.intervalHandle.unref();
+    void this.postgres?.listen({ channel: OUTBOX_SETTINGS.NOTIFY_CHANNEL, onNotify: () => this.wake() });
+  }
+
+  wake (): void {
+    if (this.isPolling) {
+      this.wakeRequested = true;
+      return;
+    }
+
+    void RequestScope.runSystem(() => this.poll());
   }
 
   onModuleDestroy (): void {
@@ -88,6 +101,11 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
       this.logger.warn(`Outbox poll skipped: ${BaseHelper.errorResponse({ error }).message}`);
     } finally {
       this.isPolling = false;
+    }
+
+    if (this.wakeRequested && !this.stopped) {
+      this.wakeRequested = false;
+      await this.poll();
     }
   }
 }

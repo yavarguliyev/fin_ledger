@@ -109,7 +109,7 @@ export class SupportComposeStore {
       },
       error: (error: unknown) => {
         this.sendingSignal.set(false);
-        if (!SupportChatHelper.isSilent({ error })) this.toast.error(failure);
+        if (!SupportChatHelper.isSilent({ error })) this.toast.error(SupportChatHelper.failureMessage({ error, fallback: failure }));
       }
     });
   }

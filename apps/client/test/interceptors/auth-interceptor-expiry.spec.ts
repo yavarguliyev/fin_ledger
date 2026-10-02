@@ -29,4 +29,23 @@ describe('authInterceptor when the session has already expired', () => {
     expect(auth.logout).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
   });
+
+  it('ends the session when the token expired by the clock and the refresh fails, so timers stop retrying', async () => {
+    const auth = { token: (): string => T.STALE_TOKEN, isLoggingOut: (): boolean => false, expire: jest.fn(), logout: jest.fn() };
+    const refresh = { hasFreshAccess: (): boolean => false, canRefresh: (): boolean => true, refresh: jest.fn(() => of(null)) };
+    const injector = Injector.create({
+      providers: [
+        { provide: AuthService, useValue: auth },
+        { provide: SessionRefreshService, useValue: refresh },
+        { provide: DeviceService, useValue: { id: (): string => T.DEVICE_ID } }
+      ]
+    });
+    const next = jest.fn();
+
+    const call = runInInjectionContext(injector, () => authInterceptor(new HttpRequest(T.METHOD, T.URL, {}), next));
+
+    await expect(firstValueFrom(call)).rejects.toMatchObject({ status: T.UNAUTHORIZED });
+    expect(auth.expire).toHaveBeenCalledTimes(1);
+    expect(next).not.toHaveBeenCalled();
+  });
 });

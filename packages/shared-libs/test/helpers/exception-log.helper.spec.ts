@@ -1,5 +1,7 @@
 import { InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
 
+import { ThrottlerException } from '@nestjs/throttler';
+
 import { ExceptionLogHelper } from '../../src/modules/helpers/exception-log.helper';
 import { EXCEPTION_LOG_SPEC as E } from '../constants/exception-log.constant';
 
@@ -45,5 +47,23 @@ describe('ExceptionLogHelper', () => {
     });
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining(E.BROKEN), expect.stringContaining('Error'));
+  });
+
+});
+
+describe('ExceptionLogHelper message', () => {
+  it('does not repeat the exception type when the message already starts with it', () => {
+    const logger = fakeLogger();
+
+    ExceptionLogHelper.write({
+      logger: logger as unknown as Logger,
+      exception: new ThrottlerException(),
+      correlationId: E.CORRELATION_ID,
+      request: { method: E.METHOD, url: E.URL },
+      status: E.TOO_MANY
+    });
+
+    expect(logger.warn.mock.calls[0]?.[0]).toContain(E.THROTTLED_LINE);
+    expect(logger.warn.mock.calls[0]?.[0]).not.toContain(E.DOUBLED);
   });
 });

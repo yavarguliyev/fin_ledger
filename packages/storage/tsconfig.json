@@ -15,6 +15,6 @@
       "path": "../redis"
     }
   ],
-  "include": ["src/**/*.ts", "test/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts", "types/**/*.d.ts"],
   "exclude": ["dist", "node_modules", "src/**/*.d.ts"]
 }

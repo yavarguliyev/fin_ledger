@@ -15,15 +15,17 @@ export class SupportStreamService {
   private source: EventSource | null = null;
   private attempt = 0;
   private stopped = false;
+  private hasOpened = false;
   private timer: ReturnType<typeof setTimeout> | null = null;
 
-  connect ({ onMessage }: SupportStreamHandlerDto): void {
+  connect ({ onMessage, onReconnect }: SupportStreamHandlerDto): void {
     if (this.source) return;
 
     this.stopped = false;
     this.attempt = 0;
+    this.hasOpened = false;
     this.destroyRef.onDestroy(() => this.disconnect());
-    this.open({ onMessage });
+    this.open({ onMessage, ...(onReconnect && { onReconnect }) });
   }
 
   disconnect (): void {
@@ -34,26 +36,30 @@ export class SupportStreamService {
     this.source = null;
   }
 
-  private open ({ onMessage }: SupportStreamHandlerDto): void {
+  private open ({ onMessage, onReconnect }: SupportStreamHandlerDto): void {
+    const handler = { onMessage, ...(onReconnect && { onReconnect }) };
     this.api.streamTicket().subscribe({
-      next: ({ ticket }) => this.attach({ ticket, onMessage }),
-      error: () => this.scheduleReconnect({ onMessage })
+      next: ({ ticket }) => this.attach({ ...handler, ticket }),
+      error: () => this.scheduleReconnect(handler)
     });
   }
 
-  private scheduleReconnect ({ onMessage }: SupportStreamHandlerDto): void {
+  private scheduleReconnect ({ onMessage, onReconnect }: SupportStreamHandlerDto): void {
+    const handler = { onMessage, ...(onReconnect && { onReconnect }) };
     if (this.stopped) return;
     const delay = Math.min(SUPPORT.RECONNECT_BASE_MS * 2 ** this.attempt, SUPPORT.RECONNECT_MAX_MS);
     this.attempt += 1;
-    this.timer = setTimeout(() => this.open({ onMessage }), delay);
+    this.timer = setTimeout(() => this.open(handler), delay);
   }
 
-  private attach ({ ticket, onMessage }: AttachSupportStreamDto): void {
+  private attach ({ ticket, onMessage, onReconnect }: AttachSupportStreamDto): void {
     if (this.stopped) return;
     this.source = new EventSource(this.api.streamUrl({ ticket }));
 
     this.source.onopen = (): void => {
       this.attempt = 0;
+      if (this.hasOpened && onReconnect) this.zone.run(() => onReconnect());
+      this.hasOpened = true;
     };
 
     this.source.onmessage = (event: MessageEvent): void => {
@@ -63,7 +69,7 @@ export class SupportStreamService {
     this.source.onerror = (): void => {
       this.source?.close();
       this.source = null;
-      this.scheduleReconnect({ onMessage });
+      this.scheduleReconnect({ onMessage, ...(onReconnect && { onReconnect }) });
     };
   }
 }

@@ -30,7 +30,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
     return refreshService.refresh().pipe(
       switchMap(session => {
-        if (!session) return throwError(() => AuthInterceptorHelper.noSession({ url: req.url }));
+        if (!session) {
+          authService.expire();
+          return throwError(() => AuthInterceptorHelper.noSession({ url: req.url }));
+        }
+
         return next(authorize(session.accessToken));
       })
     );

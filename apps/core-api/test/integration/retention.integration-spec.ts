@@ -6,6 +6,7 @@ import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
 const OUTBOX_DAYS = 7;
 const WEBHOOK_DAYS = 90;
+const VERSION_SPREAD = 100;
 
 describe('Retention of append-only tables', () => {
   let aggregateId: string;
@@ -16,7 +17,7 @@ describe('Retention of append-only tables', () => {
       sql: `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, status, published_at)
             VALUES ('User', $1, 'none', $2, '{"retention": true}'::jsonb, 'PUBLISHED', now() - make_interval(days => $3))
             RETURNING id`,
-      params: [aggregateId, Date.now() + ageDays, ageDays]
+      params: [aggregateId, Date.now() * VERSION_SPREAD + ageDays, ageDays]
     });
 
     return row?.id as string;

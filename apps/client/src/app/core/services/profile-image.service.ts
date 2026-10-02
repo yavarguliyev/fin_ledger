@@ -3,6 +3,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { UserService } from './user.service';
 import { AuthService } from './auth.service';
 import { ToastService } from './toast.service';
+import { ImageFilesDto } from '../interfaces/profile/image-files.interface';
 import { IMAGE_UPLOAD } from '../constants/profile/image-upload.constant';
 import { UploadNoticeDto } from '../interfaces/profile/upload-notice.interface';
 import { ImageUploadHelper } from '../helpers/profile/image-upload.helper';
@@ -71,7 +72,10 @@ export class ProfileImageService {
     if (!user) return;
 
     this.isUploading.set(true);
+    this.send({ files });
+  }
 
+  private send ({ files }: ImageFilesDto): void {
     this.userService.uploadImages(files).subscribe({
       next: response => {
         this.userService.updateProfile({ profileImages: response.files, imageAction: 'add' }).subscribe({

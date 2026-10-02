@@ -73,15 +73,15 @@ export class ShellComponent implements OnInit {
         this.chat.applyStreamEvent(event);
         this.presenceStore.applyEvent({ event });
         this.calls.applyEvent({ event });
+      },
+      onReconnect: () => {
+        this.chat.loadConversations();
+        this.presenceStore.loadContacts();
       }
     });
 
-    const timers = [
-      setInterval(() => this.chat.loadConversations(), SUPPORT.UNREAD_POLL_MS),
-      setInterval(() => this.presenceStore.heartbeat(), SUPPORT.HEARTBEAT_MS)
-    ];
-
-    this.destroyRef.onDestroy(() => timers.forEach(timer => clearInterval(timer)));
+    const heartbeat = setInterval(() => this.presenceStore.heartbeat(), SUPPORT.HEARTBEAT_MS);
+    this.destroyRef.onDestroy(() => clearInterval(heartbeat));
   }
 
   userName (): string {

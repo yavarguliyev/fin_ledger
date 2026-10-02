@@ -20,12 +20,12 @@ datasources:
     url: http://clickhouse:8123
     editable: true
     jsonData:
-      defaultDatabase: analytics
+      defaultDatabase: ${CLICKHOUSE_DB}
       port: 9000
       protocol: native
       server: clickhouse
-      username: default
+      username: ${CLICKHOUSE_USER}
       tlsSkipVerify: true
     secureJsonData:
-      password: clickhouse_pass
+      password: ${CLICKHOUSE_PASSWORD}
     version: 1

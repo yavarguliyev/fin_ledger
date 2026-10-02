@@ -7,7 +7,7 @@ import {
   RequestContext,
   SessionGuard,
   UploadFile,
-  UserRateLimit,
+  UserRateLimit, ChatRateLimit,
   SupportMessageContract
 } from '@common/libs';
 
@@ -38,6 +38,7 @@ export class SupportMessageController {
 
   @UseGuards(SessionGuard)
   @UserRateLimit()
+  @ChatRateLimit()
   @Post('conversations/:id/messages')
   async sendMessage (
     @Req() req: RequestContext,

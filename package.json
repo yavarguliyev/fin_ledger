@@ -36,7 +36,7 @@
     "infra:down:dev": "bash infrastructure/dev/stop.sh",
     "infra:restart:dev": "bash infrastructure/dev/restart.sh",
     "infra:rm:dev": "bash infrastructure/dev/remove.sh",
-    "infra:verify": "node --env-file-if-exists=apps/core-api/.env scripts/infra/verify-monitoring.mjs",
+    "infra:verify": "node --env-file-if-exists=apps/core-api/.env --env-file-if-exists=infrastructure/dev/.env scripts/infra/verify-monitoring.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

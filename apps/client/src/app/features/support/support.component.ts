@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, inject, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { ChatPeerService } from './services/chat-peer.service';
 import { ContactListComponent } from './components/contact-list.component';
@@ -12,6 +12,8 @@ import { SUPPORT } from '../../core/constants/support/support.constant';
 import { SUPPORT_MESSAGES } from '../../core/constants/support/support-messages.constant';
 import { SUPPORT_VIEW } from './constants/support-view.constant';
 import { SupportChatStore } from '../../core/services/support-chat.store';
+import { SupportHistoryService } from '../../core/services/support-history.service';
+import { ChatScrollDirective } from './directives/chat-scroll.directive';
 import { SupportComposeStore } from '../../core/services/support-compose.store';
 import { SupportCallStore } from '../../core/services/support-call.store';
 import { SUPPORT_CALL } from '../../core/constants/support/support-call.constant';
@@ -24,15 +26,15 @@ import { SupportPresenceStore } from '../../core/services/support-presence.store
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent],
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective],
   providers: [ChatPeerService],
   templateUrl: './templates/support.component.html'
 })
-export class SupportComponent implements OnInit, AfterViewChecked, OnDestroy {
-  private readonly scroller = viewChild<ElementRef<HTMLDivElement>>('scroller');
+export class SupportComponent implements OnInit, OnDestroy {
   private readonly onFocus = (): void => this.refresh();
 
   readonly chat = inject(SupportChatStore);
+  readonly history = inject(SupportHistoryService);
   readonly presenceStore = inject(SupportPresenceStore);
   readonly peer = inject(ChatPeerService);
   readonly compose = inject(SupportComposeStore);
@@ -42,7 +44,6 @@ export class SupportComponent implements OnInit, AfterViewChecked, OnDestroy {
   readonly view = SUPPORT_VIEW;
 
   private timers: ReturnType<typeof setInterval>[] = [];
-  private seen = -1;
 
   get conversationCount (): string {
     const total = this.chat.conversations().length;
@@ -60,14 +61,6 @@ export class SupportComponent implements OnInit, AfterViewChecked, OnDestroy {
     ];
 
     window.addEventListener('focus', this.onFocus);
-  }
-
-  ngAfterViewChecked (): void {
-    const count = this.chat.messages().length;
-    if (count === this.seen) return;
-    this.seen = count;
-    const element = this.scroller()?.nativeElement;
-    if (element) element.scrollTop = element.scrollHeight;
   }
 
   ngOnDestroy (): void {

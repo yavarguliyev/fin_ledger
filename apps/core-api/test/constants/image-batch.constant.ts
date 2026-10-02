@@ -9,7 +9,10 @@ export const IMAGE_BATCH_TEST = {
   HEIC_NAME: 'IMG_7372.HEIC',
   HEIC_TYPE: 'image/heic',
   FAKE_BYTES: 'not really an image',
-  HINT: 'HEIC and RAW (DNG)',
+  HINT: 'RAW (DNG)',
+  REAL_HEIC_FIXTURE: '../fixtures/sample.heic',
+  REAL_HEIC_NAME: 'IMG_0420.HEIC',
+  JPEG_SUFFIX: '.jpg',
   CREATED: 201,
   UNSUPPORTED: 415,
   BASE64: 'base64'

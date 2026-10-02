@@ -1,5 +1,6 @@
 export const SESSION = {
   REMEMBERED_EMAIL_KEY: 'remembered_email',
+  SYNC_CHANNEL: 'wallet-session',
   ACTIVE_HINT_KEY: 'session_active',
   ACTIVE_HINT_VALUE: '1',
   REFRESH_PATH: '/auth/refresh',

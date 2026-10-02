@@ -11,5 +11,8 @@ export const EXCEPTION_LOG_SPEC = {
   WARN: 'warn',
   ERROR: 'error',
   EXPIRED: 'Refresh token is invalid or has expired.',
-  BROKEN: 'database exploded'
+  BROKEN: 'database exploded',
+  TOO_MANY: 429,
+  THROTTLED_LINE: '429 ThrottlerException: Too Many Requests',
+  DOUBLED: 'ThrottlerException: ThrottlerException'
 } as const;

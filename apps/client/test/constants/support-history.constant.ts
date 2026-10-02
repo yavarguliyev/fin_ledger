@@ -1,0 +1,8 @@
+export const SUPPORT_HISTORY_TEST = {
+  CONVERSATION: 'conversation-1',
+  PAGE_SIZE: 50,
+  OLDEST_AT: '2026-10-01T10:00:00.000Z',
+  BASE_TIME: Date.UTC(2026, 9, 1, 10, 0, 0),
+  STEP_MS: 1000,
+  SHORT_THREAD: 10
+} as const;
