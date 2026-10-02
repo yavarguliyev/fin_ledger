@@ -33,7 +33,9 @@ describe('OtpHelper', () => {
 
     expect(OtpHelper.value({ digits, length: LENGTH })).toBe(CODE);
   });
+});
 
+describe('OtpHelper edge cases', () => {
   it('never writes past the last box when a long code is pasted', () => {
     const digits = OtpHelper.fill({ digits: [], from: LENGTH - 2, text: CODE, length: LENGTH });
 

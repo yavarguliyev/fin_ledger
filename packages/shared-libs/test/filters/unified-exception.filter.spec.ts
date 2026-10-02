@@ -73,7 +73,9 @@ describe('UnifiedExceptionFilter statuses and ids', () => {
     expect(status).toBe(HttpStatus.SERVICE_UNAVAILABLE);
     expect(body?.error).toMatchObject({ code: 'DATABASE_UNAVAILABLE', message: ERROR_RESPONSES.UNAVAILABLE_MESSAGE, retryable: true });
   });
+});
 
+describe('UnifiedExceptionFilter application errors', () => {
   it('passes an application error through, whatever its status, but never its cause', () => {
     const pending = run(
       new ApplicationError({ message: 'Awaiting reconciliation', code: 'DEPOSIT_OUTCOME_PENDING', statusCode: HttpStatus.SERVICE_UNAVAILABLE })

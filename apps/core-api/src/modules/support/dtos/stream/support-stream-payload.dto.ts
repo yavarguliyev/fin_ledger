@@ -15,7 +15,9 @@ export const SupportStreamPayloadSchema = z.object({
 
   message: SupportMessageContractSchema.optional(),
 
-  readerUserId: z.string({ message: 'Reader user ID must be a string' }).optional()
+  readerUserId: z.string({ message: 'Reader user ID must be a string' }).optional(),
+
+  typingUserId: z.string({ message: 'Typing user ID must be a string' }).optional()
 });
 
 export type SupportStreamPayloadDto = z.infer<typeof SupportStreamPayloadSchema>;

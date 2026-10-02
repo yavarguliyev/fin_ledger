@@ -68,6 +68,10 @@ export class SupportApiService {
     return this.send(this.http.post(`${this.conversationUrl({ conversationId })}${SUPPORT.READ_PATH}`, {}));
   }
 
+  typing ({ conversationId }: ConversationRefDto): Observable<unknown> {
+    return this.send(this.http.post(`${this.conversationUrl({ conversationId })}${SUPPORT.TYPING_PATH}`, {}));
+  }
+
   heartbeat (): Observable<unknown> {
     return this.send(this.http.post(`${this.apiUrl}${SUPPORT.HEARTBEAT_PATH}`, {}));
   }

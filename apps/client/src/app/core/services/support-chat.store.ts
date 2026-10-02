@@ -94,8 +94,11 @@ export class SupportChatStore {
     this.upsertMessage({ message: event.message });
     if (event.type === SUPPORT_ATTACHMENT.MESSAGE_UPDATED_EVENT) return;
 
-    if (event.conversationId !== this.activeIdSignal()) this.loadConversations();
-    else this.markRead({ conversationId: event.conversationId });
+    const bumped = SupportChatHelper.bumpConversation({ current: this.conversationsSignal(), message: event.message, myUserId: this.myUserId(), activeId: this.activeIdSignal() });
+    if (bumped) this.conversationsSignal.set(bumped);
+    else this.loadConversations();
+
+    if (event.conversationId === this.activeIdSignal()) this.markRead({ conversationId: event.conversationId });
   }
 
   close (): void {

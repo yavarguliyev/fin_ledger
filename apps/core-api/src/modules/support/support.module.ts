@@ -4,6 +4,7 @@ import { ClientIds, StorageModule } from '@common/libs';
 import { ListConversationsUseCase } from './use-cases/queries/conversation/list-conversations.use-case';
 import { ListMessagesUseCase } from './use-cases/queries/message/list-messages.use-case';
 import { MarkConversationReadUseCase } from './use-cases/commands/conversation/mark-conversation-read.use-case';
+import { AnnounceTypingUseCase } from './use-cases/commands/conversation/announce-typing.use-case';
 import { OpenConversationUseCase } from './use-cases/commands/conversation/open-conversation.use-case';
 import { SendMessageUseCase } from './use-cases/commands/message/send-message.use-case';
 import { SharedModule } from '../../shared/shared.module';
@@ -51,6 +52,7 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     ListMessagesUseCase,
     SendMessageUseCase,
     MarkConversationReadUseCase,
+    AnnounceTypingUseCase,
     PresenceRepository,
     SupportStreamProvider,
     HeartbeatUseCase,

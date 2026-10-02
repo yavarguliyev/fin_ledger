@@ -14,6 +14,8 @@ import { SUPPORT_MESSAGES } from '../../../core/constants/support/support-messag
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
 import { SupportAttachmentHelper } from '../../../core/helpers/support/support-attachment.helper';
 import { SupportMessage } from '../../../core/types/support/support-message.type';
+import { AddFilesDto } from '../interfaces/add-files.interface';
+import { FileTransferHelper } from '../helpers/file-transfer.helper';
 
 @Component({
   selector: 'app-message-composer',
@@ -32,6 +34,7 @@ export class MessageComposerComponent {
   readonly saved = output<EditSaveDto>();
   readonly cancelled = output();
   readonly recorded = output<RecordedClipDto>();
+  readonly typed = output();
   readonly recording = signal<RecordingKind | null>(null);
   readonly recordingLabels = SUPPORT_RECORDING;
   private readonly toast = inject(ToastService);
@@ -81,6 +84,7 @@ export class MessageComposerComponent {
   onInput (value: string): void {
     this.draft.set(value);
     this.resize();
+    if (value.trim().length > 0 && !this.editing()) this.typed.emit();
   }
 
   onKeydown (event: KeyboardEvent): void {
@@ -95,10 +99,21 @@ export class MessageComposerComponent {
   }
 
   onPicked (list: FileList | null): void {
-    const picked = Array.from(list ?? []);
-    this.files.set(this.editing() ? picked.slice(0, 1) : [...this.files(), ...picked]);
+    this.addFiles({ files: Array.from(list ?? []) });
     const element = this.picker()?.nativeElement;
     if (element) element.value = '';
+  }
+
+  onPaste (event: ClipboardEvent): void {
+    const files = FileTransferHelper.files({ transfer: event.clipboardData });
+    if (files.length === 0 || this.disabled()) return;
+    event.preventDefault();
+    this.addFiles({ files });
+  }
+
+  addFiles ({ files }: AddFilesDto): void {
+    if (this.disabled()) return;
+    this.files.set(this.editing() ? files.slice(0, 1) : [...this.files(), ...files]);
   }
 
   remove (index: number): void {

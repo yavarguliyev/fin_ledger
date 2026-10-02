@@ -1,18 +1,18 @@
 import { BETTING_DRAW } from '../../src/modules/constants/betting/betting-draw.constant';
 import { BettingHelper } from '../../src/modules/helpers/betting.helper';
 
-describe('BettingHelper', () => {
-  const margin = BETTING_DRAW.DEFAULT_MARGIN;
-  const expectedEdge = margin / (1 + margin);
-  const bets = 1_000_000;
-  const sigmas = 5;
+const margin = BETTING_DRAW.DEFAULT_MARGIN;
+const expectedEdge = margin / (1 + margin);
+const bets = 1_000_000;
+const sigmas = 5;
 
-  const samplingTolerance = (odds: number): number => {
-    const winChance = (1 - expectedEdge) / odds;
-    const variancePerBet = odds ** 2 * winChance * (1 - winChance);
-    return sigmas * Math.sqrt(variancePerBet / bets);
-  };
+const samplingTolerance = (odds: number): number => {
+  const winChance = (1 - expectedEdge) / odds;
+  const variancePerBet = odds ** 2 * winChance * (1 - winChance);
+  return sigmas * Math.sqrt(variancePerBet / bets);
+};
 
+describe('BettingHelper house edge', () => {
   it.each([1.5, 2, 3, 5, 10])(
     'keeps a positive house edge at odds %s over a million bets',
     odds => {
@@ -30,6 +30,9 @@ describe('BettingHelper', () => {
     120_000
   );
 
+});
+
+describe('BettingHelper thresholds', () => {
   it.each([
     [2, 0, BETTING_DRAW.DRAW_RANGE / 2],
     [4, 0, BETTING_DRAW.DRAW_RANGE / 4],
@@ -37,7 +40,9 @@ describe('BettingHelper', () => {
   ])('derives the win threshold from odds %s and margin %s', (odds, betMargin, expected) => {
     expect(BettingHelper.winThreshold({ odds, margin: betMargin })).toBe(expected);
   });
+});
 
+describe('BettingHelper draw range', () => {
   it('never returns a draw outside the range', () => {
     const { drawValue, drawThreshold } = BettingHelper.draw({ odds: 2, margin });
 

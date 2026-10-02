@@ -47,7 +47,9 @@ describe('StepUpRetryHelper.guard', () => {
     await expect(firstValueFrom(StepUpRetryHelper.guard({ request, confirm: granted }))).resolves.toBe(STEP_UP_SPEC.VALUE);
     expect(attempts()).toBe(2);
   });
+});
 
+describe('StepUpRetryHelper.guard refusals', () => {
   it('never re-sends a request that failed for another reason', async () => {
     const error = new HttpRequestError({ message: STEP_UP_SPEC.OTHER_MESSAGE, status: STEP_UP_SPEC.SERVER_ERROR });
     const { request, attempts } = failingOnce(error);

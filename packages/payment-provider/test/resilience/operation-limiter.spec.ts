@@ -29,7 +29,9 @@ describe('OperationLimiter', () => {
     await expect(attempt).rejects.toBeInstanceOf(ProviderError);
     await expect(attempt.catch((error: ProviderError) => error.category)).resolves.toBe(LIMITER_TEST.DEADLINE_CATEGORY);
   });
+});
 
+describe('OperationLimiter capacity', () => {
   it('frees the slot again after a call finishes', async () => {
     const limiter = build();
 

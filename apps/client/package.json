@@ -7,7 +7,7 @@
     "start": "ng serve",
     "build": "ng build --configuration=production",
     "dev": "ng serve --host 0.0.0.0 --port 4200",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "test": "jest --passWithNoTests",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
     "clean": "rm -rf dist .angular node_modules/.cache",

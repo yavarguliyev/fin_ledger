@@ -47,6 +47,7 @@ async function bootstrap (): Promise<void> {
   app.use(SecurityHeadersHelper.middleware({ docsPath: PATH }));
   app.useBodyParser('json', { limit: BODY_LIMIT });
   app.useBodyParser('urlencoded', { limit: BODY_LIMIT, extended: true });
+  app.useBodyParser('text', { limit: BODY_LIMIT });
   app.enableVersioning({ type: VersioningType.URI, prefix: API_PREFIX });
   app.enableCors({ origin: allowedOrigins, credentials: CREDENTIALS });
 

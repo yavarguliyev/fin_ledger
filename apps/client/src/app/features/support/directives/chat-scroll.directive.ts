@@ -5,6 +5,7 @@ import { ScrollAnchor } from '../interfaces/scroll-anchor.interface';
 
 @Directive({
   selector: '[appChatScroll]',
+  exportAs: 'chatScroll',
   standalone: true,
   host: { '(scroll)': 'onScroll()' }
 })
@@ -19,11 +20,12 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
   readonly canLoadMore = input(false);
   readonly loadingOlder = input(false);
   readonly reachedTop = output<void>();
+  readonly atBottomChange = output<boolean>();
 
   constructor () {
     effect(() => {
       this.conversationId();
-      this.stickToBottom = true;
+      this.stick(true);
       this.anchor = null;
     });
 
@@ -45,11 +47,23 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
 
   onScroll (): void {
     const element = this.host.nativeElement;
-    this.stickToBottom = element.scrollHeight - element.scrollTop - element.clientHeight < CHAT_SCROLL.BOTTOM_THRESHOLD_PX;
+    this.stick(element.scrollHeight - element.scrollTop - element.clientHeight < CHAT_SCROLL.BOTTOM_THRESHOLD_PX);
 
     if (element.scrollTop > CHAT_SCROLL.TOP_THRESHOLD_PX || !this.canLoadMore() || this.loadingOlder() || this.anchor) return;
     this.anchor = { height: element.scrollHeight, top: element.scrollTop };
     this.reachedTop.emit();
+  }
+
+  jumpToLatest (): void {
+    const element = this.host.nativeElement;
+    this.stick(true);
+    element.scrollTo({ top: element.scrollHeight, behavior: CHAT_SCROLL.JUMP_BEHAVIOR });
+  }
+
+  private stick (atBottom: boolean): void {
+    if (atBottom === this.stickToBottom) return;
+    this.stickToBottom = atBottom;
+    this.atBottomChange.emit(atBottom);
   }
 
   private watchContent (): void {

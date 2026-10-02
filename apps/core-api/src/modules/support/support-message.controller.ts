@@ -62,6 +62,16 @@ export class SupportMessageController {
     return this.supportService.markRead({ conversationId: params.id, userId: req.user.userId, role: req.user.role ?? '' });
   }
 
+  @ChatRateLimit()
+  @UseGuards(SessionGuard)
+  @Post('conversations/:id/typing')
+  async announceTyping (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: ConversationIdRequestSchema }) params: ConversationIdRequestDto
+  ): Promise<OkResponseDto> {
+    return this.supportService.announceTyping({ conversationId: params.id, userId: req.user.userId, role: req.user.role ?? '' });
+  }
+
   @UseGuards(SessionGuard)
   @UserRateLimit()
   @Post('conversations/:id/attachments')

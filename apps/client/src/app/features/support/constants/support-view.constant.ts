@@ -23,6 +23,11 @@ export const SUPPORT_VIEW = {
   SEEN_LABEL: 'Seen',
   DELIVERED_LABEL: 'Delivered',
   BACK_LABEL: 'Back to chats',
-  RESYNC_MS: 30000,
-  MAX_COMPOSER_HEIGHT: 140
+  MAX_COMPOSER_HEIGHT: 140,
+  UNREAD_DIVIDER: 'Unread messages',
+  JUMP_LABEL: 'Jump to latest',
+  UNSEEN_CAP: 99,
+  UNSEEN_OVERFLOW: '99+',
+  DROP_HINT: 'Drop files to send',
+  TYPING_LABEL: 'typing…'
 } as const;

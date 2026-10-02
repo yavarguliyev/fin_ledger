@@ -15,19 +15,19 @@ class PayoutOnlyAdapter extends BasePaymentAdapter implements SupportsPayout, Su
   readonly providerName = PaymentProvider.ADYEN;
   readonly capabilities = [PaymentCapability.PAYOUT, PaymentCapability.WEBHOOKS];
 
-  constructor() {
+  constructor () {
     super({ name: PayoutOnlyAdapter.name });
   }
 
-  extractSignature({ headers }: ExtractSignatureDto): string {
+  extractSignature ({ headers }: ExtractSignatureDto): string {
     return this.headerValue({ headers, name: 'x-provider-hmac' });
   }
 
-  constructWebhookEvent(dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
+  constructWebhookEvent (dto: ConstructWebhookEventDto): Promise<WebhookEventDto> {
     return Promise.resolve().then(() => this.simulateWebhook(dto));
   }
 
-  async payout(dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {
+  async payout (dto: PayoutFundsDto): Promise<ProviderChargeResultDto> {
     return this.executeOperation({
       prefix: 'po',
       amount: dto.amount,

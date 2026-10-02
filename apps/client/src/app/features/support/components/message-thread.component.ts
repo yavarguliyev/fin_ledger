@@ -25,6 +25,7 @@ export class MessageThreadComponent {
   readonly messages = input<SupportMessage[]>([]);
   readonly userId = input<string | null>(null);
   readonly peerOnline = input(false);
+  readonly markerId = input<string | null>(null);
   readonly editRequested = output<SupportMessage>();
   readonly deleteRequested = output<SupportMessage>();
   readonly rules = SUPPORT_MESSAGE_RULES;

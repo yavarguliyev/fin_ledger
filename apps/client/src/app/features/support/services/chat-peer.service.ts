@@ -5,11 +5,13 @@ import { PresenceHelper } from '../../../core/helpers/support/presence.helper';
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
 import { SupportChatStore } from '../../../core/services/support-chat.store';
 import { SupportPresenceStore } from '../../../core/services/support-presence.store';
+import { SupportTypingStore } from '../../../core/services/support-typing.store';
 
 @Injectable()
 export class ChatPeerService {
   private readonly chat = inject(SupportChatStore);
   private readonly presenceStore = inject(SupportPresenceStore);
+  private readonly typingStore = inject(SupportTypingStore);
 
   readonly peerId = computed(() => {
     const conversation = this.chat.activeConversation();
@@ -31,6 +33,11 @@ export class ChatPeerService {
   });
 
   readonly status = computed(() => (this.online() ? SUPPORT_VIEW.ONLINE_LABEL : LastSeenHelper.label({ iso: this.presence()?.lastSeenAt ?? null })));
+
+  readonly typing = computed(() => {
+    const conversationId = this.chat.activeId();
+    return !!conversationId && this.typingStore.typingIn().has(conversationId);
+  });
 
   readonly activeStaffId = computed(() => this.chat.activeConversation()?.assignedStaffId ?? null);
 

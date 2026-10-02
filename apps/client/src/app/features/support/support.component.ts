@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 
 import { ChatPeerService } from './services/chat-peer.service';
+import { NewMessagesService } from './services/new-messages.service';
 import { ContactListComponent } from './components/contact-list.component';
 import { ConversationListComponent } from './components/conversation-list.component';
 import { MessageComposerComponent } from './components/message-composer.component';
@@ -14,6 +15,7 @@ import { SUPPORT_VIEW } from './constants/support-view.constant';
 import { SupportChatStore } from '../../core/services/support-chat.store';
 import { SupportHistoryService } from '../../core/services/support-history.service';
 import { ChatScrollDirective } from './directives/chat-scroll.directive';
+import { FileDropDirective } from './directives/file-drop.directive';
 import { SupportComposeStore } from '../../core/services/support-compose.store';
 import { SupportCallStore } from '../../core/services/support-call.store';
 import { SUPPORT_CALL } from '../../core/constants/support/support-call.constant';
@@ -22,12 +24,13 @@ import { RecordedClipDto } from '../../core/interfaces/support/recorded-clip.int
 import { ComposeSubmitDto } from '../../core/interfaces/support/compose-submit.interface';
 import { EditSaveDto } from '../../core/interfaces/support/edit-save.interface';
 import { SupportPresenceStore } from '../../core/services/support-presence.store';
+import { SupportTypingStore } from '../../core/services/support-typing.store';
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective],
-  providers: [ChatPeerService],
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective],
+  providers: [ChatPeerService, NewMessagesService],
   templateUrl: './templates/support.component.html'
 })
 export class SupportComponent implements OnInit, OnDestroy {
@@ -36,7 +39,9 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly chat = inject(SupportChatStore);
   readonly history = inject(SupportHistoryService);
   readonly presenceStore = inject(SupportPresenceStore);
+  private readonly typing = inject(SupportTypingStore);
   readonly peer = inject(ChatPeerService);
+  readonly newMessages = inject(NewMessagesService);
   readonly compose = inject(SupportComposeStore);
   readonly calls = inject(SupportCallStore);
   readonly callLabels = SUPPORT_CALL;
@@ -56,8 +61,10 @@ export class SupportComponent implements OnInit, OnDestroy {
     this.chat.loadConversations();
 
     this.timers = [
-      setInterval(() => this.resyncPresence(), SUPPORT.PRESENCE_RESYNC_MS),
-      setInterval(() => this.refresh(), SUPPORT_VIEW.RESYNC_MS)
+      setInterval(() => {
+        this.refresh();
+        this.resyncPresence();
+      }, SUPPORT.SAFETY_RESYNC_MS)
     ];
 
     window.addEventListener('focus', this.onFocus);
@@ -90,6 +97,11 @@ export class SupportComponent implements OnInit, OnDestroy {
   onSave ({ body, file }: EditSaveDto): void {
     const conversationId = this.chat.activeId();
     if (conversationId) this.compose.saveEdit({ conversationId, body, file });
+  }
+
+  onTyped (): void {
+    const conversationId = this.chat.activeId();
+    if (conversationId) this.typing.notify({ conversationId });
   }
 
   onRecorded (clip: RecordedClipDto): void {

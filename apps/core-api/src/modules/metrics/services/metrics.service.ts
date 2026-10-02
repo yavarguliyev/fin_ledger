@@ -3,6 +3,10 @@ import { collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
 import { PostgresService, QueueHelper, RABBITMQ_SERVICE, RabbitmqService } from '@common/libs';
 
 import { METRICS } from '../constants/metrics.constant';
+import { PAGE_VIEW } from '../constants/page-view.constant';
+import { PageViewDto } from '../dtos/page-view.dto';
+import { BusinessMetricsHelper } from '../helpers/business-metrics.helper';
+import { AuditChainMetricsHelper } from '../helpers/audit-chain-metrics.helper';
 import { ObserveRequestDto } from '../dtos/observe-request.dto';
 import { LedgerIntegrityJob } from '../../ledger/jobs/ledger-integrity.job';
 import { NOTIFICATION_QUEUE } from '../../notification/constants/messaging/notification-queue.constant';
@@ -25,6 +29,10 @@ export class MetricsService {
   private readonly gauges: Record<string, Gauge<string>>;
   private readonly dlqDepth: Gauge<string>;
   private readonly requestDuration: Histogram<string>;
+  private readonly pageViewRequests: Histogram<string>;
+  private readonly pageViewDuplicates: Histogram<string>;
+  private readonly business: BusinessMetricsHelper;
+  private readonly auditChain: AuditChainMetricsHelper;
 
   constructor (
     @Inject(PostgresService) private readonly postgresService: PostgresService,
@@ -51,10 +59,22 @@ export class MetricsService {
       buckets: [...METRICS.HTTP_BUCKETS],
       registers: [this.registry]
     });
+
+    const pageView = { buckets: [...PAGE_VIEW.BUCKETS], registers: [this.registry] };
+    this.pageViewRequests = new Histogram({ ...pageView, name: `${METRICS.PREFIX}${PAGE_VIEW.REQUESTS}`, help: PAGE_VIEW.REQUESTS, labelNames: [...PAGE_VIEW.REQUEST_LABELS] });
+    this.pageViewDuplicates = new Histogram({ ...pageView, name: `${METRICS.PREFIX}${PAGE_VIEW.DUPLICATES}`, help: PAGE_VIEW.DUPLICATES, labelNames: [...PAGE_VIEW.DUPLICATE_LABELS] });
+    this.business = new BusinessMetricsHelper({ registry: this.registry, postgresService });
+    this.auditChain = new AuditChainMetricsHelper({ registry: this.registry, postgresService });
   }
 
   contentType (): string {
     return this.registry.contentType;
+  }
+
+  observePageView ({ route, initialCalls, laterCalls, duplicates }: PageViewDto): void {
+    this.pageViewRequests.labels(route, PAGE_VIEW.INITIAL_PHASE).observe(initialCalls);
+    this.pageViewRequests.labels(route, PAGE_VIEW.LATER_PHASE).observe(laterCalls);
+    this.pageViewDuplicates.labels(route).observe(duplicates);
   }
 
   observeRequest ({ method, route, status, seconds }: ObserveRequestDto): void {
@@ -73,7 +93,7 @@ export class MetricsService {
     this.gauges[METRICS.POOL_IDLE]?.set(stats.idleCount);
     this.gauges[METRICS.POOL_WAITING]?.set(stats.waitingCount);
 
-    await Promise.all([this.refreshOutbox(), this.refreshLedger(), this.refreshDeadLetters()]);
+    await Promise.all([this.refreshOutbox(), this.refreshLedger(), this.refreshDeadLetters(), this.business.refresh(), this.auditChain.refresh()]);
   }
 
   private async refreshOutbox (): Promise<void> {

@@ -92,8 +92,10 @@ services:
         KAFKA_NODE_ID: 1
         KAFKA_PROCESS_ROLES: "broker,controller"
         KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
-        KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
-        KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://${KAFKA_ADVERTISED_HOST:-127.0.0.1}:${KAFKA_BROKER_PORT:-9092}"
+        KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093,INTERNAL://0.0.0.0:29092"
+        KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://${KAFKA_ADVERTISED_HOST:-127.0.0.1}:${KAFKA_BROKER_PORT:-9092},INTERNAL://kafka:29092"
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT"
+        KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
         KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
         KAFKA_LOG_DIRS: "/var/lib/kafka/data"
         KAFKA_AUTO_CREATE_TOPICS_ENABLE: "${KAFKA_AUTO_CREATE_TOPICS_ENABLE:-true}"
@@ -244,6 +246,18 @@ services:
       - ddd_mesh
     depends_on:
       - redis-master
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    container_name: ddd_kafka_exporter
+    command:
+      - '--kafka.server=kafka:29092'
+    restart: unless-stopped
+    networks:
+      - ddd_mesh
+    depends_on:
+      kafka:
+        condition: service_healthy
 
   alertmanager:
     image: prom/alertmanager:v0.28.1

@@ -1,6 +1,7 @@
 import { CaughtErrorDto } from '../../interfaces/common/caught-error.interface';
 import { ClearUnreadDto } from '../../interfaces/support/clear-unread.interface';
 import { CombineMessagesDto } from '../../interfaces/support/combine-messages.interface';
+import { BumpConversationDto } from '../../interfaces/support/bump-conversation.interface';
 import { HttpRequestError } from '../../errors/http-request.error';
 import { SUPPORT_MESSAGES } from '../../constants/support/support-messages.constant';
 import { FailureMessageDto } from '../../interfaces/support/failure-message.interface';
@@ -33,6 +34,15 @@ export class SupportChatHelper {
   static mergeMessages ({ current, incoming }: MergeMessagesDto): SupportMessage[] {
     if (current.some(message => message.id === incoming.id)) return current;
     return [...current, incoming].sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+
+  static bumpConversation ({ current, message, myUserId, activeId }: BumpConversationDto): SupportConversation[] | null {
+    const target = current.find(item => item.id === message.conversationId);
+    if (!target) return null;
+
+    const unread = message.senderUserId !== myUserId && message.conversationId !== activeId ? target.unreadCount + 1 : target.unreadCount;
+    const bumped = { ...target, unreadCount: unread, lastMessageAt: message.createdAt, lastMessagePreview: message.body ?? message.attachment?.fileName ?? target.lastMessagePreview };
+    return [bumped, ...current.filter(item => item.id !== target.id)];
   }
 
   static combine ({ current, page }: CombineMessagesDto): SupportMessage[] {

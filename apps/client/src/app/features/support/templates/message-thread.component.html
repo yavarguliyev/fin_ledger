@@ -11,6 +11,13 @@
     </div>
 
     @for (message of group.messages; track message.id) {
+      @if (message.id === markerId()) {
+        <div class="my-3 flex items-center gap-3" role="separator">
+          <span class="h-px flex-1 bg-primary/30"></span>
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-primary">{{ view.UNREAD_DIVIDER }}</span>
+          <span class="h-px flex-1 bg-primary/30"></span>
+        </div>
+      }
       @if (isSystem(message)) {
         <div class="my-2 flex justify-center">
           <span class="flex items-center gap-1.5 rounded-lg bg-white dark:bg-night-card px-3 py-1.5 text-xs text-ink-600 dark:text-ink-300 shadow-sm">

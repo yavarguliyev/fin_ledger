@@ -18,6 +18,7 @@ import { ListMessagesUseCase } from './use-cases/queries/message/list-messages.u
 import { ListPresenceDto } from './dtos/input/list-presence.dto';
 import { ListPresenceUseCase } from './use-cases/queries/presence/list-presence.use-case';
 import { MarkConversationReadUseCase } from './use-cases/commands/conversation/mark-conversation-read.use-case';
+import { AnnounceTypingUseCase } from './use-cases/commands/conversation/announce-typing.use-case';
 import { ReadConversationDto } from './dtos/input/read-conversation.dto';
 import { OkResponseDto } from './dtos/response/ok-response.dto';
 import { OpenConversationDto } from './dtos/input/open-conversation.dto';
@@ -46,6 +47,7 @@ export class SupportService {
     private readonly listMessagesUseCase: ListMessagesUseCase,
     private readonly sendMessageUseCase: SendMessageUseCase,
     private readonly markReadUseCase: MarkConversationReadUseCase,
+    private readonly announceTypingUseCase: AnnounceTypingUseCase,
     private readonly heartbeatUseCase: HeartbeatUseCase,
     private readonly listPresenceUseCase: ListPresenceUseCase,
     private readonly countPresenceUseCase: CountPresenceUseCase,
@@ -89,6 +91,10 @@ export class SupportService {
 
   async markRead (dto: ReadConversationDto): Promise<OkResponseDto> {
     return this.markReadUseCase.execute(dto);
+  }
+
+  async announceTyping (dto: ReadConversationDto): Promise<OkResponseDto> {
+    return this.announceTypingUseCase.execute(dto);
   }
 
   async heartbeat (dto: HeartbeatDto): Promise<OkResponseDto> {

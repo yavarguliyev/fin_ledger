@@ -9,13 +9,13 @@ const named = (message: string, name: string): Error => {
 };
 
 describe('ExperimentalWarningFilter', () => {
-  const original = process.emitWarning;
+  const original = process.emitWarning.bind(process);
   const emitted: string[] = [];
 
   beforeAll(() => {
     process.emitWarning = ((warning: string | Error): void => {
       emitted.push(warning instanceof Error ? warning.message : warning);
-    }) as typeof process.emitWarning;
+    });
 
     ExperimentalWarningFilter.install();
   });

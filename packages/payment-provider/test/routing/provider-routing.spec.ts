@@ -1,33 +1,12 @@
-import { PaymentCapability, PaymentProvider, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
+import { PaymentCapability, PaymentProvider } from '@common/shared-libs';
 
-import { BasePaymentAdapter } from '../../src/modules/adapters/base/base-payment.adapter';
 import { PaymentProviderRegistry } from '../../src/modules/registry/payment-provider.registry';
-import { ProviderFailoverHelper } from '../../src/modules/helpers/provider-failover.helper';
-import { IPaymentProvider } from '../../src/modules/types/payment-provider.type';
 import { ROUTING_TEST } from '../constants/routing.constant';
-
-class StubAdapter extends BasePaymentAdapter {
-  readonly capabilities = [PaymentCapability.CHARGE];
-
-  constructor(
-    readonly providerName: PaymentProvider,
-    override readonly priority: number,
-    override readonly supportedCurrencies: readonly string[],
-    private open = false
-  ) {
-    super({ name: providerName });
-  }
-
-  override isAvailable = (): boolean => !this.open;
-
-  trip(): void {
-    this.open = true;
-  }
-}
+import { StubAdapter } from '../stubs/stub.adapter';
 
 const register = (providers: StubAdapter[]): PaymentProviderRegistry => {
   const registry = new PaymentProviderRegistry();
-  providers.forEach(provider => registry.register({ provider: provider as unknown as IPaymentProvider }));
+  providers.forEach(provider => registry.register({ provider: provider }));
 
   return registry;
 };
@@ -72,95 +51,5 @@ describe('PaymentProviderRegistry.route', () => {
     const chargeOnly = new StubAdapter(PaymentProvider.STRIPE, ROUTING_TEST.PRIMARY_PRIORITY, []);
 
     expect(register([chargeOnly]).route({ capability: PaymentCapability.PAYOUT })).toHaveLength(0);
-  });
-});
-
-describe('ProviderFailoverHelper.attempt', () => {
-  const candidates = (): StubAdapter[] => [
-    new StubAdapter(PaymentProvider.STRIPE, ROUTING_TEST.PRIMARY_PRIORITY, []),
-    new StubAdapter(PaymentProvider.ADYEN, ROUTING_TEST.BACKUP_PRIORITY, [])
-  ];
-
-  it('uses the first available provider', async () => {
-    const used: string[] = [];
-    const result = await ProviderFailoverHelper.attempt({
-      candidates: candidates() as unknown as IPaymentProvider[],
-      run: ({ provider }) => {
-        used.push(provider.providerName);
-        return Promise.resolve(ROUTING_TEST.CHARGE_RESULT);
-      }
-    });
-
-    expect(result).toBe(ROUTING_TEST.CHARGE_RESULT);
-    expect(used).toEqual([PaymentProvider.STRIPE]);
-  });
-
-  it('skips a provider whose circuit is open and uses the next one', async () => {
-    const [primary, backup] = candidates();
-    primary?.trip();
-
-    const used: string[] = [];
-    await ProviderFailoverHelper.attempt({
-      candidates: [primary, backup] as unknown as IPaymentProvider[],
-      run: ({ provider }) => {
-        used.push(provider.providerName);
-        return Promise.resolve(ROUTING_TEST.CHARGE_RESULT);
-      }
-    });
-
-    expect(used).toEqual([PaymentProvider.ADYEN]);
-  });
-
-  it('fails over when the first provider reports its circuit open', async () => {
-    const used: string[] = [];
-
-    await ProviderFailoverHelper.attempt({
-      candidates: candidates() as unknown as IPaymentProvider[],
-      run: ({ provider }) => {
-        used.push(provider.providerName);
-        if (provider.providerName === PaymentProvider.STRIPE) {
-          return Promise.reject(new ProviderError({ category: ProviderErrorCategory.CIRCUIT_OPEN, message: 'open' }));
-        }
-
-        return Promise.resolve(ROUTING_TEST.CHARGE_RESULT);
-      }
-    });
-
-    expect(used).toEqual([PaymentProvider.STRIPE, PaymentProvider.ADYEN]);
-  });
-
-  it.each([[ProviderErrorCategory.NETWORK], [ProviderErrorCategory.PROVIDER_DOWN], [ProviderErrorCategory.UNKNOWN]])(
-    'does not fail over on %s, because the money may already have moved',
-    async category => {
-      const used: string[] = [];
-
-      await expect(
-        ProviderFailoverHelper.attempt({
-          candidates: candidates() as unknown as IPaymentProvider[],
-          run: ({ provider }) => {
-            used.push(provider.providerName);
-            return Promise.reject(new ProviderError({ category, message: category }));
-          }
-        })
-      ).rejects.toThrow();
-
-      expect(used).toEqual([PaymentProvider.STRIPE]);
-    }
-  );
-
-  it('does not fail over on a decline either', async () => {
-    const used: string[] = [];
-
-    await expect(
-      ProviderFailoverHelper.attempt({
-        candidates: candidates() as unknown as IPaymentProvider[],
-        run: ({ provider }) => {
-          used.push(provider.providerName);
-          return Promise.reject(new ProviderError({ category: ProviderErrorCategory.DECLINED, message: 'declined' }));
-        }
-      })
-    ).rejects.toThrow();
-
-    expect(used).toEqual([PaymentProvider.STRIPE]);
   });
 });

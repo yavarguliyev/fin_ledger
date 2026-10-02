@@ -9,7 +9,7 @@ const CODE = '482913';
 const SMS = { phoneNumber: '+15551234567', message: `Your verification code is ${CODE}`, purpose: 'phone-verification' };
 const buildConfig = (values: Record<string, unknown>): ConfigService => ({ get: (key: string) => values[key] }) as unknown as ConfigService;
 
-describe('SmsService', () => {
+describe('SmsService transport choice', () => {
   it('uses the console transport unless a provider is configured', () => {
     const service = new SmsService({ configService: buildConfig({}) });
     expect(service['transport']).toBeInstanceOf(ConsoleSmsTransport);
@@ -27,7 +27,9 @@ describe('SmsService', () => {
 
     expect(service['transport']).toBeInstanceOf(TwilioTransport);
   });
+});
 
+describe('SmsService sending', () => {
   it('never writes the message body or its code to the log in production', async () => {
     const service = new SmsService({ configService: buildConfig({ NODE_ENV: 'production' }) });
     const written: string[] = [];
@@ -56,7 +58,9 @@ describe('SmsService', () => {
 
     expect(written.join(' ')).toContain(CODE);
   });
+});
 
+describe('SmsService failures', () => {
   it('reports a provider failure instead of silently dropping the message', async () => {
     const service = new SmsService({ configService: buildConfig({}) });
     jest.spyOn(service['transport'], 'send').mockRejectedValue(new Error('twilio unreachable'));

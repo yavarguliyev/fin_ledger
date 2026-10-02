@@ -7,6 +7,7 @@ export interface SupportStreamEvent {
   conversationId?: string;
   message?: SupportMessage;
   readerUserId?: string;
+  typingUserId?: string;
   presence?: PresenceEntry;
   call?: CallSignal;
 }

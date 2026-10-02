@@ -22,7 +22,20 @@
     }
   </section>
 
-  <section class="min-w-0 flex-1 flex-col" [class]="chat.activeId() ? 'flex' : 'hidden md:flex'">
+  <section
+    #drop="fileDrop"
+    class="relative min-w-0 flex-1 flex-col"
+    [class]="chat.activeId() ? 'flex' : 'hidden md:flex'"
+    [appFileDrop]="!!chat.activeId() && !compose.sending()"
+    (dropped)="composer.addFiles({ files: $event })"
+  >
+    @if (drop.dragging()) {
+      <div
+        class="pointer-events-none absolute inset-2 z-20 grid place-items-center rounded-2xl border-2 border-dashed border-primary bg-white/85 dark:bg-night-card/85"
+      >
+        <span class="text-sm font-semibold text-primary">{{ view.DROP_HINT }}</span>
+      </div>
+    }
     <header class="flex items-center justify-between gap-3 border-b border-ink-200 dark:border-ink-800 bg-white dark:bg-night-card px-4 py-3">
       <div class="flex min-w-0 items-center gap-2">
         <button
@@ -40,7 +53,11 @@
             <h2 class="truncate text-sm font-semibold text-ink-900 dark:text-white">{{ peer.name() }}</h2>
             <p class="flex items-center gap-1.5 text-xs">
               <span class="w-1.5 h-1.5 rounded-full" [class]="peer.online() ? 'bg-success' : 'bg-ink-300'"></span>
-              <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-ink-400'">{{ peer.status() }}</span>
+              @if (peer.typing()) {
+                <span class="italic text-primary">{{ view.TYPING_LABEL }}</span>
+              } @else {
+                <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-ink-400'">{{ peer.status() }}</span>
+              }
             </p>
           </div>
         } @else {
@@ -86,40 +103,67 @@
       </div>
     </header>
 
-    <div
-      class="flex-1 overflow-y-auto"
-      [appChatScroll]="chat.activeId()"
-      [canLoadMore]="history.canLoadMore()"
-      [loadingOlder]="history.loadingOlder()"
-      (reachedTop)="history.loadOlder()"
-    >
-      @if (chat.loading()) {
-        <div class="grid h-full place-items-center">
-          <span class="w-6 h-6 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
-        </div>
-      } @else if (!chat.activeId()) {
-        <p class="grid h-full place-items-center px-6 text-center text-sm text-ink-400">
-          {{ chat.isStaff() ? labels.NO_THREAD_SELECTED : labels.PICK_CONTACT }}
-        </p>
-      } @else {
-        <div>
-          @if (history.loadingOlder()) {
-            <div class="flex justify-center py-3">
-              <span class="w-5 h-5 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
-            </div>
+    <div class="relative flex-1 min-h-0 flex flex-col">
+      <div
+        #scroller="chatScroll"
+        class="flex-1 overflow-y-auto"
+        [appChatScroll]="chat.activeId()"
+        [canLoadMore]="history.canLoadMore()"
+        [loadingOlder]="history.loadingOlder()"
+        (reachedTop)="history.loadOlder()"
+        (atBottomChange)="newMessages.setAtBottom($event)"
+      >
+        @if (chat.loading()) {
+          <div class="grid h-full place-items-center">
+            <span class="w-6 h-6 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
+          </div>
+        } @else if (!chat.activeId()) {
+          <p class="grid h-full place-items-center px-6 text-center text-sm text-ink-400">
+            {{ chat.isStaff() ? labels.NO_THREAD_SELECTED : labels.PICK_CONTACT }}
+          </p>
+        } @else {
+          <div>
+            @if (history.loadingOlder()) {
+              <div class="flex justify-center py-3">
+                <span class="w-5 h-5 border-2 border-ink-200 border-t-primary rounded-full animate-spin"></span>
+              </div>
+            }
+            <app-message-thread
+              [messages]="chat.messages()"
+              [userId]="chat.myUserId()"
+              [peerOnline]="peer.online()"
+              [markerId]="newMessages.markerId()"
+              (editRequested)="compose.startEdit({ message: $event })"
+              (deleteRequested)="compose.askDelete({ message: $event })"
+            />
+          </div>
+        }
+      </div>
+
+      @if (newMessages.showJump()) {
+        <button
+          type="button"
+          class="absolute bottom-3 right-4 grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-night-card text-ink-600 dark:text-ink-200 shadow-lg ring-1 ring-ink-100 dark:ring-night-border hover:text-primary"
+          [attr.aria-label]="view.JUMP_LABEL"
+          [title]="view.JUMP_LABEL"
+          (click)="scroller.jumpToLatest()"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+          @if (newMessages.unseen() > 0) {
+            <span
+              class="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 grid place-items-center rounded-full bg-primary text-[11px] font-semibold text-white"
+            >
+              {{ newMessages.unseen() > view.UNSEEN_CAP ? view.UNSEEN_OVERFLOW : newMessages.unseen() }}
+            </span>
           }
-          <app-message-thread
-            [messages]="chat.messages()"
-            [userId]="chat.myUserId()"
-            [peerOnline]="peer.online()"
-            (editRequested)="compose.startEdit({ message: $event })"
-            (deleteRequested)="compose.askDelete({ message: $event })"
-          />
-        </div>
+        </button>
       }
     </div>
 
     <app-message-composer
+      #composer
       [sending]="compose.sending()"
       [disabled]="!chat.activeId()"
       [editing]="compose.editing()"
@@ -127,6 +171,7 @@
       (saved)="onSave($event)"
       (cancelled)="compose.cancelEdit()"
       (recorded)="onRecorded($event)"
+      (typed)="onTyped()"
     />
   </section>
 

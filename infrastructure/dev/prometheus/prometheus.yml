@@ -54,16 +54,17 @@ scrape_configs:
         labels:
           service: 'postgres'
 
-  # RabbitMQ metrics (built-in)
-  # - job_name: 'rabbitmq'
-  #   static_configs:
-  #     - targets: ['rabbitmq:15692']
-  #       labels:
-  #         service: 'rabbitmq'
+  # RabbitMQ (built-in rabbitmq_prometheus plugin), one series per queue
+  - job_name: 'rabbitmq'
+    metrics_path: '/metrics/per-object'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+        labels:
+          service: 'rabbitmq'
 
-  # Kafka JMX exporter (optional - requires jmx_exporter)
-  # - job_name: 'kafka'
-  #   static_configs:
-  #     - targets: ['kafka:7071']
-  #       labels:
-  #         service: 'kafka'
+  # Kafka topics, partitions and consumer-group lag (kafka_exporter in docker-compose)
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+        labels:
+          service: 'kafka'

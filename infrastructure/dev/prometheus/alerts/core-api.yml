@@ -66,6 +66,20 @@ groups:
           summary: 'Ledger balances do not match their entries'
           description: 'Stop money movement and investigate before anything else.'
 
+      - alert: PaymentFailuresSpiking
+        expr: sum(core_api_payments_last_minute{outcome="failed"}) >= 5 and sum(core_api_payments_last_minute{outcome="failed"}) / clamp_min(sum(core_api_payments_last_minute{outcome=~"completed|failed"}), 1) > 0.25
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'More than a quarter of payments are failing'
+          description: 'Check the payment provider status and the failure codes in the payments table.'
+      - alert: AuditLogTampered
+        expr: max(core_api_audit_chain_breaks) > 0
+        labels: { severity: critical }
+        annotations:
+          summary: 'The audit log hash chain is broken'
+          description: 'A row was edited or removed outside the application. Run SELECT * FROM audit_log_chain_breaks() to find where.'
+
   - name: infrastructure
     rules:
       - alert: PostgresDown
@@ -91,3 +105,27 @@ groups:
         labels: { severity: warning }
         annotations:
           summary: 'Redis is evicting keys because memory is full'
+      - alert: RabbitMQDown
+        expr: up{job="rabbitmq"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'RabbitMQ is unreachable'
+      - alert: KafkaDown
+        expr: up{job="kafka"} == 0 or kafka_brokers < 1
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: 'Kafka is unreachable'
+      - alert: KafkaConsumerLagHigh
+        expr: sum by (consumergroup) (kafka_consumergroup_lag) > 1000
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: 'A Kafka consumer group is more than 1000 messages behind'
+      - alert: KafkaUnderReplicated
+        expr: sum(kafka_topic_partition_under_replicated_partition) > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: 'Kafka has partitions without all their replicas in sync'
