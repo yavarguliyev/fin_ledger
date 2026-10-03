@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { ReactionSchema } from '../message/reaction.dto';
+
 import { CallSignalSchema } from '../call/call-signal.dto';
 import { PresenceEntrySchema } from '../presence/presence-entry.dto';
 import { SupportMessageContractSchema } from '@common/contracts';
@@ -23,7 +25,11 @@ export const SupportStreamEventSchema = z.object({
 
   readerUserId: z.string({ message: 'Reader user ID must be a string' }).optional(),
 
-  typingUserId: z.string({ message: 'Typing user ID must be a string' }).optional()
+  typingUserId: z.string({ message: 'Typing user ID must be a string' }).optional(),
+
+  messageId: z.string({ message: 'Message ID must be a string' }).optional(),
+
+  reactions: z.array(ReactionSchema).optional()
 });
 
 export type SupportStreamEventDto = z.infer<typeof SupportStreamEventSchema>;

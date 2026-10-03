@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { THREAD_BUBBLE } from '../constants/thread-bubble.constant';
@@ -14,6 +14,10 @@ import { SUPPORT_ATTACHMENT } from '../../../core/constants/support/support-atta
 import { SupportAttachmentHelper } from '../../../core/helpers/support/support-attachment.helper';
 import { MessageRulesHelper } from '../../../core/helpers/support/message-rules.helper';
 import { SUPPORT_MESSAGE_RULES } from '../../../core/constants/support/support-message-rules.constant';
+import { MESSAGE_REACTION } from '../../../core/constants/support/message-reaction.constant';
+import { ReactionHelper } from '../../../core/helpers/support/reaction.helper';
+import { ReactionSummary } from '../../../core/interfaces/support/reaction-summary.interface';
+import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-toggle.interface';
 
 @Component({
   selector: 'app-message-thread',
@@ -31,6 +35,10 @@ export class MessageThreadComponent {
   readonly deleteRequested = output<SupportMessage>();
   readonly replyRequested = output<SupportMessage>();
   readonly quoteRequested = output<string>();
+  readonly reacted = output<ReactionToggleDto>();
+  readonly pickerFor = signal<string | null>(null);
+  readonly emojis = MESSAGE_REACTION.ALLOWED;
+  readonly reactionLabels = MESSAGE_REACTION;
   readonly rules = SUPPORT_MESSAGE_RULES;
   readonly attachment = SUPPORT_ATTACHMENT;
   readonly labels = SUPPORT_MESSAGES;
@@ -42,6 +50,15 @@ export class MessageThreadComponent {
 
   isOwn (message: SupportMessage): boolean {
     return !!this.userId() && message.senderUserId === this.userId();
+  }
+
+  reactionsOf (message: SupportMessage): ReactionSummary[] {
+    return ReactionHelper.summarize({ reactions: message.reactions ?? [], myUserId: this.userId() });
+  }
+
+  pick ({ messageId, emoji }: ReactionToggleDto): void {
+    this.pickerFor.set(null);
+    this.reacted.emit({ messageId, emoji });
   }
 
   quoteAuthor (message: SupportMessage): string {

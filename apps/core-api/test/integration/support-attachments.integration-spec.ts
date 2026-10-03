@@ -6,61 +6,70 @@ import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
-describe('Support attachments and edits', () => {
-  let customer = '';
-  let staff = '';
-  let conversationId = '';
-  let messageId = '';
+let customer = '';
 
-  const form = (field: string, files: Array<{ content: Buffer; name: string; type: string }>): FormData => {
-    const data = new FormData();
-    files.forEach(({ content, name, type }) => data.append(field, new Blob([new Uint8Array(content)], { type }), name));
-    return data;
-  };
+let staff = '';
 
-  const multipart = (method: string, path: string, token: string, body: FormData): Promise<Response> =>
-    fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/support/conversations/${conversationId}${path}`, {
-      method,
-      headers: { Authorization: `Bearer ${token}`, 'X-Forwarded-For': ApiHelper.randomIp() },
-      body
-    });
+let conversationId = '';
 
-  const png = { content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.PNG_BYTES), name: SUPPORT_ATTACHMENTS_TEST.PNG_NAME, type: SUPPORT_ATTACHMENTS_TEST.PNG_TYPE };
+let messageId = '';
 
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL] });
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL]] });
+const form = (field: string, files: Array<{ content: Buffer; name: string; type: string }>): FormData => {
+  const data = new FormData();
+  files.forEach(({ content, name, type }) => data.append(field, new Blob([new Uint8Array(content)], { type }), name));
+  return data;
+};
 
-    customer = await ApiHelper.login({ email: SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL });
-    staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-    const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
-    const opened = await ApiHelper.request<SupportConversation>({
-      method: 'POST',
-      path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
-      token: customer,
-      body: { staffUserId: row?.id }
-    });
-    conversationId = opened.body.id;
-
-    const sent = await ApiHelper.request<SupportMessage>({
-      method: 'POST',
-      path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`,
-      token: customer,
-      body: { body: SUPPORT_ATTACHMENTS_TEST.ORIGINAL_TEXT }
-    });
-    messageId = sent.body.id;
+const multipart = (method: string, path: string, token: string, body: FormData): Promise<Response> =>
+  fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/support/conversations/${conversationId}${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${token}`, 'X-Forwarded-For': ApiHelper.randomIp() },
+    body
   });
 
-  afterAll(async () => {
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL]] });
-    await DbHelper.close();
-  });
+const png = {
+  content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.PNG_BYTES),
+  name: SUPPORT_ATTACHMENTS_TEST.PNG_NAME,
+  type: SUPPORT_ATTACHMENTS_TEST.PNG_TYPE
+};
 
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL] });
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL]] });
+
+  customer = await ApiHelper.login({ email: SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL });
+  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+
+  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
+  const opened = await ApiHelper.request<SupportConversation>({
+    method: 'POST',
+    path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
+    token: customer,
+    body: { staffUserId: row?.id }
+  });
+  conversationId = opened.body.id;
+
+  const sent = await ApiHelper.request<SupportMessage>({
+    method: 'POST',
+    path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`,
+    token: customer,
+    body: { body: SUPPORT_ATTACHMENTS_TEST.ORIGINAL_TEXT }
+  });
+  messageId = sent.body.id;
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_ATTACHMENTS_TEST.CUSTOMER_EMAIL]] });
+  await DbHelper.close();
+});
+
+describe('Support attachment limits', () => {
   it('refuses more than five files in one send', async () => {
     const files = Array.from({ length: SUPPORT_ATTACHMENTS_TEST.MAX_FILES + 1 }, () => png);
 
-    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, files))).status).toBe(SUPPORT_ATTACHMENTS_TEST.BAD_REQUEST);
+    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, files))).status).toBe(
+      SUPPORT_ATTACHMENTS_TEST.BAD_REQUEST
+    );
   });
 
   it('refuses a file over the size limit', async () => {
@@ -72,13 +81,23 @@ describe('Support attachments and edits', () => {
   });
 
   it('refuses a file type that is not allowed, and a text file pretending to be a picture', async () => {
-    const exe = { content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.FAKE_TEXT), name: SUPPORT_ATTACHMENTS_TEST.EXE_NAME, type: SUPPORT_ATTACHMENTS_TEST.EXE_TYPE };
+    const exe = {
+      content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.FAKE_TEXT),
+      name: SUPPORT_ATTACHMENTS_TEST.EXE_NAME,
+      type: SUPPORT_ATTACHMENTS_TEST.EXE_TYPE
+    };
     const fake = { ...png, content: Buffer.from(SUPPORT_ATTACHMENTS_TEST.FAKE_TEXT) };
 
-    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, [exe]))).status).toBe(SUPPORT_ATTACHMENTS_TEST.UNSUPPORTED);
-    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, [fake]))).status).toBe(SUPPORT_ATTACHMENTS_TEST.UNSUPPORTED);
+    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, [exe]))).status).toBe(
+      SUPPORT_ATTACHMENTS_TEST.UNSUPPORTED
+    );
+    expect((await multipart('POST', '/attachments', customer, form(SUPPORT_ATTACHMENTS_TEST.FIELD_NAME, [fake]))).status).toBe(
+      SUPPORT_ATTACHMENTS_TEST.UNSUPPORTED
+    );
   });
+});
 
+describe('Support message edits', () => {
   it('lets the sender edit their message and marks it as edited', async () => {
     const data = new FormData();
     data.append('body', SUPPORT_ATTACHMENTS_TEST.EDITED_TEXT);

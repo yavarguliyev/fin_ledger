@@ -13,11 +13,13 @@ import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.int
 import { LedgerEntry } from '../../core/interfaces/ledger/ledger-entry.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { LedgerHelper } from './helpers/ledger.helper';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-ledger',
   standalone: true,
-  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PaginationComponent, PageHeaderComponent],
+  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PaginationComponent, PageHeaderComponent, ErrorStateComponent],
   templateUrl: './templates/ledger.component.html'
 })
 export class LedgerComponent implements OnInit {
@@ -28,6 +30,8 @@ export class LedgerComponent implements OnInit {
   private readonly isStaff = this.auth.isStaff;
 
   readonly loading = signal(true);
+  readonly failed = signal(false);
+  readonly states = LOAD_STATE;
   readonly account = computed(() => this.ledgerService.account());
   readonly entries = computed(() => this.ledgerService.entries());
   readonly isUser = this.auth.isPlayer;
@@ -64,7 +68,8 @@ export class LedgerComponent implements OnInit {
     this.loadEntries();
   }
 
-  private loadEntries (): void {
+  loadEntries (): void {
+    this.failed.set(false);
     if (this.isStaff()) {
       this.fetchEntries(ALL_RECORDS_SCOPE);
       return;
@@ -72,7 +77,7 @@ export class LedgerComponent implements OnInit {
 
     this.walletService.loadWallets().subscribe({
       next: () => this.loadAccountEntries(this.walletService.wallet()?.ledgerAccountId),
-      error: () => this.loading.set(false)
+      error: () => this.fail()
     });
   }
 
@@ -87,7 +92,7 @@ export class LedgerComponent implements OnInit {
         this.totalItems.set(response.total);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.fail()
     });
   }
 
@@ -100,8 +105,13 @@ export class LedgerComponent implements OnInit {
     if (this.currentPage() === 1) {
       this.ledgerService.getAccount(ledgerAccountId).subscribe({
         next: () => this.fetchEntries(ledgerAccountId),
-        error: () => this.loading.set(false)
+        error: () => this.fail()
       });
     } else this.fetchEntries(ledgerAccountId);
+  }
+
+  private fail (): void {
+    this.loading.set(false);
+    this.failed.set(true);
   }
 }

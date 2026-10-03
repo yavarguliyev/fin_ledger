@@ -12,7 +12,7 @@
   },
   "scripts": {
     "build": "nest build",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests"
   },

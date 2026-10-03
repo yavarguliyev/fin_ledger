@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 import { RECEIPT } from '../../../core/constants/payment/receipt.constant';
@@ -8,6 +8,7 @@ import { ModalComponent } from '../modal/modal.component';
 @Component({
   selector: 'app-receipt-viewer',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ModalComponent],
   templateUrl: './receipt-viewer.component.html'
 })

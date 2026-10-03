@@ -11,41 +11,41 @@ const EMAIL = 'player24@realtime-wallet-payments.com';
 const CHARGE_ID = 'pi_history_probe';
 const IMMUTABLE = /immutable/i;
 
-describe('Payment status history and financial immutability', () => {
-  let paymentId: string;
+let paymentId: string;
 
-  const webhook = (type: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({
-      method: 'POST',
-      path: '/webhooks/stripe',
-      body: { id: `evt_history_${Date.now()}`, type, data: { object: { id: CHARGE_ID, metadata: {} } } }
-    });
-
-  const history = (): Promise<HistoryRow[]> =>
-    DbHelper.query<HistoryRow>({
-      sql: 'SELECT from_status, to_status, source FROM payment_status_history WHERE payment_id = $1 ORDER BY created_at',
-      params: [paymentId]
-    });
-
-  beforeAll(async () => {
-    const [method] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
-            SELECT id, 'CREDIT_CARD', 'VERIFIED', 'stripe', 'pm_history_probe', display_name, '4242', 'visa', 12, 2034, true, now() FROM users WHERE email = $1 RETURNING id`,
-      params: [EMAIL]
-    });
-
-    const [payment] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, payment_method_id, type, amount_minor, currency, status, provider, provider_charge_id)
-            SELECT 'history-probe', u.id, w.id, $2, 'DEPOSIT', 3000, w.currency, 'PROCESSING', 'stripe', $3
-            FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
-      params: [EMAIL, method?.id, CHARGE_ID]
-    });
-
-    paymentId = payment?.id as string;
+const webhook = (type: string): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({
+    method: 'POST',
+    path: '/webhooks/stripe',
+    body: { id: `evt_history_${Date.now()}`, type, data: { object: { id: CHARGE_ID, metadata: {} } } }
   });
 
-  afterAll(async () => DbHelper.close());
+const history = (): Promise<HistoryRow[]> =>
+  DbHelper.query<HistoryRow>({
+    sql: 'SELECT from_status, to_status, source FROM payment_status_history WHERE payment_id = $1 ORDER BY created_at',
+    params: [paymentId]
+  });
 
+beforeAll(async () => {
+  const [method] = await DbHelper.query<{ id: string }>({
+    sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
+          SELECT id, 'CREDIT_CARD', 'VERIFIED', 'stripe', 'pm_history_probe', display_name, '4242', 'visa', 12, 2034, true, now() FROM users WHERE email = $1 RETURNING id`,
+    params: [EMAIL]
+  });
+
+  const [payment] = await DbHelper.query<{ id: string }>({
+    sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, payment_method_id, type, amount_minor, currency, status, provider, provider_charge_id)
+          SELECT 'history-probe', u.id, w.id, $2, 'DEPOSIT', 3000, w.currency, 'PROCESSING', 'stripe', $3
+          FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
+    params: [EMAIL, method?.id, CHARGE_ID]
+  });
+
+  paymentId = payment?.id as string;
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Payment status history and financial immutability', () => {
   it('records the transition the state machine made, with the status it came from', async () => {
     await expect(webhook('payment_intent.succeeded')).resolves.toMatchObject({ status: 200 });
 

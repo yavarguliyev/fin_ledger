@@ -12,6 +12,8 @@ import { ErrorStateComponent } from '../../shared/components/error-state/error-s
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { LoadStatus } from '../../core/types/ui/load-status.type';
+import { NotificationHistoryService } from '../../core/services/notification-history.service';
+import { NOTIFICATION_PAGE } from '../../core/constants/notification/notification-page.constant';
 import { NotificationType } from '../../core/types/notification/notification-type.type';
 import {
   NOTIFICATION_CLASSES,
@@ -27,6 +29,8 @@ import {
 })
 export class NotificationsComponent implements OnInit {
   private readonly notif = inject(NotificationService);
+  readonly history = inject(NotificationHistoryService);
+  readonly pageLabels = NOTIFICATION_PAGE;
 
   readonly activeFilter = signal<string>('All');
   readonly status = signal<LoadStatus>(LOAD_STATUS.LOADING);
@@ -74,7 +78,7 @@ export class NotificationsComponent implements OnInit {
 
   load (): void {
     this.status.set(LOAD_STATUS.LOADING);
-    this.notif.getNotifications(100).subscribe({
+    this.history.loadFirst().subscribe({
       next: () => this.status.set(LOAD_STATUS.READY),
       error: () => this.status.set(LOAD_STATUS.ERROR)
     });

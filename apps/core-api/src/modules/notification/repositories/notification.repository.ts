@@ -5,6 +5,7 @@ import { CreateNotificationDto } from '../dtos/input/create-notification.dto';
 import { ListNotificationsDto } from '../dtos/input/list-notifications.dto';
 import { MarkNotificationReadDto } from '../dtos/input/mark-notification-read.dto';
 import { NotificationDto } from '../dtos/notification/notification.dto';
+import { NOTIFICATION_LIST } from '../constants/list/notification-list.constant';
 
 @Injectable()
 export class NotificationRepository extends BaseExtendedRepository<NotificationDto> {
@@ -43,8 +44,12 @@ export class NotificationRepository extends BaseExtendedRepository<NotificationD
     });
   }
 
-  async findByUser ({ userId, limit }: ListNotificationsDto): Promise<NotificationDto[]> {
-    return this.findAll({ where: { user_id: userId }, orderBy: 'created_at', orderDirection: 'DESC', limit });
+  async findByUser ({ userId, limit, before, beforeId }: ListNotificationsDto): Promise<NotificationDto[]> {
+    const result = await this.service.getWriteConnection().query<NotificationDto>({
+      sql: NOTIFICATION_LIST.KEYSET_SQL,
+      params: [userId, before ?? null, beforeId ?? null, limit]
+    });
+    return result.rows;
   }
 
   async markAsRead ({ id, userId }: MarkNotificationReadDto): Promise<NotificationDto | null> {

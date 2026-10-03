@@ -18,5 +18,9 @@ export const SESSION_POLICY = {
   HTTP_ONLY: 'HttpOnly',
   SAME_SITE: 'SameSite=Lax',
   TICKET_PATH: '/notifications/stream-ticket',
-  STREAM_PATH: '/notifications/stream'
+  STREAM_PATH: '/notifications/stream',
+  TICKET_QUERY: '?ticket=',
+  TOKEN_QUERY: '?token=',
+  ACCESS_TOKEN_FIELD: 'accessToken',
+  USER_FIELD: 'user'
 } as const;

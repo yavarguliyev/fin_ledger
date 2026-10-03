@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { COUNTRY_SELECT } from '../../../core/constants/ui/country-select.constant';
@@ -8,6 +8,7 @@ import { CountryOptionDto } from '../../../core/interfaces/ui/country-option.int
 @Component({
   selector: 'app-country-select',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './country-select.component.html',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CountrySelectComponent), multi: true }],
   host: { '(document:click)': 'onDocumentClick($event)' }

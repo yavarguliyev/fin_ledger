@@ -1,10 +1,11 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, signal } from '@angular/core';
 
 import { PASSWORD_TOGGLE } from '../../../core/constants/ui/password-toggle.constant';
 
 @Component({
   selector: 'app-password-toggle',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './password-toggle.component.html'
 })
 export class PasswordToggleComponent {

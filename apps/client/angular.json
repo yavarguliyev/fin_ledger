@@ -30,13 +30,25 @@
                 },
                 {
                   "type": "anyScript",
-                  "maximumWarning": "250kB",
+                  "maximumWarning": "220kB",
                   "maximumError": "500kB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "4kB",
                   "maximumError": "8kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "profile-component",
+                  "maximumWarning": "100kB",
+                  "maximumError": "150kB"
+                },
+                {
+                  "type": "bundle",
+                  "name": "support-component",
+                  "maximumWarning": "100kB",
+                  "maximumError": "150kB"
                 }
               ],
               "security": {

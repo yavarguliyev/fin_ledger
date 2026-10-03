@@ -4,6 +4,7 @@
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="status()"
+    appFocusTrap
   >
     @if (call.remoteVideo() && call.remoteStream()) {
       <video class="absolute inset-0 h-full w-full object-contain bg-black" autoplay playsinline [srcObject]="call.remoteStream()"></video>
@@ -16,7 +17,7 @@
         <span class="grid place-items-center w-28 h-28 rounded-full bg-white/10 text-4xl font-semibold">{{ initial() }}</span>
       }
       <h2 class="text-2xl font-semibold drop-shadow">{{ state.peerName() }}</h2>
-      <p class="text-sm text-white/70 drop-shadow">{{ status() }}</p>
+      <p class="text-sm text-white/70 drop-shadow" aria-live="polite">{{ status() }}</p>
     </div>
 
     @if (call.screenStream()) {

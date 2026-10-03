@@ -7,63 +7,65 @@ interface Wallet {
   balance: number;
 }
 
-describe('Payment completion', () => {
-  const email = 'player23@realtime-wallet-payments.com';
+const email = 'player23@realtime-wallet-payments.com';
 
-  let token: string;
-  let methodId: string;
-  let wallet: Wallet;
+let token: string;
 
-  const balance = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ balance: number }>({
-      sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1',
-      params: [wallet.id]
-    });
+let methodId: string;
 
-    return row?.balance ?? 0;
-  };
+let wallet: Wallet;
 
-  const records = async (paymentId: string): Promise<unknown> => {
-    const [row] = await DbHelper.query({
-      sql: `SELECT p.status,
-                   (SELECT count(*)::int FROM wallet_transactions w WHERE w.ledger_transaction_id = p.ledger_transaction_id) AS wallet_transactions,
-                   (SELECT count(*)::int FROM ledger_entries e WHERE e.transaction_id = p.ledger_transaction_id) AS ledger_entries,
-                   (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.completed') AS completed_events,
-                   (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.failed') AS failed_events
-            FROM payments p WHERE p.id = $1`,
-      params: [paymentId]
-    });
-
-    return row;
-  };
-
-  const webhook = (type: string, chargeId: string, metadata: Record<string, string> = {}): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({
-      method: 'POST',
-      path: '/webhooks/stripe',
-      body: { id: `evt_${ApiHelper.randomIp()}_${Date.now()}`, type, data: { object: { id: chargeId, metadata } } }
-    });
-
-  const oneCompletion = { status: 'COMPLETED', wallet_transactions: 1, ledger_entries: 2, completed_events: 1, failed_events: 0 };
-
-  beforeAll(async () => {
-    [wallet] = (await DbHelper.query<Wallet>({
-      sql: 'SELECT id, currency, available_balance_minor::int AS balance FROM wallets WHERE user_id = (SELECT id FROM users WHERE email = $1)',
-      params: [email]
-    })) as [Wallet];
-
-    const [method] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
-            SELECT id, 'CREDIT_CARD', 'VERIFIED', 'stripe', 'pm_integration_completion', display_name, '4242', 'visa', 12, 2034, true, now() FROM users WHERE email = $1 RETURNING id`,
-      params: [email]
-    });
-
-    methodId = method?.id as string;
-    token = await ApiHelper.login({ email });
+const balance = async (): Promise<number> => {
+  const [row] = await DbHelper.query<{ balance: number }>({
+    sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1',
+    params: [wallet.id]
   });
 
-  afterAll(async () => DbHelper.close());
+  return row?.balance ?? 0;
+};
 
+const records = async (paymentId: string): Promise<unknown> => {
+  const [row] = await DbHelper.query({
+    sql: `SELECT p.status,
+                 (SELECT count(*)::int FROM wallet_transactions w WHERE w.ledger_transaction_id = p.ledger_transaction_id) AS wallet_transactions,
+                 (SELECT count(*)::int FROM ledger_entries e WHERE e.transaction_id = p.ledger_transaction_id) AS ledger_entries,
+                 (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.completed') AS completed_events,
+                 (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.failed') AS failed_events
+          FROM payments p WHERE p.id = $1`,
+    params: [paymentId]
+  });
+
+  return row;
+};
+
+const webhook = (type: string, chargeId: string, metadata: Record<string, string> = {}): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({
+    method: 'POST',
+    path: '/webhooks/stripe',
+    body: { id: `evt_${ApiHelper.randomIp()}_${Date.now()}`, type, data: { object: { id: chargeId, metadata } } }
+  });
+
+const oneCompletion = { status: 'COMPLETED', wallet_transactions: 1, ledger_entries: 2, completed_events: 1, failed_events: 0 };
+
+beforeAll(async () => {
+  [wallet] = (await DbHelper.query<Wallet>({
+    sql: 'SELECT id, currency, available_balance_minor::int AS balance FROM wallets WHERE user_id = (SELECT id FROM users WHERE email = $1)',
+    params: [email]
+  })) as [Wallet];
+
+  const [method] = await DbHelper.query<{ id: string }>({
+    sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
+          SELECT id, 'CREDIT_CARD', 'VERIFIED', 'stripe', 'pm_integration_completion', display_name, '4242', 'visa', 12, 2034, true, now() FROM users WHERE email = $1 RETURNING id`,
+    params: [email]
+  });
+
+  methodId = method?.id as string;
+  token = await ApiHelper.login({ email });
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Payment completion', () => {
   it('completes a deposit once, with one credit, one ledger pair and one event, even when the webhook replays', async () => {
     const before = await balance();
     const deposit = await ApiHelper.request<{ id: string; providerChargeId: string }>({
@@ -106,7 +108,9 @@ describe('Payment completion', () => {
     await webhook('payment_intent.payment_failed', payment?.provider_charge_id as string);
     await expect(records(payment?.id as string)).resolves.toEqual(oneCompletion);
   });
+});
 
+describe('Payment completion: matching payments', () => {
   it('finds a payment by our own ID when its charge ID was never stored', async () => {
     const [payment] = await DbHelper.query<{ id: string }>({
       sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, payment_method_id, type, amount_minor, currency, status, provider)

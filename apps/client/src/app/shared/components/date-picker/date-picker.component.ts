@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { DATE_PICKER } from '../../../core/constants/ui/date-picker.constant';
@@ -8,6 +8,7 @@ import { CalendarShiftDto } from '../../../core/interfaces/ui/calendar-shift.int
 @Component({
   selector: 'app-date-picker',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './date-picker.component.html',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DatePickerComponent), multi: true }],
   host: { '(document:click)': 'onDocumentClick($event)' }

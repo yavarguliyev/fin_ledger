@@ -6,5 +6,12 @@ export const LOAD_STATE = {
   NOTIFICATIONS_EMPTY_TITLE: 'No notifications',
   NOTIFICATIONS_EMPTY_MESSAGE: 'Payments, bets and account updates will show up here.',
   NOTIFICATIONS_ICON: '🔔',
-  WALLET_ERROR: 'We could not load your wallet. Try again in a moment.'
+  WALLET_ERROR: 'We could not load your wallet. Try again in a moment.',
+  DASHBOARD_ERROR: 'We could not load your balance and recent activity.',
+  LEDGER_ERROR: 'We could not load the ledger entries.',
+  EVENTS_ERROR: 'We could not load the events.',
+  EVENTS_EMPTY_TITLE: 'No events open right now',
+  EVENTS_EMPTY_MESSAGE: 'New fixtures appear here as soon as betting opens.',
+  EVENTS_ICON: '🏟️',
+  EVENT_ROWS: 2
 } as const;

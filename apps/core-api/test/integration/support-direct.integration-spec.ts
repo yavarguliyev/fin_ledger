@@ -5,43 +5,47 @@ import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_PRESENCE_TEST } from '../constants/support-presence.constant';
 import { PresenceEntry, SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 
+let customer = '';
+
+let moderator = '';
+
+let admin = '';
+
+let moderatorId = '';
+
+let adminId = '';
+
+const idOf = async (email: string): Promise<string> => {
+  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [email] });
+  return row?.id ?? '';
+};
+
+const open = (staffUserId: string): ReturnType<typeof ApiHelper.request<SupportConversation>> =>
+  ApiHelper.request<SupportConversation>({ method: 'POST', path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH, token: customer, body: { staffUserId } });
+
+const thread = (token: string, id: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
+  ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token });
+
+const contacts = (): ReturnType<typeof ApiHelper.request<PresenceEntry[]>> =>
+  ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_CHAT_TEST.CONTACTS_PATH, token: customer });
+
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL] });
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.OTHER_EMAIL]] });
+
+  customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
+  moderator = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+  admin = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.ADMIN_EMAIL });
+  moderatorId = await idOf(SUPPORT_CHAT_TEST.STAFF_EMAIL);
+  adminId = await idOf(SUPPORT_CHAT_TEST.ADMIN_EMAIL);
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.OTHER_EMAIL]] });
+  await DbHelper.close();
+});
+
 describe('Support direct conversations', () => {
-  let customer = '';
-  let moderator = '';
-  let admin = '';
-  let moderatorId = '';
-  let adminId = '';
-
-  const idOf = async (email: string): Promise<string> => {
-    const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [email] });
-    return row?.id ?? '';
-  };
-
-  const open = (staffUserId: string): ReturnType<typeof ApiHelper.request<SupportConversation>> =>
-    ApiHelper.request<SupportConversation>({ method: 'POST', path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH, token: customer, body: { staffUserId } });
-
-  const thread = (token: string, id: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
-    ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token });
-
-  const contacts = (): ReturnType<typeof ApiHelper.request<PresenceEntry[]>> =>
-    ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_CHAT_TEST.CONTACTS_PATH, token: customer });
-
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL] });
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.OTHER_EMAIL]] });
-
-    customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
-    moderator = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-    admin = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.ADMIN_EMAIL });
-    moderatorId = await idOf(SUPPORT_CHAT_TEST.STAFF_EMAIL);
-    adminId = await idOf(SUPPORT_CHAT_TEST.ADMIN_EMAIL);
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.OTHER_EMAIL]] });
-    await DbHelper.close();
-  });
-
   it('lists every active staff member as a contact a player can write to', async () => {
     const listed = await contacts();
     const ids = listed.body.map(({ userId }) => userId);
@@ -75,7 +79,9 @@ describe('Support direct conversations', () => {
 
     expect(refused.status).toBe(SUPPORT_CHAT_TEST.NOT_FOUND);
   });
+});
 
+describe('Support direct conversations: presence', () => {
   it('shows a staff member online after a heartbeat and offline with a last seen time after logout', async () => {
     await ApiHelper.request({ method: 'POST', path: SUPPORT_PRESENCE_TEST.HEARTBEAT_PATH, token: moderator, body: {} });
 

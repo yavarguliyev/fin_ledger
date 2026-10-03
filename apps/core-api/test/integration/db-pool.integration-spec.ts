@@ -8,37 +8,37 @@ const STATEMENT_TIMEOUT_MS = 500;
 const APPLICATION_NAME = 'core-api-pool-spec';
 const RECOVERY_ATTEMPTS = 5;
 
+let adapter: PostgreSQLAdapter;
+
+const connection = (): URL => new URL(process.env[TEST_ENV_KEYS.DATABASE_URL] as string);
+
+beforeAll(async () => {
+  const url = connection();
+
+  adapter = new PostgreSQLAdapter({
+    config: {
+      type: DatabaseType.POSTGRESQL,
+      host: url.hostname,
+      port: Number(url.port),
+      username: decodeURIComponent(url.username),
+      password: decodeURIComponent(url.password),
+      database: url.pathname.slice(1),
+      connectionLimit: 3,
+      minLimit: 1,
+      statementTimeoutMillis: STATEMENT_TIMEOUT_MS,
+      applicationName: APPLICATION_NAME
+    }
+  });
+
+  await adapter.connect();
+});
+
+afterAll(async () => {
+  await adapter.disconnect();
+  await DbHelper.close();
+});
+
 describe('Database pool safety', () => {
-  let adapter: PostgreSQLAdapter;
-
-  const connection = (): URL => new URL(process.env[TEST_ENV_KEYS.DATABASE_URL] as string);
-
-  beforeAll(async () => {
-    const url = connection();
-
-    adapter = new PostgreSQLAdapter({
-      config: {
-        type: DatabaseType.POSTGRESQL,
-        host: url.hostname,
-        port: Number(url.port),
-        username: decodeURIComponent(url.username),
-        password: decodeURIComponent(url.password),
-        database: url.pathname.slice(1),
-        connectionLimit: 3,
-        minLimit: 1,
-        statementTimeoutMillis: STATEMENT_TIMEOUT_MS,
-        applicationName: APPLICATION_NAME
-      }
-    });
-
-    await adapter.connect();
-  });
-
-  afterAll(async () => {
-    await adapter.disconnect();
-    await DbHelper.close();
-  });
-
   it('cancels a statement that runs past the timeout', async () => {
     await expect(adapter.query({ sql: 'SELECT pg_sleep(30)' })).rejects.toThrow();
   });
@@ -75,7 +75,9 @@ describe('Database pool safety', () => {
     expect(stats.totalCount).toBeGreaterThan(0);
     expect(stats.waitingCount).toBe(0);
   });
+});
 
+describe('Database pool safety: rollbacks', () => {
   it('rolls a failed transaction back without leaving the work behind', async () => {
     const probe = `pool_probe_${Date.now()}`;
 

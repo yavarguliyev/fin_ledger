@@ -32,6 +32,14 @@ export const SupportReplyContractSchema = z.object({
 
 export type SupportReplyContract = z.infer<typeof SupportReplyContractSchema>;
 
+export const SupportReactionContractSchema = z.object({
+  emoji: z.string({ message: 'Emoji must be a string' }),
+
+  userId: z.string({ message: 'Reaction user ID must be a string' })
+});
+
+export type SupportReactionContract = z.infer<typeof SupportReactionContractSchema>;
+
 export const SupportMessageContractSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
@@ -52,6 +60,8 @@ export const SupportMessageContractSchema = z.object({
   attachment: SupportAttachmentContractSchema.nullable(),
 
   replyTo: SupportReplyContractSchema.nullable().optional(),
+
+  reactions: z.array(SupportReactionContractSchema).optional(),
 
   editedAt: z.string({ message: 'Edited at must be a string' }).nullable(),
 

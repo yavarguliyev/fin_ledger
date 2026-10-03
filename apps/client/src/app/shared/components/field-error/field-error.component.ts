@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 
 import { FormErrorHelper } from '../../../core/helpers/forms/form-error.helper';
@@ -6,6 +6,7 @@ import { FormErrorHelper } from '../../../core/helpers/forms/form-error.helper';
 @Component({
   selector: 'app-field-error',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './templates/field-error.component.html'
 })
 export class FieldErrorComponent {

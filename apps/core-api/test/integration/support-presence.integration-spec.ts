@@ -4,36 +4,38 @@ import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_PRESENCE_TEST } from '../constants/support-presence.constant';
 import { PresenceEntry } from '../interfaces/support-chat.interface';
 
+let customer = '';
+
+let other = '';
+
+let staff = '';
+
+const heartbeat = (token: string): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({ method: 'POST', path: SUPPORT_PRESENCE_TEST.HEARTBEAT_PATH, token, body: {} });
+
+const presence = (token: string): ReturnType<typeof ApiHelper.request<PresenceEntry[]>> =>
+  ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_PRESENCE_TEST.PRESENCE_PATH, token });
+
+const idOf = async (email: string): Promise<string> => {
+  const [row] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [email] });
+
+  return row?.id ?? '';
+};
+
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL, SUPPORT_PRESENCE_TEST.OTHER_EMAIL] });
+  customer = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL });
+  other = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.OTHER_EMAIL });
+  staff = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.STAFF_EMAIL });
+
+  await heartbeat(customer);
+  await heartbeat(other);
+  await heartbeat(staff);
+});
+
+afterAll(async () => DbHelper.close());
+
 describe('Support presence', () => {
-  let customer = '';
-  let other = '';
-  let staff = '';
-
-  const heartbeat = (token: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: SUPPORT_PRESENCE_TEST.HEARTBEAT_PATH, token, body: {} });
-
-  const presence = (token: string): ReturnType<typeof ApiHelper.request<PresenceEntry[]>> =>
-    ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_PRESENCE_TEST.PRESENCE_PATH, token });
-
-  const idOf = async (email: string): Promise<string> => {
-    const [row] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [email] });
-
-    return row?.id ?? '';
-  };
-
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL, SUPPORT_PRESENCE_TEST.OTHER_EMAIL] });
-    customer = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL });
-    other = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.OTHER_EMAIL });
-    staff = await ApiHelper.login({ email: SUPPORT_PRESENCE_TEST.STAFF_EMAIL });
-
-    await heartbeat(customer);
-    await heartbeat(other);
-    await heartbeat(staff);
-  });
-
-  afterAll(async () => DbHelper.close());
-
   it('shows a customer the staff who can help, and nobody else', async () => {
     const otherId = await idOf(SUPPORT_PRESENCE_TEST.OTHER_EMAIL);
     const staffId = await idOf(SUPPORT_PRESENCE_TEST.STAFF_EMAIL);
@@ -79,7 +81,9 @@ describe('Support presence', () => {
 
     expect(refused.status).toBe(SUPPORT_PRESENCE_TEST.FORBIDDEN);
   });
+});
 
+describe('Support presence: listing', () => {
   it('never lists the caller themselves, so the sidebar is only other people', async () => {
     const customerId = await idOf(SUPPORT_PRESENCE_TEST.CUSTOMER_EMAIL);
 

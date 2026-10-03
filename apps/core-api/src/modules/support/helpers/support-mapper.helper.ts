@@ -23,7 +23,8 @@ export class SupportMapperHelper {
       deletedAt: row.deletedAt,
       seen: row.seen ?? false,
       createdAt: row.createdAt,
-      ...(replyTo && { replyTo })
+      ...(replyTo && { replyTo }),
+      ...(row.reactions && { reactions: row.reactions })
     };
   }
 

@@ -10,37 +10,39 @@ import { TestUserHelper } from '../helpers/test-user.helper';
 import { MfaStatus } from '../interfaces/mfa-status.interface';
 import { RecoveryCodes } from '../interfaces/recovery-codes.interface';
 
-describe('Two-factor policy: required for admins, codes can be replaced', () => {
-  let adminToken = '';
-  let adminSecret = '';
-  let adminRecoveryCodes: string[] = [];
+let adminToken = '';
 
-  const status = (token: string): Promise<{ status: number; body: MfaStatus }> =>
-    ApiHelper.request<MfaStatus>({ path: MFA_POLICY_TEST.STATUS_PATH, token });
+let adminSecret = '';
 
-  const enrol = async (token: string): Promise<{ secret: string; codes: string[] }> => {
-    const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: MFA_POLICY_TEST.SETUP_PATH, token });
-    const secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
+let adminRecoveryCodes: string[] = [];
 
-    const enabled = await ApiHelper.request<RecoveryCodes>({
-      method: 'POST',
-      path: MFA_POLICY_TEST.ENABLE_PATH,
-      token,
-      body: { code: generateSync({ secret }) }
-    });
+const status = (token: string): Promise<{ status: number; body: MfaStatus }> =>
+  ApiHelper.request<MfaStatus>({ path: MFA_POLICY_TEST.STATUS_PATH, token });
 
-    expect(enabled.status).toBe(MFA_POLICY_TEST.CREATED);
-    return { secret, codes: enabled.body.recoveryCodes };
-  };
+const enrol = async (token: string): Promise<{ secret: string; codes: string[] }> => {
+  const setup = await ApiHelper.request<{ otpauthUri: string }>({ method: 'POST', path: MFA_POLICY_TEST.SETUP_PATH, token });
+  const secret = new URL(setup.body.otpauthUri).searchParams.get('secret') as string;
 
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.ADMIN_EMAIL], role: MFA_POLICY_TEST.ADMIN_ROLE });
-    await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.PLAYER_EMAIL] });
-    adminToken = await ApiHelper.login({ email: MFA_POLICY_TEST.ADMIN_EMAIL });
+  const enabled = await ApiHelper.request<RecoveryCodes>({
+    method: 'POST',
+    path: MFA_POLICY_TEST.ENABLE_PATH,
+    token,
+    body: { code: generateSync({ secret }) }
   });
 
-  afterAll(async () => DbHelper.close());
+  expect(enabled.status).toBe(MFA_POLICY_TEST.CREATED);
+  return { secret, codes: enabled.body.recoveryCodes };
+};
 
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.ADMIN_EMAIL], role: MFA_POLICY_TEST.ADMIN_ROLE });
+  await TestUserHelper.ensure({ emails: [MFA_POLICY_TEST.PLAYER_EMAIL] });
+  adminToken = await ApiHelper.login({ email: MFA_POLICY_TEST.ADMIN_EMAIL });
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Two-factor policy: required for admins, codes can be replaced', () => {
   it('marks two-factor required for an admin and optional for a player', async () => {
     const playerToken = await ApiHelper.login({ email: MFA_POLICY_TEST.PLAYER_EMAIL });
 
@@ -77,7 +79,9 @@ describe('Two-factor policy: required for admins, codes can be replaced', () => 
 
     expect(challenged.body.mfaRequired).toBe(true);
   });
+});
 
+describe('Two-factor policy: replacing recovery codes', () => {
   it('replaces the recovery codes and retires the old set, taking a recovery code as the second factor', async () => {
     const [before] = await DbHelper.query<{ active: string }>({
       sql: 'SELECT count(*)::text AS active FROM mfa_recovery_codes c JOIN users u ON u.id = c.user_id WHERE u.email = $1 AND c.used_at IS NULL',

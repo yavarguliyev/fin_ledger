@@ -5,6 +5,9 @@ import { Observable, catchError } from 'rxjs';
 import { AppConfigService } from './app-config.service';
 import { MessageHit } from '../interfaces/support/message-hit.interface';
 import { SearchMessagesDto } from '../interfaces/support/search-messages.interface';
+import { MESSAGE_REACTION } from '../constants/support/message-reaction.constant';
+import { Reaction } from '../interfaces/support/reaction.interface';
+import { ReactMessageDto } from '../interfaces/support/react-message.interface';
 import { ConversationRefDto } from '../interfaces/support/conversation-ref.interface';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { ListSupportMessagesDto } from '../interfaces/support/list-support-messages.interface';
@@ -52,6 +55,11 @@ export class SupportApiService {
     if (body) form.append(SUPPORT_ATTACHMENT.BODY_FIELD, body);
     if (durationSeconds) form.append(SUPPORT_ATTACHMENT.DURATION_FIELD, String(durationSeconds));
     return this.send(this.http.post<SupportMessage[]>(`${this.conversationUrl({ conversationId })}${SUPPORT_ATTACHMENT.ATTACHMENTS_PATH}`, form));
+  }
+
+  react ({ conversationId, messageId, emoji }: ReactMessageDto): Observable<Reaction[]> {
+    const url = `${this.threadUrl({ conversationId })}/${messageId}${MESSAGE_REACTION.PATH}`;
+    return this.send(emoji ? this.http.put<Reaction[]>(url, { emoji }) : this.http.delete<Reaction[]>(url));
   }
 
   editMessage ({ conversationId, messageId, body, file }: EditMessageDto): Observable<SupportMessage> {

@@ -8,35 +8,36 @@ const OUTBOX_DAYS = 7;
 const WEBHOOK_DAYS = 90;
 const VERSION_SPREAD = 100;
 
+let aggregateId: string;
+
+let app: Client;
+
+const seedPublishedOutbox = async ({ ageDays }: { ageDays: number }): Promise<string> => {
+  const [row] = await DbHelper.query<{ id: string }>({
+    sql: `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, status, published_at)
+          VALUES ('User', $1, 'none', $2, '{"retention": true}'::jsonb, 'PUBLISHED', now() - make_interval(days => $3))
+          RETURNING id`,
+    params: [aggregateId, Date.now() * VERSION_SPREAD + ageDays, ageDays]
+  });
+
+  return row?.id as string;
+};
+
+beforeAll(async () => {
+  const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users LIMIT 1' });
+
+  aggregateId = user?.id as string;
+  app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
+
+  await app.connect();
+});
+
+afterAll(async () => {
+  await app.end();
+  await DbHelper.close();
+});
+
 describe('Retention of append-only tables', () => {
-  let aggregateId: string;
-  let app: Client;
-
-  const seedPublishedOutbox = async ({ ageDays }: { ageDays: number }): Promise<string> => {
-    const [row] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, status, published_at)
-            VALUES ('User', $1, 'none', $2, '{"retention": true}'::jsonb, 'PUBLISHED', now() - make_interval(days => $3))
-            RETURNING id`,
-      params: [aggregateId, Date.now() * VERSION_SPREAD + ageDays, ageDays]
-    });
-
-    return row?.id as string;
-  };
-
-  beforeAll(async () => {
-    const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users LIMIT 1' });
-
-    aggregateId = user?.id as string;
-    app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
-
-    await app.connect();
-  });
-
-  afterAll(async () => {
-    await app.end();
-    await DbHelper.close();
-  });
-
   it('removes published outbox rows past the window and keeps the recent ones', async () => {
     const stale = await seedPublishedOutbox({ ageDays: OUTBOX_DAYS + 3 });
     const fresh = await seedPublishedOutbox({ ageDays: 1 });

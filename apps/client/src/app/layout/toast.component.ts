@@ -1,10 +1,11 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 
 import { ToastService } from '../core/services/toast.service';
 
 @Component({
   selector: 'app-toast-host',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   templateUrl: './templates/toast.component.html'
 })

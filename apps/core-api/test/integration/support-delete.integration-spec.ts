@@ -6,52 +6,54 @@ import { SUPPORT_DELETE_TEST } from '../constants/support-delete.constant';
 import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
+let customer = '';
+
+let staff = '';
+
+let conversationId = '';
+
+const messagesPath = (): string => `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`;
+
+const send = async (body: string): Promise<string> =>
+  (await ApiHelper.request<SupportMessage>({ method: 'POST', path: messagesPath(), token: customer, body: { body } })).body.id;
+
+const thread = async (token: string): Promise<SupportMessage[]> => (await ApiHelper.request<SupportMessage[]>({ path: messagesPath(), token })).body;
+
+const remove = (token: string, messageId: string, scope: string): Promise<{ status: number }> =>
+  ApiHelper.request({ method: 'DELETE', path: `${messagesPath()}/${messageId}?scope=${scope}`, token });
+
+const editText = (messageId: string, text: string): Promise<Response> => {
+  const form = new FormData();
+  form.append('body', text);
+  return fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${messagesPath()}/${messageId}`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${customer}`, 'X-Forwarded-For': ApiHelper.randomIp() },
+    body: form
+  });
+};
+
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_DELETE_TEST.CUSTOMER_EMAIL] });
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
+  customer = await ApiHelper.login({ email: SUPPORT_DELETE_TEST.CUSTOMER_EMAIL });
+  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+
+  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
+  const opened = await ApiHelper.request<SupportConversation>({
+    method: 'POST',
+    path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
+    token: customer,
+    body: { staffUserId: row?.id }
+  });
+  conversationId = opened.body.id;
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
+  await DbHelper.close();
+});
+
 describe('Support message edit window and deletion', () => {
-  let customer = '';
-  let staff = '';
-  let conversationId = '';
-
-  const messagesPath = (): string => `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`;
-
-  const send = async (body: string): Promise<string> =>
-    (await ApiHelper.request<SupportMessage>({ method: 'POST', path: messagesPath(), token: customer, body: { body } })).body.id;
-
-  const thread = async (token: string): Promise<SupportMessage[]> => (await ApiHelper.request<SupportMessage[]>({ path: messagesPath(), token })).body;
-
-  const remove = (token: string, messageId: string, scope: string): Promise<{ status: number }> =>
-    ApiHelper.request({ method: 'DELETE', path: `${messagesPath()}/${messageId}?scope=${scope}`, token });
-
-  const editText = (messageId: string, text: string): Promise<Response> => {
-    const form = new FormData();
-    form.append('body', text);
-    return fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${messagesPath()}/${messageId}`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${customer}`, 'X-Forwarded-For': ApiHelper.randomIp() },
-      body: form
-    });
-  };
-
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_DELETE_TEST.CUSTOMER_EMAIL] });
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
-    customer = await ApiHelper.login({ email: SUPPORT_DELETE_TEST.CUSTOMER_EMAIL });
-    staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-    const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
-    const opened = await ApiHelper.request<SupportConversation>({
-      method: 'POST',
-      path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
-      token: customer,
-      body: { staffUserId: row?.id }
-    });
-    conversationId = opened.body.id;
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
-    await DbHelper.close();
-  });
-
   it('stops edits once the 15 minute window has passed', async () => {
     const messageId = await send(SUPPORT_DELETE_TEST.OLD_TEXT);
     await DbHelper.query({ sql: SUPPORT_DELETE_TEST.BACKDATE_SQL, params: [messageId, SUPPORT_DELETE_TEST.PAST_EDIT_WINDOW] });

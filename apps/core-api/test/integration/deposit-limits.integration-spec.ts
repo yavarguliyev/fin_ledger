@@ -5,49 +5,49 @@ import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 import { DepositLimitResult, DepositLimitView } from '../interfaces/deposit-limit.interface';
 
-describe('Deposit limits', () => {
-  let token = '';
+let token = '';
 
-  const setLimit = (amountMinor: number): Promise<{ status: number; body: DepositLimitResult }> =>
-    ApiHelper.request<DepositLimitResult>({
-      method: 'PUT',
-      path: DEPOSIT_LIMITS_TEST.LIMITS_PATH,
-      token,
-      body: { period: DEPOSIT_LIMITS_TEST.DAILY, currency: DEPOSIT_LIMITS_TEST.CURRENCY, amountMinor }
-    });
-
-  const limits = (): Promise<{ status: number; body: DepositLimitView[] }> =>
-    ApiHelper.request<DepositLimitView[]>({ path: DEPOSIT_LIMITS_TEST.LIMITS_PATH, token });
-
-  const deposit = (amountMinor: number, key: string): Promise<{ status: number }> =>
-    ApiHelper.request({
-      method: 'POST',
-      path: DEPOSIT_LIMITS_TEST.DEPOSIT_PATH,
-      token,
-      body: { amountMinor, currency: DEPOSIT_LIMITS_TEST.CURRENCY, idempotencyKey: key }
-    });
-
-  beforeAll(async () => {
-    const { EMAIL, DISPLAY_NAME, PASSWORD } = DEPOSIT_LIMITS_TEST;
-
-    await ApiHelper.request({
-      method: 'POST',
-      path: DEPOSIT_LIMITS_TEST.REGISTER_PATH,
-      body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
-    });
-
-    const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
-    const verified = await ApiHelper.request<{ accessToken: string }>({
-      method: 'POST',
-      path: DEPOSIT_LIMITS_TEST.VERIFY_EMAIL_PATH,
-      body: { token: new URL(sent.url).searchParams.get('token') }
-    });
-
-    token = verified.body.accessToken;
+const setLimit = (amountMinor: number): Promise<{ status: number; body: DepositLimitResult }> =>
+  ApiHelper.request<DepositLimitResult>({
+    method: 'PUT',
+    path: DEPOSIT_LIMITS_TEST.LIMITS_PATH,
+    token,
+    body: { period: DEPOSIT_LIMITS_TEST.DAILY, currency: DEPOSIT_LIMITS_TEST.CURRENCY, amountMinor }
   });
 
-  afterAll(async () => DbHelper.close());
+const limits = (): Promise<{ status: number; body: DepositLimitView[] }> =>
+  ApiHelper.request<DepositLimitView[]>({ path: DEPOSIT_LIMITS_TEST.LIMITS_PATH, token });
 
+const deposit = (amountMinor: number, key: string): Promise<{ status: number }> =>
+  ApiHelper.request({
+    method: 'POST',
+    path: DEPOSIT_LIMITS_TEST.DEPOSIT_PATH,
+    token,
+    body: { amountMinor, currency: DEPOSIT_LIMITS_TEST.CURRENCY, idempotencyKey: key }
+  });
+
+beforeAll(async () => {
+  const { EMAIL, DISPLAY_NAME, PASSWORD } = DEPOSIT_LIMITS_TEST;
+
+  await ApiHelper.request({
+    method: 'POST',
+    path: DEPOSIT_LIMITS_TEST.REGISTER_PATH,
+    body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
+  });
+
+  const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
+  const verified = await ApiHelper.request<{ accessToken: string }>({
+    method: 'POST',
+    path: DEPOSIT_LIMITS_TEST.VERIFY_EMAIL_PATH,
+    body: { token: new URL(sent.url).searchParams.get('token') }
+  });
+
+  token = verified.body.accessToken;
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Deposit limits', () => {
   it('sets a limit and reports it back', async () => {
     const set = await setLimit(DEPOSIT_LIMITS_TEST.LIMIT_MINOR);
 
@@ -88,7 +88,9 @@ describe('Deposit limits', () => {
 
     expect(row?.amount).toBe(String(DEPOSIT_LIMITS_TEST.LOWERED_MINOR));
   });
+});
 
+describe('Deposit limits: raising a limit', () => {
   it('holds a raise behind the cooling-off period and keeps the old limit in force', async () => {
     const raised = await setLimit(DEPOSIT_LIMITS_TEST.RAISED_MINOR);
 

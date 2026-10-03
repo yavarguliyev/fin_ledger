@@ -2,26 +2,27 @@ import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
+const email = 'player9@realtime-wallet-payments.com';
+
+let admin: string;
+
+let userId: string;
+
+const login = (): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: SEED_PASSWORD } });
+
+const changeStatus = (action: 'suspend' | 'reactivate', token = admin, id = userId): ReturnType<typeof ApiHelper.request<{ status: string }>> =>
+  ApiHelper.request<{ status: string }>({ method: 'POST', path: `/users/${id}/${action}`, token });
+
+beforeAll(async () => {
+  admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
+  const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [email] });
+  userId = user?.id as string;
+});
+
+afterAll(async () => DbHelper.close());
+
 describe('Suspending and reactivating users', () => {
-  const email = 'player9@realtime-wallet-payments.com';
-
-  let admin: string;
-  let userId: string;
-
-  const login = (): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: SEED_PASSWORD } });
-
-  const changeStatus = (action: 'suspend' | 'reactivate', token = admin, id = userId): ReturnType<typeof ApiHelper.request<{ status: string }>> =>
-    ApiHelper.request<{ status: string }>({ method: 'POST', path: `/users/${id}/${action}`, token });
-
-  beforeAll(async () => {
-    admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
-    const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [email] });
-    userId = user?.id as string;
-  });
-
-  afterAll(async () => DbHelper.close());
-
   it('ends the open session on suspension and blocks login until reactivated', async () => {
     const session = await ApiHelper.login({ email });
 
@@ -63,7 +64,9 @@ describe('Suspending and reactivating users', () => {
     await expect(changeStatus('reactivate')).resolves.toMatchObject({ status: 409 });
     await expect(DbHelper.query({ sql: 'SELECT status FROM users WHERE id = $1', params: [userId] })).resolves.toEqual([{ status: 'CLOSED' }]);
   });
+});
 
+describe('Suspending and reactivating users: permissions', () => {
   it('refuses self-suspension and non-admins', async () => {
     const [self] = await DbHelper.query<{ id: string }>({ sql: "SELECT id FROM users WHERE email = 'admin@realtime-wallet-payments.com'" });
     await expect(changeStatus('suspend', admin, self?.id)).resolves.toMatchObject({ status: 400 });

@@ -6,7 +6,7 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "typecheck:integration": "tsc -p tsconfig.integration.json",
     "test:integration": "TESTCONTAINERS_RYUK_PRIVILEGED=true NODE_OPTIONS=--experimental-vm-modules jest --config jest.integration.config.js --runInBand",

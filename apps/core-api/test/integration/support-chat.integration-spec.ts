@@ -4,53 +4,57 @@ import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 
+let customer = '';
+
+let other = '';
+
+let staff = '';
+
+let conversationId = '';
+
+let staffId = '';
+
+const open = (token: string): ReturnType<typeof ApiHelper.request<SupportConversation>> =>
+  ApiHelper.request<SupportConversation>({
+    method: 'POST',
+    path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
+    token,
+    body: { subject: SUPPORT_CHAT_TEST.SUBJECT, staffUserId: staffId }
+  });
+
+const send = (token: string, id: string, body: string): ReturnType<typeof ApiHelper.request<SupportMessage>> =>
+  ApiHelper.request<SupportMessage>({ method: 'POST', path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token, body: { body } });
+
+const thread = (token: string, id: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
+  ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token });
+
+const conversations = (token: string): ReturnType<typeof ApiHelper.request<SupportConversation[]>> =>
+  ApiHelper.request<SupportConversation[]>({ path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH, token });
+
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL] });
+  await DbHelper.query({
+    sql: SUPPORT_CHAT_TEST.CLEAN_SQL,
+    params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL]]
+  });
+
+  customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL });
+  other = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
+  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+
+  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
+  staffId = row?.id ?? '';
+});
+
+afterAll(async () => {
+  await DbHelper.query({
+    sql: SUPPORT_CHAT_TEST.CLEAN_SQL,
+    params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL]]
+  });
+  await DbHelper.close();
+});
+
 describe('Support chat', () => {
-  let customer = '';
-  let other = '';
-  let staff = '';
-  let conversationId = '';
-  let staffId = '';
-
-  const open = (token: string): ReturnType<typeof ApiHelper.request<SupportConversation>> =>
-    ApiHelper.request<SupportConversation>({
-      method: 'POST',
-      path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
-      token,
-      body: { subject: SUPPORT_CHAT_TEST.SUBJECT, staffUserId: staffId }
-    });
-
-  const send = (token: string, id: string, body: string): ReturnType<typeof ApiHelper.request<SupportMessage>> =>
-    ApiHelper.request<SupportMessage>({ method: 'POST', path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token, body: { body } });
-
-  const thread = (token: string, id: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
-    ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token });
-
-  const conversations = (token: string): ReturnType<typeof ApiHelper.request<SupportConversation[]>> =>
-    ApiHelper.request<SupportConversation[]>({ path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH, token });
-
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL] });
-    await DbHelper.query({
-      sql: SUPPORT_CHAT_TEST.CLEAN_SQL,
-      params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL]]
-    });
-
-    customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL });
-    other = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
-    staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-    const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
-    staffId = row?.id ?? '';
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({
-      sql: SUPPORT_CHAT_TEST.CLEAN_SQL,
-      params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL, SUPPORT_CHAT_TEST.OTHER_EMAIL]]
-    });
-    await DbHelper.close();
-  });
-
   it('opens one conversation per customer and staff member, however many times they ask', async () => {
     const first = await open(customer);
     const second = await open(customer);
@@ -95,7 +99,9 @@ describe('Support chat', () => {
 
     expect(row?.assignedStaffId).toBeTruthy();
   });
+});
 
+describe('Support chat: privacy between customers', () => {
   it('hides one customer conversation from another, and refuses their messages', async () => {
     const queue = await conversations(other);
 

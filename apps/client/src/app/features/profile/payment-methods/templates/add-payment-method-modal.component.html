@@ -2,10 +2,19 @@
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
     <div
       class="bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl animate-scaleIn"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="titleId"
+      appFocusTrap
     >
       <div class="flex items-center justify-between">
-        <h3 class="text-lg font-bold text-ink-900 dark:text-white">Add Payment Method</h3>
-        <button type="button" (click)="close()" class="text-ink-400 hover:text-ink-700 dark:hover:text-white">
+        <h3 [id]="titleId" class="text-lg font-bold text-ink-900 dark:text-white">Add Payment Method</h3>
+        <button
+          type="button"
+          [attr.aria-label]="modalLabels.CLOSE_LABEL"
+          (click)="close()"
+          class="text-ink-400 hover:text-ink-700 dark:hover:text-white"
+        >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>

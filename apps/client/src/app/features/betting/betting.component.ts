@@ -11,16 +11,22 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
-import { ShowMoreConfig } from '../../core/interfaces/ui/show-more-config.interface';
 import { Bet } from '../../core/types/betting/bet.type';
 import { GameEvent } from '../../core/interfaces/betting/game-event.interface';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
+import { BettingEventsService } from './services/betting-events.service';
 
 @Component({
   selector: 'app-betting',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
+  providers: [BettingEventsService],
   templateUrl: './templates/betting.component.html'
 })
 export class BettingComponent implements OnInit {
@@ -31,13 +37,13 @@ export class BettingComponent implements OnInit {
 
   readonly selectedEvent = signal<GameEvent | null>(null);
   readonly loading = signal(false);
+  readonly eventsList = inject(BettingEventsService);
+  readonly statuses = LOAD_STATUS;
+  readonly states = LOAD_STATE;
   readonly currentPage = signal(1);
   readonly pageSize = signal(25);
-  readonly eventsPage = signal(1);
-  readonly eventsPageSize = signal(5);
   readonly stakeValue = signal<number | null>(null);
 
-  readonly events = computed(() => this.bettingService.events());
   readonly bets = computed(() => this.bettingService.bets());
   readonly availableBalance = computed(() => this.bettingService.availableBalance());
   readonly currency = computed(() => this.bettingService.currency());
@@ -48,8 +54,6 @@ export class BettingComponent implements OnInit {
       nonNullable: false
     })
   });
-
-  readonly visibleEvents = computed(() => this.events().slice(0, this.eventsPage() * this.eventsPageSize()));
 
   readonly stakeMinor = computed(() => {
     const value = this.stakeValue();
@@ -66,12 +70,6 @@ export class BettingComponent implements OnInit {
     return this.selectedEvent() !== null && value !== null && value > 0 && !this.loading();
   });
 
-  readonly showMoreConfig = computed<ShowMoreConfig>(() => ({
-    pageSize: this.eventsPageSize(),
-    currentPage: this.eventsPage(),
-    totalItems: this.events().length
-  }));
-
   readonly paginationConfig = computed<PaginationConfig>(() => ({
     currentPage: this.currentPage(),
     pageSize: this.pageSize(),
@@ -84,7 +82,6 @@ export class BettingComponent implements OnInit {
   }
 
   selectEvent = (event: GameEvent): void => this.selectedEvent.set(event);
-  loadMoreEvents = (): void => this.eventsPage.update(page => page + 1);
 
   onPageChange (page: number): void {
     this.currentPage.set(page);
@@ -98,7 +95,7 @@ export class BettingComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.bettingService.loadEvents().subscribe();
+    this.eventsList.load();
     this.bettingService.loadWallets().subscribe();
     this.loadBets();
   }

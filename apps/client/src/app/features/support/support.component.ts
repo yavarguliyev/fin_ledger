@@ -4,6 +4,7 @@ import { ChatPeerService } from './services/chat-peer.service';
 import { NewMessagesService } from './services/new-messages.service';
 import { ChatActionsService } from './services/chat-actions.service';
 import { MessageRevealService } from './services/message-reveal.service';
+import { SupportReactionStore } from '../../core/services/support-reaction.store';
 import { StalenessHelper } from './helpers/staleness.helper';
 import { ContactListComponent } from './components/contact-list.component';
 import { ConversationListComponent } from './components/conversation-list.component';
@@ -45,6 +46,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly offlineLabels = OFFLINE_QUEUE;
   readonly actions = inject(ChatActionsService);
   readonly reveal = inject(MessageRevealService);
+  readonly reactions = inject(SupportReactionStore);
   readonly peer = inject(ChatPeerService);
   readonly newMessages = inject(NewMessagesService);
   readonly compose = inject(SupportComposeStore);

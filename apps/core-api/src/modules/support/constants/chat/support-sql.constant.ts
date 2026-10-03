@@ -1,3 +1,5 @@
+import { MESSAGE_REACTION } from './message-reaction.constant';
+
 export const SUPPORT_SQL = {
   OPEN_OR_CREATE: `
     WITH existing AS (
@@ -63,6 +65,7 @@ export const SUPPORT_SQL = {
            CASE WHEN reply.deleted_at IS NULL THEN reply.body END AS "replyToBody",
            reply.kind AS "replyToKind",
            reply.deleted_at IS NOT NULL AS "replyToDeleted",
+           ${MESSAGE_REACTION.AGGREGATE_COLUMN},
            EXISTS (
              SELECT 1 FROM support_read_receipts r
               WHERE r.conversation_id = m.conversation_id

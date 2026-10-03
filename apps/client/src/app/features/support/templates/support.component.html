@@ -141,6 +141,7 @@
               (deleteRequested)="compose.askDelete({ message: $event })"
               (replyRequested)="compose.startReply({ message: $event })"
               (quoteRequested)="reveal.reveal({ messageId: $event })"
+              (reacted)="reactions.toggle($event)"
             />
             @for (item of actions.pendingHere(); track item.localId) {
               <div class="flex justify-end px-4 pb-1">

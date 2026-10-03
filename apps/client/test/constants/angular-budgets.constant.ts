@@ -6,7 +6,9 @@ export const ANGULAR_BUDGETS_TEST = {
   PRODUCTION: 'production',
   EXPECTED: [
     { type: 'initial', maximumWarning: '500kB', maximumError: '1MB' },
-    { type: 'anyScript', maximumWarning: '250kB', maximumError: '500kB' },
-    { type: 'anyComponentStyle', maximumWarning: '4kB', maximumError: '8kB' }
+    { type: 'anyScript', maximumWarning: '220kB', maximumError: '500kB' },
+    { type: 'anyComponentStyle', maximumWarning: '4kB', maximumError: '8kB' },
+    { type: 'bundle', name: 'profile-component', maximumWarning: '100kB', maximumError: '150kB' },
+    { type: 'bundle', name: 'support-component', maximumWarning: '100kB', maximumError: '150kB' }
   ]
 } as const;

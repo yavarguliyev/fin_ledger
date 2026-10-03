@@ -4,13 +4,22 @@
       class="bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border rounded-2xl w-full {{
         maxWidth()
       }} shadow-2xl animate-scaleIn"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="title() ? titleId : null"
+      appFocusTrap
       (click)="$event.stopPropagation()"
     >
       @if (title() || showCloseButton()) {
         <div class="flex items-center justify-between px-6 py-4 border-b border-ink-200 dark:border-night-border">
-          <h3 class="text-lg font-bold text-ink-900 dark:text-white">{{ title() }}</h3>
+          <h3 [id]="titleId" class="text-lg font-bold text-ink-900 dark:text-white">{{ title() }}</h3>
           @if (showCloseButton()) {
-            <button type="button" (click)="onClose()" class="text-ink-400 hover:text-ink-700 dark:hover:text-white transition-colors">
+            <button
+              type="button"
+              [attr.aria-label]="labels.CLOSE_LABEL"
+              (click)="onClose()"
+              class="text-ink-400 hover:text-ink-700 dark:hover:text-white transition-colors"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>

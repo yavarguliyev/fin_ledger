@@ -4,6 +4,9 @@ import { ClientIds, StorageModule } from '@common/libs';
 import { ListConversationsUseCase } from './use-cases/queries/conversation/list-conversations.use-case';
 import { ListMessagesUseCase } from './use-cases/queries/message/list-messages.use-case';
 import { SearchMessagesUseCase } from './use-cases/queries/message/search-messages.use-case';
+import { ReactMessageUseCase } from './use-cases/commands/message/react-message.use-case';
+import { SupportReactionRepository } from './repositories/support-reaction.repository';
+import { SupportReactionController } from './support-reaction.controller';
 import { MarkConversationReadUseCase } from './use-cases/commands/conversation/mark-conversation-read.use-case';
 import { AnnounceTypingUseCase } from './use-cases/commands/conversation/announce-typing.use-case';
 import { OpenConversationUseCase } from './use-cases/commands/conversation/open-conversation.use-case';
@@ -43,7 +46,7 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
 
 @Module({
   imports: [SharedModule, StorageModule.forRoot({ clientId: ClientIds.API_GATEWAY })],
-  controllers: [SupportController, SupportMessageController, SupportCallController],
+  controllers: [SupportController, SupportMessageController, SupportCallController, SupportReactionController],
   providers: [
     SupportService,
     SupportConversationRepository,
@@ -52,6 +55,8 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     ListConversationsUseCase,
     ListMessagesUseCase,
     SearchMessagesUseCase,
+    ReactMessageUseCase,
+    SupportReactionRepository,
     SendMessageUseCase,
     MarkConversationReadUseCase,
     AnnounceTypingUseCase,

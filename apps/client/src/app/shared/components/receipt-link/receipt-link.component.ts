@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, input } from '@angular/core';
 
 import { RECEIPT } from '../../../core/constants/payment/receipt.constant';
 import { ReceiptHelper } from '../../../core/helpers/payment/receipt.helper';
@@ -9,6 +9,7 @@ import { ReceiptViewerStore } from '../../../core/services/receipt-viewer.store'
 @Component({
   selector: 'app-receipt-link',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './receipt-link.component.html'
 })
 export class ReceiptLinkComponent {

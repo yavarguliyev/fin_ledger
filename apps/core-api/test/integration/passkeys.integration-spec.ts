@@ -3,30 +3,30 @@ import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { PasskeyOptions, PasskeySummary } from '../interfaces/passkey.interface';
 
+let token = '';
+
+const seedCredential = (): Promise<unknown> =>
+  DbHelper.query({
+    sql: PASSKEY_TEST.SEED_SQL,
+    params: [PASSKEY_TEST.EMAIL, PASSKEY_TEST.CREDENTIAL_ID, PASSKEY_TEST.PUBLIC_KEY, PASSKEY_TEST.DEVICE_LABEL]
+  });
+
+const countCredentials = async (): Promise<number> => {
+  const [row] = await DbHelper.query<{ count: number }>({ sql: PASSKEY_TEST.COUNT_SQL, params: [PASSKEY_TEST.EMAIL] });
+
+  return row?.count ?? 0;
+};
+
+beforeAll(async () => {
+  token = await ApiHelper.login({ email: PASSKEY_TEST.EMAIL });
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: PASSKEY_TEST.CLEAN_SQL, params: [PASSKEY_TEST.CREDENTIAL_ID] });
+  await DbHelper.close();
+});
+
 describe('Passkeys', () => {
-  let token = '';
-
-  const seedCredential = (): Promise<unknown> =>
-    DbHelper.query({
-      sql: PASSKEY_TEST.SEED_SQL,
-      params: [PASSKEY_TEST.EMAIL, PASSKEY_TEST.CREDENTIAL_ID, PASSKEY_TEST.PUBLIC_KEY, PASSKEY_TEST.DEVICE_LABEL]
-    });
-
-  const countCredentials = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ count: number }>({ sql: PASSKEY_TEST.COUNT_SQL, params: [PASSKEY_TEST.EMAIL] });
-
-    return row?.count ?? 0;
-  };
-
-  beforeAll(async () => {
-    token = await ApiHelper.login({ email: PASSKEY_TEST.EMAIL });
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: PASSKEY_TEST.CLEAN_SQL, params: [PASSKEY_TEST.CREDENTIAL_ID] });
-    await DbHelper.close();
-  });
-
   it('stores no biometric data by construction: the table has no column that could hold any', async () => {
     const columns = await DbHelper.query<{ column_name: string }>({ sql: PASSKEY_TEST.BIOMETRIC_COLUMNS_SQL });
     const names = columns.map(({ column_name: name }) => name.toLowerCase()).join(' ');
@@ -71,7 +71,9 @@ describe('Passkeys', () => {
     expect(entry).not.toHaveProperty('publicKey');
     expect(entry).not.toHaveProperty('signCount');
   });
+});
 
+describe('Passkeys: signing in', () => {
   it('refuses a login for a credential nobody registered', async () => {
     await ApiHelper.request({ method: 'POST', path: PASSKEY_TEST.LOGIN_OPTIONS_PATH, body: { owner: PASSKEY_TEST.OWNER } });
 
@@ -114,7 +116,9 @@ describe('Passkeys', () => {
 
     await expect(countCredentials()).resolves.toBe(1);
   });
+});
 
+describe('Passkeys: removing a passkey', () => {
   it('removes the owner own passkey and leaves password login working', async () => {
     const [credential] = await DbHelper.query<{ id: string }>({
       sql: 'SELECT id FROM user_credentials WHERE credential_id = $1',

@@ -23,7 +23,7 @@
     "test": "turbo run test",
     "test:integration": "turbo run test:integration --filter=@core/api",
     "lint": "turbo run lint",
-    "lint:fix": "eslint \"**/src/**/*.ts\" --fix",
+    "lint:fix": "eslint \"**/{src,test}/**/*.ts\" --fix",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{json,mjs,js,html}\" && npm run lint:fix",
     "format:check": "prettier --check \"**/*.{json,mjs,js,html}\" && turbo run lint",

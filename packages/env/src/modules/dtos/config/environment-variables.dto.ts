@@ -74,6 +74,8 @@ export const EnvironmentVariablesSchema = z.object({
   RETENTION_INTERVAL_MS: z.coerce.number({ message: 'RETENTION_INTERVAL_MS must be a number' }).int().positive().optional(),
   RETENTION_OUTBOX_DAYS: z.coerce.number({ message: 'RETENTION_OUTBOX_DAYS must be a number' }).int().positive().optional(),
   RETENTION_WEBHOOK_DAYS: z.coerce.number({ message: 'RETENTION_WEBHOOK_DAYS must be a number' }).int().positive().optional(),
+  RETENTION_NOTIFICATION_DAYS: z.coerce.number({ message: 'RETENTION_NOTIFICATION_DAYS must be a number' }).int().positive().optional(),
+  RETENTION_LOGIN_EVENT_DAYS: z.coerce.number({ message: 'RETENTION_LOGIN_EVENT_DAYS must be a number' }).int().positive().optional(),
 
   REDIS_HOST: z.string({ message: 'REDIS_HOST must be a string' }).min(1, { message: 'REDIS_HOST is required' }),
   REDIS_PORT: z.coerce.number({ message: 'REDIS_PORT must be a number' }),

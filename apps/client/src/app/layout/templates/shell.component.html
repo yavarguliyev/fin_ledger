@@ -115,5 +115,7 @@
   </div>
 </div>
 
-<app-call-overlay />
+@defer (when callBusy()) {
+  <app-call-overlay />
+}
 <app-receipt-viewer />

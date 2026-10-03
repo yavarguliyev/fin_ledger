@@ -170,7 +170,11 @@
 
   @if (canManagePayments()) {
     <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
-      <app-payment-methods />
+      @defer (on viewport) {
+        <app-payment-methods />
+      } @placeholder {
+        <div class="h-32 rounded-xl skeleton"></div>
+      }
     </div>
   }
 
@@ -185,6 +189,7 @@
         type="button"
         (click)="toggleTheme()"
         role="switch"
+        aria-label="Dark mode"
         [attr.aria-checked]="isDark()"
         class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         [class.bg-primary]="isDark()"
@@ -203,9 +208,13 @@
   <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
     <h2 class="font-semibold text-ink-900 dark:text-white mb-4">Security</h2>
     <div class="space-y-3">
-      <app-two-factor-settings />
-      <app-passkey-settings />
-      <app-account-security />
+      @defer (on viewport) {
+        <app-two-factor-settings />
+        <app-passkey-settings />
+        <app-account-security />
+      } @placeholder {
+        <div class="h-40 rounded-xl skeleton"></div>
+      }
       <div class="flex items-center justify-between py-2 border-t border-ink-100 dark:border-night-border">
         <div>
           <p class="text-sm font-medium text-ink-900 dark:text-white">Member since</p>

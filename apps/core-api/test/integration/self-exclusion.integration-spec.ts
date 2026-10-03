@@ -5,42 +5,42 @@ import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 import { SelfExclusionResult } from '../interfaces/self-exclusion-result.interface';
 
-describe('Self-exclusion', () => {
-  let token = '';
+let token = '';
 
-  const exclude = (period: string): Promise<{ status: number; body: SelfExclusionResult }> =>
-    ApiHelper.request<SelfExclusionResult>({ method: 'POST', path: SELF_EXCLUSION_TEST.PATH, token, body: { period } });
+const exclude = (period: string): Promise<{ status: number; body: SelfExclusionResult }> =>
+  ApiHelper.request<SelfExclusionResult>({ method: 'POST', path: SELF_EXCLUSION_TEST.PATH, token, body: { period } });
 
-  const storedUntil = async (): Promise<string | null> => {
-    const [row] = await DbHelper.query<{ until: string | null }>({
-      sql: 'SELECT self_exclusion_until::text AS until FROM users WHERE email = $1',
-      params: [SELF_EXCLUSION_TEST.EMAIL]
-    });
-
-    return row?.until ?? null;
-  };
-
-  beforeAll(async () => {
-    const { EMAIL, DISPLAY_NAME, PASSWORD } = SELF_EXCLUSION_TEST;
-
-    await ApiHelper.request({
-      method: 'POST',
-      path: SELF_EXCLUSION_TEST.REGISTER_PATH,
-      body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
-    });
-
-    const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
-    const verified = await ApiHelper.request<{ accessToken: string }>({
-      method: 'POST',
-      path: SELF_EXCLUSION_TEST.VERIFY_EMAIL_PATH,
-      body: { token: new URL(sent.url).searchParams.get('token') }
-    });
-
-    token = verified.body.accessToken;
+const storedUntil = async (): Promise<string | null> => {
+  const [row] = await DbHelper.query<{ until: string | null }>({
+    sql: 'SELECT self_exclusion_until::text AS until FROM users WHERE email = $1',
+    params: [SELF_EXCLUSION_TEST.EMAIL]
   });
 
-  afterAll(async () => DbHelper.close());
+  return row?.until ?? null;
+};
 
+beforeAll(async () => {
+  const { EMAIL, DISPLAY_NAME, PASSWORD } = SELF_EXCLUSION_TEST;
+
+  await ApiHelper.request({
+    method: 'POST',
+    path: SELF_EXCLUSION_TEST.REGISTER_PATH,
+    body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
+  });
+
+  const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
+  const verified = await ApiHelper.request<{ accessToken: string }>({
+    method: 'POST',
+    path: SELF_EXCLUSION_TEST.VERIFY_EMAIL_PATH,
+    body: { token: new URL(sent.url).searchParams.get('token') }
+  });
+
+  token = verified.body.accessToken;
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Self-exclusion', () => {
   it('starts an exclusion, records the date and emails a confirmation', async () => {
     const started = await exclude(SELF_EXCLUSION_TEST.SHORT_PERIOD);
 
@@ -56,7 +56,9 @@ describe('Self-exclusion', () => {
     expect(me.status).toBe(SELF_EXCLUSION_TEST.OK);
     expect(me.body.user.selfExclusionUntil).toEqual(expect.any(String) as string);
   });
+});
 
+describe('Self-exclusion: what it blocks', () => {
   it('blocks betting and depositing with a clear message, but not withdrawing', async () => {
     const [wallet] = await DbHelper.query<{ id: string; currency: string }>({
       sql: 'SELECT w.id, w.currency FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
@@ -99,7 +101,9 @@ describe('Self-exclusion', () => {
     expect(withdrawal.status).not.toBe(SELF_EXCLUSION_TEST.FORBIDDEN);
     expect(withdrawal.body.error?.message).not.toBe(SELF_EXCLUSION_TEST.BLOCKED_MESSAGE);
   });
+});
 
+describe('Self-exclusion: changing the period', () => {
   it('accepts a longer period and refuses a shorter one, leaving the date untouched', async () => {
     const started = await storedUntil();
 

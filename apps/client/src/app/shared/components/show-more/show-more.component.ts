@@ -1,4 +1,4 @@
-import { Component, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ShowMoreConfig } from '../../../core/interfaces/ui/show-more-config.interface';
@@ -6,6 +6,7 @@ import { ShowMoreConfig } from '../../../core/interfaces/ui/show-more-config.int
 @Component({
   selector: 'app-show-more',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './show-more.component.html'
 })

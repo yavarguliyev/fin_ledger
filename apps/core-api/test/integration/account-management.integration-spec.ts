@@ -5,33 +5,33 @@ import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 import { SessionTokens } from '../interfaces/session-tokens.interface';
 
-describe('Signed-in account management', () => {
-  let session: SessionTokens;
+let session: SessionTokens;
 
-  const signIn = async (email: string, password: string): Promise<SessionTokens> => {
-    const response = await ApiHelper.request<SessionTokens>({ method: 'POST', path: ACCOUNT_MANAGEMENT.LOGIN_PATH, body: { email, password } });
-    expect(response.status).toBe(ACCOUNT_MANAGEMENT.CREATED);
-    return response.body;
-  };
+const signIn = async (email: string, password: string): Promise<SessionTokens> => {
+  const response = await ApiHelper.request<SessionTokens>({ method: 'POST', path: ACCOUNT_MANAGEMENT.LOGIN_PATH, body: { email, password } });
+  expect(response.status).toBe(ACCOUNT_MANAGEMENT.CREATED);
+  return response.body;
+};
 
-  beforeAll(async () => {
-    const { EMAIL, DISPLAY_NAME, PASSWORD } = ACCOUNT_MANAGEMENT;
+beforeAll(async () => {
+  const { EMAIL, DISPLAY_NAME, PASSWORD } = ACCOUNT_MANAGEMENT;
 
-    await ApiHelper.request({
-      method: 'POST',
-      path: ACCOUNT_MANAGEMENT.REGISTER_PATH,
-      body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
-    });
-
-    const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
-    const token = new URL(sent.url).searchParams.get('token');
-
-    await ApiHelper.request({ method: 'POST', path: ACCOUNT_MANAGEMENT.VERIFY_EMAIL_PATH, body: { token } });
-    session = await signIn(EMAIL, PASSWORD);
+  await ApiHelper.request({
+    method: 'POST',
+    path: ACCOUNT_MANAGEMENT.REGISTER_PATH,
+    body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
   });
 
-  afterAll(async () => DbHelper.close());
+  const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
+  const token = new URL(sent.url).searchParams.get('token');
 
+  await ApiHelper.request({ method: 'POST', path: ACCOUNT_MANAGEMENT.VERIFY_EMAIL_PATH, body: { token } });
+  session = await signIn(EMAIL, PASSWORD);
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Signed-in account management', () => {
   it('refuses a password change that does not know the current password', async () => {
     const response = await ApiHelper.request({
       method: 'POST',
@@ -77,7 +77,9 @@ describe('Signed-in account management', () => {
 
     expect(record).toEqual({ has_ip: true });
   });
+});
 
+describe('Signed-in account management: email changes', () => {
   it('refuses an email change to an address somebody else already uses', async () => {
     const response = await ApiHelper.request({
       method: 'POST',
@@ -88,7 +90,9 @@ describe('Signed-in account management', () => {
 
     expect(response.status).toBe(ACCOUNT_MANAGEMENT.BAD_REQUEST);
   });
+});
 
+describe('Signed-in account management: confirming an email change', () => {
   it('only moves the address once the link sent to it is opened, and tells the old address', async () => {
     const { EMAIL, NEW_EMAIL, NEW_PASSWORD } = ACCOUNT_MANAGEMENT;
 

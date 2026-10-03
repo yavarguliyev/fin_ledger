@@ -1,10 +1,11 @@
-import { Component, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 
 import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-error-state',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './error-state.component.html'
 })
 export class ErrorStateComponent {

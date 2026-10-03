@@ -11,6 +11,7 @@ import { StreamTicket } from '../interfaces/notification/stream-ticket.interface
 import { StreamTicketRefDto } from '../interfaces/notification/stream-ticket-ref.interface';
 import { NotificationMergeHelper } from '../helpers/notification/notification-merge.helper';
 import { SessionStore } from './session-store.service';
+import { OlderNotificationsDto } from '../interfaces/notification/older-notifications.interface';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
@@ -37,6 +38,10 @@ export class NotificationService {
     this.notificationsSignal().forEach(notification => {
       if (notification.status !== 'READ') this.markAsRead(notification.id).subscribe();
     });
+  }
+
+  appendOlder ({ incoming }: OlderNotificationsDto): void {
+    this.notificationsSignal.set(NotificationMergeHelper.merge({ current: this.notificationsSignal(), incoming }));
   }
 
   getNotifications (limit = 20): Observable<AppNotification[]> {

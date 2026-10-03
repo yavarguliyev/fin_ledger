@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, inject, output, signal } from '@angular/core';
 
 import { PASSKEY_MESSAGES } from '../../../core/constants/passkey/passkey-messages.constant';
 import { PasskeyCeremonyService } from '../../../core/services/passkey-ceremony.service';
@@ -7,6 +7,7 @@ import { PasskeyHelper } from '../../../core/helpers/passkey/passkey.helper';
 @Component({
   selector: 'app-passkey-button',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './passkey-button.component.html'
 })
 export class PasskeyButtonComponent implements OnInit {

@@ -4,11 +4,13 @@ import { DeleteScope } from '../../../core/types/support/delete-scope.type';
 import { MessageRulesHelper } from '../../../core/helpers/support/message-rules.helper';
 import { SUPPORT_MESSAGE_RULES } from '../../../core/constants/support/support-message-rules.constant';
 import { SupportMessage } from '../../../core/types/support/support-message.type';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-delete-dialog',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FocusTrapDirective],
   templateUrl: '../templates/delete-dialog.component.html'
 })
 export class DeleteDialogComponent {

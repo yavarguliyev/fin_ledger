@@ -6,19 +6,19 @@ import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 
+afterAll(async () => DbHelper.close());
+
+const tokenFrom = (url: string): string => new URL(url).searchParams.get('token') as string;
+
+const requestReset = async (email: string, count = 1): Promise<string> => {
+  await ApiHelper.request({ method: 'POST', path: '/auth/forgot-password', body: { email } });
+  return tokenFrom((await EmailInboxHelper.waitFor({ to: email, topic: EMAIL_TOPICS.PASSWORD_RESET, count })).url);
+};
+
+const resetPassword = (token: string, password: string): Promise<{ status: number }> =>
+  ApiHelper.request({ method: 'POST', path: '/auth/reset-password', body: { token, password } });
+
 describe('Emailed one-time links', () => {
-  afterAll(async () => DbHelper.close());
-
-  const tokenFrom = (url: string): string => new URL(url).searchParams.get('token') as string;
-
-  const requestReset = async (email: string, count = 1): Promise<string> => {
-    await ApiHelper.request({ method: 'POST', path: '/auth/forgot-password', body: { email } });
-    return tokenFrom((await EmailInboxHelper.waitFor({ to: email, topic: EMAIL_TOPICS.PASSWORD_RESET, count })).url);
-  };
-
-  const resetPassword = (token: string, password: string): Promise<{ status: number }> =>
-    ApiHelper.request({ method: 'POST', path: '/auth/reset-password', body: { token, password } });
-
   it('stores only a SHA-256 hash of the token', async () => {
     const token = await requestReset('player10@realtime-wallet-payments.com');
     const hash = CryptoHelper.sha256({ value: token });
@@ -62,7 +62,9 @@ describe('Emailed one-time links', () => {
     await expect(resetPassword(token, 'Reset#Late2026')).resolves.toMatchObject({ status: 400 });
     await expect(ApiHelper.login({ email: 'player13@realtime-wallet-payments.com', password: SEED_PASSWORD })).resolves.toEqual(expect.any(String));
   });
+});
 
+describe('Emailed one-time links: purposes', () => {
   it('keeps each purpose to its own endpoint', async () => {
     const resetToken = await requestReset('player14@realtime-wallet-payments.com');
 

@@ -11,30 +11,31 @@ interface ProfileUser {
 const EMAIL = 'player8@realtime-wallet-payments.com';
 const ADULT_BIRTH_DATE = '1990-04-17';
 
+let token: string;
+
+let userId: string;
+
+const update = (body: Record<string, unknown>): ReturnType<typeof ApiHelper.request<{ user: ProfileUser }>> =>
+  ApiHelper.request<{ user: ProfileUser }>({ method: 'PATCH', path: '/users', token, body });
+
+const kycStatus = async (status: string): Promise<void> => {
+  await DbHelper.query({ sql: 'UPDATE users SET kyc_status = $1 WHERE id = $2', params: [status, userId] });
+};
+
+beforeAll(async () => {
+  token = await ApiHelper.login({ email: EMAIL, password: SEED_PASSWORD });
+  const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [EMAIL] });
+  userId = user?.id as string;
+
+  await kycStatus('NOT_STARTED');
+});
+
+afterAll(async () => {
+  await kycStatus('NOT_STARTED');
+  await DbHelper.close();
+});
+
 describe('Profile identity fields', () => {
-  let token: string;
-  let userId: string;
-
-  const update = (body: Record<string, unknown>): ReturnType<typeof ApiHelper.request<{ user: ProfileUser }>> =>
-    ApiHelper.request<{ user: ProfileUser }>({ method: 'PATCH', path: '/users', token, body });
-
-  const kycStatus = async (status: string): Promise<void> => {
-    await DbHelper.query({ sql: 'UPDATE users SET kyc_status = $1 WHERE id = $2', params: [status, userId] });
-  };
-
-  beforeAll(async () => {
-    token = await ApiHelper.login({ email: EMAIL, password: SEED_PASSWORD });
-    const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [EMAIL] });
-    userId = user?.id as string;
-
-    await kycStatus('NOT_STARTED');
-  });
-
-  afterAll(async () => {
-    await kycStatus('NOT_STARTED');
-    await DbHelper.close();
-  });
-
   it('returns the account creation date, so the profile does not have to guess it from a wallet', async () => {
     const response = await update({ displayName: 'Seed Player' });
 
@@ -81,7 +82,9 @@ describe('Profile identity fields', () => {
     await expect(update({ displayName: 'Seed Player', countryCode: 'GBR' })).resolves.toMatchObject({ status: 400 });
     await expect(update({ displayName: 'Seed Player', countryCode: 'gb' })).resolves.toMatchObject({ status: 400 });
   });
+});
 
+describe('Profile identity fields: validation', () => {
   it('refuses a date of birth under the age limit', async () => {
     const tooYoung = new Date();
     tooYoung.setFullYear(tooYoung.getFullYear() - 10);

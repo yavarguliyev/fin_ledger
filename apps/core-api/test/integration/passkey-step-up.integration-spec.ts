@@ -4,36 +4,36 @@ import { DbHelper } from '../helpers/db.helper';
 import { PasskeyOptions } from '../interfaces/passkey.interface';
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
 
+let token = '';
+
+const withdraw = (suffix: string): ReturnType<typeof ApiHelper.request<{ error?: { message: string } }>> =>
+  ApiHelper.request<{ error?: { message: string } }>({
+    method: 'POST',
+    path: PASSKEY_STEP_UP_TEST.WITHDRAW_PATH,
+    token,
+    body: {
+      amountMinor: PASSKEY_STEP_UP_TEST.AMOUNT_MINOR,
+      currency: PASSKEY_STEP_UP_TEST.CURRENCY,
+      idempotencyKey: `${PASSKEY_STEP_UP_TEST.WITHDRAW_KEY}-${suffix}`
+    }
+  });
+
+const seedCredential = (): Promise<unknown> =>
+  DbHelper.query({
+    sql: PASSKEY_STEP_UP_TEST.SEED_SQL,
+    params: [PASSKEY_STEP_UP_TEST.EMAIL, PASSKEY_STEP_UP_TEST.CREDENTIAL_ID, PASSKEY_STEP_UP_TEST.PUBLIC_KEY, PASSKEY_STEP_UP_TEST.DEVICE_LABEL]
+  });
+
+beforeAll(async () => {
+  token = await ApiHelper.login({ email: PASSKEY_STEP_UP_TEST.EMAIL });
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: PASSKEY_STEP_UP_TEST.CLEAN_SQL, params: [PASSKEY_STEP_UP_TEST.CREDENTIAL_ID] });
+  await DbHelper.close();
+});
+
 describe('Passkey step-up before withdrawal', () => {
-  let token = '';
-
-  const withdraw = (suffix: string): ReturnType<typeof ApiHelper.request<{ error?: { message: string } }>> =>
-    ApiHelper.request<{ error?: { message: string } }>({
-      method: 'POST',
-      path: PASSKEY_STEP_UP_TEST.WITHDRAW_PATH,
-      token,
-      body: {
-        amountMinor: PASSKEY_STEP_UP_TEST.AMOUNT_MINOR,
-        currency: PASSKEY_STEP_UP_TEST.CURRENCY,
-        idempotencyKey: `${PASSKEY_STEP_UP_TEST.WITHDRAW_KEY}-${suffix}`
-      }
-    });
-
-  const seedCredential = (): Promise<unknown> =>
-    DbHelper.query({
-      sql: PASSKEY_STEP_UP_TEST.SEED_SQL,
-      params: [PASSKEY_STEP_UP_TEST.EMAIL, PASSKEY_STEP_UP_TEST.CREDENTIAL_ID, PASSKEY_STEP_UP_TEST.PUBLIC_KEY, PASSKEY_STEP_UP_TEST.DEVICE_LABEL]
-    });
-
-  beforeAll(async () => {
-    token = await ApiHelper.login({ email: PASSKEY_STEP_UP_TEST.EMAIL });
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: PASSKEY_STEP_UP_TEST.CLEAN_SQL, params: [PASSKEY_STEP_UP_TEST.CREDENTIAL_ID] });
-    await DbHelper.close();
-  });
-
   it('never blocks a user who has no passkey, so nobody is locked out of their own money', async () => {
     const attempted = await withdraw('no-passkey');
 
@@ -73,7 +73,9 @@ describe('Passkey step-up before withdrawal', () => {
     expect(refused.status).toBe(PASSKEY_STEP_UP_TEST.FORBIDDEN);
     expect(refused.body.error?.message).toBe(PASSKEY_STEP_UP_TEST.REQUIRED_MESSAGE);
   });
+});
 
+describe('Passkey step-up before withdrawal: challenges', () => {
   it('offers a challenge limited to the credentials the caller actually registered', async () => {
     const options = await ApiHelper.request<PasskeyOptions>({
       method: 'POST',

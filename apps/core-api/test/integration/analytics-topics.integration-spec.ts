@@ -2,48 +2,50 @@ import { ANALYTICS_TOPICS_TEST } from '../constants/analytics-topics.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
-describe('Analytics topics', () => {
-  let token = '';
-  let methodId = '';
-  let wallet = { id: '', currency: '' };
+let token = '';
 
-  const produced = async (eventType: string): Promise<number> => {
-    const [row] = await DbHelper.query<{ count: number }>({ sql: ANALYTICS_TOPICS_TEST.COUNT_SQL, params: [eventType] });
+let methodId = '';
 
-    return row?.count ?? 0;
-  };
+let wallet = { id: '', currency: '' };
 
-  const webhook = (type: string, chargeId: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({
-      method: 'POST',
-      path: ANALYTICS_TOPICS_TEST.WEBHOOK_PATH,
-      body: { id: `evt_${type}_${chargeId}`, type, data: { object: { id: chargeId, metadata: {} } } }
-    });
+const produced = async (eventType: string): Promise<number> => {
+  const [row] = await DbHelper.query<{ count: number }>({ sql: ANALYTICS_TOPICS_TEST.COUNT_SQL, params: [eventType] });
 
-  const deposit = (idempotencyKey: string): ReturnType<typeof ApiHelper.request<{ id: string; providerChargeId: string }>> =>
-    ApiHelper.request<{ id: string; providerChargeId: string }>({
-      method: 'POST',
-      path: ANALYTICS_TOPICS_TEST.DEPOSIT_PATH,
-      token,
-      body: { amountMinor: ANALYTICS_TOPICS_TEST.DEPOSIT_MINOR, currency: wallet.currency, idempotencyKey, paymentMethodId: methodId }
-    });
+  return row?.count ?? 0;
+};
 
-  beforeAll(async () => {
-    const [found] = await DbHelper.query<{ id: string; currency: string }>({
-      sql: ANALYTICS_TOPICS_TEST.WALLET_SQL,
-      params: [ANALYTICS_TOPICS_TEST.EMAIL]
-    });
-
-    wallet = { id: found?.id ?? '', currency: found?.currency ?? '' };
-
-    const [method] = await DbHelper.query<{ id: string }>({ sql: ANALYTICS_TOPICS_TEST.METHOD_SQL, params: [ANALYTICS_TOPICS_TEST.EMAIL] });
-
-    methodId = method?.id ?? '';
-    token = await ApiHelper.login({ email: ANALYTICS_TOPICS_TEST.EMAIL });
+const webhook = (type: string, chargeId: string): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({
+    method: 'POST',
+    path: ANALYTICS_TOPICS_TEST.WEBHOOK_PATH,
+    body: { id: `evt_${type}_${chargeId}`, type, data: { object: { id: chargeId, metadata: {} } } }
   });
 
-  afterAll(async () => DbHelper.close());
+const deposit = (idempotencyKey: string): ReturnType<typeof ApiHelper.request<{ id: string; providerChargeId: string }>> =>
+  ApiHelper.request<{ id: string; providerChargeId: string }>({
+    method: 'POST',
+    path: ANALYTICS_TOPICS_TEST.DEPOSIT_PATH,
+    token,
+    body: { amountMinor: ANALYTICS_TOPICS_TEST.DEPOSIT_MINOR, currency: wallet.currency, idempotencyKey, paymentMethodId: methodId }
+  });
 
+beforeAll(async () => {
+  const [found] = await DbHelper.query<{ id: string; currency: string }>({
+    sql: ANALYTICS_TOPICS_TEST.WALLET_SQL,
+    params: [ANALYTICS_TOPICS_TEST.EMAIL]
+  });
+
+  wallet = { id: found?.id ?? '', currency: found?.currency ?? '' };
+
+  const [method] = await DbHelper.query<{ id: string }>({ sql: ANALYTICS_TOPICS_TEST.METHOD_SQL, params: [ANALYTICS_TOPICS_TEST.EMAIL] });
+
+  methodId = method?.id ?? '';
+  token = await ApiHelper.login({ email: ANALYTICS_TOPICS_TEST.EMAIL });
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Analytics topics', () => {
   it('writes the completed and credited analytics events when a deposit succeeds', async () => {
     const before = {
       completed: await produced(ANALYTICS_TOPICS_TEST.PAYMENT_COMPLETED),
@@ -71,7 +73,9 @@ describe('Analytics topics', () => {
 
     expect(await produced(ANALYTICS_TOPICS_TEST.PAYMENT_FAILED)).toBe(before + 1);
   });
+});
 
+describe('Analytics topics for bets', () => {
   it('writes the debited analytics event for a bet placed inside its own transaction', async () => {
     const before = await produced(ANALYTICS_TOPICS_TEST.WALLET_DEBITED);
     const [event] = await DbHelper.query<{ id: string }>({ sql: ANALYTICS_TOPICS_TEST.EVENT_SQL });

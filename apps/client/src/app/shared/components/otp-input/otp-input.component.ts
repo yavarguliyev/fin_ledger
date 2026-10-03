@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, input, output, signal, viewChildren } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, computed, input, output, signal, viewChildren } from '@angular/core';
 
 import { OTP } from '../../../core/constants/auth/otp.constant';
 import { OtpHelper } from '../../../core/helpers/auth/otp.helper';
@@ -10,6 +10,7 @@ import { OtpEventDto } from '../../../core/interfaces/ui/otp-event.interface';
 @Component({
   selector: 'app-otp-input',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [],
   templateUrl: './otp-input.component.html'
 })

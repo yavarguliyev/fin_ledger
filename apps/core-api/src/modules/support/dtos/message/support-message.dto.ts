@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { SUPPORT_MESSAGE_KINDS, SUPPORT_MESSAGE_SOURCES } from '@common/contracts';
 
+import { ReactionSchema } from './reaction.dto';
+
 export const SupportMessageSchema = z.object({
   id: z.string({ message: 'ID must be a string' }),
 
@@ -45,6 +47,8 @@ export const SupportMessageSchema = z.object({
   replyToKind: z.enum(SUPPORT_MESSAGE_KINDS).nullable().optional(),
 
   replyToDeleted: z.boolean().nullable().optional(),
+
+  reactions: z.array(ReactionSchema).optional(),
 
   createdAt: z.string({ message: 'Created at must be a string' })
 });

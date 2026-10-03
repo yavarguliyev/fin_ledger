@@ -2,39 +2,39 @@ import { JOBS_TEST } from '../constants/jobs.constant';
 import { DbHelper } from '../helpers/db.helper';
 import { JobRow } from '../interfaces/job-row.interface';
 
+const enqueue = async (dedupeKey: string | null = null): Promise<string | undefined> => {
+  const rows = await DbHelper.query<{ id: string }>({
+    sql: JOBS_TEST.ENQUEUE_SQL,
+    params: [JOBS_TEST.NAME, JSON.stringify({ scope: 'all' }), JOBS_TEST.MAX_ATTEMPTS, dedupeKey]
+  });
+
+  return rows[0]?.id;
+};
+
+const claim = (): Promise<JobRow[]> => DbHelper.query<JobRow>({ sql: JOBS_TEST.CLAIM_SQL, params: [JOBS_TEST.BATCH, JOBS_TEST.NAME] });
+
+const statusOf = async (jobId: string): Promise<{ status: string; attempts: number } | undefined> => {
+  const [row] = await DbHelper.query<{ status: string; attempts: number }>({ sql: JOBS_TEST.STATUS_SQL, params: [jobId] });
+
+  return row;
+};
+
+const countJobs = async (): Promise<number> => {
+  const [row] = await DbHelper.query<{ count: number }>({ sql: JOBS_TEST.COUNT_SQL, params: [JOBS_TEST.NAME] });
+
+  return row?.count ?? 0;
+};
+
+beforeEach(async () => {
+  await DbHelper.query({ sql: JOBS_TEST.CLEAN_SQL, params: [JOBS_TEST.NAME] });
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: JOBS_TEST.CLEAN_SQL, params: [JOBS_TEST.NAME] });
+  await DbHelper.close();
+});
+
 describe('Durable job queue', () => {
-  const enqueue = async (dedupeKey: string | null = null): Promise<string | undefined> => {
-    const rows = await DbHelper.query<{ id: string }>({
-      sql: JOBS_TEST.ENQUEUE_SQL,
-      params: [JOBS_TEST.NAME, JSON.stringify({ scope: 'all' }), JOBS_TEST.MAX_ATTEMPTS, dedupeKey]
-    });
-
-    return rows[0]?.id;
-  };
-
-  const claim = (): Promise<JobRow[]> => DbHelper.query<JobRow>({ sql: JOBS_TEST.CLAIM_SQL, params: [JOBS_TEST.BATCH, JOBS_TEST.NAME] });
-
-  const statusOf = async (jobId: string): Promise<{ status: string; attempts: number } | undefined> => {
-    const [row] = await DbHelper.query<{ status: string; attempts: number }>({ sql: JOBS_TEST.STATUS_SQL, params: [jobId] });
-
-    return row;
-  };
-
-  const countJobs = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ count: number }>({ sql: JOBS_TEST.COUNT_SQL, params: [JOBS_TEST.NAME] });
-
-    return row?.count ?? 0;
-  };
-
-  beforeEach(async () => {
-    await DbHelper.query({ sql: JOBS_TEST.CLEAN_SQL, params: [JOBS_TEST.NAME] });
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: JOBS_TEST.CLEAN_SQL, params: [JOBS_TEST.NAME] });
-    await DbHelper.close();
-  });
-
   it('never runs a job whose transaction rolled back, and runs a committed one exactly once', async () => {
     await DbHelper.query({ sql: 'BEGIN' });
     await enqueue();
@@ -80,7 +80,9 @@ describe('Durable job queue', () => {
     expect(replayed).toHaveLength(1);
     await expect(statusOf(jobId)).resolves.toEqual({ status: JOBS_TEST.PENDING, attempts: 0 });
   });
+});
 
+describe('Durable job queue: replays', () => {
   it('refuses to replay a job that is not dead', async () => {
     const jobId = (await enqueue()) as string;
 

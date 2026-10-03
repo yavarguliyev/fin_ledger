@@ -3,43 +3,43 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
+const email = 'player18@realtime-wallet-payments.com';
+
+const staleDeposit = async (key: string, status: string, chargeId: string | null, amount: number, ageHours = 1, attempts = 0): Promise<string> => {
+  const [row] = await DbHelper.query<{ id: string }>({
+    sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider, provider_charge_id, created_at, updated_at, reconcile_attempts)
+          SELECT $2, u.id, w.id, 'DEPOSIT', $5, w.currency, $3, 'stripe', $4, now() - make_interval(hours => $6), now() - interval '1 hour', $7
+          FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
+    params: [email, key, status, chargeId, amount, ageHours, attempts]
+  });
+
+  return row?.id as string;
+};
+
+const state = async (paymentId: string): Promise<{ status: string; credits: number; failedEvents: number }> => {
+  const [row] = await DbHelper.query<{ status: string; credits: number; failedEvents: number }>({
+    sql: `SELECT p.status,
+                 (SELECT count(*)::int FROM wallet_transactions w WHERE w.ledger_transaction_id = p.ledger_transaction_id) AS credits,
+                 (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.failed') AS "failedEvents"
+          FROM payments p WHERE p.id = $1`,
+    params: [paymentId]
+  });
+
+  return row as { status: string; credits: number; failedEvents: number };
+};
+
+const balance = async (): Promise<number> => {
+  const [row] = await DbHelper.query<{ balance: number }>({
+    sql: 'SELECT w.available_balance_minor::int AS balance FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
+    params: [email]
+  });
+
+  return row?.balance ?? 0;
+};
+
+afterAll(async () => DbHelper.close());
+
 describe('Payment reconciliation', () => {
-  const email = 'player18@realtime-wallet-payments.com';
-
-  const staleDeposit = async (key: string, status: string, chargeId: string | null, amount: number, ageHours = 1, attempts = 0): Promise<string> => {
-    const [row] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider, provider_charge_id, created_at, updated_at, reconcile_attempts)
-            SELECT $2, u.id, w.id, 'DEPOSIT', $5, w.currency, $3, 'stripe', $4, now() - make_interval(hours => $6), now() - interval '1 hour', $7
-            FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
-      params: [email, key, status, chargeId, amount, ageHours, attempts]
-    });
-
-    return row?.id as string;
-  };
-
-  const state = async (paymentId: string): Promise<{ status: string; credits: number; failedEvents: number }> => {
-    const [row] = await DbHelper.query<{ status: string; credits: number; failedEvents: number }>({
-      sql: `SELECT p.status,
-                   (SELECT count(*)::int FROM wallet_transactions w WHERE w.ledger_transaction_id = p.ledger_transaction_id) AS credits,
-                   (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.failed') AS "failedEvents"
-            FROM payments p WHERE p.id = $1`,
-      params: [paymentId]
-    });
-
-    return row as { status: string; credits: number; failedEvents: number };
-  };
-
-  const balance = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ balance: number }>({
-      sql: 'SELECT w.available_balance_minor::int AS balance FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
-      params: [email]
-    });
-
-    return row?.balance ?? 0;
-  };
-
-  afterAll(async () => DbHelper.close());
-
   it('completes, fails or leaves open stale deposits according to the provider', async () => {
     const before = await balance();
     const charged = await staleDeposit('reconcile-charged', 'PROCESSING', 'pi_simulated_succeeded_reconcile', 2200);
@@ -78,7 +78,9 @@ describe('Payment reconciliation', () => {
       DbHelper.query({ sql: 'SELECT DISTINCT failure_code FROM payments WHERE id = ANY($1)', params: [[neverCharged, timedOut]] })
     ).resolves.toEqual([{ failure_code: 'NOT_FOUND_AT_PROVIDER' }]);
   }, 30_000);
+});
 
+describe('Payment reconciliation: abandoned 3-D Secure deposits', () => {
   it('cancels and fails a 3-D Secure deposit the customer abandoned, but keeps a recent one open', async () => {
     const abandoned = await staleDeposit('reconcile-abandoned-3ds', 'REQUIRES_ACTION', 'pi_simulated_requires_action_old', 600, 48);
     const recent = await staleDeposit('reconcile-recent-3ds', 'REQUIRES_ACTION', 'pi_simulated_requires_action_new', 650);

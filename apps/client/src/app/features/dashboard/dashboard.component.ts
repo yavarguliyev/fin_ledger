@@ -19,11 +19,13 @@ import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope
 import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { DashboardHelper } from './helpers/dashboard.helper';
 import { ACTIVITY } from '../../core/constants/wallet/activity.constant';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent],
   templateUrl: './templates/dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -40,6 +42,8 @@ export class DashboardComponent implements OnInit {
   readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
 
   readonly loading = signal(true);
+  readonly failed = signal(false);
+  readonly states = LOAD_STATE;
   readonly wallet = computed(() => this.walletService.wallet());
   readonly summaries = signal<WalletTransactionSummary[]>([]);
   readonly recentTx = signal<Transaction[]>([]);
@@ -81,7 +85,13 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit (): void {
+    this.load();
+  }
+
+  load (): void {
     const user = this.auth.currentUser();
+    this.loading.set(true);
+    this.failed.set(false);
 
     if (this.isStaff()) this.loadActivity(ALL_RECORDS_SCOPE);
     else {
@@ -91,7 +101,7 @@ export class DashboardComponent implements OnInit {
           if (walletId) this.loadActivity(walletId);
           else this.loading.set(false);
         },
-        error: () => this.loading.set(false)
+        error: () => this.fail()
       });
     }
 
@@ -106,7 +116,12 @@ export class DashboardComponent implements OnInit {
         this.recentTx.set(this.walletService.transactions() ?? []);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => this.fail()
     });
+  }
+
+  private fail (): void {
+    this.loading.set(false);
+    this.failed.set(true);
   }
 }

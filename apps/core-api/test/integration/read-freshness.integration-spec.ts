@@ -6,36 +6,37 @@ interface Wallet {
   availableBalanceMinor: number;
 }
 
-describe('Money reads right after writes', () => {
-  const email = 'player2@realtime-wallet-payments.com';
+const email = 'player2@realtime-wallet-payments.com';
 
-  let token: string;
-  let wallet: { id: string; currency: string };
+let token: string;
 
-  beforeAll(async () => {
-    token = await ApiHelper.login({ email });
-    [wallet] = (await DbHelper.query<{ id: string; currency: string }>({
-      sql: 'SELECT w.id, w.currency FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
-      params: [email]
-    })) as [{ id: string; currency: string }];
+let wallet: { id: string; currency: string };
+
+beforeAll(async () => {
+  token = await ApiHelper.login({ email });
+  [wallet] = (await DbHelper.query<{ id: string; currency: string }>({
+    sql: 'SELECT w.id, w.currency FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
+    params: [email]
+  })) as [{ id: string; currency: string }];
+});
+
+afterAll(async () => DbHelper.close());
+
+const readBalance = async (): Promise<number> => {
+  const response = await ApiHelper.request<Wallet>({ method: 'GET', path: `/wallets/${wallet.id}`, token });
+  return Number(response.body.availableBalanceMinor);
+};
+
+const storedBalance = async (): Promise<number> => {
+  const [row] = await DbHelper.query<{ balance: number }>({
+    sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1',
+    params: [wallet.id]
   });
 
-  afterAll(async () => DbHelper.close());
+  return row?.balance ?? 0;
+};
 
-  const readBalance = async (): Promise<number> => {
-    const response = await ApiHelper.request<Wallet>({ method: 'GET', path: `/wallets/${wallet.id}`, token });
-    return Number(response.body.availableBalanceMinor);
-  };
-
-  const storedBalance = async (): Promise<number> => {
-    const [row] = await DbHelper.query<{ balance: number }>({
-      sql: 'SELECT available_balance_minor::int AS balance FROM wallets WHERE id = $1',
-      params: [wallet.id]
-    });
-
-    return row?.balance ?? 0;
-  };
-
+describe('Money reads right after writes', () => {
   it('shows the new balance immediately after a bet', async () => {
     await readBalance();
 
@@ -53,7 +54,9 @@ describe('Money reads right after writes', () => {
     expect(bet).toMatchObject({ status: 201 });
     await expect(readBalance()).resolves.toBe(await storedBalance());
   });
+});
 
+describe('Money reads right after writes: payments', () => {
   it('shows a payment as completed immediately after the webhook', async () => {
     const [method] = await DbHelper.query<{ id: string }>({
       sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
@@ -90,7 +93,9 @@ describe('Money reads right after writes', () => {
 
     await expect(readBalance()).resolves.toBe(await storedBalance());
   });
+});
 
+describe('Money reads right after writes: notifications', () => {
   it('lists a notification stored outside the API without waiting for a cache to expire', async () => {
     const listed = async (): Promise<string[]> => {
       const response = await ApiHelper.request<{ id: string }[]>({ method: 'GET', path: '/notifications', token });

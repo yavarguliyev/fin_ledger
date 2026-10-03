@@ -5,16 +5,20 @@ import { PaymentMethodService } from '../../../core/services/payment-method.serv
 import { ToastService } from '../../../core/services/toast.service';
 import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { ProviderOption } from '../../../core/interfaces/payment-method/provider-option.interface';
+import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
+import { MODAL } from '../../../core/constants/ui/modal.constant';
 
 @Component({
   selector: 'app-add-payment-method-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FocusTrapDirective],
   templateUrl: './templates/add-payment-method-modal.component.html'
 })
 export class AddPaymentMethodModalComponent {
   private readonly paymentMethodService = inject(PaymentMethodService);
   private readonly toast = inject(ToastService);
+  readonly modalLabels = MODAL;
+  readonly titleId = MODAL.ADD_PAYMENT_TITLE_ID;
 
   readonly selectedProvider = signal<string>('stripe');
   readonly submitting = signal(false);

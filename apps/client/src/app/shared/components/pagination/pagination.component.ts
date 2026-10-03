@@ -1,4 +1,4 @@
-import { Component, input, output, computed } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PaginationConfig } from '../../../core/interfaces/ui/pagination-config.interface';
@@ -6,6 +6,7 @@ import { PaginationConfig } from '../../../core/interfaces/ui/pagination-config.
 @Component({
   selector: 'app-pagination',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   templateUrl: './pagination.component.html'
 })

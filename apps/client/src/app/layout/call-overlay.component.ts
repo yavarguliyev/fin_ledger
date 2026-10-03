@@ -1,12 +1,15 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, computed, inject, signal } from '@angular/core';
 
 import { CallNoticeHelper } from '../core/helpers/support/call-notice.helper';
 import { SUPPORT_CALL } from '../core/constants/support/support-call.constant';
 import { SupportCallStore } from '../core/services/support-call.store';
+import { FocusTrapDirective } from '../shared/directives/focus-trap.directive';
 
 @Component({
   selector: 'app-call-overlay',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [FocusTrapDirective],
   templateUrl: './templates/call-overlay.component.html'
 })
 export class CallOverlayComponent implements OnDestroy {

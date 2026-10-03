@@ -2,31 +2,32 @@ import { PROFILE_IMAGES_KEY_TEST } from '../constants/profile-images-key.constan
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 
+let token = '';
+
+let ownerId = '';
+
+const storedKey = async (email: string): Promise<string | null> => {
+  const [row] = await DbHelper.query<{ key: string | null }>({ sql: PROFILE_IMAGES_KEY_TEST.SELECT_SQL, params: [email] });
+
+  return row?.key ?? null;
+};
+
+beforeAll(async () => {
+  token = await ApiHelper.login({ email: PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL });
+
+  const [row] = await DbHelper.query<{ id: string }>({
+    sql: 'SELECT id FROM users WHERE email = $1',
+    params: [PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL]
+  });
+
+  ownerId = row?.id ?? '';
+});
+
+afterAll(async () => {
+  await DbHelper.close();
+});
+
 describe('Profile images key', () => {
-  let token = '';
-  let ownerId = '';
-
-  const storedKey = async (email: string): Promise<string | null> => {
-    const [row] = await DbHelper.query<{ key: string | null }>({ sql: PROFILE_IMAGES_KEY_TEST.SELECT_SQL, params: [email] });
-
-    return row?.key ?? null;
-  };
-
-  beforeAll(async () => {
-    token = await ApiHelper.login({ email: PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL });
-
-    const [row] = await DbHelper.query<{ id: string }>({
-      sql: 'SELECT id FROM users WHERE email = $1',
-      params: [PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL]
-    });
-
-    ownerId = row?.id ?? '';
-  });
-
-  afterAll(async () => {
-    await DbHelper.close();
-  });
-
   it('ignores a storage key sent by the client, so nobody can point at another account files', async () => {
     const victimKeyBefore = await storedKey(PROFILE_IMAGES_KEY_TEST.VICTIM_EMAIL);
 

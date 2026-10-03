@@ -8,41 +8,43 @@ interface Owner {
   walletId: string;
 }
 
+let alice: Owner;
+
+let bob: Owner;
+
+let app: Client;
+
+const asActor = async ({ actorId, sql, params }: { actorId: string | null; sql: string; params: unknown[] }): Promise<unknown[]> => {
+  await app.query('BEGIN');
+
+  try {
+    await app.query('SELECT set_config($1, $2, true)', ['app.current_user_id', actorId ?? '']);
+    const result = await app.query<Record<string, unknown>>(sql, params);
+    return result.rows;
+  } finally {
+    await app.query('COMMIT');
+  }
+};
+
+beforeAll(async () => {
+  const owners = await DbHelper.query<Owner>({
+    sql: 'SELECT w.user_id AS "userId", w.id AS "walletId" FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.role = $1 ORDER BY w.created_at LIMIT 2',
+    params: ['USER']
+  });
+
+  alice = owners[0] as Owner;
+  bob = owners[1] as Owner;
+  app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
+
+  await app.connect();
+});
+
+afterAll(async () => {
+  await app.end();
+  await DbHelper.close();
+});
+
 describe('Row-level security', () => {
-  let alice: Owner;
-  let bob: Owner;
-  let app: Client;
-
-  const asActor = async ({ actorId, sql, params }: { actorId: string | null; sql: string; params: unknown[] }): Promise<unknown[]> => {
-    await app.query('BEGIN');
-
-    try {
-      await app.query('SELECT set_config($1, $2, true)', ['app.current_user_id', actorId ?? '']);
-      const result = await app.query<Record<string, unknown>>(sql, params);
-      return result.rows;
-    } finally {
-      await app.query('COMMIT');
-    }
-  };
-
-  beforeAll(async () => {
-    const owners = await DbHelper.query<Owner>({
-      sql: 'SELECT w.user_id AS "userId", w.id AS "walletId" FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.role = $1 ORDER BY w.created_at LIMIT 2',
-      params: ['USER']
-    });
-
-    alice = owners[0] as Owner;
-    bob = owners[1] as Owner;
-    app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
-
-    await app.connect();
-  });
-
-  afterAll(async () => {
-    await app.end();
-    await DbHelper.close();
-  });
-
   it('runs the API login without the bypass that made the policies decorative', async () => {
     const [role] = await DbHelper.query<{ rolbypassrls: boolean }>({
       sql: 'SELECT rolbypassrls FROM pg_roles WHERE rolname = $1',

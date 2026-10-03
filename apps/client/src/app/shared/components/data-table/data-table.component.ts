@@ -1,4 +1,4 @@
-import { Component, input, output, computed, TemplateRef } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, computed, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -18,6 +18,7 @@ import { DataTableHelper } from './helpers/data-table.helper';
 @Component({
   selector: 'app-data-table',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterLink, PaginationComponent, ToggleComponent, ActionIconsComponent],
   templateUrl: './data-table.component.html'
 })

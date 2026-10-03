@@ -265,11 +265,11 @@ services:
     container_name: ddd_alertmanager
     ports:
       - "9093:9093"
-    entrypoint: ['/bin/sh', '-c']
-    command:
-      - 'printf %s "$$ALERT_WEBHOOK_TOKEN" > /tmp/alert-webhook-token && exec /bin/alertmanager --config.file=/etc/alertmanager-config/alertmanager.yml --storage.path=/alertmanager'
+    entrypoint: ['/bin/sh', '/etc/alertmanager-config/start.sh']
     environment:
       ALERT_WEBHOOK_TOKEN: ${ALERT_WEBHOOK_TOKEN:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     volumes:

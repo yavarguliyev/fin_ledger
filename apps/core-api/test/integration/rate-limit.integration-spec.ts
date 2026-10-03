@@ -6,12 +6,12 @@ import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
 const RATE_LIMIT_USERS = ['player20@realtime-wallet-payments.com', 'player21@realtime-wallet-payments.com'];
 
+afterAll(async () => DbHelper.close());
+
+const login = (email: string, clientIp: string): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: 'Wrong#Pass2026' }, clientIp });
+
 describe('Rate limiting', () => {
-  afterAll(async () => DbHelper.close());
-
-  const login = (email: string, clientIp: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: 'Wrong#Pass2026' }, clientIp });
-
   it('blocks the 6th wrong login for one email from one client within a minute', async () => {
     const clientIp = ApiHelper.randomIp();
 
@@ -44,7 +44,9 @@ describe('Rate limiting', () => {
 
     expect((await refresh(REFRESH_TEST.ONE_SESSION)).status).toBe(429);
   });
+});
 
+describe('Rate limiting: per user', () => {
   it('limits money requests per user, whatever the client IP', async () => {
     await LockoutHelper.clear({ emails: RATE_LIMIT_USERS });
 

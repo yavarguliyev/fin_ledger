@@ -18,6 +18,12 @@
     </div>
   }
 
+  @if (failed() && !loading()) {
+    <div class="rounded-2xl border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface">
+      <app-error-state [message]="states.LEDGER_ERROR" (retry)="loadEntries()" />
+    </div>
+  }
+
   <app-data-table [config]="tableConfig()" [data]="entries()" [loading]="loading()" />
 
   <!-- Server-side pagination (attached to DataTable card) -->

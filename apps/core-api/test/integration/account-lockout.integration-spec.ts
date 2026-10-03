@@ -5,39 +5,39 @@ import { DbHelper } from '../helpers/db.helper';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 import { LockoutRow } from '../interfaces/lockout-row.interface';
 
-describe('Account lockout', () => {
-  const login = (password: string): Promise<{ status: number; body: { error?: { message: string } } }> =>
-    ApiHelper.request({ method: 'POST', path: LOCKOUT_TEST.LOGIN_PATH, body: { email: LOCKOUT_TEST.EMAIL, password } });
+const login = (password: string): Promise<{ status: number; body: { error?: { message: string } } }> =>
+  ApiHelper.request({ method: 'POST', path: LOCKOUT_TEST.LOGIN_PATH, body: { email: LOCKOUT_TEST.EMAIL, password } });
 
-  const lockoutState = async (): Promise<LockoutRow | undefined> => {
-    const [row] = await DbHelper.query<LockoutRow>({
-      sql: 'SELECT failed_login_attempts AS attempts, (locked_until > now()) AS locked FROM users WHERE email = $1',
-      params: [LOCKOUT_TEST.EMAIL]
-    });
-
-    return row;
-  };
-
-  beforeAll(async () => {
-    const { EMAIL, DISPLAY_NAME, PASSWORD } = LOCKOUT_TEST;
-
-    await ApiHelper.request({
-      method: 'POST',
-      path: LOCKOUT_TEST.REGISTER_PATH,
-      body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
-    });
-
-    const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
-
-    await ApiHelper.request({
-      method: 'POST',
-      path: LOCKOUT_TEST.VERIFY_EMAIL_PATH,
-      body: { token: new URL(sent.url).searchParams.get('token') }
-    });
+const lockoutState = async (): Promise<LockoutRow | undefined> => {
+  const [row] = await DbHelper.query<LockoutRow>({
+    sql: 'SELECT failed_login_attempts AS attempts, (locked_until > now()) AS locked FROM users WHERE email = $1',
+    params: [LOCKOUT_TEST.EMAIL]
   });
 
-  afterAll(async () => DbHelper.close());
+  return row;
+};
 
+beforeAll(async () => {
+  const { EMAIL, DISPLAY_NAME, PASSWORD } = LOCKOUT_TEST;
+
+  await ApiHelper.request({
+    method: 'POST',
+    path: LOCKOUT_TEST.REGISTER_PATH,
+    body: { email: EMAIL, password: PASSWORD, displayName: DISPLAY_NAME, termsAccepted: true }
+  });
+
+  const sent = await EmailInboxHelper.waitFor({ to: EMAIL, topic: EMAIL_TOPICS.EMAIL_VERIFICATION });
+
+  await ApiHelper.request({
+    method: 'POST',
+    path: LOCKOUT_TEST.VERIFY_EMAIL_PATH,
+    body: { token: new URL(sent.url).searchParams.get('token') }
+  });
+});
+
+afterAll(async () => DbHelper.close());
+
+describe('Account lockout', () => {
   it('counts a wrong password without locking straight away', async () => {
     const attempt = await login(LOCKOUT_TEST.WRONG_PASSWORD);
 

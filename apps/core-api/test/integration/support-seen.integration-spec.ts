@@ -4,49 +4,51 @@ import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 
+let customer = '';
+
+let staff = '';
+
+let conversationId = '';
+
+const thread = (token: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
+  ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`, token });
+
+const send = (token: string, body: string): ReturnType<typeof ApiHelper.request<SupportMessage>> =>
+  ApiHelper.request<SupportMessage>({
+    method: 'POST',
+    path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`,
+    token,
+    body: { body }
+  });
+
+const markRead = (token: string): ReturnType<typeof ApiHelper.request> =>
+  ApiHelper.request({ method: 'POST', path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/read`, token, body: {} });
+
+beforeAll(async () => {
+  await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL] });
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL]] });
+
+  customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL });
+  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+
+  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
+
+  const opened = await ApiHelper.request<SupportConversation>({
+    method: 'POST',
+    path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
+    token: customer,
+    body: { staffUserId: row?.id }
+  });
+
+  conversationId = opened.body.id;
+});
+
+afterAll(async () => {
+  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL]] });
+  await DbHelper.close();
+});
+
 describe('Support read receipts', () => {
-  let customer = '';
-  let staff = '';
-  let conversationId = '';
-
-  const thread = (token: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
-    ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`, token });
-
-  const send = (token: string, body: string): ReturnType<typeof ApiHelper.request<SupportMessage>> =>
-    ApiHelper.request<SupportMessage>({
-      method: 'POST',
-      path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`,
-      token,
-      body: { body }
-    });
-
-  const markRead = (token: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/read`, token, body: {} });
-
-  beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL] });
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL]] });
-
-    customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL });
-    staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-    const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
-
-    const opened = await ApiHelper.request<SupportConversation>({
-      method: 'POST',
-      path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
-      token: customer,
-      body: { staffUserId: row?.id }
-    });
-
-    conversationId = opened.body.id;
-  });
-
-  afterAll(async () => {
-    await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CHAT_TEST.CUSTOMER_EMAIL]] });
-    await DbHelper.close();
-  });
-
   it('leaves a new message unseen until somebody else opens the thread', async () => {
     await send(customer, SUPPORT_CHAT_TEST.CUSTOMER_TEXT);
 
