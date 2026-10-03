@@ -17,3 +17,4 @@ keys/
 CLAUDE.md
 PROJECT-BACKLOG.md
 .mcp.json
+.playwright-mcp/
