@@ -9,7 +9,7 @@
 <div class="flex items-center justify-between py-2 gap-3">
   <div>
     <p class="text-sm font-medium text-ink-900 dark:text-white">Two-factor authentication</p>
-    <p class="text-xs text-ink-500 dark:text-ink-400">Ask for a code from your authenticator app when you sign in</p>
+    <p class="text-xs text-ink-500 dark:text-night-muted">Ask for a code from your authenticator app when you sign in</p>
   </div>
 
   @if (statusStore.status(); as current) {
@@ -52,7 +52,7 @@
         Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy…), then enter the 6-digit code it shows.
       </p>
       <img [src]="current.qrCodeDataUrl" alt="Two-factor QR code" class="mx-auto w-48 h-48 rounded-lg bg-white p-2" />
-      <p class="text-xs text-ink-500 dark:text-ink-400 text-center">
+      <p class="text-xs text-ink-500 dark:text-night-muted text-center">
         Can't scan it? Enter this key manually:
         <span class="block mt-1 font-mono text-sm text-ink-900 dark:text-white break-all" data-testid="mfa-manual-key">{{ manualKey() }}</span>
       </p>

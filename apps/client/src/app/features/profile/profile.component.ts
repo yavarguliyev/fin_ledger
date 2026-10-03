@@ -27,12 +27,13 @@ import { CountrySelectComponent } from '../../shared/components/country-select/c
 import { CalendarHelper } from '../../core/helpers/common/calendar.helper';
 import { ROLES } from '../../core/constants/auth/roles.constant';
 import { UploadProgressComponent } from '../../shared/components/upload-progress/upload-progress.component';
+import { ToggleComponent } from '../../shared/components/toggle/toggle.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent, NgOptimizedImage],
+  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent, ToggleComponent, NgOptimizedImage],
   providers: [ProfileFormService, ProfileSaveService],
   templateUrl: './templates/profile.component.html'
 })

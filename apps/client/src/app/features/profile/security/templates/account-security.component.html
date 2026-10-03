@@ -1,7 +1,7 @@
 <div class="flex items-center justify-between py-2 gap-3 border-t border-ink-100 dark:border-night-border">
   <div>
     <p class="text-sm font-medium text-ink-900 dark:text-white">Password</p>
-    <p class="text-xs text-ink-500 dark:text-ink-400">Changing it signs every other device out</p>
+    <p class="text-xs text-ink-500 dark:text-night-muted">Changing it signs every other device out</p>
   </div>
   <button type="button" (click)="openPassword()" class="text-sm font-medium text-primary hover:underline shrink-0">Change</button>
 </div>
@@ -9,7 +9,7 @@
 <div class="flex items-center justify-between py-2 gap-3 border-t border-ink-100 dark:border-night-border">
   <div>
     <p class="text-sm font-medium text-ink-900 dark:text-white">Email address</p>
-    <p class="text-xs text-ink-500 dark:text-ink-400">
+    <p class="text-xs text-ink-500 dark:text-night-muted">
       @if (pendingNotice()) {
         {{ pendingNotice() }}
       } @else {
@@ -98,7 +98,7 @@
       <app-field-error [control]="emailForm.get('currentPassword')" />
     </div>
 
-    <p class="text-xs text-ink-500 dark:text-ink-400">
+    <p class="text-xs text-ink-500 dark:text-night-muted">
       Nothing changes until you open the link we send to the new address. The old address gets a notice once it does.
     </p>
 

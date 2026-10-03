@@ -22,10 +22,13 @@ module.exports = {
           800: '#1F2937',
           900: '#111827'
         },
-        night: { bg: '#0F172A', surface: '#1E293B', border: '#334155' },
+        night: { bg: '#050A14', surface: '#0F192D', card: '#0F192D', sidebar: '#0A1423', hover: '#1A2540', border: '#273042', text: '#E2E8F0', muted: '#94A3B8' },
+        neon: { cyan: '#00D2FF', purple: '#9D50BB', blue: '#0B5CFF', pink: '#FF2D8B', violet: '#D63DFC', mint: '#4AE9D1', magenta: '#CE1BFB' },
         chat: { own: '#D9FDD3', 'own-dark': '#005C4B', seen: '#53BDEB', call: '#0B141A' },
         stripe: { DEFAULT: '#635BFF', dark: '#5349E4' },
-        google: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' }
+        google: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' },
+        signal: { on: '#13D162', 'on-light': '#22E36E', 'on-dark': '#0FA94F', off: '#D13613', 'off-light': '#E64A25', 'off-dark': '#A92A0F' },
+        chrome: { rim: '#F0EBEB', glow: '#FBFBFB', handle: '#E5E5E5' }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

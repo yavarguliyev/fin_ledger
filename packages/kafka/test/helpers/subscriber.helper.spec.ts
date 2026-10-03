@@ -1,11 +1,10 @@
 import { Logger } from '@nestjs/common';
-import type { InboxRepository } from '@common/database';
-import type { EachMessagePayload } from 'kafkajs';
 
 import { DispatchHelper } from '../../src/modules/helpers/dispatch.helper';
 import { SubscriberHelper } from '../../src/modules/helpers/subscriber.helper';
 import { KafkaMessageRecord } from '../../src/modules/interfaces/kafka-message-record.interface';
 import { SUBSCRIBER_SPEC as S } from '../constants/subscriber.constant';
+import { aMemoryInbox, anEachMessagePayload } from '../fakes/kafka.fake';
 
 class AuditListener {
   readonly seen: string[] = [];
@@ -23,20 +22,6 @@ class AnalyticsListener {
   }
 }
 
-type InboxEntry = Parameters<InboxRepository['wasProcessed']>[0];
-
-const memoryInbox = (): InboxRepository => {
-  const processed = new Set<string>();
-
-  return {
-    wasProcessed: ({ consumer, messageId }: InboxEntry) => Promise.resolve(processed.has(`${consumer}|${messageId}`)),
-    markProcessed: ({ consumer, messageId }: InboxEntry) => {
-      processed.add(`${consumer}|${messageId}`);
-      return Promise.resolve();
-    }
-  } as unknown as InboxRepository;
-};
-
 describe('SubscriberHelper', () => {
   it('names a handler after its class and method', () => {
     expect(SubscriberHelper.bind({ instance: new AuditListener(), methodName: S.METHOD })?.name).toBe(S.AUDIT_NAME);
@@ -50,14 +35,14 @@ describe('SubscriberHelper', () => {
     const audit = new AuditListener();
     const analytics = new AnalyticsListener();
     const handlers = [audit, analytics].map(instance => SubscriberHelper.bind({ instance, methodName: S.METHOD })!);
-    const payload = { topic: S.TOPIC, partition: S.PARTITION, message: { offset: S.OFFSET, headers: {}, value: null, key: null } } as unknown as EachMessagePayload;
+    const payload = anEachMessagePayload({ topic: S.TOPIC, partition: S.PARTITION, offset: S.OFFSET });
     const context = {
       handlers,
       record: { topic: S.TOPIC } as KafkaMessageRecord,
       payload,
       send: (): Promise<void> => Promise.resolve(),
       consumerGroup: S.GROUP,
-      inboxRepository: memoryInbox(),
+      inboxRepository: aMemoryInbox(),
       logger: new Logger(S.GROUP)
     };
 

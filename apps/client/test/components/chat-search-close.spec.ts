@@ -18,19 +18,17 @@ const create = (): ChatSearchComponent => {
   return runInInjectionContext(injector, () => new ChatSearchComponent());
 };
 
-const clickOn = (target: object): MouseEvent => aMouseEvent({ target });
-
 describe('Chat search panel', () => {
   beforeEach(() => toggle.mockClear());
 
   it('closes when the user clicks anywhere outside it', () => {
-    create().onDocumentClick(clickOn(outside));
+    create().onDocumentClick(aMouseEvent({ target: outside }));
 
     expect(toggle).toHaveBeenCalledTimes(1);
   });
 
   it('stays open while the user clicks inside it', () => {
-    create().onDocumentClick(clickOn(inside));
+    create().onDocumentClick(aMouseEvent({ target: inside }));
 
     expect(toggle).not.toHaveBeenCalled();
   });

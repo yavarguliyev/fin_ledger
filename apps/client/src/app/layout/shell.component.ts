@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, computed } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
@@ -26,7 +26,8 @@ import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/rece
   selector: 'app-shell',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, NgOptimizedImage],
-  templateUrl: './templates/shell.component.html'
+  templateUrl: './templates/shell.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShellComponent implements OnInit {
   private readonly auth = inject(AuthService);

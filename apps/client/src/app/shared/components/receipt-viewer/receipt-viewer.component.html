@@ -3,7 +3,7 @@
     @if (safeUrl(); as url) {
       <iframe [src]="url" [title]="text.IFRAME_TITLE" class="h-full w-full"></iframe>
     } @else {
-      <div class="flex h-full items-center justify-center gap-3 text-sm text-ink-500 dark:text-ink-400">
+      <div class="flex h-full items-center justify-center gap-3 text-sm text-ink-500 dark:text-night-muted">
         <span class="h-5 w-5 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></span>
         {{ text.LOADING }}
       </div>
@@ -14,7 +14,7 @@
     <button
       type="button"
       (click)="store.close()"
-      class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+      class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
     >
       {{ text.CLOSE_LABEL }}
     </button>

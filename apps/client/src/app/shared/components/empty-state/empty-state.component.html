@@ -4,7 +4,7 @@
   }
   <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ title() }}</p>
   @if (message()) {
-    <p class="max-w-sm text-sm text-ink-500 dark:text-ink-400">{{ message() }}</p>
+    <p class="max-w-sm text-sm text-ink-500 dark:text-night-muted">{{ message() }}</p>
   }
   @if (actionLabel()) {
     <button type="button" class="mt-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark" (click)="action.emit()">

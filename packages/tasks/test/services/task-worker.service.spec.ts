@@ -1,7 +1,7 @@
 import { TaskWorkerService } from '../../src/modules/services/task-worker.service';
-import { JobRepository } from '../../src/modules/repositories/job.repository';
 import { TaskRegistry } from '../../src/modules/services/task-registry.service';
 import { TASK_TEST } from '../constants/task.constant';
+import { aJobRepository } from '../fakes/job-repository.fake';
 
 describe('TaskWorkerService', () => {
   let claim: jest.Mock;
@@ -10,7 +10,7 @@ describe('TaskWorkerService', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     claim = jest.fn().mockResolvedValue([]);
-    const repository = { claim } as unknown as JobRepository;
+    const repository = aJobRepository({ claim });
     const options = { pollMs: TASK_TEST.POLL_MS, batchSize: TASK_TEST.BATCH_SIZE };
     worker = new TaskWorkerService(options, repository, {} as TaskRegistry);
   });

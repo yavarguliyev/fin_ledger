@@ -7,7 +7,6 @@ export const PRESENCE_INDEX_TEST = {
   HEARTBEAT_PATH: '/support/presence/heartbeat',
   PRESENCE_PATH: '/support/presence',
   LEAVE_PATH: '/support/presence/leave',
-  USER_ID_SQL: 'SELECT id FROM users WHERE email = $1',
   INDEX_KEY: 'presence-index',
   KEY_PREFIX: 'presence:',
   EXTRA_USERS: 40,

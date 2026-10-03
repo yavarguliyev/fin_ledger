@@ -1,10 +1,11 @@
-import { ArgumentsHost, BadRequestException, HttpStatus, InternalServerErrorException, Logger, ServiceUnavailableException } from '@nestjs/common';
+import { BadRequestException, HttpStatus, InternalServerErrorException, Logger, ServiceUnavailableException } from '@nestjs/common';
 
 import { UnifiedExceptionFilter } from '../../src/modules/filters/unified-exception.filter';
 import { ERROR_RESPONSES } from '../../src/modules/constants/errors/error-responses.constant';
 import { ApplicationError } from '../../src/modules/errors/application.error';
 import { InfrastructureError } from '../../src/modules/errors/infrastructure.error';
 import { MapExceptionRecord } from '../../src/modules/interfaces/map-exception-record.interface';
+import { anArgumentsHost } from '../fakes/http.fake';
 
 const run = (exception: unknown, correlationId = 'corr-1'): { status: number; body: MapExceptionRecord | null } => {
   const captured: { status: number; body: MapExceptionRecord | null } = { status: 0, body: null };
@@ -21,8 +22,7 @@ const run = (exception: unknown, correlationId = 'corr-1'): { status: number; bo
   };
 
   const request = { method: 'POST', url: '/test', correlationId };
-  const http = { getResponse: (): typeof response => response, getRequest: (): typeof request => request };
-  const host = { switchToHttp: (): typeof http => http } as unknown as ArgumentsHost;
+  const host = anArgumentsHost({ request, response });
 
   new UnifiedExceptionFilter().catch(exception, host);
   return captured;

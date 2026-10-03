@@ -10,10 +10,6 @@ interface FakeEvent {
   destination: string;
 }
 
-interface Relay {
-  poll: () => Promise<void>;
-}
-
 const batchOf = (size: number): FakeEvent[] =>
   Array.from({ length: size }, (_, index) => ({
     id: `event-${index}`,
@@ -34,7 +30,7 @@ describe('OutboxPublisherService draining', () => {
     const kafka = { send: jest.fn().mockResolvedValue(undefined) };
     const service = new OutboxPublisherService(repository as never, {} as never, kafka as never);
 
-    await (service as unknown as Relay)[OUTBOX_DRAIN_TEST.RELAY_POLL]();
+    await service[OUTBOX_DRAIN_TEST.RELAY_POLL]();
 
     expect(claimPendingBatch).toHaveBeenCalledTimes(OUTBOX_DRAIN_TEST.FULL_BATCHES + 1);
     expect(kafka.send).toHaveBeenCalledTimes(OUTBOX_DRAIN_TEST.FULL_BATCHES * OUTBOX_DRAIN_TEST.BATCH_SIZE + OUTBOX_DRAIN_TEST.LAST_BATCH);
@@ -50,7 +46,7 @@ describe('OutboxPublisherService draining', () => {
     const config = { get: (key: string): number | undefined => (key === OUTBOX_SETTINGS_TEST.BATCH_KEY ? OUTBOX_SETTINGS_TEST.SMALL_BATCH : undefined) };
     const service = new OutboxPublisherService(repository as never, {} as never, { send: jest.fn() } as never, config as never);
 
-    await (service as unknown as Relay)[OUTBOX_DRAIN_TEST.RELAY_POLL]();
+    await service[OUTBOX_DRAIN_TEST.RELAY_POLL]();
 
     expect(claimPendingBatch).toHaveBeenCalledTimes(OUTBOX_SETTINGS_TEST.FULL_BATCHES + 1);
     expect(claimPendingBatch).toHaveBeenCalledWith(expect.objectContaining({ limit: OUTBOX_SETTINGS_TEST.SMALL_BATCH }));

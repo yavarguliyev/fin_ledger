@@ -21,7 +21,7 @@
               </span>
 
               <span class="mt-0.5 flex items-center justify-between gap-2">
-                <span class="truncate text-xs" [class]="isOnline(contact) ? 'text-success' : 'text-ink-500 dark:text-ink-400'">
+                <span class="truncate text-xs" [class]="isOnline(contact) ? 'text-success' : 'text-ink-500 dark:text-night-muted'">
                   {{ status(contact) }}
                 </span>
                 @if (unread(contact) > 0) {

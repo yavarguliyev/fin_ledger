@@ -12,9 +12,6 @@ describe('Presence index upkeep', () => {
   let staff = '';
   let player = '';
 
-  const idOf = async (email: string): Promise<string> =>
-    (await DbHelper.query<{ id: string }>({ sql: T.USER_ID_SQL, params: [email] }))[0]?.id ?? '';
-
   const heartbeat = (token: string): ReturnType<typeof ApiHelper.request> =>
     ApiHelper.request({ method: 'POST', path: T.HEARTBEAT_PATH, token, body: {} });
 
@@ -33,9 +30,9 @@ describe('Presence index upkeep', () => {
     await expect(heartbeat(staff)).resolves.toMatchObject({ status: T.CREATED });
     await expect(heartbeat(player)).resolves.toMatchObject({ status: T.CREATED });
 
-    await expect(redis.zscore(T.STAFF_INDEX_KEY, await idOf(T.STAFF_EMAIL))).resolves.not.toBeNull();
-    await expect(redis.zscore(T.STAFF_INDEX_KEY, await idOf(T.PLAYER_EMAIL))).resolves.toBeNull();
-    await expect(redis.zscore(T.INDEX_KEY, await idOf(T.PLAYER_EMAIL))).resolves.not.toBeNull();
+    await expect(redis.zscore(T.STAFF_INDEX_KEY, await TestUserHelper.idOf({ email: T.STAFF_EMAIL }))).resolves.not.toBeNull();
+    await expect(redis.zscore(T.STAFF_INDEX_KEY, await TestUserHelper.idOf({ email: T.PLAYER_EMAIL }))).resolves.toBeNull();
+    await expect(redis.zscore(T.INDEX_KEY, await TestUserHelper.idOf({ email: T.PLAYER_EMAIL }))).resolves.not.toBeNull();
   });
 
   it('drops users whose presence expired without a leave on the next heartbeat', async () => {
@@ -49,6 +46,6 @@ describe('Presence index upkeep', () => {
 
     await expect(redis.zscore(T.INDEX_KEY, vanished)).resolves.toBeNull();
     await expect(redis.zscore(T.STAFF_INDEX_KEY, vanished)).resolves.toBeNull();
-    await expect(redis.zscore(T.INDEX_KEY, await idOf(T.PLAYER_EMAIL))).resolves.not.toBeNull();
+    await expect(redis.zscore(T.INDEX_KEY, await TestUserHelper.idOf({ email: T.PLAYER_EMAIL }))).resolves.not.toBeNull();
   });
 });

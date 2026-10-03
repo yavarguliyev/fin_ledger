@@ -47,6 +47,5 @@ export const LOGIN_STATUS_TEST = {
   COUNT_SQL: 'SELECT count(*)::int AS count FROM users WHERE email = $1',
   TERMS_SQL: "SELECT terms_accepted_at > now() - interval '1 minute' AS accepted_recently FROM users WHERE email = $1",
   STATUS_BY_EMAIL_SQL: 'SELECT status FROM users WHERE email = $1',
-  STATUS_BY_ID_SQL: 'SELECT status FROM users WHERE id = $1',
-  ID_BY_EMAIL_SQL: 'SELECT id FROM users WHERE email = $1'
+  STATUS_BY_ID_SQL: 'SELECT status FROM users WHERE id = $1'
 } as const;

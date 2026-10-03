@@ -53,12 +53,12 @@ describe('Presence lookups do not grow with the number of users online', () => {
   it('takes a user out of the index when they leave', async () => {
     await TestUserHelper.ensure({ emails: [T.LEAVER_EMAIL] });
     const leaver = await ApiHelper.login({ email: T.LEAVER_EMAIL });
-    const [user] = await DbHelper.query<{ id: string }>({ sql: T.USER_ID_SQL, params: [T.LEAVER_EMAIL] });
+    const leaverId = await TestUserHelper.idOf({ email: T.LEAVER_EMAIL });
 
     await ApiHelper.request({ method: 'POST', path: T.HEARTBEAT_PATH, token: leaver, body: {} });
-    await expect(redis.zscore(T.INDEX_KEY, user?.id as string)).resolves.not.toBeNull();
+    await expect(redis.zscore(T.INDEX_KEY, leaverId)).resolves.not.toBeNull();
 
     await ApiHelper.request({ method: 'POST', path: T.LEAVE_PATH, token: leaver, body: {} });
-    await expect(redis.zscore(T.INDEX_KEY, user?.id as string)).resolves.toBeNull();
+    await expect(redis.zscore(T.INDEX_KEY, leaverId)).resolves.toBeNull();
   });
 });

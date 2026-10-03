@@ -11,13 +11,13 @@
       }
       <div>
         <p class="font-semibold text-ink-900 dark:text-white">{{ userName() }}</p>
-        <p class="text-sm text-ink-500 dark:text-ink-400">{{ maskedEmail() }}</p>
+        <p class="text-sm text-ink-500 dark:text-night-muted">{{ maskedEmail() }}</p>
         <span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary capitalize">{{ role() }}</span>
       </div>
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-2">Profile Images</label>
+      <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-2">Profile Images</label>
       <div class="flex items-center gap-3">
         <label
           class="cursor-pointer px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors text-sm flex items-center gap-2"
@@ -57,7 +57,7 @@
 
     @if (imageService.hasImages()) {
       <div class="mb-5">
-        <h3 class="text-sm font-medium text-ink-700 dark:text-ink-200 mb-3">Image Gallery</h3>
+        <h3 class="text-sm font-medium text-ink-700 dark:text-night-text mb-3">Image Gallery</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
           @for (image of visibleImages(); track image.index) {
             <div class="relative group">
@@ -113,15 +113,15 @@
 
     <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-4">
       <div>
-        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Email (read-only)</label>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Email (read-only)</label>
         <input
           [value]="email()"
           disabled
-          class="w-full px-4 py-2.5 rounded-lg border border-ink-200 dark:border-night-border bg-ink-50 dark:bg-night-bg text-ink-500 dark:text-ink-400"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-200 dark:border-night-border bg-ink-50 dark:bg-night-bg text-ink-500 dark:text-night-muted"
         />
       </div>
       <div>
-        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Display name</label>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Display name</label>
         <input
           formControlName="displayName"
           class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -131,19 +131,19 @@
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Country</label>
+          <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Country</label>
           <app-country-select formControlName="countryCode" ariaLabel="Country" />
           <app-field-error [control]="profileForm.get('countryCode')" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Date of birth</label>
+          <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Date of birth</label>
           <app-date-picker formControlName="dateOfBirth" [min]="earliestBirthDate" [max]="latestBirthDate" ariaLabel="Date of birth" />
           <app-field-error [control]="profileForm.get('dateOfBirth')" />
         </div>
       </div>
 
       @if (identityLocked()) {
-        <p class="text-xs text-ink-500 dark:text-ink-400">
+        <p class="text-xs text-ink-500 dark:text-night-muted">
           Country and date of birth are locked because your identity is verified. Contact support to change them.
         </p>
       }
@@ -188,25 +188,9 @@
     <div class="flex items-center justify-between py-3">
       <div>
         <p class="text-sm font-medium text-ink-900 dark:text-white">Dark mode</p>
-        <p class="text-xs text-ink-500 dark:text-ink-400">Toggle between light and dark theme</p>
+        <p class="text-xs text-ink-500 dark:text-night-muted">Toggle between light and dark theme</p>
       </div>
-      <button
-        type="button"
-        (click)="toggleTheme()"
-        role="switch"
-        aria-label="Dark mode"
-        [attr.aria-checked]="isDark()"
-        class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-        [class.bg-primary]="isDark()"
-        [class.bg-ink-300]="!isDark()"
-        [class.dark:bg-ink-600]="!isDark()"
-      >
-        <span
-          class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-          [class.translate-x-5]="isDark()"
-          [class.translate-x-0]="!isDark()"
-        ></span>
-      </button>
+      <app-toggle [checked]="isDark()" label="Dark mode" variant="preference" (toggleChange)="toggleTheme()" />
     </div>
   </div>
 
@@ -224,17 +208,17 @@
         <div>
           <p class="text-sm font-medium text-ink-900 dark:text-white">Member since</p>
         </div>
-        <span class="text-sm text-ink-500 dark:text-ink-400">{{ memberSince() }}</span>
+        <span class="text-sm text-ink-500 dark:text-night-muted">{{ memberSince() }}</span>
       </div>
 
       <div class="flex items-center justify-between py-3 border-t border-ink-200 dark:border-night-border">
         <div>
           <p class="text-sm font-medium text-ink-900 dark:text-white">Last sign-in</p>
           @if (lastLoginIp()) {
-            <p class="text-xs text-ink-500 dark:text-ink-400">from {{ lastLoginIp() }}</p>
+            <p class="text-xs text-ink-500 dark:text-night-muted">from {{ lastLoginIp() }}</p>
           }
         </div>
-        <span class="text-sm text-ink-500 dark:text-ink-400">{{ lastLogin() }}</span>
+        <span class="text-sm text-ink-500 dark:text-night-muted">{{ lastLogin() }}</span>
       </div>
     </div>
   </div>

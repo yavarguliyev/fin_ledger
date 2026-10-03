@@ -45,6 +45,8 @@ import { MfaStatusResponseDto } from './dtos/response/mfa-status-response.dto';
 import { MfaEnrollmentResponseDto } from './dtos/response/mfa-enrollment-response.dto';
 import { MfaRecoveryCodesResponseDto } from './dtos/response/mfa-recovery-codes-response.dto';
 import { MfaDisabledResponseDto } from './dtos/response/mfa-disabled-response.dto';
+import { JwksResponseDto } from './dtos/response/jwks-response.dto';
+import { GetJwksUseCase } from './use-cases/queries/get-jwks.use-case';
 
 @Injectable()
 export class AuthService {
@@ -66,7 +68,8 @@ export class AuthService {
     private readonly enableMfaUseCase: EnableMfaUseCase,
     private readonly disableMfaUseCase: DisableMfaUseCase,
     private readonly verifyMfaLoginUseCase: VerifyMfaLoginUseCase,
-    private readonly regenerateRecoveryCodesUseCase: RegenerateRecoveryCodesUseCase
+    private readonly regenerateRecoveryCodesUseCase: RegenerateRecoveryCodesUseCase,
+    private readonly getJwksUseCase: GetJwksUseCase
   ) {}
 
   async register (dto: RegisterDto): Promise<RegisterResponseDto> {
@@ -139,5 +142,9 @@ export class AuthService {
 
   async verifyMfaLogin (dto: VerifyMfaLoginDto): Promise<AuthResponseDto> {
     return this.verifyMfaLoginUseCase.execute(dto);
+  }
+
+  async getJwks (): Promise<JwksResponseDto> {
+    return this.getJwksUseCase.execute();
   }
 }

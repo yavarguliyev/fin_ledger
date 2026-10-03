@@ -1,27 +1,29 @@
 import { Injectable, signal, computed, effect } from '@angular/core';
 
 import { Theme } from '../types/ui/theme.type';
+import { THEME } from '../constants/ui/theme.constant';
+import { ThemeHelper } from '../helpers/ui/theme.helper';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly themeSignal = signal<Theme>(this.readTheme());
 
   readonly theme = computed(() => this.themeSignal());
-  readonly isDark = computed(() => this.themeSignal() === 'dark');
+  readonly isDark = computed(() => this.themeSignal() === THEME.DARK);
 
   constructor () {
     effect(() => {
       const theme = this.themeSignal();
 
-      if (theme === 'dark') document.documentElement.classList.add('dark');
-      else document.documentElement.classList.remove('dark');
+      if (theme === THEME.DARK) document.documentElement.classList.add(THEME.DARK_CLASS);
+      else document.documentElement.classList.remove(THEME.DARK_CLASS);
 
-      localStorage.setItem('theme', theme);
+      localStorage.setItem(THEME.STORAGE_KEY, theme);
     });
   }
 
   toggle (): void {
-    this.themeSignal.update(t => (t === 'dark' ? 'light' : 'dark'));
+    this.themeSignal.update(t => (t === THEME.DARK ? THEME.LIGHT : THEME.DARK));
   }
 
   set (theme: Theme): void {
@@ -29,8 +31,6 @@ export class ThemeService {
   }
 
   private readTheme (): Theme {
-    const stored = localStorage.getItem('theme');
-    if (stored === 'dark' || stored === 'light') return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return ThemeHelper.initial({ stored: localStorage.getItem(THEME.STORAGE_KEY) });
   }
 }

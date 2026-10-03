@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-ink-900 dark:text-white">Notifications</h1>
-      <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ unread() }} unread</p>
+      <p class="text-sm text-ink-500 dark:text-night-muted mt-1">{{ unread() }} unread</p>
     </div>
     <button
       (click)="markAll()"
@@ -52,7 +52,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-ink-900 dark:text-white">{{ n.title }}</p>
-            <p class="text-sm text-ink-500 dark:text-ink-400">{{ n.content }}</p>
+            <p class="text-sm text-ink-500 dark:text-night-muted">{{ n.content }}</p>
             <p class="text-xs text-ink-400 dark:text-ink-500 mt-1">{{ n.createdAt | relativeTime }}</p>
           </div>
           @if (n.status !== 'READ') {
@@ -75,7 +75,7 @@
     <div class="flex justify-center">
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
+        class="inline-flex items-center gap-2 rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-night-text hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
         [disabled]="history.loading()"
         (click)="history.loadOlder()"
       >

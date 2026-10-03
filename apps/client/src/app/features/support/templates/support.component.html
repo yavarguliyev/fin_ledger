@@ -6,7 +6,7 @@
     <header class="px-4 py-3 border-b border-ink-200 dark:border-ink-800">
       <h1 class="text-sm font-semibold text-ink-900 dark:text-white">{{ chat.isStaff() ? labels.TITLE : labels.CONTACTS_TITLE }}</h1>
       @if (chat.isStaff()) {
-        <p class="text-xs text-ink-500 dark:text-ink-400">{{ conversationCount }}</p>
+        <p class="text-xs text-ink-500 dark:text-night-muted">{{ conversationCount }}</p>
       }
     </header>
 
@@ -56,7 +56,7 @@
               @if (peer.typing()) {
                 <span class="italic text-primary">{{ view.TYPING_LABEL }}</span>
               } @else {
-                <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-ink-400'">{{ peer.status() }}</span>
+                <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-night-muted'">{{ peer.status() }}</span>
               }
             </p>
           </div>
@@ -166,7 +166,7 @@
       @if (newMessages.showJump()) {
         <button
           type="button"
-          class="absolute bottom-3 right-4 grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-night-card text-ink-600 dark:text-ink-200 shadow-lg ring-1 ring-ink-100 dark:ring-night-border hover:text-primary"
+          class="absolute bottom-3 right-4 grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-night-card text-ink-600 dark:text-night-text shadow-lg ring-1 ring-ink-100 dark:ring-night-border hover:text-primary"
           [attr.aria-label]="view.JUMP_LABEL"
           [title]="view.JUMP_LABEL"
           (click)="scroller.jumpToLatest()"

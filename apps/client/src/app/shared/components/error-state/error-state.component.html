@@ -1,10 +1,10 @@
 <div class="flex flex-col items-center gap-2 px-5 py-10 text-center" role="alert">
   <span class="grid h-12 w-12 place-items-center rounded-full bg-danger/10 text-xl text-danger" aria-hidden="true">!</span>
   <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ title() }}</p>
-  <p class="max-w-sm text-sm text-ink-500 dark:text-ink-400">{{ message() }}</p>
+  <p class="max-w-sm text-sm text-ink-500 dark:text-night-muted">{{ message() }}</p>
   <button
     type="button"
-    class="mt-2 inline-flex items-center gap-2 rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
+    class="mt-2 inline-flex items-center gap-2 rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-night-text hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
     [disabled]="retrying()"
     (click)="retry.emit()"
   >

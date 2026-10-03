@@ -3,12 +3,13 @@ import { DestroyRef, Injector, runInInjectionContext } from '@angular/core';
 import { FileDropDirective } from '../../src/app/features/support/directives/file-drop.directive';
 import { FILE_DROP_TEST as T } from '../constants/file-drop.constant';
 import { aDragEvent } from '../fakes/dom.fake';
+import { DragTypesFakeDto } from '../interfaces/dom-fake.interface';
 
 const file = new File([T.CONTENT], T.FILE_NAME, { type: T.FILE_TYPE });
 
 const prevent = jest.fn();
 
-const dragEvent = (types: string[]): DragEvent => aDragEvent({ types, files: types.includes(T.FILES) ? [file] : [], preventDefault: prevent });
+const dragEvent = ({ types }: DragTypesFakeDto): DragEvent => aDragEvent({ types, files: types.includes(T.FILES) ? [file] : [], preventDefault: prevent });
 
 const create = (): FileDropDirective => {
   const injector = Injector.create({ providers: [{ provide: DestroyRef, useValue: { onDestroy: (): (() => void) => () => undefined } }] });
@@ -20,13 +21,13 @@ describe('FileDropDirective', () => {
 
   it('keeps the overlay while the pointer moves between inner elements', () => {
     const directive = create();
-    directive.onEnter(dragEvent([T.FILES]));
-    directive.onEnter(dragEvent([T.FILES]));
-    directive.onLeave(dragEvent([T.FILES]));
+    directive.onEnter(dragEvent({ types: [T.FILES] }));
+    directive.onEnter(dragEvent({ types: [T.FILES] }));
+    directive.onLeave(dragEvent({ types: [T.FILES] }));
 
     expect(directive.dragging()).toBe(true);
 
-    directive.onLeave(dragEvent([T.FILES]));
+    directive.onLeave(dragEvent({ types: [T.FILES] }));
     expect(directive.dragging()).toBe(false);
   });
 
@@ -34,7 +35,7 @@ describe('FileDropDirective', () => {
     const directive = create();
     const received: File[][] = [];
     directive.dropped.subscribe(files => received.push(files));
-    const event = dragEvent([T.FILES]);
+    const event = dragEvent({ types: [T.FILES] });
 
     directive.onEnter(event);
     directive.onDrop(event);
@@ -46,7 +47,7 @@ describe('FileDropDirective', () => {
 
   it('leaves dragged text alone', () => {
     const directive = create();
-    const event = dragEvent([T.TEXT]);
+    const event = dragEvent({ types: [T.TEXT] });
     directive.onEnter(event);
 
     expect(directive.dragging()).toBe(false);

@@ -1,7 +1,7 @@
 <div class="flex items-center justify-between py-2 gap-3">
   <div>
     <p class="text-sm font-medium text-ink-900 dark:text-white">Passkeys</p>
-    <p class="text-xs text-ink-500 dark:text-ink-400">
+    <p class="text-xs text-ink-500 dark:text-night-muted">
       Sign in with Face ID or a fingerprint. Your device keeps the biometric; we only store a public key.
     </p>
   </div>
@@ -30,7 +30,7 @@
       <li class="flex items-center justify-between gap-3 rounded-lg border border-ink-200 dark:border-ink-700 px-3 py-2">
         <div class="min-w-0">
           <p class="truncate text-sm text-ink-900 dark:text-white">{{ item.deviceLabel || 'Passkey' }}</p>
-          <p class="text-xs text-ink-500 dark:text-ink-400">
+          <p class="text-xs text-ink-500 dark:text-night-muted">
             Added {{ item.createdAt | date: 'mediumDate' }} ·
             {{ item.lastUsedAt ? 'last used ' + (item.lastUsedAt | date: 'mediumDate') : neverUsed }}
           </p>

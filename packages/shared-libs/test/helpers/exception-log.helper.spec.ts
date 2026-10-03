@@ -1,11 +1,10 @@
-import { InternalServerErrorException, Logger, UnauthorizedException } from '@nestjs/common';
+import { InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 
 import { ThrottlerException } from '@nestjs/throttler';
 
 import { ExceptionLogHelper } from '../../src/modules/helpers/exception-log.helper';
 import { EXCEPTION_LOG_SPEC as E } from '../constants/exception-log.constant';
-
-const fakeLogger = (): jest.Mocked<Pick<Logger, 'debug' | 'warn' | 'error'>> => ({ debug: jest.fn(), warn: jest.fn(), error: jest.fn() });
+import { aLogger } from '../fakes/http.fake';
 
 describe('ExceptionLogHelper', () => {
   it('logs expected auth failures at debug, other client errors at warn and server errors at error', () => {
@@ -17,53 +16,53 @@ describe('ExceptionLogHelper', () => {
   });
 
   it('writes one line with the status and correlation id, never a second JSON line', () => {
-    const logger = fakeLogger();
+    const { logger, debug, warn } = aLogger();
     const request = { method: E.METHOD, url: E.URL };
 
     ExceptionLogHelper.write({
-      logger: logger as unknown as Logger,
+      logger,
       exception: new UnauthorizedException(E.EXPIRED),
       correlationId: E.CORRELATION_ID,
       request,
       status: E.UNAUTHORIZED
     });
 
-    expect(logger.debug).toHaveBeenCalledTimes(1);
-    expect(logger.debug.mock.calls[0]).toHaveLength(1);
-    expect(logger.debug.mock.calls[0]?.[0]).toEqual(expect.stringContaining(`${E.UNAUTHORIZED}`));
-    expect(logger.debug.mock.calls[0]?.[0]).toEqual(expect.stringContaining(E.CORRELATION_ID));
-    expect(logger.warn).not.toHaveBeenCalled();
+    expect(debug).toHaveBeenCalledTimes(1);
+    expect(debug.mock.calls[0]).toHaveLength(1);
+    expect(debug.mock.calls[0]?.[0]).toEqual(expect.stringContaining(`${E.UNAUTHORIZED}`));
+    expect(debug.mock.calls[0]?.[0]).toEqual(expect.stringContaining(E.CORRELATION_ID));
+    expect(warn).not.toHaveBeenCalled();
   });
 
   it('keeps the stack trace for server errors', () => {
-    const logger = fakeLogger();
+    const { logger, error } = aLogger();
 
     ExceptionLogHelper.write({
-      logger: logger as unknown as Logger,
+      logger,
       exception: new InternalServerErrorException(E.BROKEN),
       correlationId: E.CORRELATION_ID,
       request: { method: E.METHOD, url: E.URL },
       status: E.SERVER_ERROR
     });
 
-    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining(E.BROKEN), expect.stringContaining('Error'));
+    expect(error).toHaveBeenCalledWith(expect.stringContaining(E.BROKEN), expect.stringContaining('Error'));
   });
 
 });
 
 describe('ExceptionLogHelper message', () => {
   it('does not repeat the exception type when the message already starts with it', () => {
-    const logger = fakeLogger();
+    const { logger, warn } = aLogger();
 
     ExceptionLogHelper.write({
-      logger: logger as unknown as Logger,
+      logger,
       exception: new ThrottlerException(),
       correlationId: E.CORRELATION_ID,
       request: { method: E.METHOD, url: E.URL },
       status: E.TOO_MANY
     });
 
-    expect(logger.warn.mock.calls[0]?.[0]).toContain(E.THROTTLED_LINE);
-    expect(logger.warn.mock.calls[0]?.[0]).not.toContain(E.DOUBLED);
+    expect(warn.mock.calls[0]?.[0]).toContain(E.THROTTLED_LINE);
+    expect(warn.mock.calls[0]?.[0]).not.toContain(E.DOUBLED);
   });
 });

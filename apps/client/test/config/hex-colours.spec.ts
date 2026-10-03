@@ -22,4 +22,8 @@ describe('Colours in components', () => {
   it('come from the Tailwind theme, never a hex value in a template or class string', () => {
     expect(sources({ dir: T.APP_ROOT }).flatMap(file => hexColours({ file }))).toEqual([]);
   });
+
+  it('come from the Tailwind theme in the global stylesheet too', () => {
+    expect(hexColours({ file: T.GLOBAL_STYLES })).toEqual([]);
+  });
 });

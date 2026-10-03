@@ -28,7 +28,7 @@
   @if (files().length > 0) {
     <ul class="flex flex-wrap gap-2 px-4 pt-2">
       @for (file of files(); track $index) {
-        <li class="flex items-center gap-2 rounded-lg bg-ink-100 dark:bg-night-bg px-2.5 py-1 text-xs text-ink-700 dark:text-ink-200">
+        <li class="flex items-center gap-2 rounded-lg bg-ink-100 dark:bg-night-bg px-2.5 py-1 text-xs text-ink-700 dark:text-night-text">
           <span class="max-w-40 truncate">{{ file.name }}</span>
           <span class="text-ink-400">{{ size(file) }}</span>
           <button type="button" class="text-ink-400 hover:text-danger" [attr.aria-label]="attachment.REMOVE_FILE" (click)="remove($index)">✕</button>

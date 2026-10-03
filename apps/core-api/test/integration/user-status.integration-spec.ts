@@ -1,77 +1,74 @@
+import { HTTP_STATUS } from '../constants/http-status.constant';
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
+import { USER_STATUS_TEST as T } from '../constants/user-status.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
-
-const email = 'player9@realtime-wallet-payments.com';
+import { TestUserHelper } from '../helpers/test-user.helper';
+import { AdminUsersBody, ChangeStatusDto, UserStatusBody } from '../interfaces/user-status.interface';
 
 let admin: string;
 
 let userId: string;
 
 const login = (): ReturnType<typeof ApiHelper.request> =>
-  ApiHelper.request({ method: 'POST', path: '/auth/login', body: { email, password: SEED_PASSWORD } });
+  ApiHelper.request({ method: 'POST', path: T.LOGIN_PATH, body: { email: T.EMAIL, password: SEED_PASSWORD } });
 
-const changeStatus = (action: 'suspend' | 'reactivate', token = admin, id = userId): ReturnType<typeof ApiHelper.request<{ status: string }>> =>
-  ApiHelper.request<{ status: string }>({ method: 'POST', path: `/users/${id}/${action}`, token });
+const changeStatus = ({ action, token = admin, id = userId }: ChangeStatusDto): ReturnType<typeof ApiHelper.request<UserStatusBody>> =>
+  ApiHelper.request<UserStatusBody>({ method: 'POST', path: T.STATUS_PATH({ id, action }), token });
+
+const dashboard = (): ReturnType<typeof ApiHelper.request<AdminUsersBody>> =>
+  ApiHelper.request<AdminUsersBody>({ method: 'GET', path: T.DASHBOARD_PATH, token: admin });
 
 beforeAll(async () => {
-  admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
-  const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users WHERE email = $1', params: [email] });
-  userId = user?.id as string;
+  admin = await ApiHelper.login({ email: T.ADMIN_EMAIL });
+  userId = await TestUserHelper.idOf({ email: T.EMAIL });
 });
 
 afterAll(async () => DbHelper.close());
 
 describe('Suspending and reactivating users', () => {
   it('ends the open session on suspension and blocks login until reactivated', async () => {
-    const session = await ApiHelper.login({ email });
+    const session = await ApiHelper.login({ email: T.EMAIL });
 
-    await expect(ApiHelper.request({ method: 'GET', path: '/wallets', token: session })).resolves.toMatchObject({ status: 200 });
-    await expect(changeStatus('suspend')).resolves.toMatchObject({ status: 201, body: { status: 'SUSPENDED' } });
-    await expect(ApiHelper.request({ method: 'GET', path: '/wallets', token: session })).resolves.toMatchObject({ status: 401 });
-    await expect(login()).resolves.toMatchObject({ status: 401, body: { error: { message: 'Invalid credentials' } } });
-    await expect(changeStatus('suspend')).resolves.toMatchObject({ status: 409 });
-    await expect(changeStatus('reactivate')).resolves.toMatchObject({ status: 201, body: { status: 'ACTIVE' } });
-    await expect(login()).resolves.toMatchObject({ status: 201 });
+    await expect(ApiHelper.request({ method: 'GET', path: T.WALLETS_PATH, token: session })).resolves.toMatchObject({ status: HTTP_STATUS.OK });
+    await expect(changeStatus({ action: T.SUSPEND })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED, body: { status: T.SUSPENDED } });
+    await expect(ApiHelper.request({ method: 'GET', path: T.WALLETS_PATH, token: session })).resolves.toMatchObject({ status: HTTP_STATUS.UNAUTHORIZED });
+    await expect(login()).resolves.toMatchObject({ status: HTTP_STATUS.UNAUTHORIZED, body: { error: { message: T.INVALID_CREDENTIALS } } });
+    await expect(changeStatus({ action: T.SUSPEND })).resolves.toMatchObject({ status: HTTP_STATUS.CONFLICT });
+    await expect(changeStatus({ action: T.REACTIVATE })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED, body: { status: T.ACTIVE } });
+    await expect(login()).resolves.toMatchObject({ status: HTTP_STATUS.CREATED });
   });
 
   it('shows the account status in the admin user list so the table can act on it', async () => {
-    const dashboard = (): ReturnType<typeof ApiHelper.request<{ users: { id: string; user_status: string; status: string | null }[] }>> =>
-      ApiHelper.request<{ users: { id: string; user_status: string; status: string | null }[] }>({
-        method: 'GET',
-        path: '/admin/dashboard',
-        token: admin
-      });
-
     const before = await dashboard();
     const listed = before.body?.users.find(user => user.id === userId);
 
-    expect(listed?.user_status).toBe('ACTIVE');
+    expect(listed?.user_status).toBe(T.ACTIVE);
 
-    await expect(changeStatus('suspend')).resolves.toMatchObject({ status: 201 });
+    await expect(changeStatus({ action: T.SUSPEND })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED });
 
     const after = await dashboard();
     const suspended = after.body?.users.find(user => user.id === userId);
 
-    expect(suspended?.user_status).toBe('SUSPENDED');
-    expect(suspended?.status).not.toBe('SUSPENDED');
+    expect(suspended?.user_status).toBe(T.SUSPENDED);
+    expect(suspended?.status).not.toBe(T.SUSPENDED);
 
-    await expect(changeStatus('reactivate')).resolves.toMatchObject({ status: 201 });
+    await expect(changeStatus({ action: T.REACTIVATE })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED });
   });
 
   it('never reactivates a closed account', async () => {
-    await DbHelper.query({ sql: "UPDATE users SET status = 'CLOSED' WHERE id = $1", params: [userId] });
-    await expect(changeStatus('reactivate')).resolves.toMatchObject({ status: 409 });
-    await expect(DbHelper.query({ sql: 'SELECT status FROM users WHERE id = $1', params: [userId] })).resolves.toEqual([{ status: 'CLOSED' }]);
+    await DbHelper.query({ sql: T.CLOSE_SQL, params: [userId] });
+    await expect(changeStatus({ action: T.REACTIVATE })).resolves.toMatchObject({ status: HTTP_STATUS.CONFLICT });
+    await expect(DbHelper.query({ sql: T.STATUS_SQL, params: [userId] })).resolves.toEqual([{ status: T.CLOSED }]);
   });
 });
 
 describe('Suspending and reactivating users: permissions', () => {
   it('refuses self-suspension and non-admins', async () => {
-    const [self] = await DbHelper.query<{ id: string }>({ sql: "SELECT id FROM users WHERE email = 'admin@realtime-wallet-payments.com'" });
-    await expect(changeStatus('suspend', admin, self?.id)).resolves.toMatchObject({ status: 400 });
+    const selfId = await TestUserHelper.idOf({ email: T.ADMIN_EMAIL });
+    await expect(changeStatus({ action: T.SUSPEND, id: selfId })).resolves.toMatchObject({ status: HTTP_STATUS.BAD_REQUEST });
 
-    const player = await ApiHelper.login({ email: 'player1@realtime-wallet-payments.com' });
-    await expect(changeStatus('suspend', player)).resolves.toMatchObject({ status: 403 });
+    const player = await ApiHelper.login({ email: T.PLAYER_EMAIL });
+    await expect(changeStatus({ action: T.SUSPEND, token: player })).resolves.toMatchObject({ status: HTTP_STATUS.FORBIDDEN });
   });
 });

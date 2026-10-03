@@ -6,7 +6,6 @@ export const SUPPORT_CHAT_TEST = {
   OTHER_EMAIL: 'chat-other@support-tests.realtime-wallet-payments.com',
   STAFF_EMAIL: 'moderator@realtime-wallet-payments.com',
   ADMIN_EMAIL: 'admin@realtime-wallet-payments.com',
-  USER_ID_SQL: 'SELECT id FROM users WHERE email = $1',
   CONTACTS_PATH: '/support/contacts',
   LOGOUT_PATH: '/auth/logout',
   STAFF_ROLES: ['GLOBAL_ADMIN', 'ADMIN', 'MODERATOR'] as readonly string[],

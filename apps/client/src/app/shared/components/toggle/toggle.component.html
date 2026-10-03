@@ -1,5 +1,8 @@
-<div class="toggle-border">
-  <input [id]="id()" type="checkbox" [checked]="checked()" [disabled]="disabled()" (change)="onToggle($event)" />
+<div class="toggle-border" [class.toggle-preference]="variant() === preference" [class.toggle-animated]="animated()"
+  (pointerdown)="enableAnimation()"
+  (keydown)="enableAnimation()"
+>
+  <input [id]="id()" type="checkbox" [attr.aria-label]="label()" [checked]="checked()" [disabled]="disabled()" (change)="onToggle($event)" />
   <label [for]="id()">
     <div class="handle"></div>
   </label>

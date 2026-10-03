@@ -30,6 +30,11 @@ export * from './modules/guards/session.guard';
 export * from './modules/constants/password/password-prefixes.constant';
 export * from './modules/helpers/password.helper';
 export * from './modules/helpers/session.helper';
+export * from './modules/helpers/jwks.helper';
+export * from './modules/constants/auth/jwks.constant';
+export * from './modules/dtos/helper/public-key.dto';
+export * from './modules/dtos/helper/pem-key.dto';
+export * from './modules/interfaces/public-jwk.interface';
 
 export * from './modules/interfaces/jwt-payload.interface';
 export * from './modules/interfaces/raw-body-request.interface';

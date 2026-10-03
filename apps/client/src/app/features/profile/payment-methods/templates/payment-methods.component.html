@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h3 class="text-base font-bold text-ink-900 dark:text-white">Saved Payment Methods</h3>
-      <p class="text-xs text-ink-500 dark:text-ink-400 mt-0.5">Manage bank accounts, cards, and digital wallets.</p>
+      <p class="text-xs text-ink-500 dark:text-night-muted mt-0.5">Manage bank accounts, cards, and digital wallets.</p>
     </div>
     <button
       type="button"
@@ -34,7 +34,7 @@
           />
         </svg>
       </div>
-      <p class="text-sm font-medium text-ink-700 dark:text-ink-200">No payment methods added yet</p>
+      <p class="text-sm font-medium text-ink-700 dark:text-night-text">No payment methods added yet</p>
       <p class="text-xs text-ink-400 dark:text-ink-500">Add a bank account, card, or digital wallet.</p>
     </div>
   } @else {
@@ -46,7 +46,7 @@
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
               <div
-                class="w-9 h-9 rounded-lg bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border flex items-center justify-center text-ink-700 dark:text-ink-200"
+                class="w-9 h-9 rounded-lg bg-white dark:bg-night-surface border border-ink-200 dark:border-night-border flex items-center justify-center text-ink-700 dark:text-night-text"
               >
                 @if (method.type === 'APPLE_PAY') {
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -86,7 +86,7 @@
                     <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ method.lastFour }}</span>
                   }
                 </p>
-                <p class="text-xs text-ink-500 dark:text-ink-400">{{ method.accountHolder }}</p>
+                <p class="text-xs text-ink-500 dark:text-night-muted">{{ method.accountHolder }}</p>
               </div>
             </div>
             <button

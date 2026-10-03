@@ -1,4 +1,4 @@
-<div class="min-h-screen transition-colors" [class.bg-ink-50]="isAuthenticated()" [class.dark:bg-night-bg]="isAuthenticated()">
+<div class="min-h-screen transition-colors" [class.bg-ink-50]="isAuthenticated()" [class.dark:bg-transparent]="isAuthenticated()">
   @if (isAuthenticated()) {
     <app-shell>
       <router-outlet />

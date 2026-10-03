@@ -1,19 +1,18 @@
-import { ConfigService } from '@nestjs/config';
 import { generateSync } from 'otplib';
 import { CryptoHelper } from '@common/shared-libs';
 
 import { TotpService } from '../../src/modules/services/totp.service';
 import { RecoveryCodeHelper } from '../../src/modules/helpers/recovery-code.helper';
+import { aConfigService } from '../fakes/config.fake';
 
-const configOf = (values: Record<string, string>): ConfigService => ({ get: (key: string) => values[key] }) as unknown as ConfigService;
 const key = CryptoHelper.randomBytes({ bytes: 32 }).toString('base64');
-const service = (): TotpService => new TotpService({ configService: configOf({ MFA_ENCRYPTION_KEY: key, MFA_ISSUER: 'Test Wallet' }) });
+const service = (): TotpService => new TotpService({ configService: aConfigService({ values: { MFA_ENCRYPTION_KEY: key, MFA_ISSUER: 'Test Wallet' } }) });
 
 describe('TotpService configuration', () => {
   it('refuses to start without a 32-byte encryption key', () => {
-    expect(() => new TotpService({ configService: configOf({}) })).toThrow(/MFA_ENCRYPTION_KEY/);
+    expect(() => new TotpService({ configService: aConfigService({ values: {} }) })).toThrow(/MFA_ENCRYPTION_KEY/);
     expect(
-      () => new TotpService({ configService: configOf({ MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 16 }).toString('base64') }) })
+      () => new TotpService({ configService: aConfigService({ values: { MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 16 }).toString('base64') } }) })
     ).toThrow(/MFA_ENCRYPTION_KEY/);
   });
 });
@@ -82,7 +81,7 @@ describe('TotpService secret encryption', () => {
 
     expect(() => totp.decryptSecret({ encrypted: tampered })).toThrow();
 
-    const otherKey = new TotpService({ configService: configOf({ MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64') }) });
+    const otherKey = new TotpService({ configService: aConfigService({ values: { MFA_ENCRYPTION_KEY: CryptoHelper.randomBytes({ bytes: 32 }).toString('base64') } }) });
     expect(() => otherKey.decryptSecret({ encrypted })).toThrow();
   });
 });

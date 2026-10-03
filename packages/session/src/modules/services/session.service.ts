@@ -7,6 +7,8 @@ import { CryptoHelper, REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 
 import { AUTH_CONSTANTS } from '../constants/auth/auth.constant';
 import { SessionHelper } from '../helpers/session.helper';
+import { JwksHelper } from '../helpers/jwks.helper';
+import { JWKS } from '../constants/auth/jwks.constant';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { SessionData } from '../interfaces/session-data.interface';
 import { SessionTokenDto } from '../dtos/service/session-token.dto';
@@ -29,12 +31,14 @@ export class SessionService {
 
     await this.redis.set({ key: `${AUTH_CONSTANTS.SESSION_PREFIX}${data.userId}:${jti}`, value: data, ttlSeconds });
 
-    const privateKey = this.configService.get<string>('JWT_PRIVATE_KEY')!.replace(/\\n/g, '\n');
+    const privateKey = JwksHelper.pem({ key: this.configService.get<string>('JWT_PRIVATE_KEY')! });
+    const keyid = JwksHelper.keyId({ publicKey: this.configService.get<string>('JWT_PUBLIC_KEY')! });
     const issuer = this.configService.get<string>('JWT_ISSUER');
     const audience = this.configService.get<string>('JWT_AUDIENCE');
 
     return jwt.sign({ ...data, jti }, privateKey, {
-      algorithm: 'RS256',
+      algorithm: JWKS.ALGORITHM,
+      keyid,
       expiresIn,
       ...(issuer && { issuer }),
       ...(audience && { audience })
@@ -42,12 +46,12 @@ export class SessionService {
   }
 
   async getSession ({ token }: SessionTokenDto): Promise<SessionData | null> {
-    const publicKey = this.configService.get<string>('JWT_PUBLIC_KEY')!.replace(/\\n/g, '\n');
+    const publicKey = JwksHelper.pem({ key: this.configService.get<string>('JWT_PUBLIC_KEY')! });
     const issuer = this.configService.get<string>('JWT_ISSUER');
     const audience = this.configService.get<string>('JWT_AUDIENCE');
 
     const decoded = jwt.verify(token, publicKey, {
-      algorithms: ['RS256'],
+      algorithms: [JWKS.ALGORITHM],
       ...(issuer && { issuer }),
       ...(audience && { audience })
     });

@@ -11,8 +11,7 @@ describe('Auditing admin actions on users', () => {
   beforeAll(async () => {
     await TestUserHelper.ensure({ emails: [USER_AUDIT_TEST.EMAIL] });
     admin = await ApiHelper.login({ email: USER_AUDIT_TEST.ADMIN_EMAIL });
-    const [user] = await DbHelper.query<{ id: string }>({ sql: USER_AUDIT_TEST.USER_ID_SQL, params: [USER_AUDIT_TEST.EMAIL] });
-    userId = user?.id as string;
+    userId = await TestUserHelper.idOf({ email: USER_AUDIT_TEST.EMAIL });
   });
 
   afterAll(async () => DbHelper.close());

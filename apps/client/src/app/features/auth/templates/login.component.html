@@ -5,7 +5,7 @@
     <div class="text-center mb-8">
       <div class="inline-flex w-14 h-14 rounded-2xl bg-primary items-center justify-center text-white font-bold text-2xl mb-3 shadow-glow">W</div>
       <h1 class="text-2xl font-bold text-ink-900 dark:text-white">Welcome back</h1>
-      <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">Sign in to your WalletPay account</p>
+      <p class="text-sm text-ink-500 dark:text-night-muted mt-1">Sign in to your WalletPay account</p>
     </div>
 
     <div class="bg-white dark:bg-night-surface rounded-2xl shadow-lift border border-ink-200 dark:border-night-border p-6 sm:p-8">
@@ -13,14 +13,14 @@
         <form [formGroup]="codeForm" (ngSubmit)="onVerifyCode()" class="space-y-5" novalidate>
           <div>
             <h2 class="text-lg font-semibold text-ink-900 dark:text-white">Two-factor authentication</h2>
-            <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">
+            <p class="text-sm text-ink-500 dark:text-night-muted mt-1">
               Enter the 6-digit code from your authenticator app, or one of your recovery codes.
             </p>
           </div>
 
           <div>
             @if (usingRecoveryCode()) {
-              <label for="mfa-code" class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Recovery code</label>
+              <label for="mfa-code" class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Recovery code</label>
               <input
                 id="mfa-code"
                 type="text"
@@ -68,7 +68,7 @@
           <button
             type="button"
             (click)="backToPassword()"
-            class="w-full text-sm text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200"
+            class="w-full text-sm text-ink-500 hover:text-ink-700 dark:text-night-muted dark:hover:text-ink-200"
           >
             Back to sign in
           </button>
@@ -76,7 +76,7 @@
       } @else {
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5" novalidate>
           <div>
-            <label for="email" class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Email</label>
+            <label for="email" class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Email</label>
             <input
               id="email"
               type="email"
@@ -99,7 +99,7 @@
           </div>
 
           <div>
-            <label for="password" class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Password</label>
+            <label for="password" class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Password</label>
             <div class="relative">
               <input
                 id="password"
@@ -177,7 +177,7 @@
         <app-passkey-button (signedIn)="completeSignIn()" />
       }
 
-      <p class="text-center text-sm text-ink-500 dark:text-ink-400 mt-6">
+      <p class="text-center text-sm text-ink-500 dark:text-night-muted mt-6">
         Don't have an account?
         <a routerLink="/auth/register" class="text-primary hover:text-primary-dark font-medium">Sign up</a>
       </p>

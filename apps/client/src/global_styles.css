@@ -39,14 +39,72 @@ html.dark {
   color-scheme: dark;
 }
 
+html.dark body {
+  background-color: theme('colors.night.bg');
+  background-image:
+    radial-gradient(circle at 10% 20%, theme('colors.neon.cyan / 5%') 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, theme('colors.neon.purple / 5%') 0%, transparent 40%);
+  background-attachment: fixed;
+  color: theme('colors.night.text');
+}
+
+html.dark :focus {
+  --tw-ring-color: theme('colors.neon.cyan / 40%');
+  --tw-ring-offset-color: theme('colors.night.bg');
+}
+
+html.dark a.text-primary {
+  color: theme('colors.neon.cyan');
+}
+
+html.dark button.bg-primary:not(:disabled):not([role='switch']),
+html.dark a.bg-primary,
+html.dark label.bg-primary,
+html.dark [role='button'].bg-primary {
+  background-image: linear-gradient(81deg, theme('colors.neon.blue') 10.86%, theme('colors.neon.pink') 89.96%);
+  background-origin: border-box;
+}
+
+html.dark button.bg-primary:hover:not(:disabled):not([role='switch']),
+html.dark a.bg-primary:hover,
+html.dark label.bg-primary:hover,
+html.dark [role='button'].bg-primary:hover {
+  background-image: linear-gradient(81deg, theme('colors.neon.violet') 10.86%, theme('colors.neon.mint') 89.96%);
+}
+
+html.dark .nav-active {
+  background-color: theme('colors.neon.magenta / 10%');
+  color: theme('colors.neon.cyan');
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(180deg, theme('colors.neon.blue'), theme('colors.neon.pink')) 1;
+}
+
+html.dark .nav-active-mobile {
+  color: theme('colors.neon.cyan');
+}
+
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+html.dark select,
+html.dark textarea {
+  background-color: theme('colors.white / 5%');
+  border-color: theme('colors.white / 10%');
+}
+
+html.dark input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):focus,
+html.dark select:focus,
+html.dark textarea:focus {
+  border-color: theme('colors.neon.cyan');
+  box-shadow: 0 0 15px theme('colors.neon.cyan / 40%');
+}
+
 .skeleton {
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background: linear-gradient(90deg, theme('colors.ink.200') 25%, theme('colors.ink.100') 50%, theme('colors.ink.200') 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 html.dark .skeleton {
-  background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+  background: linear-gradient(90deg, theme('colors.night.surface') 25%, theme('colors.night.border') 50%, theme('colors.night.surface') 75%);
   background-size: 200% 100%;
 }
 
@@ -67,27 +125,42 @@ html.dark .skeleton {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: theme('colors.slate.300');
   border-radius: 4px;
 }
 html.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: theme('colors.night.border');
 }
 
 /* Toggle Switch Styles */
 .toggle-border {
-  border: 2px solid #f0ebeb;
+  border: 2px solid theme('colors.chrome.rim');
   border-radius: 100px;
   padding: 1px 2px;
   background: linear-gradient(to bottom right, white, rgba(220,220,220,.5)), white;
-  box-shadow: 0 0 0 2px #fbfbfb;
+  box-shadow: 0 0 0 2px theme('colors.chrome.glow');
   cursor: pointer;
   display: inline-flex;
   align-items: center;
 }
 
 .toggle-border input[type="checkbox"] {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.toggle-border:focus-within {
+  outline: 2px solid theme('colors.primary.DEFAULT');
+  outline-offset: 2px;
+}
+
+html.dark .toggle-border:focus-within {
+  outline-color: theme('colors.neon.cyan');
 }
 
 .toggle-border label {
@@ -95,15 +168,26 @@ html.dark ::-webkit-scrollbar-thumb {
   display: inline-block;
   width: 45px;
   height: 14px;
-  background: #d13613;
+  background: theme('colors.signal.off');
   border-radius: 60px;
   cursor: pointer;
   box-shadow: inset 0 0 12px rgba(0,0,0,.3);
+}
+
+.toggle-animated label {
   transition: background .5s;
 }
 
+.toggle-animated .handle {
+  transition: left .4s;
+}
+
+.toggle-preference label {
+  background: theme('colors.amber.400');
+}
+
 .toggle-border input[type="checkbox"]:checked + label {
-  background: #13d162;
+  background: theme('colors.signal.on');
 }
 
 .toggle-border input[type="checkbox"]:disabled + label {
@@ -117,11 +201,10 @@ html.dark ::-webkit-scrollbar-thumb {
   left: -8px;
   width: 26px;
   height: 26px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid theme('colors.chrome.handle');
   background: repeating-radial-gradient(circle at 50% 50%, rgba(200,200,200,.2) 0%, rgba(200,200,200,.2) 2%, transparent 2%, transparent 3%, rgba(200,200,200,.2) 3%, transparent 3%), conic-gradient(white 0%, silver 10%, white 35%, silver 45%, white 60%, silver 70%, white 80%, silver 95%, white 100%);
   border-radius: 50%;
   box-shadow: 2px 3px 8px 0 rgba(0,0,0,.4);
-  transition: left .4s;
 }
 
 .toggle-border input[type="checkbox"]:checked + label > .handle {
@@ -130,13 +213,13 @@ html.dark ::-webkit-scrollbar-thumb {
 
 /* Dark mode toggle styles */
 html.dark .toggle-border {
-  border-color: #334155;
-  background: linear-gradient(to bottom right, #1e293b, rgba(51,65,85,.5)), #1e293b;
-  box-shadow: 0 0 0 2px #0f172a;
+  border-color: theme('colors.night.border');
+  background: linear-gradient(to bottom right, theme('colors.night.surface'), theme('colors.night.border / 50%')), theme('colors.night.surface');
+  box-shadow: 0 0 0 2px theme('colors.night.bg');
 }
 
 html.dark .handle {
-  border-color: #475569;
+  border-color: theme('colors.slate.600');
 }
 
 /* Action Icons Styles */
@@ -176,7 +259,7 @@ html.dark .handle {
 
 /* View Icon - Blue/Info color */
 .view-icon {
-  color: #3b82f6;
+  color: theme('colors.primary.DEFAULT');
   background: rgba(59, 130, 246, 0.1);
 }
 
@@ -186,7 +269,7 @@ html.dark .handle {
 
 /* Create Icon - Green (similar to toggle ON) */
 .create-icon {
-  color: #13d162;
+  color: theme('colors.signal.on');
   background: rgba(19, 209, 98, 0.1);
 }
 
@@ -196,7 +279,7 @@ html.dark .handle {
 
 /* Update Icon - Amber/Warning color */
 .update-icon {
-  color: #f59e0b;
+  color: theme('colors.warning.DEFAULT');
   background: rgba(245, 158, 11, 0.1);
 }
 
@@ -206,7 +289,7 @@ html.dark .handle {
 
 /* Delete Icon - Red (similar to toggle OFF) */
 .delete-icon {
-  color: #d13613;
+  color: theme('colors.signal.off');
   background: rgba(209, 54, 19, 0.1);
 }
 
@@ -237,29 +320,29 @@ html.dark .delete-icon:hover {
 
 /* Toast colors match the existing toggle palette. */
 .toast-success-solid {
-  background: linear-gradient(145deg, #22e36e 0%, #13d162 55%, #0fa94f 100%);
-  border-left-color: #0fa94f;
-  color: #ffffff;
+  background: linear-gradient(145deg, theme('colors.signal.on-light') 0%, theme('colors.signal.on') 55%, theme('colors.signal.on-dark') 100%);
+  border-left-color: theme('colors.signal.on-dark');
+  color: theme('colors.white');
   box-shadow: 0 8px 18px rgba(19, 209, 98, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .toast-error-solid {
-  background: linear-gradient(145deg, #e64a25 0%, #d13613 55%, #a92a0f 100%);
-  border-left-color: #a92a0f;
-  color: #ffffff;
+  background: linear-gradient(145deg, theme('colors.signal.off-light') 0%, theme('colors.signal.off') 55%, theme('colors.signal.off-dark') 100%);
+  border-left-color: theme('colors.signal.off-dark');
+  color: theme('colors.white');
   box-shadow: 0 8px 18px rgba(209, 54, 19, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .toast-warning-solid {
-  background: linear-gradient(145deg, #fbbf24 0%, #f59e0b 55%, #d97706 100%);
-  border-left-color: #d97706;
-  color: #ffffff;
+  background: linear-gradient(145deg, theme('colors.amber.400') 0%, theme('colors.warning.DEFAULT') 55%, theme('colors.warning.dark') 100%);
+  border-left-color: theme('colors.warning.dark');
+  color: theme('colors.white');
   box-shadow: 0 8px 18px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .toast-info-solid {
-  background: linear-gradient(145deg, #818cf8 0%, #6366f1 55%, #4f46e5 100%);
-  border-left-color: #4f46e5;
-  color: #ffffff;
+  background: linear-gradient(145deg, theme('colors.indigo.400') 0%, theme('colors.info.DEFAULT') 55%, theme('colors.info.dark') 100%);
+  border-left-color: theme('colors.info.dark');
+  color: theme('colors.white');
   box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }

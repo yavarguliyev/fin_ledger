@@ -1,4 +1,4 @@
-import { Component, inject, computed, OnInit, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, OnInit, effect } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -11,7 +11,8 @@ import { NotificationService } from './core/services/notification.service';
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, RouterOutlet, ShellComponent, ToastHostComponent],
-  templateUrl: './shared/templates/app.component.html'
+  templateUrl: './shared/templates/app.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class App implements OnInit {
   private readonly auth = inject(AuthService);

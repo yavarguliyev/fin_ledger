@@ -45,14 +45,14 @@
         @if (selectedEvent()) {
           <div class="rounded-lg bg-primary/5 border border-primary/20 p-3">
             <p class="text-sm font-medium text-ink-900 dark:text-white">{{ selectedEvent()!.label }}</p>
-            <p class="text-xs text-ink-500 dark:text-ink-400">Odds: {{ selectedEvent()!.odds.toFixed(2) }}x</p>
+            <p class="text-xs text-ink-500 dark:text-night-muted">Odds: {{ selectedEvent()!.odds.toFixed(2) }}x</p>
           </div>
         } @else {
-          <p class="text-sm text-ink-500 dark:text-ink-400">Select an event to place a bet.</p>
+          <p class="text-sm text-ink-500 dark:text-night-muted">Select an event to place a bet.</p>
         }
 
         <div>
-          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Stake ({{ currency() }})</label>
+          <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Stake ({{ currency() }})</label>
           <input
             type="number"
             formControlName="stake"
@@ -69,11 +69,11 @@
 
         <div class="rounded-lg bg-ink-50 dark:bg-night-bg p-3 space-y-1.5 text-sm">
           <div class="flex justify-between">
-            <span class="text-ink-500 dark:text-ink-400">Stake</span
+            <span class="text-ink-500 dark:text-night-muted">Stake</span
             ><span class="font-medium text-ink-900 dark:text-white">{{ stakeMinor() | currencyFormat: currency() }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-ink-500 dark:text-ink-400">Potential win</span
+            <span class="text-ink-500 dark:text-night-muted">Potential win</span
             ><span class="font-semibold text-success">{{ potentialWin() | currencyFormat: currency() }}</span>
           </div>
         </div>
@@ -103,8 +103,8 @@
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ bet.selection }}</p>
             <div class="flex items-center gap-2 mt-1">
-              <span class="text-xs text-ink-500 dark:text-ink-400">{{ bet.placedAt | relativeTime }}</span>
-              <span class="text-xs text-ink-500 dark:text-ink-400">{{ bet.oddsAtPlacement }}x</span>
+              <span class="text-xs text-ink-500 dark:text-night-muted">{{ bet.placedAt | relativeTime }}</span>
+              <span class="text-xs text-ink-500 dark:text-night-muted">{{ bet.oddsAtPlacement }}x</span>
               <span
                 class="text-[10px] font-medium px-2 py-0.5 rounded-full"
                 [ngClass]="{
@@ -132,7 +132,7 @@
         <div class="px-5 py-12 text-center">
           <div class="w-16 h-16 rounded-full bg-ink-100 dark:bg-night-bg mx-auto mb-3 flex items-center justify-center text-3xl">🎯</div>
           <p class="text-sm font-medium text-ink-900 dark:text-white">No bets yet</p>
-          <p class="text-xs text-ink-500 dark:text-ink-400 mt-1">Place your first bet on an available event</p>
+          <p class="text-xs text-ink-500 dark:text-night-muted mt-1">Place your first bet on an available event</p>
         </div>
       }
     </div>

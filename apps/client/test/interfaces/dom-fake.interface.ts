@@ -3,6 +3,10 @@ export interface DataTransferFakeDto {
   files: File[];
 }
 
+export interface DragTypesFakeDto {
+  types: string[];
+}
+
 export interface DragEventFakeDto extends DataTransferFakeDto {
   preventDefault: () => void;
 }

@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Type } from '@angular/core';
 
+import { App } from '../../src/app/app.component';
 import { CallOverlayComponent } from '../../src/app/layout/call-overlay.component';
+import { ShellComponent } from '../../src/app/layout/shell.component';
 import { ToastHostComponent } from '../../src/app/layout/toast.component';
 import { CountrySelectComponent } from '../../src/app/shared/components/country-select/country-select.component';
 import { DataTableComponent } from '../../src/app/shared/components/data-table/data-table.component';
@@ -23,6 +25,8 @@ import { ToggleComponent } from '../../src/app/shared/components/toggle/toggle.c
 import { componentMetadata } from '../fakes/component-metadata.fake';
 
 const SHARED_COMPONENTS: Type<unknown>[] = [
+  App,
+  ShellComponent,
   CallOverlayComponent,
   ToastHostComponent,
   CountrySelectComponent,

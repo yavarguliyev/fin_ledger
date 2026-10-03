@@ -23,7 +23,7 @@
   @if (formService.step() === 1) {
     <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
       <div>
-        <label class="block text-sm font-medium text-ink-700 dark:text-ink-200 mb-1.5">Amount ({{ currency() }})</label>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Amount ({{ currency() }})</label>
         <div class="relative">
           <span class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 font-medium">{{ currency() }}</span>
           <input
@@ -42,7 +42,7 @@
           <button
             type="button"
             (click)="setAmount(q)"
-            class="px-3 py-1.5 rounded-lg text-sm font-medium border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 hover:bg-primary/10 hover:border-primary transition-colors"
+            class="px-3 py-1.5 rounded-lg text-sm font-medium border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text hover:bg-primary/10 hover:border-primary transition-colors"
           >
             {{ q | currencyFormat: currency() }}
           </button>
@@ -62,7 +62,7 @@
     <div class="bg-white dark:bg-night-surface rounded-2xl border border-ink-200 dark:border-night-border p-6 space-y-5 animate-slideIn">
       <div>
         <div class="flex items-center justify-between mb-3">
-          <label class="block text-sm font-medium text-ink-700 dark:text-ink-200">Select Payment Method</label>
+          <label class="block text-sm font-medium text-ink-700 dark:text-night-text">Select Payment Method</label>
           <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1"> + Manage methods </a>
         </div>
 
@@ -75,7 +75,7 @@
         } @else if (formService.verifiedMethods().length === 0) {
           <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-4 text-center space-y-2">
             <p class="text-sm font-medium text-ink-800 dark:text-ink-100">No verified payment methods found</p>
-            <p class="text-xs text-ink-500 dark:text-ink-400">Add and verify your bank account or debit card in your profile to deposit funds.</p>
+            <p class="text-xs text-ink-500 dark:text-night-muted">Add and verify your bank account or debit card in your profile to deposit funds.</p>
             <a
               routerLink="/profile"
               class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors mt-1"
@@ -96,7 +96,7 @@
                 class="cursor-pointer border rounded-xl p-3.5 flex items-center justify-between transition-all hover:border-primary/60"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-ink-200">
+                  <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-night-text">
                     @if (m.type === 'BANK_ACCOUNT') {
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path
@@ -124,7 +124,7 @@
                         <span class="text-ink-400 font-normal font-mono ml-1">•••• {{ m.lastFour }}</span>
                       }
                     </p>
-                    <p class="text-xs text-ink-500 dark:text-ink-400">{{ m.accountHolder }}</p>
+                    <p class="text-xs text-ink-500 dark:text-night-muted">{{ m.accountHolder }}</p>
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
@@ -157,7 +157,7 @@
       <div class="flex gap-2">
         <button
           (click)="formService.step.set(1)"
-          class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+          class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
         >
           Back
         </button>
@@ -179,15 +179,15 @@
           <h3 class="font-medium text-ink-900 dark:text-white">Confirm your deposit</h3>
           <div class="rounded-lg bg-ink-50 dark:bg-night-bg p-4 space-y-2 text-sm">
             <div class="flex justify-between">
-              <span class="text-ink-500 dark:text-ink-400">Amount</span>
+              <span class="text-ink-500 dark:text-night-muted">Amount</span>
               <span class="font-semibold text-ink-900 dark:text-white">{{ amountMinor() | currencyFormat: currency() }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-ink-500 dark:text-ink-400">Payment Method</span>
-              <span class="text-ink-700 dark:text-ink-200 font-medium">{{ formService.getSourceLabel() }}</span>
+              <span class="text-ink-500 dark:text-night-muted">Payment Method</span>
+              <span class="text-ink-700 dark:text-night-text font-medium">{{ formService.getSourceLabel() }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="text-ink-500 dark:text-ink-400">Fee</span>
+              <span class="text-ink-500 dark:text-night-muted">Fee</span>
               <span class="text-success">{{ 0 | currencyFormat: currency() }}</span>
             </div>
             <div class="flex justify-between border-t border-ink-200 dark:border-night-border pt-2">
@@ -198,7 +198,7 @@
           <div class="flex gap-2">
             <button
               (click)="formService.step.set(2)"
-              class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+              class="flex-1 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
             >
               Back
             </button>
@@ -228,18 +228,18 @@
             />
           </svg>
           <h3 class="text-lg font-bold text-ink-900 dark:text-white">Deposit Successful!</h3>
-          <p class="text-sm text-ink-500 dark:text-ink-400 mt-1">{{ amountMinor() | currencyFormat: currency() }} added to your wallet</p>
+          <p class="text-sm text-ink-500 dark:text-night-muted mt-1">{{ amountMinor() | currencyFormat: currency() }} added to your wallet</p>
           <div class="mt-6 flex flex-col sm:flex-row items-center justify-center gap-2">
             @if (completedPaymentId()) {
               <button
                 (click)="viewReceipt()"
-                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
               >
                 {{ receiptText.VIEW_LABEL }}
               </button>
               <button
                 (click)="downloadReceipt()"
-                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-ink-200 font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+                class="px-5 py-2.5 rounded-lg border border-ink-300 dark:border-night-border text-ink-700 dark:text-night-text font-medium hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
               >
                 {{ receiptText.DOWNLOAD_LABEL }}
               </button>

@@ -1,6 +1,7 @@
 import { PROFILE_IMAGES_KEY_TEST } from '../constants/profile-images-key.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 
 let token = '';
 
@@ -15,12 +16,7 @@ const storedKey = async (email: string): Promise<string | null> => {
 beforeAll(async () => {
   token = await ApiHelper.login({ email: PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL });
 
-  const [row] = await DbHelper.query<{ id: string }>({
-    sql: 'SELECT id FROM users WHERE email = $1',
-    params: [PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL]
-  });
-
-  ownerId = row?.id ?? '';
+  ownerId = await TestUserHelper.idOf({ email: PROFILE_IMAGES_KEY_TEST.OWNER_EMAIL });
 });
 
 afterAll(async () => {

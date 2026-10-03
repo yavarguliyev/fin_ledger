@@ -34,7 +34,7 @@
         <p class="text-3xl font-bold text-warning-dark dark:text-warning mt-1">
           {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}
         </p>
-        <p class="text-xs text-ink-500 dark:text-ink-400 mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
+        <p class="text-xs text-ink-500 dark:text-night-muted mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
       </div>
     </div>
 
@@ -103,7 +103,7 @@
       </span>
     </div>
     <div class="flex items-center justify-between mt-1">
-      <span class="text-xs text-ink-500 dark:text-ink-400">{{ row.createdAt | relativeTime }}</span>
+      <span class="text-xs text-ink-500 dark:text-night-muted">{{ row.createdAt | relativeTime }}</span>
       <span class="flex items-center gap-1">
         <app-receipt-link [reference]="row.reference" [status]="row.status" />
         <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="tx.statusClass(row.status)">{{ row.status }}</span>

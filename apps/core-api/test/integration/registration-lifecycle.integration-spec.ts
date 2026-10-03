@@ -3,6 +3,7 @@ import { DbHelper } from '../helpers/db.helper';
 import { EMAIL_TOPICS } from '../constants/email-topics.constant';
 import { EmailInboxHelper } from '../helpers/email-inbox.helper';
 import { LoginAttemptHelper } from '../helpers/login-attempt.helper';
+import { TestUserHelper } from '../helpers/test-user.helper';
 import { LOGIN_STATUS_TEST as L } from '../constants/login-status.constant';
 
 const register = (body: Record<string, unknown>): ReturnType<typeof ApiHelper.request<Record<string, unknown>>> =>
@@ -60,19 +61,19 @@ describe('Invited and staff-verified users', () => {
   it('activates a PENDING user when staff verify the email, but never reactivates a suspended one', async () => {
     const staff = await ApiHelper.login({ email: L.STAFF_EMAIL });
     await register({ email: L.ADMIN_VERIFIED_EMAIL, password: L.ADMIN_VERIFIED_PASSWORD, displayName: L.ADMIN_VERIFIED_EMAIL, termsAccepted: true });
-    const [pending] = await DbHelper.query<{ id: string }>({ sql: L.ID_BY_EMAIL_SQL, params: [L.ADMIN_VERIFIED_EMAIL] });
-    const [suspended] = await DbHelper.query<{ id: string }>({ sql: L.ID_BY_EMAIL_SQL, params: [L.SUSPENDED_EMAIL] });
+    const pendingId = await TestUserHelper.idOf({ email: L.ADMIN_VERIFIED_EMAIL });
+    const suspendedId = await TestUserHelper.idOf({ email: L.SUSPENDED_EMAIL });
 
-    for (const user of [pending, suspended]) {
+    for (const userId of [pendingId, suspendedId]) {
       await ApiHelper.request({
         method: 'PATCH',
-        path: `${L.USERS_PATH}/${user?.id}${L.EMAIL_VERIFICATION_SUFFIX}`,
+        path: `${L.USERS_PATH}/${userId}${L.EMAIL_VERIFICATION_SUFFIX}`,
         token: staff,
         body: { isEmailVerified: true }
       });
     }
 
-    await expect(DbHelper.query({ sql: L.STATUS_BY_ID_SQL, params: [pending?.id] })).resolves.toEqual([{ status: L.ACTIVE }]);
-    await expect(DbHelper.query({ sql: L.STATUS_BY_ID_SQL, params: [suspended?.id] })).resolves.toEqual([{ status: L.SUSPENDED }]);
+    await expect(DbHelper.query({ sql: L.STATUS_BY_ID_SQL, params: [pendingId] })).resolves.toEqual([{ status: L.ACTIVE }]);
+    await expect(DbHelper.query({ sql: L.STATUS_BY_ID_SQL, params: [suspendedId] })).resolves.toEqual([{ status: L.SUSPENDED }]);
   });
 });

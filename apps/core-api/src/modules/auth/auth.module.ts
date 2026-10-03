@@ -4,6 +4,10 @@ import { MfaModule } from '@common/libs';
 import { AuthController } from './auth.controller';
 import { AuthMfaController } from './auth-mfa.controller';
 import { AuthPasskeyController } from './auth-passkey.controller';
+import { AuthKeysController } from './auth-keys.controller';
+import { GetJwksUseCase } from './use-cases/queries/get-jwks.use-case';
+import { TrackDeviceUseCase } from './use-cases/commands/device/track-device.use-case';
+import { ListSharedDevicesUseCase } from './use-cases/queries/list-shared-devices.use-case';
 import { PasskeyRegistrationUseCase } from './use-cases/commands/passkeys/passkey-registration.use-case';
 import { PasskeyLoginUseCase } from './use-cases/commands/passkeys/passkey-login.use-case';
 import { RemovePasskeyUseCase } from './use-cases/commands/passkeys/remove-passkey.use-case';
@@ -45,7 +49,7 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
 
 @Module({
   imports: [SharedModule, LedgerModule, SupportModule, forwardRef(() => WalletModule), MfaModule.forRoot()],
-  controllers: [AuthController, AuthMfaController, AuthPasskeyController],
+  controllers: [AuthController, AuthMfaController, AuthPasskeyController, AuthKeysController],
   providers: [
     AuthService,
     EmailVerificationUseCase,
@@ -75,6 +79,9 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
     PasskeyService,
     PasskeyStepUpService,
     PasskeyStepUpUseCase,
+    GetJwksUseCase,
+    TrackDeviceUseCase,
+    ListSharedDevicesUseCase,
     AuthRepository,
     AuthTokenRepository,
     MfaRecoveryCodeRepository,

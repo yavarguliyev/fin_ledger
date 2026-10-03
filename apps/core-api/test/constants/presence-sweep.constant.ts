@@ -6,7 +6,6 @@ export const PRESENCE_SWEEP_TEST = {
   PLAYER_EMAIL: 'presence-sweep@support-tests.realtime-wallet-payments.com',
   HEARTBEAT_PATH: '/support/presence/heartbeat',
   PRESENCE_PATH: '/support/presence',
-  USER_ID_SQL: 'SELECT id FROM users WHERE email = $1',
   INDEX_KEY: 'presence-index',
   STAFF_INDEX_KEY: 'presence-index:staff',
   SWEEP_LOCK_KEY: 'presence-sweep-lock',

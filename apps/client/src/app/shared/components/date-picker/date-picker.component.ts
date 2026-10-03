@@ -11,7 +11,7 @@ import { CalendarShiftDto } from '../../../core/interfaces/ui/calendar-shift.int
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './date-picker.component.html',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DatePickerComponent), multi: true }],
-  host: { '(document:click)': 'onDocumentClick($event)' }
+  host: { '(document:click)': 'onDocumentClick($event)', '(document:keydown.escape)': 'onEscape()' }
 })
 export class DatePickerComponent implements ControlValueAccessor {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -101,6 +101,10 @@ export class DatePickerComponent implements ControlValueAccessor {
     else return;
 
     event.preventDefault();
+  }
+
+  onEscape (): void {
+    if (this.isOpen()) this.close();
   }
 
   onDocumentClick (event: MouseEvent): void {

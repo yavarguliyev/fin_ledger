@@ -1,0 +1,20 @@
+export const PROFILE_FIELDS_TEST = {
+  EMAIL: 'player8@realtime-wallet-payments.com',
+  ADULT_BIRTH_DATE: '1990-04-17',
+  UNDERAGE_YEARS: 10,
+  ISO_DATE_LENGTH: 10,
+  TIME_SEPARATOR: 'T',
+  DISPLAY_NAME: 'Seed Player',
+  RENAMED: 'Renamed Player',
+  COUNTRY: 'GB',
+  OTHER_COUNTRY: 'FR',
+  THREE_LETTER_COUNTRY: 'GBR',
+  LOWERCASE_COUNTRY: 'gb',
+  KYC_NOT_STARTED: 'NOT_STARTED',
+  KYC_APPROVED: 'APPROVED',
+  USERS_PATH: '/users',
+  ME_PATH: '/users/me',
+  KYC_SQL: 'UPDATE users SET kyc_status = $1 WHERE id = $2',
+  FIELDS_SQL: 'SELECT country_code, date_of_birth::text AS date_of_birth FROM users WHERE id = $1',
+  COUNTRY_SQL: 'SELECT country_code FROM users WHERE id = $1'
+} as const;

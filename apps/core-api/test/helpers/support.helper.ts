@@ -1,6 +1,6 @@
 import { ApiHelper } from './api.helper';
-import { DbHelper } from './db.helper';
 import { SseReaderHelper } from './sse-reader.helper';
+import { TestUserHelper } from './test-user.helper';
 import { SUPPORT_CHAT_TEST as T } from '../constants/support-chat.constant';
 import { SUPPORT_HELPER as H } from '../constants/support-helper.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
@@ -36,8 +36,7 @@ export class SupportTestHelper {
   }
 
   static async userId ({ email }: SupportEmailDto): Promise<string> {
-    const [row] = await DbHelper.query<{ id: string }>({ sql: T.USER_ID_SQL, params: [email] });
-    return row?.id ?? '';
+    return TestUserHelper.idOf({ email });
   }
 
   static multipart ({ method, conversationId, path, token, form }: SupportMultipartDto): Promise<Response> {
