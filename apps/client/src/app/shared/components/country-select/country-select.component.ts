@@ -11,7 +11,7 @@ import { CountryOptionDto } from '../../../core/interfaces/ui/country-option.int
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './country-select.component.html',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => CountrySelectComponent), multi: true }],
-  host: { '(document:click)': 'onDocumentClick($event)' }
+  host: { '(document:click)': 'onDocumentClick($event)', '(document:keydown.escape)': 'onEscape()' }
 })
 export class CountrySelectComponent implements ControlValueAccessor {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
@@ -96,6 +96,10 @@ export class CountrySelectComponent implements ControlValueAccessor {
   optionClass (index: number): string {
     const { BASE, ACTIVE, IDLE } = COUNTRY_SELECT.OPTION_CLASSES;
     return [BASE, index === this.activeIndex() ? ACTIVE : IDLE].join(COUNTRY_SELECT.CLASS_SEPARATOR);
+  }
+
+  onEscape (): void {
+    if (this.isOpen()) this.close();
   }
 
   onDocumentClick (event: MouseEvent): void {

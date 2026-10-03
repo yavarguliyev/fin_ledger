@@ -1,9 +1,11 @@
 import { ElementRef, Injector, runInInjectionContext } from '@angular/core';
 
+import { CountrySelectComponent } from '../../src/app/shared/components/country-select/country-select.component';
 import { DatePickerComponent } from '../../src/app/shared/components/date-picker/date-picker.component';
 
-const create = (): DatePickerComponent =>
-  runInInjectionContext(Injector.create({ providers: [{ provide: ElementRef, useValue: { nativeElement: { contains: (): boolean => false } } }] }), () => new DatePickerComponent());
+const injector = (): Injector => Injector.create({ providers: [{ provide: ElementRef, useValue: { nativeElement: { contains: (): boolean => false } } }] });
+
+const create = (): DatePickerComponent => runInInjectionContext(injector(), () => new DatePickerComponent());
 
 describe('Date picker closing', () => {
   it('closes on Escape wherever focus is, not only inside the day grid', () => {
@@ -20,5 +22,16 @@ describe('Date picker closing', () => {
 
     picker.onEscape();
     expect(picker.isOpen()).toBe(false);
+  });
+});
+
+describe('Country select closing', () => {
+  it('closes on Escape after the list was opened', () => {
+    const select = runInInjectionContext(injector(), () => new CountrySelectComponent());
+    select.open();
+    expect(select.isOpen()).toBe(true);
+
+    select.onEscape();
+    expect(select.isOpen()).toBe(false);
   });
 });
