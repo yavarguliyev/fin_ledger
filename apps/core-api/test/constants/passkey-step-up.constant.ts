@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PASSKEY_STEP_UP_TEST = {
+  ...HTTP_STATUS,
   OPTIONS_PATH: '/auth/passkeys/step-up/options',
   VERIFY_PATH: '/auth/passkeys/step-up/verify',
   WITHDRAW_PATH: '/payments/withdraw',
@@ -18,8 +21,5 @@ export const PASSKEY_STEP_UP_TEST = {
     INSERT INTO user_credentials (user_id, credential_id, public_key, sign_count, transports, device_label, backed_up)
     SELECT id, $2, $3, 0, ARRAY['internal'], $4, true FROM users WHERE email = $1
   `,
-  CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1',
-  BAD_REQUEST: 400,
-  FORBIDDEN: 403,
-  UNAUTHORIZED: 401
+  CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1'
 } as const;

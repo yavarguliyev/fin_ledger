@@ -19,6 +19,7 @@ import { SupportOfflineQueueStore } from '../core/services/support-offline-queue
 import { SupportReactionStore } from '../core/services/support-reaction.store';
 import { CallOverlayComponent } from './call-overlay.component';
 import { CallStateService } from '../core/services/call-state.service';
+import { ConnectivityService } from '../core/services/connectivity.service';
 import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
 
 @Component({
@@ -38,6 +39,7 @@ export class ShellComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly calls = inject(SupportCallStore);
   readonly callBusy = inject(CallStateService).busy;
+  readonly connectivity = inject(ConnectivityService);
   private readonly typing = inject(SupportTypingStore);
   private readonly offlineQueue = inject(SupportOfflineQueueStore);
   private readonly reactions = inject(SupportReactionStore);

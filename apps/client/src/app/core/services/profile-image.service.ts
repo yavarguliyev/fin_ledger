@@ -9,6 +9,9 @@ import { UploadNoticeDto } from '../interfaces/profile/upload-notice.interface';
 import { ImageUploadHelper } from '../helpers/profile/image-upload.helper';
 import { ErrorMessageHelper } from '../helpers/http/error-message.helper';
 import { ImageIndexDto } from '../interfaces/ui/image-index.interface';
+import { HttpEventType } from '@angular/common/http';
+import { Subscription } from 'rxjs';
+import { UploadProgressHelper } from '../helpers/http/upload-progress.helper';
 
 @Injectable({ providedIn: 'root' })
 export class ProfileImageService {
@@ -18,6 +21,8 @@ export class ProfileImageService {
 
   readonly imageUrls = signal<Array<{ index: number; url: string; path: string }>>([]);
   readonly isUploading = signal(false);
+  readonly uploadProgress = signal(0);
+  private upload: Subscription | null = null;
 
   readonly currentUser = computed(() => this.auth.currentUser());
   readonly profileImages = computed(() => this.currentUser()?.profileImages ?? []);
@@ -33,11 +38,7 @@ export class ProfileImageService {
   }
 
   getMainImageUrl (): string | null {
-    const urls = this.imageUrls();
-    const mainIndex = this.profileImageIndex();
-    const mainImage = urls.find(img => img.index === mainIndex);
-
-    return mainImage?.url ?? null;
+    return this.imageUrls().find(img => img.index === this.profileImageIndex())?.url ?? null;
   }
 
   loadImageUrls (): void {
@@ -72,12 +73,23 @@ export class ProfileImageService {
     if (!user) return;
 
     this.isUploading.set(true);
+    this.uploadProgress.set(0);
     this.send({ files });
   }
 
+  cancelUpload (): void {
+    this.upload?.unsubscribe();
+    this.upload = null;
+    this.isUploading.set(false);
+  }
+
   private send ({ files }: ImageFilesDto): void {
-    this.userService.uploadImages(files).subscribe({
-      next: response => {
+    this.upload = this.userService.uploadImages(files).subscribe({
+      next: event => {
+        const percent = UploadProgressHelper.percentOf({ event });
+        if (percent !== null) this.uploadProgress.set(percent);
+        const response = event.type === HttpEventType.Response ? event.body : null;
+        if (!response) return;
         this.userService.updateProfile({ profileImages: response.files, imageAction: 'add' }).subscribe({
           next: () => {
             this.isUploading.set(false);
@@ -111,7 +123,6 @@ export class ProfileImageService {
       }
     });
   }
-
 
   private applyDeleteAll (): void {
     this.userService.updateProfile({ imageAction: 'delete_all' }).subscribe({

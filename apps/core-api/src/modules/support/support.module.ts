@@ -21,6 +21,7 @@ import { SupportCallRepository } from './repositories/support-call.repository';
 import { StartCallUseCase } from './use-cases/commands/call/start-call.use-case';
 import { AnswerCallUseCase } from './use-cases/commands/call/answer-call.use-case';
 import { RelayCallCandidateUseCase } from './use-cases/commands/call/relay-call-candidate.use-case';
+import { RelayCallRenegotiationUseCase } from './use-cases/commands/call/relay-call-renegotiation.use-case';
 import { EndCallUseCase } from './use-cases/commands/call/end-call.use-case';
 import { GetCallConfigUseCase } from './use-cases/queries/call/get-call-config.use-case';
 import { SupportAttachmentProvider } from './providers/support-attachment.provider';
@@ -83,6 +84,7 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     StartCallUseCase,
     AnswerCallUseCase,
     RelayCallCandidateUseCase,
+    RelayCallRenegotiationUseCase,
     EndCallUseCase,
     GetCallConfigUseCase
   ],

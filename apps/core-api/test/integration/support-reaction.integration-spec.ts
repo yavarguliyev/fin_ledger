@@ -65,8 +65,14 @@ describe('Reacting to a message', () => {
     expect(afterRemove.body.map(reaction => reaction.emoji)).toEqual([T.THUMBS]);
   });
 
-  it('refuses an emoji that is not offered, and anyone outside the conversation', async () => {
-    await expect(react(customer, T.NOT_OFFERED)).resolves.toMatchObject({ status: T.BAD_REQUEST });
+  it('accepts any single emoji, flags included', async () => {
+    await expect(react(customer, T.ANY_EMOJI)).resolves.toMatchObject({ status: C.OK });
+    await expect(react(customer, T.FLAG)).resolves.toMatchObject({ status: C.OK });
+  });
+
+  it('refuses text, more than one emoji, and anyone outside the conversation', async () => {
+    await expect(react(customer, T.PLAIN_TEXT)).resolves.toMatchObject({ status: T.BAD_REQUEST });
+    await expect(react(customer, T.TWO_EMOJIS)).resolves.toMatchObject({ status: T.BAD_REQUEST });
     await expect(react(outsider, T.THUMBS)).resolves.toMatchObject({ status: C.NOT_FOUND });
   });
 });

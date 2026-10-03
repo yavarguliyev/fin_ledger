@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PASSKEY_LOOKUP_TEST = {
+  ...HTTP_STATUS,
   EMAIL: 'player24@realtime-wallet-payments.com',
   OWNER: 'passkey-lookup-owner',
   CREDENTIAL_ID: 'bG9va3VwLWNyZWRlbnRpYWwtaWQ',
@@ -11,6 +14,5 @@ export const PASSKEY_LOOKUP_TEST = {
     SELECT id, $2, $3, 0, ARRAY['internal'], $4, true FROM users WHERE email = $1
   `,
   CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1',
-  NOT_REGISTERED_MESSAGE: 'That passkey is not registered',
-  UNAUTHORIZED: 401
+  NOT_REGISTERED_MESSAGE: 'That passkey is not registered'
 } as const;

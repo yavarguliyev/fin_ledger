@@ -12,6 +12,8 @@ import { RelayCandidateDto } from './dtos/input/relay-candidate.dto';
 import { StartCallDto } from './dtos/input/start-call.dto';
 import { StartCallResponseDto } from './dtos/response/start-call-response.dto';
 import { StartCallUseCase } from './use-cases/commands/call/start-call.use-case';
+import { RelayCallRenegotiationUseCase } from './use-cases/commands/call/relay-call-renegotiation.use-case';
+import { RelayRenegotiationDto } from './dtos/input/relay-renegotiation.dto';
 
 @Injectable()
 export class SupportCallService {
@@ -20,6 +22,7 @@ export class SupportCallService {
     private readonly startCallUseCase: StartCallUseCase,
     private readonly answerCallUseCase: AnswerCallUseCase,
     private readonly relayCallCandidateUseCase: RelayCallCandidateUseCase,
+    private readonly relayCallRenegotiationUseCase: RelayCallRenegotiationUseCase,
     private readonly endCallUseCase: EndCallUseCase
   ) {}
 
@@ -37,6 +40,10 @@ export class SupportCallService {
 
   async relayCallCandidate (dto: RelayCandidateDto): Promise<OkResponseDto> {
     return this.relayCallCandidateUseCase.execute(dto);
+  }
+
+  async relayCallRenegotiation (dto: RelayRenegotiationDto): Promise<OkResponseDto> {
+    return this.relayCallRenegotiationUseCase.execute(dto);
   }
 
   async endCall (dto: EndCallDto): Promise<OkResponseDto> {

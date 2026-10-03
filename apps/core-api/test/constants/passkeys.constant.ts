@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PASSKEY_TEST = {
+  ...HTTP_STATUS,
   REGISTER_OPTIONS_PATH: '/auth/passkeys/register/options',
   REGISTER_VERIFY_PATH: '/auth/passkeys/register/verify',
   LOGIN_OPTIONS_PATH: '/auth/passkeys/login/options',
@@ -20,10 +23,5 @@ export const PASSKEY_TEST = {
     SELECT column_name FROM information_schema.columns WHERE table_name = 'user_credentials'
   `,
   CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1',
-  FORBIDDEN_WORDS: ['biometric', 'fingerprint', 'face', 'template', 'image'],
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  NOT_FOUND: 404
+  FORBIDDEN_WORDS: ['biometric', 'fingerprint', 'face', 'template', 'image']
 } as const;

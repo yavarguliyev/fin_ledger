@@ -2,6 +2,7 @@ import { Kafka, logLevel } from 'kafkajs';
 import { CryptoHelper } from '@common/shared-libs';
 
 import { EMAIL_LINK_SEALING_TEST as T } from '../constants/email-link-sealing.constant';
+import { HTTP_STATUS } from '../constants/http-status.constant';
 import { EMAIL_TOPICS } from '../constants/email-topics.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { ApiHelper } from '../helpers/api.helper';
@@ -42,7 +43,7 @@ describe('E-mail links are sealed in the outbox and Kafka', () => {
   afterAll(async () => DbHelper.close());
 
   it('keeps the reset token out of the outbox and the topic while the e-mail still carries a working link', async () => {
-    await expect(ApiHelper.request({ method: 'POST', path: T.FORGOT_PATH, body: { email: T.EMAIL } })).resolves.toMatchObject({ status: T.OK });
+    await expect(ApiHelper.request({ method: 'POST', path: T.FORGOT_PATH, body: { email: T.EMAIL } })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED });
 
     const sent = await EmailInboxHelper.waitFor({ to: T.EMAIL, topic: EMAIL_TOPICS.PASSWORD_RESET });
     const [row] = await DbHelper.query<{ payload: string }>({ sql: T.OUTBOX_SQL, params: [T.EMAIL] });

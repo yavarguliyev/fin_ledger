@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_RECORDINGS_TEST = {
+  ...HTTP_STATUS,
   CUSTOMER_EMAIL: 'recordings-customer@support-tests.realtime-wallet-payments.com',
   FILES_FIELD: 'files',
   DURATION_FIELD: 'durationSeconds',
@@ -9,6 +12,5 @@ export const SUPPORT_RECORDINGS_TEST = {
   VOICE_ROW_SQL: `INSERT INTO support_messages (conversation_id, sender_user_id, kind, source, storage_key, file_name, mime_type, size_bytes, duration_seconds)
     VALUES ($1, (SELECT id FROM users WHERE email = $2), 'VOICE', 'WEB', 'support/test/voice', 'voice.webm', 'audio/webm', 10, 3) RETURNING id`,
   NEW_TEXT: 'trying to edit a voice note',
-  BAD_REQUEST: 400,
   UNSUPPORTED: 415
 } as const;

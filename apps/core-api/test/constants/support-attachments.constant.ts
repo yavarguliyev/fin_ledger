@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_ATTACHMENTS_TEST = {
+  ...HTTP_STATUS,
   CUSTOMER_EMAIL: 'attachments-customer@support-tests.realtime-wallet-payments.com',
   FIELD_NAME: 'files',
   EDIT_FIELD_NAME: 'file',
@@ -12,9 +15,6 @@ export const SUPPORT_ATTACHMENTS_TEST = {
   FAKE_TEXT: 'this is not a picture',
   ORIGINAL_TEXT: 'My withdrawal is pending',
   EDITED_TEXT: 'My withdrawal is pending since Monday',
-  OK: 200,
-  BAD_REQUEST: 400,
-  FORBIDDEN: 403,
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED: 415
 } as const;

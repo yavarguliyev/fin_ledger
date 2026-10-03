@@ -183,7 +183,21 @@
                         {{ emoji }}
                       </button>
                     }
+                    <button
+                      type="button"
+                      class="grid h-7 w-7 place-items-center rounded-full bg-ink-100 dark:bg-night-bg text-sm text-ink-600 dark:text-ink-300"
+                      [attr.aria-label]="moreLabel"
+                      [title]="moreLabel"
+                      (click)="expandedFor.set(expandedFor() === message.id ? null : message.id)"
+                    >
+                      +
+                    </button>
                   </div>
+                  @if (expandedFor() === message.id) {
+                    <div class="absolute bottom-10 z-30" [class]="isOwn(message) ? 'right-0' : 'left-0'">
+                      <app-emoji-panel (picked)="pick({ messageId: message.id, emoji: $event })" />
+                    </div>
+                  }
                 }
               </div>
               <button

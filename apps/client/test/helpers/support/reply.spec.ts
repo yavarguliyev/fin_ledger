@@ -8,10 +8,12 @@ import { SupportChatStore } from '../../../src/app/core/services/support-chat.st
 import { SupportComposeStore } from '../../../src/app/core/services/support-compose.store';
 import { SupportMessage } from '../../../src/app/core/types/support/support-message.type';
 import { SupportOfflineQueueStore } from '../../../src/app/core/services/support-offline-queue.store';
+import { SupportUploadStore } from '../../../src/app/core/services/support-upload.store';
 import { ToastService } from '../../../src/app/core/services/toast.service';
 import { SUPPORT_REPLY_TEST as T } from '../../constants/support-reply.constant';
+import { aSupportMessage } from '../../fakes/support.fake';
 
-const message = (fields: Partial<SupportMessage>): SupportMessage => ({ id: T.ORIGINAL_ID, body: T.BODY, ...fields }) as SupportMessage;
+const message = (fields: Partial<SupportMessage>): SupportMessage => aSupportMessage({ id: T.ORIGINAL_ID, body: T.BODY, ...fields });
 const sendMessage = jest.fn<Observable<SupportMessage>, [SendSupportMessageDto]>(() => of(message({})));
 
 const create = (): SupportComposeStore => {
@@ -20,7 +22,8 @@ const create = (): SupportComposeStore => {
       { provide: SupportApiService, useValue: { sendMessage } },
       { provide: SupportChatStore, useValue: { upsertMessage: jest.fn() } },
       { provide: ToastService, useValue: { error: jest.fn() } },
-      { provide: SupportOfflineQueueStore, useValue: { queue: jest.fn() } }
+      { provide: SupportOfflineQueueStore, useValue: { queue: jest.fn() } },
+      { provide: SupportUploadStore, useValue: { start: jest.fn() } }
     ]
   });
   return runInInjectionContext(injector, () => new SupportComposeStore());
@@ -42,7 +45,7 @@ describe('Replying to a message', () => {
   });
 
   it('keeps the quote when an edit of the reply arrives without one', () => {
-    const quote = { id: T.ORIGINAL_ID, senderUserId: null, senderName: null, body: T.QUOTED, kind: 'TEXT', deleted: false } as SupportMessage['replyTo'];
+    const quote: SupportMessage['replyTo'] = { id: T.ORIGINAL_ID, senderUserId: null, senderName: null, body: T.QUOTED, kind: 'TEXT', deleted: false };
     const current = [message({ replyTo: quote })];
     const [merged] = SupportChatHelper.upsertMessage({ current, incoming: message({ body: T.EDITED }) });
 

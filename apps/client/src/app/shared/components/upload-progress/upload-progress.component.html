@@ -1,0 +1,13 @@
+<div class="mx-3 my-2 flex items-center gap-3 text-xs text-ink-500 dark:text-ink-300" role="status">
+  <span>{{ labels.UPLOADING_LABEL }} {{ progress() }}%</span>
+  <div
+    class="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100 dark:bg-night-bg"
+    role="progressbar"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    [attr.aria-valuenow]="progress()"
+  >
+    <div class="h-full bg-primary transition-all" [style.width.%]="progress()"></div>
+  </div>
+  <button type="button" class="font-medium text-danger hover:underline" (click)="cancelled.emit()">{{ labels.CANCEL_LABEL }}</button>
+</div>

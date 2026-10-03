@@ -35,11 +35,13 @@
             <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1"> + Manage methods </a>
           </div>
 
-          @if (loadingMethods()) {
+          @if (methods.loading()) {
             <div class="py-6 flex justify-center text-ink-400">
               <span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
             </div>
-          } @else if (verifiedMethods().length === 0) {
+          } @else if (methods.failed()) {
+            <app-error-state [message]="states.METHODS_ERROR" (retry)="loadPaymentMethods()" />
+          } @else if (methods.verified().length === 0) {
             <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-4 text-center space-y-2">
               <p class="text-sm font-medium text-ink-800 dark:text-ink-100">No verified payment methods found</p>
               <p class="text-xs text-ink-500 dark:text-ink-400">
@@ -54,7 +56,7 @@
             </div>
           } @else {
             <div class="space-y-2.5">
-              @for (method of verifiedMethods(); track method.id) {
+              @for (method of methods.verified(); track method.id) {
                 <div
                   (click)="selectMethod(method.id)"
                   [class.border-primary]="form.controls.paymentMethodId.value === method.id"
@@ -131,7 +133,7 @@
 
         <button
           type="submit"
-          [disabled]="!isValid() || loading() || verifiedMethods().length === 0"
+          [disabled]="!isValid() || loading() || methods.verified().length === 0 || connectivity.offline()"
           class="w-full py-2.5 rounded-lg bg-danger text-white font-semibold hover:bg-danger-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           @if (loading()) {

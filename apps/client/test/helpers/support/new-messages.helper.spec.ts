@@ -1,8 +1,9 @@
 import { NewMessagesHelper } from '../../../src/app/features/support/helpers/new-messages.helper';
 import { SupportMessage } from '../../../src/app/core/types/support/support-message.type';
 import { NEW_MESSAGES_TEST as T } from '../../constants/new-messages.constant';
+import { aSupportMessage } from '../../fakes/support.fake';
 
-const message = (id: string, senderUserId: string): SupportMessage => ({ id, senderUserId }) as unknown as SupportMessage;
+const message = (id: string, senderUserId: string): SupportMessage => aSupportMessage({ id, senderUserId });
 
 const messages = [message(T.FIRST, T.PEER), message(T.SECOND, T.ME), message(T.THIRD, T.PEER), message(T.FOURTH, T.PEER)];
 

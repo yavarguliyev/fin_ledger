@@ -11,4 +11,11 @@ export interface SseEvent {
   type: string;
   conversationId?: string;
   typingUserId?: string;
+  call?: SseCallSignal;
+}
+
+export interface SseCallSignal {
+  callId: string;
+  sdp?: string;
+  sdpType?: string;
 }

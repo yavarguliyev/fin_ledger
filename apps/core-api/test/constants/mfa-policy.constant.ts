@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const MFA_POLICY_TEST = {
+  ...HTTP_STATUS,
   STATUS_PATH: '/auth/mfa/status',
   SETUP_PATH: '/auth/mfa/setup',
   ENABLE_PATH: '/auth/mfa/enable',
@@ -10,8 +13,5 @@ export const MFA_POLICY_TEST = {
   ADMIN_ROLE: 'GLOBAL_ADMIN',
   PLAYER_EMAIL: 'mfa-policy-player@support-tests.realtime-wallet-payments.com',
   WRONG_PASSWORD: 'Wrong#Pass2026',
-  RECOVERY_CODE_COUNT: 10,
-  OK: 200,
-  CREATED: 201,
-  FORBIDDEN: 403
+  RECOVERY_CODE_COUNT: 10
 } as const;

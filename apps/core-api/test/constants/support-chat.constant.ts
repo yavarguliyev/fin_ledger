@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_CHAT_TEST = {
+  ...HTTP_STATUS,
   CUSTOMER_EMAIL: 'chat-customer@support-tests.realtime-wallet-payments.com',
   OTHER_EMAIL: 'chat-other@support-tests.realtime-wallet-payments.com',
   STAFF_EMAIL: 'moderator@realtime-wallet-payments.com',
@@ -18,10 +21,6 @@ export const SUPPORT_CHAT_TEST = {
   CLEAN_SQL: 'DELETE FROM support_conversations WHERE customer_user_id IN (SELECT id FROM users WHERE email = ANY($1::text[]))',
   ASSIGNED_SQL: 'SELECT assigned_staff_id AS "assignedStaffId" FROM support_conversations WHERE id = $1',
   STAFF_REPLY: 'Looking into it right now',
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  NOT_FOUND: 404,
   STREAM_TICKET_PATH: '/support/stream-ticket',
   STREAM_PATH: '/support/stream?ticket=',
   TYPING_EVENT: 'support.conversation.typing',

@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const DEVICE_TRACKING = {
+  ...HTTP_STATUS,
   LOGIN_PATH: '/auth/login',
   SHARED_DEVICES_PATH: '/admin/shared-devices',
   FIRST_EMAIL: 'device-first@integration.test',
@@ -11,8 +14,5 @@ export const DEVICE_TRACKING = {
   KNOWN_DEVICE: 'integration-device-known',
   OTHER_DEVICE: 'integration-device-other',
   SHARED_DEVICE: 'integration-device-shared',
-  OK: 200,
-  CREATED: 201,
-  FORBIDDEN: 403,
   SHARED_ACCOUNTS: 2
 } as const;

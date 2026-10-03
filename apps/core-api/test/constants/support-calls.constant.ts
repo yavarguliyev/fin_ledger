@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_CALLS_TEST = {
+  ...HTTP_STATUS,
   CUSTOMER_EMAIL: 'calls-customer@support-tests.realtime-wallet-payments.com',
   STRANGER_EMAIL: 'calls-stranger@support-tests.realtime-wallet-payments.com',
   CALLS_PATH: '/support/calls',
@@ -11,10 +14,5 @@ export const SUPPORT_CALLS_TEST = {
   MISSED: 'MISSED',
   SYSTEM_KIND: 'SYSTEM',
   VOICE_LOG_PREFIX: 'Voice call · ',
-  MISSED_VIDEO_LOG: 'Missed video call',
-  OK: 200,
-  CREATED: 201,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  CONFLICT: 409
+  MISSED_VIDEO_LOG: 'Missed video call'
 } as const;

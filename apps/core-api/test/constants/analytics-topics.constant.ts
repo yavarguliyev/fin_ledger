@@ -1,9 +1,11 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const ANALYTICS_TOPICS_TEST = {
+  ...HTTP_STATUS,
   EMAIL: 'player17@realtime-wallet-payments.com',
   DEPOSIT_PATH: '/payments/deposit',
   BETS_PATH: '/bets',
   WEBHOOK_PATH: '/webhooks/stripe',
-  CREATED: 201,
   DEPOSIT_MINOR: 3300,
   STAKE_MINOR: 500,
   SELECTION: 'HOME',

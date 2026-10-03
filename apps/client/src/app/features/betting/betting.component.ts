@@ -21,6 +21,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { BettingEventsService } from './services/betting-events.service';
+import { ConnectivityService } from '../../core/services/connectivity.service';
 
 @Component({
   selector: 'app-betting',
@@ -31,6 +32,7 @@ import { BettingEventsService } from './services/betting-events.service';
 })
 export class BettingComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  readonly connectivity = inject(ConnectivityService);
   private readonly fb = inject(FormBuilder);
   private readonly bettingService = inject(BettingService);
   private readonly toast = inject(ToastService);
@@ -67,7 +69,7 @@ export class BettingComponent implements OnInit {
 
   readonly canPlaceBet = computed(() => {
     const value = this.stakeValue();
-    return this.selectedEvent() !== null && value !== null && value > 0 && !this.loading();
+    return this.selectedEvent() !== null && value !== null && value > 0 && !this.loading() && !this.connectivity.offline();
   });
 
   readonly paginationConfig = computed<PaginationConfig>(() => ({

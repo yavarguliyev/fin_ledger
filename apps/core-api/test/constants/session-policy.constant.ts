@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SESSION_POLICY = {
+  ...HTTP_STATUS,
   ACCESS_TTL_SECONDS: 900,
   REFRESH_USER: 'player3@realtime-wallet-payments.com',
   REPLAY_USER: 'player2@realtime-wallet-payments.com',
@@ -9,10 +12,7 @@ export const SESSION_POLICY = {
   REFRESH_PATH: '/auth/refresh',
   LOGOUT_PATH: '/auth/logout',
   LOGOUT_ALL_PATH: '/auth/logout-all',
-  OK: 200,
   GRACE_WAIT_MS: 1200,
-  CREATED: 201,
-  UNAUTHORIZED: 401,
   TOKEN_FIELD: 'refreshToken',
   TOKEN_COOKIE: 'refresh_token',
   HTTP_ONLY: 'HttpOnly',

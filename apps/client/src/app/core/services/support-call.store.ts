@@ -56,6 +56,7 @@ export class SupportCallStore {
     }
 
     if (event.type === SUPPORT_CALL.CANDIDATE_EVENT && call.candidate) void this.session.addCandidate({ candidate: call.candidate });
+    if (event.type === SUPPORT_CALL.RENEGOTIATE_EVENT) this.link.renegotiate({ call });
     if (event.type === SUPPORT_CALL.ENDED_EVENT) this.finish({ notice: CallNoticeHelper.forReason({ reason: call.reason }) });
   }
 

@@ -6,6 +6,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { App } from './app/app.component';
 import { routes } from './app/app.routes';
 import { authInterceptor } from './app/core/interceptors/auth.interceptor';
+import { requestTimeoutInterceptor } from './app/core/interceptors/request-timeout.interceptor';
+import { readRetryInterceptor } from './app/core/interceptors/read-retry.interceptor';
 import { AppConfigService } from './app/core/services/app-config.service';
 import { SessionRefreshService } from './app/core/services/session-refresh.service';
 import { requestSharingInterceptor } from './app/core/interceptors/request-sharing.interceptor';
@@ -15,7 +17,7 @@ import { PageViewTrackerService } from './app/core/services/page-view-tracker.se
 bootstrapApplication(App, {
   providers: [
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
-    provideHttpClient(withInterceptors([pageViewInterceptor, requestSharingInterceptor, authInterceptor])),
+    provideHttpClient(withInterceptors([pageViewInterceptor, requestSharingInterceptor, authInterceptor, readRetryInterceptor, requestTimeoutInterceptor])),
     provideAppInitializer(() => inject(PageViewTrackerService).listen()),
     provideAppInitializer(() => {
       const config = inject(AppConfigService);

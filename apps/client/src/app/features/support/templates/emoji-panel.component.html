@@ -1,0 +1,30 @@
+<div class="w-72 rounded-2xl border border-ink-100 dark:border-night-border bg-white dark:bg-night-card shadow-xl">
+  <div class="flex gap-1 border-b border-ink-100 dark:border-night-border px-2 pt-2" role="tablist">
+    @for (category of categories; track category.label; let index = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="rounded-t-lg px-2 py-1 text-lg"
+        [class.bg-ink-100]="active() === index"
+        [attr.aria-selected]="active() === index"
+        [attr.aria-label]="category.label"
+        [title]="category.label"
+        (click)="active.set(index)"
+      >
+        {{ category.icon }}
+      </button>
+    }
+  </div>
+  <div class="grid max-h-56 grid-cols-8 gap-0.5 overflow-y-auto p-2" role="tabpanel">
+    @for (emoji of emojis(); track emoji) {
+      <button
+        type="button"
+        class="rounded-lg p-1 text-xl hover:bg-ink-100 dark:hover:bg-night-bg"
+        [attr.aria-label]="emoji"
+        (click)="picked.emit(emoji)"
+      >
+        {{ emoji }}
+      </button>
+    }
+  </div>
+</div>

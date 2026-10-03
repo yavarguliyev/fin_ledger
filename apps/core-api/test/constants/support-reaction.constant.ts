@@ -1,8 +1,13 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_REACTION_TEST = {
+  ...HTTP_STATUS,
   TEXT: 'Your refund went out this morning',
   THUMBS: '👍',
   HEART: '❤️',
-  NOT_OFFERED: '🦄',
-  REACTION_SUFFIX: '/reaction',
-  BAD_REQUEST: 400
+  ANY_EMOJI: '🦄',
+  FLAG: '🇦🇿',
+  PLAIN_TEXT: 'ok',
+  TWO_EMOJIS: '👍👍',
+  REACTION_SUFFIX: '/reaction'
 } as const;

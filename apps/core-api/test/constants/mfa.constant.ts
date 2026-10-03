@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const MFA_TEST = {
+  ...HTTP_STATUS,
   SETUP_EMAIL: 'mfa-setup-player@support-tests.realtime-wallet-payments.com',
   LOGIN_EMAIL: 'mfa-login-player@support-tests.realtime-wallet-payments.com',
   STATUS_PATH: '/auth/mfa/status',
@@ -22,10 +25,5 @@ export const MFA_TEST = {
                   FROM users u LEFT JOIN mfa_recovery_codes c ON c.user_id = u.id WHERE u.email = $1 GROUP BY u.id`,
   TOKEN_ROW_SQL: 'SELECT failed_attempts, revoked_at IS NOT NULL AS revoked, used_at IS NOT NULL AS used FROM auth_tokens WHERE token_hash = $1',
   RECENT_LOGIN_SQL: "SELECT last_login_at > now() - interval '1 minute' AS recent FROM users WHERE email = $1",
-  EXPIRE_SQL: "UPDATE auth_tokens SET created_at = now() - interval '10 minutes', expires_at = now() - interval '5 minutes' WHERE token_hash = $1",
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  CONFLICT: 409
+  EXPIRE_SQL: "UPDATE auth_tokens SET created_at = now() - interval '10 minutes', expires_at = now() - interval '5 minutes' WHERE token_hash = $1"
 } as const;

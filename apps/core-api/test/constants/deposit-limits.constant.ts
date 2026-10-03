@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const DEPOSIT_LIMITS_TEST = {
+  ...HTTP_STATUS,
   LIMITS_PATH: '/users/me/deposit-limits',
   DEPOSIT_PATH: '/payments/deposit',
   REGISTER_PATH: '/auth/register',
@@ -19,8 +22,5 @@ export const DEPOSIT_LIMITS_TEST = {
     SELECT 'limit-seed', u.id, w.id, $2, 'DEPOSIT', 'PENDING', $3, 'stripe'
     FROM users u JOIN wallets w ON w.user_id = u.id
     WHERE u.email = $1
-  `,
-  OK: 200,
-  CREATED: 201,
-  FORBIDDEN: 403
+  `
 } as const;

@@ -139,6 +139,10 @@ export class CallSessionService {
     return CallSenderHelper.videoSender({ peer: this.peer });
   }
 
+  connection (): RTCPeerConnection {
+    return this.require();
+  }
+
   private require (): RTCPeerConnection {
     if (!this.peer) throw new Error(SUPPORT_CALL.FAILED_NOTICE);
     return this.peer;

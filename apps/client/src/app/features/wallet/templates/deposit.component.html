@@ -70,6 +70,8 @@
           <div class="py-6 flex justify-center text-ink-400">
             <span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
           </div>
+        } @else if (formService.methodsFailed()) {
+          <app-error-state [message]="states.METHODS_ERROR" (retry)="formService.loadPaymentMethods()" />
         } @else if (formService.verifiedMethods().length === 0) {
           <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/50 dark:bg-amber-950/20 p-4 text-center space-y-2">
             <p class="text-sm font-medium text-ink-800 dark:text-ink-100">No verified payment methods found</p>
@@ -161,7 +163,7 @@
         </button>
         <button
           (click)="next()"
-          [disabled]="!formService.selectedMethodId() || !termsControl.value"
+          [disabled]="!formService.selectedMethodId() || !termsControl.value || connectivity.offline()"
           class="flex-1 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
         >
           Continue
@@ -202,7 +204,7 @@
             </button>
             <button
               (click)="confirm()"
-              [disabled]="loading()"
+              [disabled]="loading() || connectivity.offline()"
               class="flex-1 py-2.5 rounded-lg bg-success text-white font-semibold hover:bg-success-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               @if (loading()) {

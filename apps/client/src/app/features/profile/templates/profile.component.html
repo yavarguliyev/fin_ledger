@@ -40,6 +40,9 @@
           }
           <input type="file" (change)="onFileSelected($event)" accept="image/*" multiple class="hidden" [disabled]="imageService.isUploading()" />
         </label>
+        @if (imageService.isUploading()) {
+          <app-upload-progress class="flex-1" [progress]="imageService.uploadProgress()" (cancelled)="imageService.cancelUpload()" />
+        }
         @if (imageService.hasImages()) {
           <button
             type="button"

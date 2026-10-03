@@ -1,5 +1,9 @@
 export const MESSAGE_REACTION = {
   TABLE: 'support_message_reactions',
+  MAX_LENGTH: 16,
+  GRAPHEME: 'grapheme',
+  EMOJI_PATTERN: /\p{Extended_Pictographic}|\p{Regional_Indicator}/u,
+  NOT_EMOJI_MESSAGE: 'A reaction must be a single emoji',
   NOT_FOUND_MESSAGE: 'Message not found',
   DELETED_MESSAGE: 'A deleted message cannot get reactions',
   SET_SQL: `

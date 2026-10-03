@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PRESENCE_INDEX_TEST = {
+  ...HTTP_STATUS,
   STAFF_EMAIL: 'moderator@realtime-wallet-payments.com',
   LEAVER_EMAIL: 'presence-leaver@support-tests.realtime-wallet-payments.com',
   HEARTBEAT_PATH: '/support/presence/heartbeat',
@@ -14,6 +17,5 @@ export const PRESENCE_INDEX_TEST = {
   COMMANDSTATS: 'commandstats',
   CALLS_PATTERN: (command: string): RegExp => new RegExp(`cmdstat_${command}:calls=(\\d+)`),
   COMMANDS: ['scan', 'get', 'mget', 'zrevrangebyscore'],
-  EXPECTED_CALLS: { scan: 0, mget: 1, zrevrangebyscore: 1 },
-  OK: 200
+  EXPECTED_CALLS: { scan: 0, mget: 1, zrevrangebyscore: 1 }
 } as const;

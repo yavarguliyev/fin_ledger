@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { SupportCallEndReason, SupportCallMedia } from '@common/libs';
 
 import { IceCandidateSchema } from './ice-candidate.dto';
+import { SUPPORT_CALL } from '../../constants/call/support-call.constant';
 
 export const CallSignalSchema = z.object({
   callId: z.string({ message: 'Call ID must be a string' }),
@@ -15,6 +16,8 @@ export const CallSignalSchema = z.object({
   fromName: z.string({ message: 'From name must be a string' }).optional(),
 
   sdp: z.string({ message: 'SDP must be a string' }).optional(),
+
+  sdpType: z.enum(SUPPORT_CALL.SDP_TYPES).optional(),
 
   candidate: IceCandidateSchema.optional(),
 

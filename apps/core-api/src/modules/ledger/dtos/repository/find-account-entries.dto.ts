@@ -5,7 +5,9 @@ export const FindAccountEntriesSchema = z.object({
 
   limit: z.number({ message: 'Limit must be a number' }).int().positive(),
 
-  offset: z.number({ message: 'Offset must be a number' }).int().nonnegative()
+  before: z.string({ message: 'Before must be a string' }).optional(),
+
+  beforeId: z.string({ message: 'Before ID must be a string' }).optional()
 });
 
 export type FindAccountEntriesDto = z.infer<typeof FindAccountEntriesSchema>;

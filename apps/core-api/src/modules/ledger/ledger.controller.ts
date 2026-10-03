@@ -2,7 +2,6 @@ import { Controller, Get, UseGuards, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   ENVIRONMENT_CONSTANTS,
-  PaginatedResponseDto,
   SessionGuard,
   RequestContext,
   ParamsQueryAndHeaders,
@@ -54,7 +53,7 @@ export class LedgerController {
   async getAccountEntries (
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: ListAccountEntriesRequestSchema }) dto: ListAccountEntriesRequestDto
-  ): Promise<PaginatedResponseDto<LedgerEntryResponseDto>> {
+  ): Promise<LedgerEntryResponseDto[]> {
     return this.ledgerService.getAccountEntries({ ...dto, role: req.user.role });
   }
 }

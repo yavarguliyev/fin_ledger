@@ -1,3 +1,6 @@
+templates:
+  - '/etc/alertmanager-config/*.tmpl'
+
 route:
   receiver: core-api
   group_by: ['alertname']
@@ -24,4 +27,5 @@ receivers:
         chat_id: __TELEGRAM_CHAT_ID__
         send_resolved: true
         parse_mode: HTML
+        message: '{{ template "telegram.wallet" . }}'
     # telegram:end

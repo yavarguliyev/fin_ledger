@@ -30,11 +30,3 @@ export interface PresenceEntry {
   state: string;
   lastSeenAt: string;
 }
-
-export interface PresenceEntry {
-  userId: string;
-  displayName: string;
-  role: string;
-  state: string;
-  lastSeenAt: string;
-}

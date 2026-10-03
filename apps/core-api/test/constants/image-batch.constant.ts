@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const IMAGE_BATCH_TEST = {
+  ...HTTP_STATUS,
   EMAIL: 'image-batch@support-tests.realtime-wallet-payments.com',
   PATH: '/users/upload',
   PNG_BASE64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
@@ -13,7 +16,6 @@ export const IMAGE_BATCH_TEST = {
   REAL_HEIC_FIXTURE: '../fixtures/sample.heic',
   REAL_HEIC_NAME: 'IMG_0420.HEIC',
   JPEG_SUFFIX: '.jpg',
-  CREATED: 201,
   UNSUPPORTED: 415,
   BASE64: 'base64'
 } as const;

@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const ACCOUNT_MANAGEMENT = {
+  ...HTTP_STATUS,
   REGISTER_PATH: '/auth/register',
   LOGIN_PATH: '/auth/login',
   VERIFY_EMAIL_PATH: '/auth/verify-email',
@@ -12,9 +15,5 @@ export const ACCOUNT_MANAGEMENT = {
   DISPLAY_NAME: 'Account Owner',
   PASSWORD: 'Account#Pass2026',
   NEW_PASSWORD: 'Account#Pass2027',
-  WRONG_PASSWORD: 'Account#Wrong2026',
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401
+  WRONG_PASSWORD: 'Account#Wrong2026'
 } as const;

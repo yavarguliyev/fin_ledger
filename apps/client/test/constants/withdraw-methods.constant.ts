@@ -1,0 +1,6 @@
+export const WITHDRAW_METHODS_TEST = {
+  VERIFIED: 'VERIFIED',
+  PENDING: 'PENDING_VERIFICATION',
+  STATUS: 503,
+  MESSAGE: 'down'
+} as const;

@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SELF_EXCLUSION_TEST = {
+  ...HTTP_STATUS,
   PATH: '/users/me/self-exclusion',
   BETS_PATH: '/bets',
   DEPOSIT_PATH: '/payments/deposit',
@@ -17,9 +20,5 @@ export const SELF_EXCLUSION_TEST = {
   AMOUNT_MINOR: 2500,
   CURRENCY: 'USD',
   SELECTION: 'Home',
-  BLOCKED_MESSAGE: 'You have self-excluded from gambling. This cannot be lifted before it expires.',
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  FORBIDDEN: 403
+  BLOCKED_MESSAGE: 'You have self-excluded from gambling. This cannot be lifted before it expires.'
 } as const;

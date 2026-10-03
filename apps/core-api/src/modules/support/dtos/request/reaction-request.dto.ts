@@ -1,9 +1,12 @@
 import { z } from 'zod';
 
-import { SUPPORT_REACTION_EMOJIS } from '@common/contracts';
+import { EmojiHelper } from '../../helpers/emoji.helper';
+import { MESSAGE_REACTION } from '../../constants/chat/message-reaction.constant';
 
 export const ReactionRequestSchema = z.object({
-  emoji: z.enum(SUPPORT_REACTION_EMOJIS, { message: 'Pick one of the offered reactions' })
+  emoji: z
+    .string({ message: MESSAGE_REACTION.NOT_EMOJI_MESSAGE })
+    .refine(value => EmojiHelper.isSingleEmoji({ value }), { message: MESSAGE_REACTION.NOT_EMOJI_MESSAGE })
 });
 
 export type ReactionRequestDto = z.infer<typeof ReactionRequestSchema>;

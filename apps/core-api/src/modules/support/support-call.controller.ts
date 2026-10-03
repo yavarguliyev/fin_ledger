@@ -6,6 +6,7 @@ import { AnswerCallRequestDto, AnswerCallRequestSchema } from './dtos/request/an
 import { CallCandidateRequestDto, CallCandidateRequestSchema } from './dtos/request/call-candidate-request.dto';
 import { CallConfigResponseDto } from './dtos/response/call-config-response.dto';
 import { CallIdRequestDto, CallIdRequestSchema } from './dtos/request/call-id-request.dto';
+import { CallRenegotiateRequestDto, CallRenegotiateRequestSchema } from './dtos/request/call-renegotiate-request.dto';
 import { EndCallRequestDto, EndCallRequestSchema } from './dtos/request/end-call-request.dto';
 import { OkResponseDto } from './dtos/response/ok-response.dto';
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
@@ -46,6 +47,15 @@ export class SupportCallController {
     @Body({ schema: CallCandidateRequestSchema }) dto: CallCandidateRequestDto
   ): Promise<OkResponseDto> {
     return this.callService.relayCallCandidate({ ...dto, callId: params.callId, userId: req.user.userId, role: req.user.role ?? '' });
+  }
+
+  @Post('calls/:callId/renegotiate')
+  async renegotiate (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: CallIdRequestSchema }) params: CallIdRequestDto,
+    @Body({ schema: CallRenegotiateRequestSchema }) dto: CallRenegotiateRequestDto
+  ): Promise<OkResponseDto> {
+    return this.callService.relayCallRenegotiation({ ...dto, callId: params.callId, userId: req.user.userId });
   }
 
   @Post('calls/:callId/end')

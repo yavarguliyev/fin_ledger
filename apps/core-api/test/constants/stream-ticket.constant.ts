@@ -1,10 +1,10 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const STREAM_TICKET = {
+  ...HTTP_STATUS,
   USER: 'player3@realtime-wallet-payments.com',
   TICKET_PATH: '/notifications/stream-ticket',
   STREAM_PATH: '/notifications/stream',
   TICKET_PARAM: 'ticket',
-  TOKEN_PARAM: 'token',
-  OK: 200,
-  CREATED: 201,
-  UNAUTHORIZED: 401
+  TOKEN_PARAM: 'token'
 } as const;

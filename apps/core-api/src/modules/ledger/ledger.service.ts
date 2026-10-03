@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { PaginatedResponseDto } from '@common/libs';
 
 import { CreateLedgerAccountUseCase } from './use-cases/commands/create-ledger-account.use-case';
 import { CreateLedgerTransactionUseCase } from './use-cases/commands/create-ledger-transaction.use-case';
@@ -54,7 +53,7 @@ export class LedgerService {
     return this.getTransactionEntriesUseCase.execute(dto);
   }
 
-  async getAccountEntries (dto: ListAccountEntriesDto): Promise<PaginatedResponseDto<LedgerEntryResponseDto>> {
+  async getAccountEntries (dto: ListAccountEntriesDto): Promise<LedgerEntryResponseDto[]> {
     return this.getAccountEntriesUseCase.execute(dto);
   }
 }

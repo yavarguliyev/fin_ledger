@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
 import { Observable, catchError } from 'rxjs';
 
 import { AppConfigService } from './app-config.service';
@@ -49,12 +49,13 @@ export class SupportApiService {
     return this.send(this.http.post<SupportMessage>(this.threadUrl({ conversationId }), { body, ...(replyToMessageId && { replyToMessageId }) }));
   }
 
-  sendAttachments ({ conversationId, body, files, durationSeconds }: SendAttachmentsDto): Observable<SupportMessage[]> {
+  sendAttachments ({ conversationId, body, files, durationSeconds }: SendAttachmentsDto): Observable<HttpEvent<SupportMessage[]>> {
     const form = new FormData();
     files.forEach(file => form.append(SUPPORT_ATTACHMENT.FIELD_NAME, file, file.name));
     if (body) form.append(SUPPORT_ATTACHMENT.BODY_FIELD, body);
     if (durationSeconds) form.append(SUPPORT_ATTACHMENT.DURATION_FIELD, String(durationSeconds));
-    return this.send(this.http.post<SupportMessage[]>(`${this.conversationUrl({ conversationId })}${SUPPORT_ATTACHMENT.ATTACHMENTS_PATH}`, form));
+    const url = `${this.conversationUrl({ conversationId })}${SUPPORT_ATTACHMENT.ATTACHMENTS_PATH}`;
+    return this.send(this.http.post<SupportMessage[]>(url, form, { reportProgress: true, observe: 'events' }));
   }
 
   react ({ conversationId, messageId, emoji }: ReactMessageDto): Observable<Reaction[]> {

@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const SUPPORT_PRESENCE_TEST = {
+  ...HTTP_STATUS,
   CUSTOMER_EMAIL: 'presence-customer@support-tests.realtime-wallet-payments.com',
   OTHER_EMAIL: 'presence-other@support-tests.realtime-wallet-payments.com',
   STAFF_EMAIL: 'moderator@realtime-wallet-payments.com',
@@ -6,10 +9,7 @@ export const SUPPORT_PRESENCE_TEST = {
   PRESENCE_PATH: '/support/presence',
   LEAVE_PATH: '/support/presence/leave',
   LAST_SEEN_PATH: '/support/presence/last-seen',
-  FORBIDDEN: 403,
   STAFF_ROLE: 'MODERATOR',
   USER_ROLE: 'USER',
-  ONLINE: 'ONLINE',
-  OK: 200,
-  CREATED: 201
+  ONLINE: 'ONLINE'
 } as const;

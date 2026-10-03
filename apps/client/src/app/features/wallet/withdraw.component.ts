@@ -6,12 +6,13 @@ import { Router, RouterModule } from '@angular/router';
 
 import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
-import { PaymentMethodService } from '../../core/services/payment-method.service';
+import { WithdrawMethodsService } from './services/withdraw-methods.service';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { IdempotencyKeyService } from '../../core/services/idempotency-key.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { PaymentMethod } from '../../core/types/payment-method/payment-method.type';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
 import { FormErrorHelper } from '../../core/helpers/forms/form-error.helper';
@@ -19,28 +20,29 @@ import { StepUpRetryService } from '../../core/services/step-up-retry.service';
 import { FieldErrorComponent } from '../../shared/components/field-error/field-error.component';
 import { PAYMENT_FIELD_ALIASES } from '../../core/constants/wallet/payment-fields.constant';
 import { PaymentMethodHelper } from '../profile/payment-methods/helpers/payment-method.helper';
+import { ConnectivityService } from '../../core/services/connectivity.service';
 
 @Component({
   selector: 'app-withdraw',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, FieldErrorComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, FieldErrorComponent, ErrorStateComponent],
+  providers: [WithdrawMethodsService],
   templateUrl: './templates/withdraw.component.html'
 })
 export class WithdrawComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  readonly connectivity = inject(ConnectivityService);
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
-  private readonly paymentMethodService = inject(PaymentMethodService);
+  readonly methods = inject(WithdrawMethodsService);
   private readonly idempotencyKeys = inject(IdempotencyKeyService);
   private readonly toast = inject(ToastService);
   private readonly stepUp = inject(StepUpRetryService);
 
   readonly router = inject(Router);
   readonly loading = signal(false);
-  readonly loadingMethods = signal(true);
+  readonly states = LOAD_STATE;
   readonly success = signal(false);
-  readonly paymentMethods = signal<PaymentMethod[]>([]);
-  readonly verifiedMethods = computed(() => this.paymentMethods().filter(m => m.status === 'VERIFIED'));
   readonly available = computed(() => this.walletService.wallet()?.availableBalanceMinor ?? 0);
   readonly currency = computed(() => this.walletService.wallet()?.currency ?? 'USD');
   readonly isValid = computed(() => this.formStatus() === 'VALID');
@@ -82,7 +84,7 @@ export class WithdrawComponent implements OnInit {
     }
 
     this.loading.set(true);
-    const selectedMethod = this.paymentMethods().find(m => m.id === this.form.controls.paymentMethodId.value);
+    const selectedMethod = this.methods.all().find(m => m.id === this.form.controls.paymentMethodId.value);
     const amountMinor = this.amountMinor();
     const currency = this.currency();
     const paymentMethodId = this.form.controls.paymentMethodId.value ?? undefined;
@@ -133,15 +135,13 @@ export class WithdrawComponent implements OnInit {
     });
   }
 
-  private loadPaymentMethods (): void {
-    this.paymentMethodService.list().subscribe({
+  loadPaymentMethods (): void {
+    this.methods.load().subscribe({
       next: methods => {
-        this.paymentMethods.set(methods);
-        this.loadingMethods.set(false);
         const preferred = PaymentMethodHelper.preferredVerified({ methods });
         if (preferred) this.form.controls.paymentMethodId.setValue(preferred.id);
       },
-      error: () => this.loadingMethods.set(false)
+      error: () => undefined
     });
   }
 }

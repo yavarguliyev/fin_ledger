@@ -12,6 +12,7 @@ import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { StartCallDto } from '../interfaces/support/start-call.interface';
 import { SUPPORT } from '../constants/support/support.constant';
 import { SUPPORT_CALL } from '../constants/support/support-call.constant';
+import { RenegotiateCallDto } from '../interfaces/support/renegotiate-call.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportCallApiService {
@@ -32,6 +33,10 @@ export class SupportCallApiService {
 
   answer ({ callId, sdp }: AnswerCallDto): Observable<unknown> {
     return this.send(this.http.post(`${this.callsUrl}/${callId}${SUPPORT_CALL.ANSWER_PATH}`, { sdp }));
+  }
+
+  renegotiate ({ callId, sdp, sdpType }: RenegotiateCallDto): Observable<unknown> {
+    return this.send(this.http.post(`${this.callsUrl}/${callId}${SUPPORT_CALL.RENEGOTIATE_PATH}`, { sdp, sdpType }));
   }
 
   candidate ({ callId, candidate }: CallCandidateDto): Observable<unknown> {

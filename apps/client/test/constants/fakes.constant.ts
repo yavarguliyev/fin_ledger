@@ -1,0 +1,21 @@
+export const FAKES = {
+  ID: 'fake-id',
+  CONVERSATION_ID: 'fake-conversation',
+  USER_ID: 'fake-user',
+  STAFF_ID: 'fake-staff',
+  NAME: 'Fake Person',
+  BODY: 'Fake message',
+  SUBJECT: 'Fake subject',
+  CREATED_AT: '2026-10-01T09:00:00.000Z',
+  ACCOUNT_HOLDER: 'Fake Holder',
+  LAST_FOUR: '4242',
+  CARD_TYPE: 'CREDIT_CARD',
+  PROVIDER: 'stripe',
+  VERIFIED: 'VERIFIED',
+  TEXT_KIND: 'TEXT',
+  WEB_SOURCE: 'WEB',
+  OPEN_STATUS: 'OPEN',
+  ATTACHMENT_URL: 'https://storage.test/fake',
+  FILE_NAME: 'fake.pdf',
+  MIME_TYPE: 'application/pdf'
+} as const;

@@ -13,6 +13,7 @@ export class DepositFormService {
   readonly step = signal(1);
   readonly selectedMethodId = signal<string | null>(null);
   readonly loadingMethods = signal(true);
+  readonly methodsFailed = signal(false);
   readonly paymentMethods = signal<PaymentMethod[]>([]);
 
   readonly quickAmounts = [1000, 5000, 10000, 50000];
@@ -40,6 +41,8 @@ export class DepositFormService {
   }
 
   loadPaymentMethods (): void {
+    this.loadingMethods.set(true);
+    this.methodsFailed.set(false);
     this.paymentMethodService.list().subscribe({
       next: methods => {
         this.paymentMethods.set(methods);
@@ -50,7 +53,10 @@ export class DepositFormService {
 
         if (defaultMethod) this.selectedMethodId.set(defaultMethod.id);
       },
-      error: () => this.loadingMethods.set(false)
+      error: () => {
+        this.loadingMethods.set(false);
+        this.methodsFailed.set(true);
+      }
     });
   }
 

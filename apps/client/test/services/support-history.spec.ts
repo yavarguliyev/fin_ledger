@@ -7,11 +7,12 @@ import { SupportChatStore } from '../../src/app/core/services/support-chat.store
 import { SupportChatHelper } from '../../src/app/core/helpers/support/support-chat.helper';
 import { SupportMessage } from '../../src/app/core/types/support/support-message.type';
 import { SUPPORT_HISTORY_TEST as T } from '../constants/support-history.constant';
+import { aSupportMessage } from '../fakes/support.fake';
 
 const page = (count: number, offset = 0): SupportMessage[] =>
   Array.from(
     { length: count },
-    (_value, index) => ({ id: `m-${offset + index}`, createdAt: new Date(T.BASE_TIME + (offset + index) * T.STEP_MS).toISOString(), seen: false }) as SupportMessage
+    (_value, index) => aSupportMessage({ id: `m-${offset + index}`, createdAt: new Date(T.BASE_TIME + (offset + index) * T.STEP_MS).toISOString(), seen: false })
   );
 
 const setup = (current: SupportMessage[], older: SupportMessage[]): { history: SupportHistoryService; listMessages: jest.Mock; prependOlder: jest.Mock } => {

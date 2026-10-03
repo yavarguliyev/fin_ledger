@@ -1,0 +1,9 @@
+export const READ_RETRY_TEST = {
+  URL: '/api/v1/wallets',
+  UNAVAILABLE: 503,
+  NOT_FOUND: 404,
+  FIRST_DELAY_MS: 500,
+  SECOND_DELAY_MS: 1000,
+  ALL_DELAYS_MS: 1500,
+  CALLS_WITH_RETRIES: 3
+} as const;

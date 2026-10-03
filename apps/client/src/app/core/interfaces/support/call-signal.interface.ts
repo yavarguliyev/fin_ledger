@@ -8,6 +8,7 @@ export interface CallSignal {
   fromUserId: string;
   fromName?: string;
   sdp?: string;
+  sdpType?: RTCSdpType;
   candidate?: RTCIceCandidateInit;
   reason?: CallEndReason;
 }

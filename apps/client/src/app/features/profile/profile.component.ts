@@ -26,23 +26,12 @@ import { DatePickerComponent } from '../../shared/components/date-picker/date-pi
 import { CountrySelectComponent } from '../../shared/components/country-select/country-select.component';
 import { CalendarHelper } from '../../core/helpers/common/calendar.helper';
 import { ROLES } from '../../core/constants/auth/roles.constant';
+import { UploadProgressComponent } from '../../shared/components/upload-progress/upload-progress.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    ShowMoreComponent,
-    PaymentMethodsComponent,
-    PageHeaderComponent,
-    TwoFactorSettingsComponent,
-    PasskeySettingsComponent,
-    AccountSecurityComponent,
-    FieldErrorComponent,
-    DatePickerComponent,
-    CountrySelectComponent
-  ],
+  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent],
   providers: [ProfileFormService, ProfileSaveService],
   templateUrl: './templates/profile.component.html'
 })

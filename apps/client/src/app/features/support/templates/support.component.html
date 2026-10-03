@@ -185,9 +185,12 @@
       }
     </div>
 
+    @if (uploads.uploading()) {
+      <app-upload-progress [progress]="uploads.progress() ?? 0" (cancelled)="uploads.cancel()" />
+    }
     <app-message-composer
       #composer
-      [sending]="compose.sending()"
+      [sending]="compose.sending() || uploads.uploading()"
       [disabled]="!chat.activeId()"
       [editing]="compose.editing()"
       [replying]="compose.replying()"

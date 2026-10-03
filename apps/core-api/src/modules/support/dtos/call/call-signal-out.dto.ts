@@ -10,7 +10,7 @@ export const CallSignalOutSchema = z.object({
 
   fromUserId: z.string({ message: 'From user ID must be a string' }),
 
-  extra: CallSignalSchema.pick({ fromName: true, sdp: true, candidate: true, reason: true }).partial()
+  extra: CallSignalSchema.pick({ fromName: true, sdp: true, sdpType: true, candidate: true, reason: true }).partial()
 });
 
 export type CallSignalOutDto = z.infer<typeof CallSignalOutSchema>;

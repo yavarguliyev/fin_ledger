@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const BET_SETTLEMENT_TEST = {
+  ...HTTP_STATUS,
   EMAIL: 'player17@realtime-wallet-payments.com',
   ADMIN_EMAIL: 'admin@realtime-wallet-payments.com',
   MAX_BETS: 20,
@@ -29,7 +32,5 @@ export const BET_SETTLEMENT_TEST = {
                draw_value = NULL, draw_threshold = NULL WHERE id = $1`,
   PAYOUT_SQL: 'SELECT status, payout_minor FROM bets WHERE id = $1',
   DRAW_SQL: 'SELECT draw_value, draw_threshold FROM bets WHERE id = $1',
-  DRAW_AUDIT_SQL: 'SELECT status, draw_value, draw_threshold, odds_at_placement FROM bets WHERE id = $1',
-  CREATED: 201,
-  BAD_REQUEST: 400
+  DRAW_AUDIT_SQL: 'SELECT status, draw_value, draw_threshold, odds_at_placement FROM bets WHERE id = $1'
 } as const;

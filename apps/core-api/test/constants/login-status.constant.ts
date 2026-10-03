@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const LOGIN_STATUS_TEST = {
+  ...HTTP_STATUS,
   ACTIVE_EMAIL: 'player3@realtime-wallet-payments.com',
   SUSPENDED_EMAIL: 'player4@realtime-wallet-payments.com',
   CLOSED_EMAIL: 'player5@realtime-wallet-payments.com',
@@ -45,9 +48,5 @@ export const LOGIN_STATUS_TEST = {
   TERMS_SQL: "SELECT terms_accepted_at > now() - interval '1 minute' AS accepted_recently FROM users WHERE email = $1",
   STATUS_BY_EMAIL_SQL: 'SELECT status FROM users WHERE email = $1',
   STATUS_BY_ID_SQL: 'SELECT status FROM users WHERE id = $1',
-  ID_BY_EMAIL_SQL: 'SELECT id FROM users WHERE email = $1',
-  OK: 200,
-  CREATED: 201,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401
+  ID_BY_EMAIL_SQL: 'SELECT id FROM users WHERE email = $1'
 } as const;

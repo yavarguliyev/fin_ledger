@@ -6,20 +6,20 @@ import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
-import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
-import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { LedgerEntry } from '../../core/interfaces/ledger/ledger-entry.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { LedgerHelper } from './helpers/ledger.helper';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { LEDGER_PAGE } from '../../core/constants/ledger/ledger-page.constant';
+import { AccountEntriesDto } from '../../core/interfaces/ledger/account-entries.interface';
 
 @Component({
   selector: 'app-ledger',
   standalone: true,
-  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PaginationComponent, PageHeaderComponent, ErrorStateComponent],
+  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent],
   templateUrl: './templates/ledger.component.html'
 })
 export class LedgerComponent implements OnInit {
@@ -36,9 +36,9 @@ export class LedgerComponent implements OnInit {
   readonly entries = computed(() => this.ledgerService.entries());
   readonly isUser = this.auth.isPlayer;
 
-  readonly currentPage = signal(1);
-  readonly pageSize = signal(25);
-  readonly totalItems = signal(0);
+  readonly hasMore = this.ledgerService.hasMore;
+  readonly loadOlderLabel = LEDGER_PAGE.LOAD_OLDER;
+  private scope: string | null = null;
 
   readonly tableConfig = computed<DataTableConfig<LedgerEntry>>(() => ({
     title: 'Entries',
@@ -46,32 +46,20 @@ export class LedgerComponent implements OnInit {
     emptyMessage: 'No entries'
   }));
 
-  readonly paginationConfig = computed<PaginationConfig>(() => ({
-    currentPage: this.currentPage(),
-    pageSize: this.pageSize(),
-    totalItems: this.totalItems(),
-    availablePageSizes: [10, 25, 50, 100]
-  }));
-
   ngOnInit (): void {
     this.loadEntries();
   }
 
-  onPageChange (page: number): void {
-    this.currentPage.set(page);
-    this.loadEntries();
-  }
-
-  onPageSizeChange (size: number): void {
-    this.pageSize.set(size);
-    this.currentPage.set(1);
-    this.loadEntries();
+  loadOlder (): void {
+    const oldest = this.entries().at(-1);
+    if (!this.scope || !oldest || this.loading()) return;
+    this.fetchEntries({ accountId: this.scope, limit: LEDGER_PAGE.SIZE, before: oldest.createdAt, beforeId: oldest.id });
   }
 
   loadEntries (): void {
     this.failed.set(false);
     if (this.isStaff()) {
-      this.fetchEntries(ALL_RECORDS_SCOPE);
+      this.fetchEntries({ accountId: ALL_RECORDS_SCOPE, limit: LEDGER_PAGE.SIZE });
       return;
     }
 
@@ -81,17 +69,11 @@ export class LedgerComponent implements OnInit {
     });
   }
 
-  private fetchEntries (ledgerAccountId: string): void {
+  private fetchEntries (request: AccountEntriesDto): void {
     this.loading.set(true);
-
-    const page = this.currentPage();
-    const limit = this.pageSize();
-
-    this.ledgerService.getAccountEntries({ accountId: ledgerAccountId, page, limit }).subscribe({
-      next: response => {
-        this.totalItems.set(response.total);
-        this.loading.set(false);
-      },
+    this.scope = request.accountId;
+    this.ledgerService.getAccountEntries(request).subscribe({
+      next: () => this.loading.set(false),
       error: () => this.fail()
     });
   }
@@ -102,12 +84,10 @@ export class LedgerComponent implements OnInit {
       return;
     }
 
-    if (this.currentPage() === 1) {
-      this.ledgerService.getAccount(ledgerAccountId).subscribe({
-        next: () => this.fetchEntries(ledgerAccountId),
-        error: () => this.fail()
-      });
-    } else this.fetchEntries(ledgerAccountId);
+    this.ledgerService.getAccount(ledgerAccountId).subscribe({
+      next: () => this.fetchEntries({ accountId: ledgerAccountId, limit: LEDGER_PAGE.SIZE }),
+      error: () => this.fail()
+    });
   }
 
   private fail (): void {

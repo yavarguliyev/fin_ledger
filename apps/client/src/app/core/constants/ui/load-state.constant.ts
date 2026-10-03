@@ -10,6 +10,8 @@ export const LOAD_STATE = {
   DASHBOARD_ERROR: 'We could not load your balance and recent activity.',
   LEDGER_ERROR: 'We could not load the ledger entries.',
   EVENTS_ERROR: 'We could not load the events.',
+  METHODS_ERROR: 'We could not load your payment methods.',
+  ADMIN_ERROR: 'We could not load the users and stats.',
   EVENTS_EMPTY_TITLE: 'No events open right now',
   EVENTS_EMPTY_MESSAGE: 'New fixtures appear here as soon as betting opens.',
   EVENTS_ICON: '🏟️',

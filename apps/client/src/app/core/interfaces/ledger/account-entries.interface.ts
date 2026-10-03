@@ -1,5 +1,6 @@
-import { PageRequestDto } from '../common/page-request.interface';
-
-export interface AccountEntriesDto extends PageRequestDto {
+export interface AccountEntriesDto {
   accountId: string;
+  limit: number;
+  before?: string;
+  beforeId?: string;
 }

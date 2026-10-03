@@ -15,6 +15,8 @@ import { SupportAttachmentHelper } from '../../../core/helpers/support/support-a
 import { MessageRulesHelper } from '../../../core/helpers/support/message-rules.helper';
 import { SUPPORT_MESSAGE_RULES } from '../../../core/constants/support/support-message-rules.constant';
 import { MESSAGE_REACTION } from '../../../core/constants/support/message-reaction.constant';
+import { EMOJI_CATALOG } from '../constants/emoji-catalog.constant';
+import { EmojiPanelComponent } from './emoji-panel.component';
 import { ReactionHelper } from '../../../core/helpers/support/reaction.helper';
 import { ReactionSummary } from '../../../core/interfaces/support/reaction-summary.interface';
 import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-toggle.interface';
@@ -23,7 +25,7 @@ import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-tog
   selector: 'app-message-thread',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent],
+  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent],
   templateUrl: '../templates/message-thread.component.html'
 })
 export class MessageThreadComponent {
@@ -37,6 +39,8 @@ export class MessageThreadComponent {
   readonly quoteRequested = output<string>();
   readonly reacted = output<ReactionToggleDto>();
   readonly pickerFor = signal<string | null>(null);
+  readonly expandedFor = signal<string | null>(null);
+  readonly moreLabel = EMOJI_CATALOG.MORE_LABEL;
   readonly emojis = MESSAGE_REACTION.ALLOWED;
   readonly reactionLabels = MESSAGE_REACTION;
   readonly rules = SUPPORT_MESSAGE_RULES;
@@ -58,6 +62,7 @@ export class MessageThreadComponent {
 
   pick ({ messageId, emoji }: ReactionToggleDto): void {
     this.pickerFor.set(null);
+    this.expandedFor.set(null);
     this.reacted.emit({ messageId, emoji });
   }
 

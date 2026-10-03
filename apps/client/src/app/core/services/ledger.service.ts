@@ -4,7 +4,6 @@ import { Observable, tap, catchError } from 'rxjs';
 
 import { LedgerAccount } from '../interfaces/ledger/ledger-account.interface';
 import { LedgerEntry } from '../interfaces/ledger/ledger-entry.interface';
-import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { AccountEntriesDto } from '../interfaces/ledger/account-entries.interface';
@@ -16,9 +15,11 @@ export class LedgerService {
 
   private readonly accountSignal = signal<LedgerAccount | null>(null);
   private readonly entriesSignal = signal<LedgerEntry[]>([]);
+  private readonly hasMoreSignal = signal(false);
 
   readonly account = computed(() => this.accountSignal());
   readonly entries = computed(() => this.entriesSignal());
+  readonly hasMore = this.hasMoreSignal.asReadonly();
 
   private get apiUrl (): string {
     return this.config.apiUrl;
@@ -37,14 +38,14 @@ export class LedgerService {
     );
   }
 
-  getAccountEntries ({ accountId, page, limit }: AccountEntriesDto): Observable<PaginatedResponse<LedgerEntry>> {
-    return this.http
-      .get<PaginatedResponse<LedgerEntry>>(`${this.apiUrl}/ledgers/accounts/${accountId}/entries`, {
-        params: { page: page.toString(), limit: limit.toString() }
-      })
-      .pipe(
-        tap(response => this.entriesSignal.set(response.data)),
-        catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
-      );
+  getAccountEntries ({ accountId, limit, before, beforeId }: AccountEntriesDto): Observable<LedgerEntry[]> {
+    const params = { limit: limit.toString(), ...(before && { before }), ...(beforeId && { beforeId }) };
+    return this.http.get<LedgerEntry[]>(`${this.apiUrl}/ledgers/accounts/${accountId}/entries`, { params }).pipe(
+      tap(page => {
+        this.entriesSignal.set(before ? [...this.entriesSignal(), ...page] : page);
+        this.hasMoreSignal.set(page.length === limit);
+      }),
+      catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
+    );
   }
 }

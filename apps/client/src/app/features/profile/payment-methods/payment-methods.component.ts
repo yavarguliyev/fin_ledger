@@ -9,11 +9,13 @@ import { AddPaymentMethodModalComponent } from './add-payment-method-modal.compo
 import { PaymentMethodHelper } from './helpers/payment-method.helper';
 import { PAYMENT_PROVIDERS } from '../../../core/constants/payment/payment-providers.constant';
 import { PAYMENT_METHOD_LABELS } from '../../../core/constants/payment/payment-method-labels.constant';
+import { ErrorStateComponent } from '../../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-payment-methods',
   standalone: true,
-  imports: [CommonModule, AddPaymentMethodModalComponent],
+  imports: [CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent],
   templateUrl: './templates/payment-methods.component.html'
 })
 export class PaymentMethodsComponent implements OnInit {
@@ -23,6 +25,8 @@ export class PaymentMethodsComponent implements OnInit {
 
   readonly methods = signal<PaymentMethod[]>([]);
   readonly loading = signal(true);
+  readonly failed = signal(false);
+  readonly states = LOAD_STATE;
   readonly showAddModal = signal(false);
 
   ngOnInit (): void {
@@ -49,12 +53,16 @@ export class PaymentMethodsComponent implements OnInit {
 
   loadMethods (): void {
     this.loading.set(true);
+    this.failed.set(false);
     this.paymentMethodService.list().subscribe({
       next: data => {
         this.methods.set(data);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.failed.set(true);
+      }
     });
   }
 

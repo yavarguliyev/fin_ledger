@@ -18,16 +18,21 @@ import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper
 import { ReceiptService } from '../../core/services/receipt.service';
 import { ReceiptViewerStore } from '../../core/services/receipt-viewer.store';
 import { RECEIPT } from '../../core/constants/payment/receipt.constant';
+import { ConnectivityService } from '../../core/services/connectivity.service';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-deposit',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, ErrorStateComponent],
   providers: [DepositFormService],
   templateUrl: './templates/deposit.component.html'
 })
 export class DepositComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
+  readonly connectivity = inject(ConnectivityService);
+  readonly states = LOAD_STATE;
   private readonly walletService = inject(WalletService);
   private readonly paymentService = inject(PaymentService);
   private readonly idempotencyKeys = inject(IdempotencyKeyService);

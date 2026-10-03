@@ -1,4 +1,7 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PAYMENT_RECEIPT_TEST = {
+  ...HTTP_STATUS,
   OWNER_EMAIL: 'player15@realtime-wallet-payments.com',
   OTHER_EMAIL: 'receipt-other@support-tests.realtime-wallet-payments.com',
   WALLET_SQL: 'SELECT id, currency FROM wallets WHERE user_id = (SELECT id FROM users WHERE email = $1) LIMIT 1',
@@ -18,8 +21,6 @@ export const PAYMENT_RECEIPT_TEST = {
   LAST_FOUR: '4242',
   AMOUNT_TEXT: '40.00',
   BRAND: 'Visa',
-  OK: 200,
-  NOT_FOUND: 404,
   POLL_MS: 250,
   POLL_LIMIT: 40,
   CHARGE_PREFIX: 'pi_receipt_',

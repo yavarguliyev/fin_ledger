@@ -5,8 +5,8 @@ import { SupportTypingStore } from '../../src/app/core/services/support-typing.s
 import { SupportApiService } from '../../src/app/core/services/support-api.service';
 import { SupportChatStore } from '../../src/app/core/services/support-chat.store';
 import { SupportStreamEvent } from '../../src/app/core/interfaces/support/support-stream-event.interface';
-import { SupportMessage } from '../../src/app/core/types/support/support-message.type';
 import { SUPPORT_TYPING_TEST as T } from '../constants/support-typing.constant';
+import { aSupportMessage } from '../fakes/support.fake';
 
 const typingCall = jest.fn<Observable<unknown>, [{ conversationId: string }]>(() => of({}));
 
@@ -25,7 +25,7 @@ const typingFrom = (typingUserId: string): SupportStreamEvent => ({ type: T.TYPI
 const messageFrom = (senderUserId: string): SupportStreamEvent => ({
   type: T.MESSAGE_EVENT,
   conversationId: T.CONVERSATION,
-  message: { senderUserId } as unknown as SupportMessage
+  message: aSupportMessage({ senderUserId })
 });
 
 describe('SupportTypingStore showing the peer typing', () => {

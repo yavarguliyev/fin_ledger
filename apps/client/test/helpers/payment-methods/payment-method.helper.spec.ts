@@ -1,8 +1,9 @@
 import { PaymentMethodHelper } from '../../../src/app/features/profile/payment-methods/helpers/payment-method.helper';
 import { PaymentMethod } from '../../../src/app/core/types/payment-method/payment-method.type';
 import { PAYMENT_METHOD_SPEC } from '../../constants/payment-methods.constant';
+import { aPaymentMethod } from '../../fakes/payment-method.fake';
 
-const method = (id: string, status: string, isDefault = false): PaymentMethod => ({ id, status, isDefault }) as unknown as PaymentMethod;
+const method = (id: string, status: PaymentMethod['status'], isDefault = false): PaymentMethod => aPaymentMethod({ id, status, isDefault });
 
 describe('PaymentMethodHelper.preferredVerified', () => {
   it('prefers the default method among the verified ones', () => {

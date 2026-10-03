@@ -1,4 +1,4 @@
-import { Signal } from '@angular/core';
+import { Signal, signal } from '@angular/core';
 import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
 
 import { AdminUser } from '../../core/interfaces/admin/admin-user.interface';
@@ -26,6 +26,8 @@ export class AdminHandlers {
     private readonly setSelectedUser: (user: AdminUser | null) => void,
     private readonly isAuthEnding: () => boolean
   ) {}
+
+  readonly failed = signal(false);
 
   onView ({ userId }: UserIdRefDto): void {
     const user = this.allUsers().find(u => u.id === userId);
@@ -108,6 +110,8 @@ export class AdminHandlers {
   }
 
   loadDashboardData (): void {
+    this.setLoading(true);
+    this.failed.set(false);
     this.adminApi.getDashboardData().subscribe({
       next: dashboard => {
         this.setDashboardStats(dashboard.stats);
@@ -115,14 +119,13 @@ export class AdminHandlers {
         this.updateUsers(() => dashboard.users.map(user => AdminUserHelper.fromRecord({ user })));
         this.setLoading(false);
       },
-      error: (err: HttpError) => {
+      error: () => {
         if (this.isAuthEnding()) {
           this.setLoading(false);
           return;
         }
 
-        const errorMessage = ErrorMessageHelper.from({ error: err, fallback: 'Failed to load dashboard data' });
-        this.toast.error(errorMessage);
+        this.failed.set(true);
         this.setLoading(false);
       }
     });

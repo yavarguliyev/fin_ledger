@@ -8,5 +8,6 @@ export const SUPPORT_EVENTS = {
   CALL_INCOMING: 'support.call.incoming',
   CALL_ANSWERED: 'support.call.answered',
   CALL_CANDIDATE: 'support.call.candidate',
+  CALL_RENEGOTIATE: 'support.call.renegotiate',
   CALL_ENDED: 'support.call.ended'
 } as const;

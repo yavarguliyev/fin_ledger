@@ -88,6 +88,12 @@
     </header>
 
     <main class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto pb-20 md:pb-6">
+      @if (connectivity.offline()) {
+        <p class="mb-4 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning-dark dark:text-warning" role="status" aria-live="polite">
+          {{ connectivity.banner }}
+        </p>
+      }
+
       @if (selfExcludedUntil()) {
         <p class="mb-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger" role="alert">
           You have self-excluded from gambling until {{ selfExcludedUntil() | date: 'medium' }}. Betting and deposits are blocked until then.

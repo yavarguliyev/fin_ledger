@@ -178,6 +178,7 @@ services:
       - '--web.console.templates=/etc/prometheus/consoles'
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
+      - '--web.external-url=http://localhost:9090'
     volumes:
       - ./prometheus:/etc/prometheus-config:ro
       - prometheus_data:/prometheus

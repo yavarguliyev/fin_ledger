@@ -1,11 +1,12 @@
+import { HTTP_STATUS } from './http-status.constant';
+
 export const PAGE_VIEW_TEST = {
+  ...HTTP_STATUS,
   PATH: '/telemetry/page-view',
   ROUTE: '/wallet-telemetry-probe',
   BAD_ROUTE: 'https://evil.example/<script>',
   TEXT_TYPE: 'text/plain;charset=UTF-8',
   JSON_TYPE: 'application/json',
-  NO_CONTENT: 204,
-  BAD_REQUEST: 400,
   INITIAL: 4,
   LATER: 2,
   DUPLICATES: 1,

@@ -9,13 +9,14 @@ import { SupportMessage } from '../../src/app/core/types/support/support-message
 import { SupportReactionStore } from '../../src/app/core/services/support-reaction.store';
 import { ToastService } from '../../src/app/core/services/toast.service';
 import { REACTION_TEST as T } from '../constants/reaction.constant';
+import { aSupportMessage } from '../fakes/support.fake';
 
 const mine: Reaction = { emoji: T.THUMBS, userId: T.ME };
 const react = jest.fn<Observable<Reaction[]>, [ReactMessageDto]>(() => of([]));
 const upsertMessage = jest.fn();
 
 const create = (activeId: string): SupportReactionStore => {
-  const message = { id: T.MESSAGE, reactions: [mine] } as unknown as SupportMessage;
+  const message = aSupportMessage({ id: T.MESSAGE, reactions: [mine] });
   const injector = Injector.create({
     providers: [
       { provide: SupportApiService, useValue: { react } },

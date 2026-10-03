@@ -5,6 +5,8 @@ import { NewMessagesService } from './services/new-messages.service';
 import { ChatActionsService } from './services/chat-actions.service';
 import { MessageRevealService } from './services/message-reveal.service';
 import { SupportReactionStore } from '../../core/services/support-reaction.store';
+import { SupportUploadStore } from '../../core/services/support-upload.store';
+import { UploadProgressComponent } from '../../shared/components/upload-progress/upload-progress.component';
 import { StalenessHelper } from './helpers/staleness.helper';
 import { ContactListComponent } from './components/contact-list.component';
 import { ConversationListComponent } from './components/conversation-list.component';
@@ -30,7 +32,7 @@ import { OFFLINE_QUEUE } from '../../core/constants/support/offline-queue.consta
   selector: 'app-support',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent],
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent, UploadProgressComponent],
   providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService],
   templateUrl: './templates/support.component.html'
 })
@@ -47,6 +49,7 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly actions = inject(ChatActionsService);
   readonly reveal = inject(MessageRevealService);
   readonly reactions = inject(SupportReactionStore);
+  readonly uploads = inject(SupportUploadStore);
   readonly peer = inject(ChatPeerService);
   readonly newMessages = inject(NewMessagesService);
   readonly compose = inject(SupportComposeStore);

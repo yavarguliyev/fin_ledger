@@ -22,6 +22,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AdminHandlers } from './admin-handlers';
 import { AdminHelper } from './helpers/admin.helper';
+import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-admin',
@@ -33,8 +35,7 @@ import { AdminHelper } from './helpers/admin.helper';
     PageHeaderComponent,
     ModalComponent,
     UserDetailModalComponent,
-    CreateUserModalComponent
-  ],
+    CreateUserModalComponent, ErrorStateComponent],
   templateUrl: './templates/admin.component.html'
 })
 export class AdminComponent implements OnInit {
@@ -42,10 +43,11 @@ export class AdminComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
-  private readonly handlers: AdminHandlers;
+  readonly handlers: AdminHandlers;
 
   readonly allUsers = signal<AdminUser[]>([]);
   readonly loading = signal(true);
+  readonly states = LOAD_STATE;
   readonly dashboardStats = signal<DashboardStats | null>(null);
   readonly selectedUser = signal<AdminUser | null>(null);
   readonly showCreateModal = signal(false);

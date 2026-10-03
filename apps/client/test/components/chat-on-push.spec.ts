@@ -4,6 +4,7 @@ import { ChatSearchComponent } from '../../src/app/features/support/components/c
 import { ContactListComponent } from '../../src/app/features/support/components/contact-list.component';
 import { ConversationListComponent } from '../../src/app/features/support/components/conversation-list.component';
 import { DeleteDialogComponent } from '../../src/app/features/support/components/delete-dialog.component';
+import { EmojiPanelComponent } from '../../src/app/features/support/components/emoji-panel.component';
 import { MessageComposerComponent } from '../../src/app/features/support/components/message-composer.component';
 import { MessageThreadComponent } from '../../src/app/features/support/components/message-thread.component';
 import { PresencePanelComponent } from '../../src/app/features/support/components/presence-panel.component';
@@ -19,6 +20,7 @@ const CHAT_COMPONENTS: Type<unknown>[] = [
   ContactListComponent,
   ConversationListComponent,
   DeleteDialogComponent,
+  EmojiPanelComponent,
   MessageComposerComponent,
   MessageThreadComponent,
   PresencePanelComponent,

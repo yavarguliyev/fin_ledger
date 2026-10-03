@@ -26,10 +26,16 @@
 
   <app-data-table [config]="tableConfig()" [data]="entries()" [loading]="loading()" />
 
-  <!-- Server-side pagination (attached to DataTable card) -->
-  <div class="-mt-px">
-    <div class="bg-white dark:bg-night-surface rounded-b-xl border border-t-0 border-ink-200 dark:border-night-border">
-      <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
+  @if (hasMore()) {
+    <div class="flex justify-center">
+      <button
+        type="button"
+        class="rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
+        [disabled]="loading()"
+        (click)="loadOlder()"
+      >
+        {{ loadOlderLabel }}
+      </button>
     </div>
-  </div>
+  }
 </div>

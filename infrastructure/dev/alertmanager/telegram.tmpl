@@ -1,0 +1,10 @@
+{{ define "telegram.wallet" -}}
+{{ range .Alerts -}}
+{{ if eq .Status "firing" }}{{ if eq .Labels.severity "critical" }}🔴 CRITICAL{{ else if eq .Labels.severity "warning" }}🟠 WARNING{{ else }}🔵 INFO{{ end }}{{ else }}✅ RESOLVED{{ end }} · <b>{{ .Annotations.summary | html }}</b>
+{{ with .Annotations.description }}{{ . | html }}
+{{ end }}<i>{{ .Labels.alertname }}{{ with .Labels.instance }} · {{ . }}{{ end }}</i>
+Started {{ .StartsAt.Local.Format "02 Jan 15:04" }}{{ if eq .Status "resolved" }} · resolved {{ .EndsAt.Local.Format "15:04" }}{{ end }}
+{{ with .GeneratorURL }}<a href="{{ . }}">Open in Prometheus</a>
+{{ end }}
+{{ end -}}
+{{- end }}

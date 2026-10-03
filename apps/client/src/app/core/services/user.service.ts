@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
 import { Observable, catchError, tap } from 'rxjs';
 
 import { DeleteResponse } from '../interfaces/auth/delete-response.interface';
@@ -38,12 +38,12 @@ export class UserService {
     );
   }
 
-  uploadImages (files: File[]): Observable<UploadRequest> {
+  uploadImages (files: File[]): Observable<HttpEvent<UploadRequest>> {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
 
     return this.http
-      .post<UploadRequest>(`${this.apiUrl}/users/upload`, formData)
+      .post<UploadRequest>(`${this.apiUrl}/users/upload`, formData, { reportProgress: true, observe: 'events' })
       .pipe(catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error)));
   }
 

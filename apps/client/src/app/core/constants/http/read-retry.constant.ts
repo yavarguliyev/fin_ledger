@@ -1,0 +1,7 @@
+export const READ_RETRY = {
+  METHOD: 'GET',
+  ATTEMPTS: 2,
+  BASE_DELAY_MS: 500,
+  BACKOFF: 2,
+  RETRYABLE_STATUSES: [0, 502, 503, 504]
+} as const;

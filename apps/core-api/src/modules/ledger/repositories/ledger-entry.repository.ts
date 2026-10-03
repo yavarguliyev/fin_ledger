@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, EntryType, QueryOptionsDto } from '@common/libs';
+import { BaseRepository, PostgresService, EntryType } from '@common/libs';
 
 import { LedgerEntryDto } from '../dtos/entry/ledger-entry.dto';
 import { LedgerEntryResponseDto } from '../dtos/entry/ledger-entry-response.dto';
 import { CreateBalancedEntriesDto } from '../dtos/repository/create-balanced-entries.dto';
 import { FindTransactionEntriesDto } from '../dtos/repository/find-transaction-entries.dto';
 import { FindAccountEntriesDto } from '../dtos/repository/find-account-entries.dto';
+import { LEDGER_ENTRY_LIST } from '../constants/list/ledger-entry-list.constant';
 
 @Injectable()
 export class LedgerEntryRepository extends BaseRepository<LedgerEntryResponseDto> {
@@ -61,16 +62,13 @@ export class LedgerEntryRepository extends BaseRepository<LedgerEntryResponseDto
     return this.findAll({ where: { transaction_id: transactionId }, orderBy: 'sequence', orderDirection: 'ASC', adapter });
   }
 
-  async findPaginated (dto: FindAccountEntriesDto): Promise<LedgerEntryResponseDto[]> {
-    const { limit, offset } = dto;
-    return this.findAll({ ...this.buildWhere(dto), orderBy: 'created_at', orderDirection: 'DESC', limit, offset });
+  async findPage ({ accountId, limit, before, beforeId }: FindAccountEntriesDto): Promise<LedgerEntryResponseDto[]> {
+    const cursor = [before ?? null, beforeId ?? null];
+    const result = accountId
+      ? await this.service.getConnection().query<LedgerEntryResponseDto>({ sql: LEDGER_ENTRY_LIST.ACCOUNT_SQL, params: [accountId, ...cursor, limit] })
+      : await this.service.getConnection().query<LedgerEntryResponseDto>({ sql: LEDGER_ENTRY_LIST.ALL_SQL, params: [...cursor, limit] });
+    return result.rows;
   }
-
-  async countEntries (dto: FindAccountEntriesDto): Promise<number> {
-    return this.count(this.buildWhere(dto));
-  }
-
-  private buildWhere = ({ accountId }: FindAccountEntriesDto): QueryOptionsDto => ({ ...(accountId && { where: { account_id: accountId } }) });
 
   private assertBalanced (entries: LedgerEntryDto[]): void {
     const totals = new Map<string, { debit: number; credit: number }>();

@@ -2,18 +2,18 @@ import { SupportChatHelper } from '../../../src/app/core/helpers/support/support
 import { SupportConversation } from '../../../src/app/core/types/support/support-conversation.type';
 import { SupportMessage } from '../../../src/app/core/types/support/support-message.type';
 import { BUMP_CONVERSATION_TEST as T } from '../../constants/bump-conversation.constant';
+import { aSupportConversation, aSupportMessage, anAttachment } from '../../fakes/support.fake';
 
-const conversation = (id: string): SupportConversation =>
-  ({ id, unreadCount: 0, lastMessagePreview: null, lastMessageAt: T.EARLIER }) as unknown as SupportConversation;
+const conversation = (id: string): SupportConversation => aSupportConversation({ id, unreadCount: 0, lastMessagePreview: null, lastMessageAt: T.EARLIER });
 
 const message = (conversationId: string, senderUserId: string, attachment = false): SupportMessage =>
-  ({
+  aSupportMessage({
     conversationId,
     senderUserId,
     createdAt: T.NOW,
     body: attachment ? null : T.BODY,
-    attachment: attachment ? { fileName: T.FILE_NAME } : null
-  }) as unknown as SupportMessage;
+    attachment: attachment ? anAttachment({ fileName: T.FILE_NAME }) : null
+  });
 
 const current = [conversation(T.FIRST), conversation(T.SECOND)];
 

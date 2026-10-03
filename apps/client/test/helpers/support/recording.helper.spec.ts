@@ -2,7 +2,7 @@ import { MessageRulesHelper } from '../../../src/app/core/helpers/support/messag
 import { RECORDING_TEST } from '../../constants/recording.constant';
 import { RecordingHelper } from '../../../src/app/core/helpers/support/recording.helper';
 import { SupportAttachmentHelper } from '../../../src/app/core/helpers/support/support-attachment.helper';
-import { SupportMessage } from '../../../src/app/core/types/support/support-message.type';
+import { aSupportMessage } from '../../fakes/support.fake';
 
 describe('RecordingHelper', () => {
   it('asks only for the microphone for a voice message', () => {
@@ -27,7 +27,7 @@ describe('RecordingHelper', () => {
   });
 
   it('never offers to edit a voice or video message', () => {
-    const message = { kind: RECORDING_TEST.VOICE_KIND, senderUserId: RECORDING_TEST.OWNER, deletedAt: null, createdAt: new Date().toISOString() } as SupportMessage;
+    const message = aSupportMessage({ kind: RECORDING_TEST.VOICE_KIND, senderUserId: RECORDING_TEST.OWNER, deletedAt: null, createdAt: new Date().toISOString() });
 
     expect(MessageRulesHelper.canEdit({ message, userId: RECORDING_TEST.OWNER })).toBe(false);
   });

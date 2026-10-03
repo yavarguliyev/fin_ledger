@@ -1,5 +1,4 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable } from 'rxjs';
 
 import { ComposeRequestDto } from '../interfaces/support/compose-request.interface';
 import { SendRecordingDto } from '../interfaces/support/send-recording.interface';
@@ -19,6 +18,7 @@ import { SupportChatStore } from './support-chat.store';
 import { SupportMessage } from '../types/support/support-message.type';
 import { ToastService } from './toast.service';
 import { SupportOfflineQueueStore } from './support-offline-queue.store';
+import { SupportUploadStore } from './support-upload.store';
 import { OfflineQueueHelper } from '../helpers/support/offline-queue.helper';
 
 @Injectable({ providedIn: 'root' })
@@ -27,6 +27,7 @@ export class SupportComposeStore {
   private readonly chat = inject(SupportChatStore);
   private readonly toast = inject(ToastService);
   private readonly offlineQueue = inject(SupportOfflineQueueStore);
+  private readonly uploads = inject(SupportUploadStore);
   private readonly sendingSignal = signal(false);
   private readonly editingSignal = signal<SupportMessage | null>(null);
   private readonly replyingSignal = signal<SupportMessage | null>(null);
@@ -44,16 +45,15 @@ export class SupportComposeStore {
     this.replyingSignal.set(null);
     if (files.length === 0 && !navigator.onLine) return this.offlineQueue.queue(text);
 
-    const request: Observable<SupportMessage | SupportMessage[]> =
-      files.length > 0 ? this.api.sendAttachments({ conversationId, body, files }) : this.api.sendMessage(text);
-    const onNetworkFailure = files.length === 0 ? (): void => this.offlineQueue.queue(text) : undefined;
+    if (files.length > 0) return this.uploads.start({ conversationId, body, files });
 
-    this.run({ request, failure: SUPPORT_MESSAGES.SEND_FAILED, ...(onNetworkFailure && { onNetworkFailure }) });
+    const onNetworkFailure = (): void => this.offlineQueue.queue(text);
+    this.run({ request: this.api.sendMessage(text), failure: SUPPORT_MESSAGES.SEND_FAILED, onNetworkFailure });
   }
 
   sendRecording ({ conversationId, file, durationSeconds }: SendRecordingDto): void {
     if (this.rejected({ files: [file] })) return;
-    this.run({ request: this.api.sendAttachments({ conversationId, body: '', files: [file], durationSeconds }), failure: SUPPORT_MESSAGES.SEND_FAILED });
+    this.uploads.start({ conversationId, body: '', files: [file], durationSeconds });
   }
 
   startEdit ({ message }: MessageRefDto): void {
