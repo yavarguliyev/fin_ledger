@@ -145,5 +145,6 @@ export class MessageComposerComponent {
     if (!element) return;
     element.style.height = 'auto';
     element.style.height = `${Math.min(element.scrollHeight, SUPPORT_VIEW.MAX_COMPOSER_HEIGHT)}px`;
+    element.style.overflowY = element.scrollHeight > SUPPORT_VIEW.MAX_COMPOSER_HEIGHT ? SUPPORT_VIEW.OVERFLOW_SCROLL : SUPPORT_VIEW.OVERFLOW_HIDDEN;
   }
 }

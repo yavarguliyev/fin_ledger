@@ -24,6 +24,8 @@ export const SUPPORT_VIEW = {
   DELIVERED_LABEL: 'Delivered',
   BACK_LABEL: 'Back to chats',
   MAX_COMPOSER_HEIGHT: 140,
+  OVERFLOW_SCROLL: 'auto',
+  OVERFLOW_HIDDEN: 'hidden',
   UNREAD_DIVIDER: 'Unread messages',
   JUMP_LABEL: 'Jump to latest',
   UNSEEN_CAP: 99,
