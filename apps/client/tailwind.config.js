@@ -22,7 +22,10 @@ module.exports = {
           800: '#1F2937',
           900: '#111827'
         },
-        night: { bg: '#0F172A', surface: '#1E293B', border: '#334155' }
+        night: { bg: '#0F172A', surface: '#1E293B', border: '#334155' },
+        chat: { own: '#D9FDD3', 'own-dark': '#005C4B', seen: '#53BDEB', call: '#0B141A' },
+        stripe: { DEFAULT: '#635BFF', dark: '#5349E4' },
+        google: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' }
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

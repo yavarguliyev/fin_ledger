@@ -1,5 +1,5 @@
 import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgOptimizedImage } from '@angular/common';
 
 import { THREAD_BUBBLE } from '../constants/thread-bubble.constant';
 import { VideoNoteComponent } from './video-note.component';
@@ -25,7 +25,7 @@ import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-tog
   selector: 'app-message-thread',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent],
+  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, NgOptimizedImage],
   templateUrl: '../templates/message-thread.component.html'
 })
 export class MessageThreadComponent {

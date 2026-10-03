@@ -1,5 +1,5 @@
 import { Component, DestroyRef, OnInit, inject, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../core/services/auth.service';
@@ -25,7 +25,7 @@ import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/rece
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, NgOptimizedImage],
   templateUrl: './templates/shell.component.html'
 })
 export class ShellComponent implements OnInit {

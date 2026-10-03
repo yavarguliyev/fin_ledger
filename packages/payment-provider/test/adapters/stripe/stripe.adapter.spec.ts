@@ -5,8 +5,10 @@ import { StripeAdapter } from '../../../src/modules/adapters/stripe/stripe.adapt
 import { StripeAmountHelper } from '../../../src/modules/adapters/stripe/helpers/stripe-amount.helper';
 import { StripeErrorMapper } from '../../../src/modules/adapters/stripe/helpers/stripe-error.mapper.helper';
 import { runProviderContractTests } from '../../contract/provider-contract';
+import { aConfigService } from '../../fakes/config.fake';
+import { ConfigFakeDto } from '../../interfaces/config-fake.interface';
 
-const configOf = (values: Record<string, string>): ConfigService => ({ get: (key: string) => values[key] }) as unknown as ConfigService;
+const configOf = (settings: ConfigFakeDto['settings']): ConfigService => aConfigService({ settings });
 const simulated = (): ConfigService => configOf({ NODE_ENV: 'development', PAYMENT_SIMULATION: 'true' });
 
 runProviderContractTests({

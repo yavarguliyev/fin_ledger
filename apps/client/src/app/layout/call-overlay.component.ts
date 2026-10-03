@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnDestroy, computed, inject, signal } from '@angular/core';
 
 import { CallNoticeHelper } from '../core/helpers/support/call-notice.helper';
+import { CallAnnouncementHelper } from '../core/helpers/support/call-announcement.helper';
 import { SUPPORT_CALL } from '../core/constants/support/support-call.constant';
 import { SupportCallStore } from '../core/services/support-call.store';
 import { FocusTrapDirective } from '../shared/directives/focus-trap.directive';
@@ -33,6 +34,10 @@ export class CallOverlayComponent implements OnDestroy {
     if (phase === 'active' && since) return this.now() >= since ? CallNoticeHelper.elapsed({ since }) : '';
     return this.state.notice();
   });
+
+  readonly announcement = computed(() =>
+    CallAnnouncementHelper.from({ phase: this.state.phase(), status: this.status(), peerName: this.state.peerName() })
+  );
 
   ngOnDestroy (): void {
     clearInterval(this.timer);

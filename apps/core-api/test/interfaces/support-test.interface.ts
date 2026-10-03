@@ -27,3 +27,20 @@ export interface SupportMultipartDto extends SupportThreadDto {
   path: string;
   form: FormData;
 }
+
+export interface SupportMessageRefDto extends SupportThreadDto {
+  messageId: string;
+}
+
+export interface SupportRemoveDto extends SupportMessageRefDto {
+  scope: string;
+}
+
+export interface SupportEditDto extends SupportMessageRefDto {
+  text: string;
+}
+
+export interface SupportReactDto extends SupportTokenDto {
+  path: string;
+  emoji?: string;
+}

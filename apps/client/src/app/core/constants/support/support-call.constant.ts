@@ -49,6 +49,8 @@ export const SUPPORT_CALL = {
   INCOMING_VOICE: 'Incoming voice call',
   INCOMING_VIDEO: 'Incoming video call',
   CONNECTING: 'Connecting…',
+  CALL_CONNECTED: 'Call connected',
+  ANNOUNCE_FROM: ' from ',
   CALL_ENDED: 'Call ended',
   DECLINED_NOTICE: 'Call declined',
   NO_ANSWER: 'No answer',

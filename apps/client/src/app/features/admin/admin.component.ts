@@ -89,17 +89,17 @@ export class AdminComponent implements OnInit {
   }));
 
   constructor () {
-    this.handlers = new AdminHandlers(
-      this.adminApi,
-      this.userService,
-      this.toast,
-      this.allUsers,
-      this.allUsers.update.bind(this.allUsers),
-      this.dashboardStats.set.bind(this.dashboardStats),
-      this.loading.set.bind(this.loading),
-      this.selectedUser.set.bind(this.selectedUser),
-      () => !this.authService.isAuthenticated() || this.authService.isLoggingOut()
-    );
+    this.handlers = new AdminHandlers({
+      adminApi: this.adminApi,
+      userService: this.userService,
+      toast: this.toast,
+      allUsers: this.allUsers,
+      updateUsers: this.allUsers.update.bind(this.allUsers),
+      setDashboardStats: this.dashboardStats.set.bind(this.dashboardStats),
+      setLoading: this.loading.set.bind(this.loading),
+      setSelectedUser: this.selectedUser.set.bind(this.selectedUser),
+      isAuthEnding: (): boolean => !this.authService.isAuthenticated() || this.authService.isLoggingOut()
+    });
   }
 
   ngOnInit (): void {

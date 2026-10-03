@@ -1,6 +1,8 @@
+<p class="sr-only" aria-live="assertive" aria-atomic="true">{{ announcement() }}</p>
+
 @if (state.phase() !== 'idle') {
   <div
-    class="fixed inset-0 z-[60] flex flex-col items-center justify-between bg-[#0b141a] text-white"
+    class="fixed inset-0 z-[60] flex flex-col items-center justify-between bg-chat-call text-white"
     role="dialog"
     aria-modal="true"
     [attr.aria-label]="status()"
@@ -17,7 +19,7 @@
         <span class="grid place-items-center w-28 h-28 rounded-full bg-white/10 text-4xl font-semibold">{{ initial() }}</span>
       }
       <h2 class="text-2xl font-semibold drop-shadow">{{ state.peerName() }}</h2>
-      <p class="text-sm text-white/70 drop-shadow" aria-live="polite">{{ status() }}</p>
+      <p class="text-sm text-white/70 drop-shadow">{{ status() }}</p>
     </div>
 
     @if (call.screenStream()) {

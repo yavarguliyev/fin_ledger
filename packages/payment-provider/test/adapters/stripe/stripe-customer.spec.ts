@@ -2,6 +2,7 @@ import Stripe from 'stripe';
 
 import { StripeMethodHelper } from '../../../src/modules/adapters/stripe/helpers/stripe-method.helper';
 import { STRIPE_CUSTOMER_TEST } from '../../constants/stripe-customer.constant';
+import { aStripeClient } from '../../fakes/stripe.fake';
 
 interface StubCalls {
   listed: number;
@@ -10,7 +11,7 @@ interface StubCalls {
 }
 
 const stubClient = (calls: StubCalls): Stripe => {
-  const client = {
+  return aStripeClient({
     customers: {
       list: (): Promise<unknown> => {
         calls.listed += 1;
@@ -29,9 +30,7 @@ const stubClient = (calls: StubCalls): Stripe => {
         }
       }
     }
-  };
-
-  return client as unknown as Stripe;
+  });
 };
 
 describe('Stripe customer resolution', () => {

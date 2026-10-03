@@ -23,10 +23,9 @@ const describeCapabilities = ({ create, expectedCapabilities }: ProviderContract
 
   it('implements every method its capabilities promise', () => {
     const provider = create();
-    const methods = provider as unknown as Record<string, unknown>;
 
     provider.capabilities.forEach(capability => {
-      REQUIRED_METHODS[capability].forEach(method => expect(typeof methods[method]).toBe('function'));
+      REQUIRED_METHODS[capability].forEach(method => expect(typeof provider[method]).toBe('function'));
     });
   });
 
@@ -40,34 +39,27 @@ const describeCapabilities = ({ create, expectedCapabilities }: ProviderContract
 const describeBehaviour = ({ create }: ProviderContractOptionsDto): void => {
   it('never throws raw errors out of charge; failures come back classified', async () => {
     const provider = create();
-    if (!provider.supports({ capability: PaymentCapability.CHARGE })) return;
+    if (!provider.supports({ capability: PaymentCapability.CHARGE }) || !provider.charge) return;
 
-    const charger = provider as unknown as { charge: (dto: unknown) => Promise<Record<string, unknown>> };
-    const charge = await charger.charge(CHARGE_INPUT);
-    const failure = charge['failure'] as { indeterminate: boolean } | undefined;
+    const charge = await provider.charge(CHARGE_INPUT);
 
-    expect(charge['chargeId']).toBeTruthy();
-    expect(Object.values(ProviderChargeStatus)).toContain(charge['status']);
+    expect(charge.chargeId).toBeTruthy();
+    expect(Object.values(ProviderChargeStatus)).toContain(charge.status);
 
-    const settledAsFailure = charge['status'] === ProviderChargeStatus.FAILED || charge['status'] === ProviderChargeStatus.INDETERMINATE;
+    const settledAsFailure = charge.status === ProviderChargeStatus.FAILED || charge.status === ProviderChargeStatus.INDETERMINATE;
     if (!settledAsFailure) return;
 
-    expect(failure).toBeDefined();
-    expect(failure?.indeterminate).toBe(charge['status'] === ProviderChargeStatus.INDETERMINATE);
+    expect(charge.failure).toBeDefined();
+    expect(charge.failure?.indeterminate).toBe(charge.status === ProviderChargeStatus.INDETERMINATE);
   });
 
   it('rejects an unsigned webhook unless it is explicitly simulated', async () => {
     const provider = create();
-    if (!provider.supports({ capability: PaymentCapability.WEBHOOKS })) return;
+    if (!provider.supports({ capability: PaymentCapability.WEBHOOKS }) || !provider.extractSignature || !provider.constructWebhookEvent) return;
 
-    const hooks = provider as unknown as {
-      extractSignature: (dto: { headers: Record<string, string> }) => string;
-      constructWebhookEvent: (dto: { payload: string; signature: string }) => Promise<{ signatureVerified: boolean }>;
-    };
+    expect(typeof provider.extractSignature({ headers: {} })).toBe('string');
 
-    expect(typeof hooks.extractSignature({ headers: {} })).toBe('string');
-
-    const event = await hooks.constructWebhookEvent({ payload: JSON.stringify({ id: 'evt_1', type: 'test' }), signature: '' }).catch(() => null);
+    const event = await provider.constructWebhookEvent({ payload: JSON.stringify({ id: 'evt_1', type: 'test' }), signature: '' }).catch(() => null);
     if (event) expect(event.signatureVerified).toBe(false);
   });
 };
@@ -75,12 +67,10 @@ const describeBehaviour = ({ create }: ProviderContractOptionsDto): void => {
 const describeWebhookParsing = ({ create }: ProviderContractOptionsDto): void => {
   it('refuses a webhook body that is not a JSON object instead of treating it as empty', async () => {
     const provider = create();
-    if (!provider.supports({ capability: PaymentCapability.WEBHOOKS })) return;
-
-    const hooks = provider as unknown as { constructWebhookEvent: (dto: { payload: string; signature: string }) => Promise<unknown> };
+    if (!provider.supports({ capability: PaymentCapability.WEBHOOKS }) || !provider.constructWebhookEvent) return;
 
     for (const payload of MALFORMED_PAYLOADS) {
-      await expect(hooks.constructWebhookEvent({ payload, signature: '' })).rejects.toThrow();
+      await expect(provider.constructWebhookEvent({ payload, signature: '' })).rejects.toThrow();
     }
   });
 };

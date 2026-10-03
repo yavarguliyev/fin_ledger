@@ -6,6 +6,7 @@ import { StripeIntentHelper } from '../../../src/modules/adapters/stripe/helpers
 import { StripeOperationHelper } from '../../../src/modules/adapters/stripe/helpers/stripe-operation.helper';
 import { STRIPE_INTENT_DEFAULTS } from '../../../src/modules/constants/stripe/stripe-intent-status.constant';
 import { CHARGE_INPUT } from '../../../src/modules/constants/testing/charge-input.constant';
+import { aStripeClient } from '../../fakes/stripe.fake';
 
 const intentOf = (fields: Partial<PaymentIntent>): PaymentIntent =>
   ({ id: 'pi_test', client_secret: null, last_payment_error: null, ...fields }) as PaymentIntent;
@@ -53,23 +54,23 @@ describe('Stripe PaymentIntent status mapping', () => {
 describe('StripeOperationHelper.createCharge', () => {
   it('sends our metadata to Stripe so webhooks can find the payment', async () => {
     const sent: unknown[] = [];
-    const client = {
+    const client = aStripeClient({
       paymentIntents: {
         create: async (params: unknown): Promise<PaymentIntent> => {
           sent.push(params);
           return Promise.resolve(intentOf({ status: 'succeeded' }));
         }
       }
-    } as unknown as Stripe;
+    });
 
     await StripeOperationHelper.createCharge({ client, dto: { ...CHARGE_INPUT, metadata: { paymentId: 'payment-1' } } });
     expect(sent[0]).toMatchObject({ metadata: { paymentId: 'payment-1' } });
   });
 
   it('is what createCharge returns', async () => {
-    const client = {
+    const client = aStripeClient({
       paymentIntents: { create: async (): Promise<PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) }
-    } as unknown as Stripe;
+    });
 
     await expect(StripeOperationHelper.createCharge({ client, dto: CHARGE_INPUT })).resolves.toEqual({
       id: 'pi_test',
@@ -81,7 +82,7 @@ describe('StripeOperationHelper.createCharge', () => {
 describe('StripeOperationHelper.retrieveCharge', () => {
   it('reads the PaymentIntent, and follows a charge ID to its PaymentIntent', async () => {
     const retrieved: string[] = [];
-    const client = {
+    const client = aStripeClient({
       charges: { retrieve: async (): Promise<unknown> => Promise.resolve({ payment_intent: 'pi_from_charge' }) },
       paymentIntents: {
         retrieve: async (id: string): Promise<PaymentIntent> => {
@@ -89,7 +90,7 @@ describe('StripeOperationHelper.retrieveCharge', () => {
           return Promise.resolve(intentOf({ id, status: 'succeeded', amount: 1500, currency: 'usd' }));
         }
       }
-    } as unknown as Stripe;
+    });
 
     await expect(StripeOperationHelper.retrieveCharge({ client, dto: { chargeId: 'pi_direct' } })).resolves.toMatchObject({
       status: ProviderChargeStatus.SUCCEEDED,
@@ -107,14 +108,14 @@ describe('StripeOperationHelper.findIntentId', () => {
   it('searches PaymentIntents by our metadata and returns null when the provider never saw the payment', async () => {
     const queries: string[] = [];
     const clientReturning = (ids: string[]): Stripe =>
-      ({
+      aStripeClient({
         paymentIntents: {
           search: async ({ query }: { query: string }): Promise<unknown> => {
             queries.push(query);
             return Promise.resolve({ data: ids.map(id => ({ id })) });
           }
         }
-      }) as unknown as Stripe;
+      });
     const dto = { key: 'paymentId', value: '0192f3a4-0000-7000-8000-000000000001' };
 
     await expect(StripeOperationHelper.findIntentId({ client: clientReturning(['pi_found']), dto })).resolves.toBe('pi_found');
@@ -127,14 +128,14 @@ describe('StripeOperationHelper.findIntentId', () => {
 describe('StripeOperationHelper.cancelCharge', () => {
   it('cancels the PaymentIntent and reports it as a definitive failure', async () => {
     const cancelled: string[] = [];
-    const client = {
+    const client = aStripeClient({
       paymentIntents: {
         cancel: async (id: string): Promise<PaymentIntent> => {
           cancelled.push(id);
           return Promise.resolve(intentOf({ id, status: 'canceled', amount: 900, currency: 'usd' }));
         }
       }
-    } as unknown as Stripe;
+    });
 
     await expect(StripeOperationHelper.cancelCharge({ client, dto: { chargeId: 'pi_abandoned' } })).resolves.toMatchObject({
       status: ProviderChargeStatus.FAILED,

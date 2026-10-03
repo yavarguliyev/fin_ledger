@@ -4,8 +4,8 @@
   <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
     <h2 class="font-semibold text-ink-900 dark:text-white mb-4">Profile Information</h2>
     <div class="flex items-center gap-4 mb-5">
-      @if (imageService.getMainImageUrl()) {
-        <img [src]="imageService.getMainImageUrl()" alt="Profile" class="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
+      @if (imageService.getMainImageUrl(); as mainImageUrl) {
+        <img [ngSrc]="mainImageUrl" width="64" height="64" alt="Profile" class="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
       } @else {
         <div class="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold">{{ initial() }}</div>
       }
@@ -62,7 +62,9 @@
           @for (image of visibleImages(); track image.index) {
             <div class="relative group">
               <img
-                [src]="image.url"
+                [ngSrc]="image.url"
+                width="160"
+                height="160"
                 [alt]="'Profile image ' + (image.index + 1)"
                 (error)="onImageError($event)"
                 class="w-full aspect-square object-cover rounded-lg border-2 transition-all bg-ink-100 dark:bg-night-border"

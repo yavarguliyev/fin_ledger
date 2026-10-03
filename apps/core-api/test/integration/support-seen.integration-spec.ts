@@ -1,3 +1,4 @@
+import { SupportActionsTestHelper as A } from '../helpers/support-actions.helper';
 import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
@@ -9,9 +10,6 @@ let customer = '';
 let staff = '';
 
 let conversationId = '';
-
-const markRead = (token: string): ReturnType<typeof ApiHelper.request> =>
-  ApiHelper.request({ method: 'POST', path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/read`, token, body: {} });
 
 beforeAll(async () => {
   await TestUserHelper.ensure({ emails: [SUPPORT_CHAT_TEST.CUSTOMER_EMAIL] });
@@ -42,7 +40,7 @@ describe('Support read receipts', () => {
   });
 
   it('does not count the sender reading their own thread as seen', async () => {
-    await markRead(customer);
+    await A.markRead({ token: customer, conversationId });
 
     const mine = await SupportTestHelper.thread({ token: customer, conversationId });
 
@@ -50,7 +48,7 @@ describe('Support read receipts', () => {
   });
 
   it('marks the message seen once staff open the conversation', async () => {
-    await markRead(staff);
+    await A.markRead({ token: staff, conversationId });
 
     const mine = await SupportTestHelper.thread({ token: customer, conversationId });
 
@@ -66,7 +64,7 @@ describe('Support read receipts', () => {
 
     expect(beforeRead.body.at(-1)?.seen).toBe(false);
 
-    await markRead(customer);
+    await A.markRead({ token: customer, conversationId });
 
     const afterRead = await SupportTestHelper.thread({ token: staff, conversationId });
 

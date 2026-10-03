@@ -1,7 +1,6 @@
 import { PaymentProvider, ProviderError, ProviderErrorCategory } from '@common/shared-libs';
 
 import { ProviderFailoverHelper } from '../../src/modules/helpers/provider-failover.helper';
-import { IPaymentProvider } from '../../src/modules/types/payment-provider.type';
 import { ROUTING_TEST } from '../constants/routing.constant';
 import { StubAdapter } from '../stubs/stub.adapter';
 
@@ -26,12 +25,12 @@ describe('ProviderFailoverHelper.attempt', () => {
   });
 
   it('skips a provider whose circuit is open and uses the next one', async () => {
-    const [primary, backup] = candidates();
-    primary?.trip();
+    const providers = candidates();
+    providers[0]?.trip();
 
     const used: string[] = [];
     await ProviderFailoverHelper.attempt({
-      candidates: [primary, backup] as unknown as IPaymentProvider[],
+      candidates: providers,
       run: ({ provider }) => {
         used.push(provider.providerName);
         return Promise.resolve(ROUTING_TEST.CHARGE_RESULT);

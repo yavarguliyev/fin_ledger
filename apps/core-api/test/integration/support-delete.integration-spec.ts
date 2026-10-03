@@ -1,3 +1,4 @@
+import { SupportActionsTestHelper as A } from '../helpers/support-actions.helper';
 import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
@@ -5,26 +6,12 @@ import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_DELETE_TEST } from '../constants/support-delete.constant';
 import { SupportMessage } from '../interfaces/support-chat.interface';
-import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 
 let customer = '';
 
 let staff = '';
 
 let conversationId = '';
-
-const remove = (token: string, messageId: string, scope: string): Promise<{ status: number }> =>
-  ApiHelper.request({ method: 'DELETE', path: `${SupportTestHelper.messagesPath({ conversationId })}/${messageId}?scope=${scope}`, token });
-
-const editText = (messageId: string, text: string): Promise<Response> => {
-  const form = new FormData();
-  form.append('body', text);
-  return fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${SupportTestHelper.messagesPath({ conversationId })}/${messageId}`, {
-    method: 'PATCH',
-    headers: { Authorization: `Bearer ${customer}`, 'X-Forwarded-For': ApiHelper.randomIp() },
-    body: form
-  });
-};
 
 beforeAll(async () => {
   await TestUserHelper.ensure({ emails: [SUPPORT_DELETE_TEST.CUSTOMER_EMAIL] });
@@ -47,13 +34,13 @@ describe('Support message edit window and deletion', () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.OLD_TEXT })).body.id;
     await DbHelper.query({ sql: SUPPORT_DELETE_TEST.BACKDATE_SQL, params: [messageId, SUPPORT_DELETE_TEST.PAST_EDIT_WINDOW] });
 
-    expect((await editText(messageId, SUPPORT_DELETE_TEST.KEEP_TEXT)).status).toBe(SUPPORT_DELETE_TEST.BAD_REQUEST);
+    expect((await A.editText({ token: customer, conversationId, messageId: messageId, text: SUPPORT_DELETE_TEST.KEEP_TEXT })).status).toBe(SUPPORT_DELETE_TEST.BAD_REQUEST);
   });
 
   it('hides a message only for the sender who deleted it for themselves', async () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.KEEP_TEXT })).body.id;
 
-    expect((await remove(customer, messageId, SUPPORT_DELETE_TEST.ME)).status).toBe(SUPPORT_DELETE_TEST.OK);
+    expect((await A.remove({ token: customer, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.ME })).status).toBe(SUPPORT_DELETE_TEST.OK);
     expect((await SupportTestHelper.thread({ token: customer, conversationId })).body.some(({ id }) => id === messageId)).toBe(false);
     expect((await SupportTestHelper.thread({ token: staff, conversationId })).body.some(({ id }) => id === messageId)).toBe(true);
   });
@@ -61,14 +48,14 @@ describe('Support message edit window and deletion', () => {
   it('refuses to let anyone, staff included, delete a message they did not send', async () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.KEEP_TEXT })).body.id;
 
-    expect((await remove(staff, messageId, SUPPORT_DELETE_TEST.EVERYONE)).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
-    expect((await remove(staff, messageId, SUPPORT_DELETE_TEST.ME)).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
+    expect((await A.remove({ token: staff, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.EVERYONE })).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
+    expect((await A.remove({ token: staff, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.ME })).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
   });
 
   it('replaces a message deleted for everyone with an empty tombstone both sides see', async () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.GONE_TEXT })).body.id;
 
-    expect((await remove(customer, messageId, SUPPORT_DELETE_TEST.EVERYONE)).status).toBe(SUPPORT_DELETE_TEST.OK);
+    expect((await A.remove({ token: customer, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.EVERYONE })).status).toBe(SUPPORT_DELETE_TEST.OK);
 
     const seen = (await SupportTestHelper.thread({ token: staff, conversationId })).body.find(({ id }) => id === messageId) as (SupportMessage & { deletedAt: string | null }) | undefined;
 
@@ -80,6 +67,6 @@ describe('Support message edit window and deletion', () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.OLD_TEXT })).body.id;
     await DbHelper.query({ sql: SUPPORT_DELETE_TEST.BACKDATE_SQL, params: [messageId, SUPPORT_DELETE_TEST.PAST_DELETE_WINDOW] });
 
-    expect((await remove(customer, messageId, SUPPORT_DELETE_TEST.EVERYONE)).status).toBe(SUPPORT_DELETE_TEST.BAD_REQUEST);
+    expect((await A.remove({ token: customer, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.EVERYONE })).status).toBe(SUPPORT_DELETE_TEST.BAD_REQUEST);
   });
 });

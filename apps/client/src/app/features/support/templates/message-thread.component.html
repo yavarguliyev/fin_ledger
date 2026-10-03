@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-1 px-4 py-4">
+<div class="flex flex-col gap-1 px-4 py-4" role="log" aria-live="polite" aria-relevant="additions">
   @if (messages().length === 0) {
     <p class="my-auto py-10 text-center text-sm text-ink-400">{{ labels.NO_MESSAGES }}</p>
   }
@@ -70,8 +70,8 @@
                   [src]="file.url"
                 ></video>
               } @else if (isImage(message)) {
-                <a [href]="file.url" target="_blank" rel="noopener" class="block -mx-1.5 -mt-0.5 mb-1">
-                  <img [src]="file.url" [alt]="file.fileName ?? ''" class="max-h-64 w-full rounded-xl object-cover" loading="lazy" />
+                <a [href]="file.url" target="_blank" rel="noopener" class="relative block h-64 -mx-1.5 -mt-0.5 mb-1">
+                  <img [ngSrc]="file.url" fill [alt]="file.fileName ?? ''" class="rounded-xl object-cover" />
                 </a>
               } @else {
                 <a
@@ -115,7 +115,7 @@
                   @if (delivered(message)) {
                     <svg
                       class="w-4 h-3.5"
-                      [class]="message.seen ? 'text-[#53bdeb]' : 'text-ink-400 dark:text-white/60'"
+                      [class]="message.seen ? 'text-chat-seen' : 'text-ink-400 dark:text-white/60'"
                       viewBox="0 0 20 14"
                       fill="none"
                       stroke="currentColor"

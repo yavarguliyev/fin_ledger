@@ -1,10 +1,10 @@
+import { SupportActionsTestHelper as A } from '../helpers/support-actions.helper';
 import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST as C } from '../constants/support-chat.constant';
 import { SUPPORT_REACTION_TEST as T } from '../constants/support-reaction.constant';
-import { Reaction } from '../interfaces/reaction.interface';
 
 let customer = '';
 
@@ -15,9 +15,6 @@ let outsider = '';
 let customerId = '';
 
 let path = '';
-
-const react = (token: string, emoji?: string): ReturnType<typeof ApiHelper.request<Reaction[]>> =>
-  ApiHelper.request<Reaction[]>({ method: emoji ? 'PUT' : 'DELETE', path, token, ...(emoji && { body: { emoji } }) });
 
 beforeAll(async () => {
   await TestUserHelper.ensure({ emails: [C.CUSTOMER_EMAIL, C.OTHER_EMAIL] });
@@ -40,29 +37,29 @@ afterAll(async () => {
 
 describe('Reacting to a message', () => {
   it('keeps one reaction per person, replacing it when they pick another', async () => {
-    await react(customer, T.THUMBS);
-    const changed = await react(customer, T.HEART);
+    await A.react({ token: customer, path, emoji: T.THUMBS });
+    const changed = await A.react({ token: customer, path, emoji: T.HEART });
 
     expect(changed.status).toBe(C.OK);
     expect(changed.body).toEqual([{ emoji: T.HEART, userId: customerId }]);
   });
 
   it('shows everyone’s reactions and removes only mine', async () => {
-    const both = await react(staff, T.THUMBS);
-    const afterRemove = await react(customer);
+    const both = await A.react({ token: staff, path, emoji: T.THUMBS });
+    const afterRemove = await A.react({ token: customer, path });
 
     expect(both.body.map(reaction => reaction.emoji)).toEqual([T.HEART, T.THUMBS]);
     expect(afterRemove.body.map(reaction => reaction.emoji)).toEqual([T.THUMBS]);
   });
 
   it('accepts any single emoji, flags included', async () => {
-    await expect(react(customer, T.ANY_EMOJI)).resolves.toMatchObject({ status: C.OK });
-    await expect(react(customer, T.FLAG)).resolves.toMatchObject({ status: C.OK });
+    await expect(A.react({ token: customer, path, emoji: T.ANY_EMOJI })).resolves.toMatchObject({ status: C.OK });
+    await expect(A.react({ token: customer, path, emoji: T.FLAG })).resolves.toMatchObject({ status: C.OK });
   });
 
   it('refuses text, more than one emoji, and anyone outside the conversation', async () => {
-    await expect(react(customer, T.PLAIN_TEXT)).resolves.toMatchObject({ status: T.BAD_REQUEST });
-    await expect(react(customer, T.TWO_EMOJIS)).resolves.toMatchObject({ status: T.BAD_REQUEST });
-    await expect(react(outsider, T.THUMBS)).resolves.toMatchObject({ status: C.NOT_FOUND });
+    await expect(A.react({ token: customer, path, emoji: T.PLAIN_TEXT })).resolves.toMatchObject({ status: T.BAD_REQUEST });
+    await expect(A.react({ token: customer, path, emoji: T.TWO_EMOJIS })).resolves.toMatchObject({ status: T.BAD_REQUEST });
+    await expect(A.react({ token: outsider, path, emoji: T.THUMBS })).resolves.toMatchObject({ status: C.NOT_FOUND });
   });
 });
