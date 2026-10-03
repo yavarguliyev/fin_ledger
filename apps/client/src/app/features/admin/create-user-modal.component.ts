@@ -1,4 +1,4 @@
-import { Component, output, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
@@ -7,6 +7,7 @@ import { ROLES } from '../../core/constants/auth/roles.constant';
 @Component({
   selector: 'app-create-user-modal',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './templates/create-user-modal.component.html'
 })

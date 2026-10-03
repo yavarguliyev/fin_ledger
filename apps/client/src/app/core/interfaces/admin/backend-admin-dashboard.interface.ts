@@ -1,6 +1,7 @@
 import { BackendUserWithWallet } from './backend-user-with-wallet.interface';
+import { DashboardStats } from './dashboard-stats.interface';
 
 export interface BackendAdminDashboard {
-  stats: { totalUsers: number; activeWallets: number; totalVolumeMinor: number; pending: number };
+  stats: DashboardStats;
   users: BackendUserWithWallet[];
 }

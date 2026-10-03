@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit, inject, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, OnInit, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
 
@@ -28,6 +28,7 @@ import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 @Component({
   selector: 'app-admin',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     DataTableComponent,

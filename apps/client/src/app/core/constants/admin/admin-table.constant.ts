@@ -6,5 +6,6 @@ export const ADMIN_TABLE = {
   ANONYMIZE_LABEL: 'Anonymize user',
   VOLUME_LABEL: 'Total Volume',
   ZERO_VOLUME: '$0',
-  ZERO_COUNT: '0'
+  ZERO_COUNT: '0',
+  VOLUME_SEPARATOR: ' · '
 } as const;

@@ -1,0 +1,11 @@
+export const ADMIN_STAT_CARDS_TEST = {
+  USD: 'USD',
+  EUR: 'EUR',
+  USD_MINOR: 150_000,
+  EUR_MINOR: 250_000,
+  TOTAL_USERS: 4,
+  VOLUME_INDEX: 2,
+  USD_TEXT: '$1.5K',
+  EUR_TEXT: '€2.5K',
+  JOINED_SUM_TEXT: '$4K'
+} as const;

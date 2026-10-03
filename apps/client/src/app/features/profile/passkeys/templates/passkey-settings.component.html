@@ -20,7 +20,11 @@
   }
 </div>
 
-@if (items().length) {
+@if (list.failed()) {
+  <app-error-state [message]="loadFailed" (retry)="list.refresh()" />
+} @else if (!list.loaded()) {
+  <app-skeleton [rows]="states.SECTION_ROWS" />
+} @else if (items().length) {
   <ul class="mt-2 space-y-2">
     @for (item of items(); track item.id) {
       <li class="flex items-center justify-between gap-3 rounded-lg border border-ink-200 dark:border-ink-700 px-3 py-2">

@@ -2,6 +2,7 @@ import { ElementRef, Injector, runInInjectionContext, signal } from '@angular/co
 
 import { ChatSearchComponent } from '../../src/app/features/support/components/chat-search.component';
 import { ChatSearchService } from '../../src/app/features/support/services/chat-search.service';
+import { aMouseEvent } from '../fakes/dom.fake';
 
 const inside = {};
 const outside = {};
@@ -17,7 +18,7 @@ const create = (): ChatSearchComponent => {
   return runInInjectionContext(injector, () => new ChatSearchComponent());
 };
 
-const clickOn = (target: object): MouseEvent => ({ target }) as unknown as MouseEvent;
+const clickOn = (target: object): MouseEvent => aMouseEvent({ target });
 
 describe('Chat search panel', () => {
   beforeEach(() => toggle.mockClear());

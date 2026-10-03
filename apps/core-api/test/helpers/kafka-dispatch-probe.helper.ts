@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { EachMessagePayload, KafkaMessage } from 'kafkajs';
+import { EachMessagePayload } from 'kafkajs';
 import { KafkaSendDto } from '@common/kafka';
 import { InboxRepository } from '@common/database';
 import { CryptoHelper } from '@common/shared-libs';
@@ -7,6 +7,7 @@ import { CryptoHelper } from '@common/shared-libs';
 import { DbHelper } from './db.helper';
 import { KAFKA_DISPATCH_TEST as K } from '../constants/kafka-dispatch.constant';
 import { DispatchContext, DispatchPayloadSource, DispatchRecord, ParkedMessage, QueryCall } from '../interfaces/kafka-dispatch.interface';
+import { aKafkaMessage } from '../fakes/kafka.fake';
 
 export class KafkaDispatchProbe {
   readonly parked: ParkedMessage[] = [];
@@ -51,13 +52,13 @@ export class KafkaDispatchProbe {
     return {
       topic: source,
       partition: K.PARTITION,
-      message: {
+      message: aKafkaMessage({
         key: Buffer.from(K.KEY),
         value: Buffer.from(JSON.stringify(K.PAYLOAD)),
         timestamp: String(Date.now()),
         offset: K.OFFSET,
         headers: Object.fromEntries(Object.entries(headers ?? {}).map(([key, value]) => [key, Buffer.from(value)]))
-      } as unknown as KafkaMessage,
+      }),
       heartbeat: () => Promise.resolve(),
       pause: () => () => undefined
     };

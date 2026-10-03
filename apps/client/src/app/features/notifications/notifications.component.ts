@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { NotificationService } from '../../core/services/notification.service';
@@ -24,6 +24,7 @@ import {
 @Component({
   selector: 'app-notifications',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
   templateUrl: './templates/notifications.component.html'
 })

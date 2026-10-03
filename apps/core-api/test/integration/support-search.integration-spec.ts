@@ -1,9 +1,9 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST as C } from '../constants/support-chat.constant';
 import { MESSAGE_SEARCH_TEST as T } from '../constants/message-search.constant';
-import { SupportConversation } from '../interfaces/support-chat.interface';
 import { MessageHit } from '../interfaces/message-hit.interface';
 
 describe('Searching inside a conversation', () => {
@@ -20,12 +20,12 @@ describe('Searching inside a conversation', () => {
     customer = await ApiHelper.login({ email: C.CUSTOMER_EMAIL });
     outsider = await ApiHelper.login({ email: C.OTHER_EMAIL });
 
-    const [staff] = await DbHelper.query<{ id: string }>({ sql: C.USER_ID_SQL, params: [C.STAFF_EMAIL] });
-    const opened = await ApiHelper.request<SupportConversation>({ method: 'POST', path: C.CONVERSATIONS_PATH, token: customer, body: { staffUserId: staff?.id } });
+    const staffUserId = await SupportTestHelper.userId({ email: C.STAFF_EMAIL });
+    const opened = await SupportTestHelper.open({ token: customer, staffUserId });
     conversationId = opened.body.id;
 
     for (const body of [T.PERCENT_TEXT, T.PLAIN_TEXT, T.OTHER_TEXT]) {
-      await ApiHelper.request({ method: 'POST', path: `${C.CONVERSATIONS_PATH}/${conversationId}/messages`, token: customer, body: { body } });
+      await SupportTestHelper.send({ token: customer, conversationId, body });
     }
   });
 

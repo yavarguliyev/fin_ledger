@@ -1,4 +1,4 @@
-import { Component, computed, inject, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { WalletService } from '../../core/services/wallet.service';
@@ -9,6 +9,7 @@ import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 @Component({
   selector: 'app-wallet-switcher',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyFormatPipe],
   templateUrl: './templates/wallet-switcher.component.html'
 })

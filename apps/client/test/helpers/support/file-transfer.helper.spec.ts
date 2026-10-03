@@ -1,10 +1,10 @@
 import { FileTransferHelper } from '../../../src/app/features/support/helpers/file-transfer.helper';
 import { FILE_DROP_TEST as T } from '../../constants/file-drop.constant';
+import { aDataTransfer } from '../../fakes/dom.fake';
 
 const file = new File([T.CONTENT], T.FILE_NAME, { type: T.FILE_TYPE });
 
-const transfer = (types: string[], files: File[]): Pick<DataTransfer, 'files' | 'types'> =>
-  ({ types, files }) as unknown as Pick<DataTransfer, 'files' | 'types'>;
+const transfer = (types: string[], files: File[]): Pick<DataTransfer, 'files' | 'types'> => aDataTransfer({ types, files });
 
 describe('FileTransferHelper', () => {
   it('recognises a drag or paste that carries files', () => {

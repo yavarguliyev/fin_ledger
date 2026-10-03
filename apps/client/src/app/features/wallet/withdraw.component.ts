@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -25,6 +25,7 @@ import { ConnectivityService } from '../../core/services/connectivity.service';
 @Component({
   selector: 'app-withdraw',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, FieldErrorComponent, ErrorStateComponent],
   providers: [WithdrawMethodsService],
   templateUrl: './templates/withdraw.component.html'

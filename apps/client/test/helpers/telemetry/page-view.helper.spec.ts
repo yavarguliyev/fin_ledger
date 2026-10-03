@@ -2,10 +2,11 @@ import { ActivatedRouteSnapshot } from '@angular/router';
 
 import { PageViewHelper } from '../../../src/app/core/helpers/telemetry/page-view.helper';
 import { PAGE_VIEW_TEST as T } from '../../constants/page-view.constant';
+import { aRouteSnapshot } from '../../fakes/route.fake';
 
 const chain = (...paths: (string | undefined)[]): ActivatedRouteSnapshot =>
   paths.reduceRight<ActivatedRouteSnapshot | null>(
-    (child, path) => ({ routeConfig: path === undefined ? null : { path }, firstChild: child }) as unknown as ActivatedRouteSnapshot,
+    (child, path) => aRouteSnapshot({ path, firstChild: child }),
     null
   ) as ActivatedRouteSnapshot;
 

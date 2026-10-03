@@ -1,9 +1,10 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_PRESENCE_TEST } from '../constants/support-presence.constant';
-import { PresenceEntry, SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
+import { PresenceEntry } from '../interfaces/support-chat.interface';
 
 let customer = '';
 
@@ -15,17 +16,6 @@ let moderatorId = '';
 
 let adminId = '';
 
-const idOf = async (email: string): Promise<string> => {
-  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [email] });
-  return row?.id ?? '';
-};
-
-const open = (staffUserId: string): ReturnType<typeof ApiHelper.request<SupportConversation>> =>
-  ApiHelper.request<SupportConversation>({ method: 'POST', path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH, token: customer, body: { staffUserId } });
-
-const thread = (token: string, id: string): ReturnType<typeof ApiHelper.request<SupportMessage[]>> =>
-  ApiHelper.request<SupportMessage[]>({ path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${id}/messages`, token });
-
 const contacts = (): ReturnType<typeof ApiHelper.request<PresenceEntry[]>> =>
   ApiHelper.request<PresenceEntry[]>({ path: SUPPORT_CHAT_TEST.CONTACTS_PATH, token: customer });
 
@@ -36,8 +26,8 @@ beforeAll(async () => {
   customer = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.OTHER_EMAIL });
   moderator = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
   admin = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.ADMIN_EMAIL });
-  moderatorId = await idOf(SUPPORT_CHAT_TEST.STAFF_EMAIL);
-  adminId = await idOf(SUPPORT_CHAT_TEST.ADMIN_EMAIL);
+  moderatorId = await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+  adminId = await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.ADMIN_EMAIL });
 });
 
 afterAll(async () => {
@@ -52,12 +42,12 @@ describe('Support direct conversations', () => {
 
     expect(ids).toEqual(expect.arrayContaining([moderatorId, adminId]));
     expect(listed.body.every(({ role }) => SUPPORT_CHAT_TEST.STAFF_ROLES.includes(role))).toBe(true);
-    expect(ids).not.toContain(await idOf(SUPPORT_CHAT_TEST.CUSTOMER_EMAIL));
+    expect(ids).not.toContain(await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL }));
   });
 
   it('gives a player a separate conversation with each staff member', async () => {
-    const withModerator = await open(moderatorId);
-    const withAdmin = await open(adminId);
+    const withModerator = await SupportTestHelper.open({ token: customer, staffUserId: moderatorId });
+    const withAdmin = await SupportTestHelper.open({ token: customer, staffUserId: adminId });
 
     expect(withModerator.status).toBe(SUPPORT_CHAT_TEST.CREATED);
     expect(withAdmin.body.id).not.toBe(withModerator.body.id);
@@ -65,17 +55,17 @@ describe('Support direct conversations', () => {
   });
 
   it('keeps one staff member out of a conversation addressed to another', async () => {
-    const withModerator = await open(moderatorId);
+    const withModerator = await SupportTestHelper.open({ token: customer, staffUserId: moderatorId });
 
-    const peek = await thread(admin, withModerator.body.id);
-    const own = await thread(moderator, withModerator.body.id);
+    const peek = await SupportTestHelper.thread({ token: admin, conversationId: withModerator.body.id });
+    const own = await SupportTestHelper.thread({ token: moderator, conversationId: withModerator.body.id });
 
     expect(peek.status).toBe(SUPPORT_CHAT_TEST.NOT_FOUND);
     expect(own.status).toBe(SUPPORT_CHAT_TEST.OK);
   });
 
   it('refuses a conversation with someone who is not on the support team', async () => {
-    const refused = await open(await idOf(SUPPORT_CHAT_TEST.CUSTOMER_EMAIL));
+    const refused = await SupportTestHelper.open({ token: customer, staffUserId: await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.CUSTOMER_EMAIL }) });
 
     expect(refused.status).toBe(SUPPORT_CHAT_TEST.NOT_FOUND);
   });

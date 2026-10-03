@@ -2,14 +2,15 @@ import { Injector, runInInjectionContext } from '@angular/core';
 
 import { CONNECTIVITY } from '../../src/app/core/constants/ui/connectivity.constant';
 import { ConnectivityService } from '../../src/app/core/services/connectivity.service';
+import { stubGlobal } from '../fakes/global.fake';
 
 const handlers = new Map<string, () => void>();
 
 describe('ConnectivityService', () => {
   beforeEach(() => {
     handlers.clear();
-    (globalThis as unknown as { window: unknown }).window = { addEventListener: (event: string, handler: () => void): void => void handlers.set(event, handler) };
-    (globalThis as unknown as { navigator: unknown }).navigator = { onLine: true };
+    stubGlobal({ name: 'window', value: { addEventListener: (event: string, handler: () => void): void => void handlers.set(event, handler) } });
+    stubGlobal({ name: 'navigator', value: { onLine: true } });
   });
 
   it('follows the browser going offline and coming back', () => {

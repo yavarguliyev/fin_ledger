@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, computed, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
@@ -31,6 +31,7 @@ import { UploadProgressComponent } from '../../shared/components/upload-progress
 @Component({
   selector: 'app-profile',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent],
   providers: [ProfileFormService, ProfileSaveService],
   templateUrl: './templates/profile.component.html'

@@ -1,4 +1,4 @@
-import { Component, inject, computed, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { LedgerService } from '../../core/services/ledger.service';
@@ -19,6 +19,7 @@ import { AccountEntriesDto } from '../../core/interfaces/ledger/account-entries.
 @Component({
   selector: 'app-ledger',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent],
   templateUrl: './templates/ledger.component.html'
 })

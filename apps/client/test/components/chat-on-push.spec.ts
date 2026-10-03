@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Type } from '@angular/core';
+import { ChangeDetectionStrategy, Type } from '@angular/core';
 
 import { ChatSearchComponent } from '../../src/app/features/support/components/chat-search.component';
 import { ContactListComponent } from '../../src/app/features/support/components/contact-list.component';
@@ -13,6 +13,7 @@ import { SupportAvatarComponent } from '../../src/app/features/support/component
 import { SupportComponent } from '../../src/app/features/support/support.component';
 import { VideoNoteComponent } from '../../src/app/features/support/components/video-note.component';
 import { VoiceNoteComponent } from '../../src/app/features/support/components/voice-note.component';
+import { componentMetadata } from '../fakes/component-metadata.fake';
 
 const CHAT_COMPONENTS: Type<unknown>[] = [
   SupportComponent,
@@ -32,7 +33,7 @@ const CHAT_COMPONENTS: Type<unknown>[] = [
 
 describe('Chat components render only when their inputs or signals change', () => {
   it.each(CHAT_COMPONENTS.map(component => [component.name, component]))('%s uses OnPush change detection', (_, component) => {
-    const [metadata] = (component as unknown as { __annotations__: Component[] }).__annotations__;
+    const metadata = componentMetadata({ component });
 
     expect(metadata?.changeDetection).toBe(ChangeDetectionStrategy.OnPush);
   });

@@ -2,13 +2,13 @@ import { DestroyRef, Injector, runInInjectionContext } from '@angular/core';
 
 import { FileDropDirective } from '../../src/app/features/support/directives/file-drop.directive';
 import { FILE_DROP_TEST as T } from '../constants/file-drop.constant';
+import { aDragEvent } from '../fakes/dom.fake';
 
 const file = new File([T.CONTENT], T.FILE_NAME, { type: T.FILE_TYPE });
 
 const prevent = jest.fn();
 
-const dragEvent = (types: string[]): DragEvent =>
-  ({ preventDefault: prevent, dataTransfer: { types, files: types.includes(T.FILES) ? [file] : [], dropEffect: '' } }) as unknown as DragEvent;
+const dragEvent = (types: string[]): DragEvent => aDragEvent({ types, files: types.includes(T.FILES) ? [file] : [], preventDefault: prevent });
 
 const create = (): FileDropDirective => {
   const injector = Injector.create({ providers: [{ provide: DestroyRef, useValue: { onDestroy: (): (() => void) => () => undefined } }] });

@@ -1,19 +1,24 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 
 import { PASSKEY_MESSAGES } from '../../../core/constants/passkey/passkey-messages.constant';
 import { PasskeyCeremonyService } from '../../../core/services/passkey-ceremony.service';
 import { PasskeyHelper } from '../../../core/helpers/passkey/passkey.helper';
 import { PasskeyService } from '../../../core/services/passkey.service';
-import { PasskeySummary } from '../../../core/interfaces/passkey/passkey-summary.interface';
 import { RemovePasskeyDto } from '../../../core/interfaces/passkey/remove-passkey.interface';
 import { SupportChatHelper } from '../../../core/helpers/support/support-chat.helper';
+import { PasskeyListService } from './services/passkey-list.service';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { ErrorStateComponent } from '../../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-passkey-settings',
   standalone: true,
-  imports: [DatePipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [DatePipe, SkeletonComponent, ErrorStateComponent],
+  providers: [PasskeyListService],
   templateUrl: './templates/passkey-settings.component.html'
 })
 export class PasskeySettingsComponent implements OnInit {
@@ -23,11 +28,14 @@ export class PasskeySettingsComponent implements OnInit {
 
   readonly available = signal(PasskeyHelper.isAvailable());
   readonly busy = signal(false);
-  readonly items = signal<PasskeySummary[]>([]);
+  readonly list = inject(PasskeyListService);
+  readonly items = this.list.items;
   readonly neverUsed = PASSKEY_MESSAGES.NEVER_USED;
+  readonly loadFailed = PASSKEY_MESSAGES.LOAD_FAILED;
+  readonly states = LOAD_STATE;
 
   ngOnInit (): void {
-    this.load();
+    this.list.refresh();
   }
 
   onRemove (dto: RemovePasskeyDto): void {
@@ -36,7 +44,7 @@ export class PasskeySettingsComponent implements OnInit {
       next: () => {
         this.busy.set(false);
         this.toast.success(PASSKEY_MESSAGES.REMOVED);
-        this.load();
+        this.list.refresh();
       },
       error: (err: unknown) => {
         this.busy.set(false);
@@ -61,15 +69,6 @@ export class PasskeySettingsComponent implements OnInit {
     }
 
     this.toast.success(PASSKEY_MESSAGES.REGISTERED);
-    this.load();
-  }
-
-  private load (): void {
-    this.passkeys.list().subscribe({
-      next: items => this.items.set(items),
-      error: (err: unknown) => {
-        if (!SupportChatHelper.isSilent({ error: err })) this.toast.error(PASSKEY_MESSAGES.LOAD_FAILED);
-      }
-    });
+    this.list.refresh();
   }
 }

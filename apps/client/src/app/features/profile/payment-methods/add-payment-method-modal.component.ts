@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
@@ -11,6 +11,7 @@ import { MODAL } from '../../../core/constants/ui/modal.constant';
 @Component({
   selector: 'app-add-payment-method-modal',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FocusTrapDirective],
   templateUrl: './templates/add-payment-method-modal.component.html'
 })

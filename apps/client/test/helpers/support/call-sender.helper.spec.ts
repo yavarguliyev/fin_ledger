@@ -1,29 +1,26 @@
 import { CALL_SENDER_TEST } from '../../constants/call-sender.constant';
 import { CallSenderHelper } from '../../../src/app/core/helpers/support/call-sender.helper';
+import { aPeer, aTransceiver, aTunableSender } from '../../fakes/rtc.fake';
 
-const sender = (kind: string | null): RTCRtpSender => ({ track: kind ? { kind } : null }) as unknown as RTCRtpSender;
-const transceiver = (receiverKind: string, mid: string | null, senderKind: string | null): RTCRtpTransceiver =>
-  ({ receiver: { track: { kind: receiverKind } }, mid, sender: sender(senderKind) }) as unknown as RTCRtpTransceiver;
-const peerWith = (transceivers: RTCRtpTransceiver[]): RTCPeerConnection => ({ getTransceivers: () => transceivers }) as unknown as RTCPeerConnection;
 
 describe('CallSenderHelper', () => {
   it('shares the screen on the negotiated camera channel, never on an unused duplicate', () => {
-    const unused = transceiver(CALL_SENDER_TEST.VIDEO, null, CALL_SENDER_TEST.VIDEO);
-    const camera = transceiver(CALL_SENDER_TEST.VIDEO, CALL_SENDER_TEST.MID, CALL_SENDER_TEST.VIDEO);
-    const audio = transceiver(CALL_SENDER_TEST.AUDIO, CALL_SENDER_TEST.MID, CALL_SENDER_TEST.AUDIO);
+    const unused = aTransceiver({ receiverKind: CALL_SENDER_TEST.VIDEO, mid: null, senderKind: CALL_SENDER_TEST.VIDEO });
+    const camera = aTransceiver({ receiverKind: CALL_SENDER_TEST.VIDEO, mid: CALL_SENDER_TEST.MID, senderKind: CALL_SENDER_TEST.VIDEO });
+    const audio = aTransceiver({ receiverKind: CALL_SENDER_TEST.AUDIO, mid: CALL_SENDER_TEST.MID, senderKind: CALL_SENDER_TEST.AUDIO });
 
-    expect(CallSenderHelper.videoSender({ peer: peerWith([unused, audio, camera]) })).toBe(camera.sender);
+    expect(CallSenderHelper.videoSender({ peer: aPeer({ transceivers: [unused, audio, camera] }) })).toBe(camera.sender);
   });
 
   it('falls back to the spare video channel on a voice call', () => {
-    const spare = transceiver(CALL_SENDER_TEST.VIDEO, CALL_SENDER_TEST.MID, null);
+    const spare = aTransceiver({ receiverKind: CALL_SENDER_TEST.VIDEO, mid: CALL_SENDER_TEST.MID, senderKind: null });
 
-    expect(CallSenderHelper.videoSender({ peer: peerWith([spare]) })).toBe(spare.sender);
+    expect(CallSenderHelper.videoSender({ peer: aPeer({ transceivers: [spare] }) })).toBe(spare.sender);
   });
 
   it('keeps shared screens sharp and restores camera settings afterwards', async () => {
     const parameters = { encodings: [{}] } as RTCRtpSendParameters;
-    const target = { getParameters: () => parameters, setParameters: jest.fn().mockResolvedValue(undefined) } as unknown as RTCRtpSender;
+    const target = aTunableSender({ parameters, setParameters: jest.fn().mockResolvedValue(undefined) });
 
     await CallSenderHelper.tune({ sender: target, sharing: true });
     expect(parameters.degradationPreference).toBe(CALL_SENDER_TEST.SCREEN_DEGRADATION);

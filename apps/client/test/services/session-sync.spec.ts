@@ -3,8 +3,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 
 import { SessionSyncService } from '../../src/app/core/services/session-sync.service';
 import { SessionStore } from '../../src/app/core/services/session-store.service';
-import { AuthResponse } from '../../src/app/core/interfaces/auth/auth-response.interface';
 import { SESSION_SYNC_TEST as T } from '../constants/session-sync.constant';
+import { anAuthResponse } from '../fakes/auth.fake';
 
 const tab = (): { sync: SessionSyncService; adopt: jest.Mock } => {
   const adopt = jest.fn();
@@ -17,7 +17,7 @@ describe('SessionSyncService', () => {
     const first = tab();
     const second = tab();
 
-    first.sync.share({ session: T.SESSION as unknown as AuthResponse });
+    first.sync.share({ session: anAuthResponse(T.SESSION) });
     await delay(T.DELIVERY_WAIT_MS);
 
     expect(second.adopt).toHaveBeenCalledWith({ session: T.SESSION });

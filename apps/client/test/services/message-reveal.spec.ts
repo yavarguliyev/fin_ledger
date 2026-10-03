@@ -4,6 +4,7 @@ import { MessageRevealService } from '../../src/app/features/support/services/me
 import { SupportHistoryService } from '../../src/app/core/services/support-history.service';
 import { ToastService } from '../../src/app/core/services/toast.service';
 import { CHAT_SEARCH_TEST as T } from '../constants/chat-search.constant';
+import { stubGlobal } from '../fakes/global.fake';
 
 const info = jest.fn();
 const elements = new Map<string, unknown>();
@@ -23,7 +24,7 @@ describe('MessageRevealService', () => {
     jest.useFakeTimers();
     info.mockClear();
     elements.clear();
-    (globalThis as unknown as { document: unknown }).document = { getElementById: (id: string): unknown => elements.get(id) ?? null };
+    stubGlobal({ name: 'document', value: { getElementById: (id: string): unknown => elements.get(id) ?? null } });
   });
 
   afterEach(() => jest.useRealTimers());

@@ -3,12 +3,13 @@ import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
+import { chunksOf } from '../fakes/stream.fake';
 
 const firstEvent = async (stream: Response): Promise<void> => {
   const decoder = new TextDecoder();
   let text = '';
 
-  for await (const chunk of stream.body as unknown as AsyncIterable<Uint8Array>) {
+  for await (const chunk of chunksOf({ response: stream })) {
     text += decoder.decode(chunk);
     if (text.includes(T.DATA_PREFIX)) return;
   }

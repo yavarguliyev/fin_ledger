@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, TemplateRef, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, TemplateRef, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -26,6 +26,7 @@ import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 @Component({
   selector: 'app-wallet',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent, ErrorStateComponent],
   templateUrl: './templates/wallet.component.html'
 })

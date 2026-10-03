@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { SupportStreamService } from '../../src/app/core/services/support-stream.service';
 import { SupportApiService } from '../../src/app/core/services/support-api.service';
 import { SUPPORT_STREAM_TEST as T } from '../constants/support-stream.constant';
+import { stubGlobal } from '../fakes/global.fake';
 
 class FakeEventSource {
   static opened: FakeEventSource[] = [];
@@ -24,7 +25,7 @@ describe('SupportStreamService reconnects', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     FakeEventSource.opened = [];
-    (globalThis as unknown as { EventSource: unknown }).EventSource = FakeEventSource;
+    stubGlobal({ name: 'EventSource', value: FakeEventSource });
   });
 
   afterEach(() => jest.useRealTimers());

@@ -1,9 +1,10 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CALLS_TEST } from '../constants/support-calls.constant';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
-import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
+import { SupportMessage } from '../interfaces/support-chat.interface';
 
 let customer = '';
 
@@ -20,10 +21,7 @@ const start = (media: string): ReturnType<typeof ApiHelper.request<{ callId: str
   post<{ callId: string }>(customer, '', { conversationId, media, sdp: SUPPORT_CALLS_TEST.SDP });
 
 const lastLog = async (): Promise<SupportMessage | undefined> => {
-  const thread = await ApiHelper.request<SupportMessage[]>({
-    path: `${SUPPORT_CHAT_TEST.CONVERSATIONS_PATH}/${conversationId}/messages`,
-    token: customer
-  });
+  const thread = await SupportTestHelper.thread({ token: customer, conversationId });
   return thread.body.filter(({ kind }) => kind === SUPPORT_CALLS_TEST.SYSTEM_KIND).pop();
 };
 
@@ -34,13 +32,8 @@ beforeAll(async () => {
   stranger = await ApiHelper.login({ email: SUPPORT_CALLS_TEST.STRANGER_EMAIL });
   staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
 
-  const [row] = await DbHelper.query<{ id: string }>({ sql: SUPPORT_CHAT_TEST.USER_ID_SQL, params: [SUPPORT_CHAT_TEST.STAFF_EMAIL] });
-  const opened = await ApiHelper.request<SupportConversation>({
-    method: 'POST',
-    path: SUPPORT_CHAT_TEST.CONVERSATIONS_PATH,
-    token: customer,
-    body: { staffUserId: row?.id }
-  });
+  const staffUserId = await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
+  const opened = await SupportTestHelper.open({ token: customer, staffUserId });
   conversationId = opened.body.id;
 });
 

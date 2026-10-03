@@ -1,14 +1,14 @@
 import { execFileSync } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
-import type { ConfigService } from '@nestjs/config';
 import amqp from 'amqplib';
-import type { ChannelModel } from 'amqplib';
 import { RabbitmqService, RABBITMQ_TOPOLOGY } from '@common/rabbitmq';
 import { ClientIds, CryptoHelper } from '@common/shared-libs';
 
 import { RABBIT_PROBE as R } from '../constants/rabbit-probe.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { DeliveryWait, DepthWait, SeedAttempts, ServiceRef } from '../interfaces/rabbit-probe.interface';
+import { aConfigService } from '../fakes/config.fake';
+import { connectionOf } from '../fakes/rabbit.fake';
 
 export class RabbitProbe {
   readonly queue = `${R.PREFIX}${CryptoHelper.uuid()}`;
@@ -20,7 +20,7 @@ export class RabbitProbe {
   }
 
   static async start (): Promise<RabbitmqService> {
-    const configService = { get: (key: string) => (key === R.URL_KEY ? RabbitProbe.url() : undefined) } as unknown as ConfigService;
+    const configService = aConfigService({ values: { [R.URL_KEY]: RabbitProbe.url() } });
     const started = new RabbitmqService({ configService, clientId: ClientIds.DEFAULT });
     await started.onModuleInit();
     return started;
@@ -112,7 +112,6 @@ export class RabbitProbe {
   }
 
   static async dropConnection ({ target }: ServiceRef): Promise<void> {
-    const { connection } = target as unknown as { connection: ChannelModel };
-    await connection.close();
+    await connectionOf({ target }).close();
   }
 }

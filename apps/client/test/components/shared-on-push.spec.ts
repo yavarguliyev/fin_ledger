@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Type } from '@angular/core';
+import { ChangeDetectionStrategy, Type } from '@angular/core';
 
 import { CallOverlayComponent } from '../../src/app/layout/call-overlay.component';
 import { ToastHostComponent } from '../../src/app/layout/toast.component';
@@ -20,6 +20,7 @@ import { ShowMoreComponent } from '../../src/app/shared/components/show-more/sho
 import { SkeletonComponent } from '../../src/app/shared/components/skeleton/skeleton.component';
 import { StatsCardComponent } from '../../src/app/shared/components/stats-card/stats-card.component';
 import { ToggleComponent } from '../../src/app/shared/components/toggle/toggle.component';
+import { componentMetadata } from '../fakes/component-metadata.fake';
 
 const SHARED_COMPONENTS: Type<unknown>[] = [
   CallOverlayComponent,
@@ -46,7 +47,7 @@ const SHARED_COMPONENTS: Type<unknown>[] = [
 
 describe('Layout and shared components render only when their inputs or signals change', () => {
   it.each(SHARED_COMPONENTS.map(component => [component.name, component]))('%s uses OnPush change detection', (_, component) => {
-    const [metadata] = (component as unknown as { __annotations__: Component[] }).__annotations__;
+    const metadata = componentMetadata({ component });
 
     expect(metadata?.changeDetection).toBe(ChangeDetectionStrategy.OnPush);
   });

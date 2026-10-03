@@ -12,6 +12,7 @@ import { SupportUploadStore } from '../../../src/app/core/services/support-uploa
 import { ToastService } from '../../../src/app/core/services/toast.service';
 import { SUPPORT_REPLY_TEST as T } from '../../constants/support-reply.constant';
 import { aSupportMessage } from '../../fakes/support.fake';
+import { stubGlobal } from '../../fakes/global.fake';
 
 const message = (fields: Partial<SupportMessage>): SupportMessage => aSupportMessage({ id: T.ORIGINAL_ID, body: T.BODY, ...fields });
 const sendMessage = jest.fn<Observable<SupportMessage>, [SendSupportMessageDto]>(() => of(message({})));
@@ -32,7 +33,7 @@ const create = (): SupportComposeStore => {
 describe('Replying to a message', () => {
   beforeEach(() => {
     sendMessage.mockClear();
-    (globalThis as unknown as { navigator: unknown }).navigator = { onLine: true };
+    stubGlobal({ name: 'navigator', value: { onLine: true } });
   });
 
   it('sends the reply with the quoted message and then forgets it', () => {

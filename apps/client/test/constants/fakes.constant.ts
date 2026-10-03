@@ -17,5 +17,6 @@ export const FAKES = {
   OPEN_STATUS: 'OPEN',
   ATTACHMENT_URL: 'https://storage.test/fake',
   FILE_NAME: 'fake.pdf',
-  MIME_TYPE: 'application/pdf'
+  MIME_TYPE: 'application/pdf',
+  NO_DROP_EFFECT: ''
 } as const;

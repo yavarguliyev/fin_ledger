@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -9,28 +9,33 @@ import { ToastService } from '../../../core/services/toast.service';
 import { OtpInputComponent } from '../../../shared/components/otp-input/otp-input.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { MfaHelper } from '../../../core/helpers/auth/mfa.helper';
-import { MfaStatus } from '../../../core/interfaces/auth/mfa-status.interface';
 import { MfaEnrollment } from '../../../core/interfaces/auth/mfa-enrollment.interface';
 import { RunRequestDto } from '../interfaces/run-request.interface';
 import { MFA_MESSAGES } from '../../../core/constants/auth/mfa-messages.constant';
 import { MfaFormService } from './services/mfa-form.service';
+import { MfaStatusService } from './services/mfa-status.service';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
+import { ErrorStateComponent } from '../../../shared/components/error-state/error-state.component';
+import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 import { PasswordToggleComponent } from '../../../shared/components/password-toggle/password-toggle.component';
 
 @Component({
   selector: 'app-two-factor-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent, PasswordToggleComponent],
-  providers: [MfaFormService],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent, PasswordToggleComponent, SkeletonComponent, ErrorStateComponent],
+  providers: [MfaFormService, MfaStatusService],
   templateUrl: './templates/two-factor-settings.component.html'
 })
 export class TwoFactorSettingsComponent implements OnInit {
   readonly forms = inject(MfaFormService);
+  readonly statusStore = inject(MfaStatusService);
   private readonly mfa = inject(MfaService);
   private readonly stepUp = inject(StepUpRetryService);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
 
-  readonly status = signal<MfaStatus | null>(null);
+  readonly states = LOAD_STATE;
   readonly enrollment = signal<MfaEnrollment | null>(null);
   readonly recoveryCodes = signal<string[] | null>(null);
   readonly disableOpen = signal(false);
@@ -45,7 +50,7 @@ export class TwoFactorSettingsComponent implements OnInit {
   });
 
   ngOnInit (): void {
-    this.loadStatus();
+    this.statusStore.refresh();
   }
 
   startSetup (): void {
@@ -58,14 +63,6 @@ export class TwoFactorSettingsComponent implements OnInit {
 
   downloadRecoveryCodes (): void {
     MfaHelper.downloadRecoveryCodes({ codes: this.recoveryCodes() ?? [], accountName: this.auth.currentUser()?.email ?? '' });
-  }
-
-  openRegenerate (): void {
-    this.regenerateOpen.set(true);
-  }
-
-  openDisable (): void {
-    this.disableOpen.set(true);
   }
 
   closeDisable (): void {
@@ -86,7 +83,7 @@ export class TwoFactorSettingsComponent implements OnInit {
       onSuccess: ({ recoveryCodes }) => {
         this.enrollment.set(null);
         this.recoveryCodes.set(recoveryCodes);
-        this.loadStatus();
+        this.statusStore.refresh();
       }
     });
   }
@@ -119,7 +116,7 @@ export class TwoFactorSettingsComponent implements OnInit {
       onSuccess: () => {
         this.toast.success(MFA_MESSAGES.TURNED_OFF);
         this.closeDisable();
-        this.loadStatus();
+        this.statusStore.refresh();
       }
     });
   }
@@ -127,10 +124,6 @@ export class TwoFactorSettingsComponent implements OnInit {
   private resetChallenge (): void {
     this.forms.resetChallenge();
     this.error.set(null);
-  }
-
-  private loadStatus (): void {
-    this.mfa.getStatus().subscribe({ next: status => this.status.set(status) });
   }
 
   private run<T> ({ request, onSuccess }: RunRequestDto<T>): void {

@@ -1,6 +1,8 @@
+import { CurrencyVolume } from './currency-volume.interface';
+
 export interface DashboardStats {
   totalUsers: number;
   activeWallets: number;
-  totalVolumeMinor: number;
+  volumes: CurrencyVolume[];
   pending: number;
 }

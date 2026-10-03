@@ -1,10 +1,10 @@
 import { ApiHelper } from '../helpers/api.helper';
+import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST as C } from '../constants/support-chat.constant';
 import { SUPPORT_REACTION_TEST as T } from '../constants/support-reaction.constant';
 import { Reaction } from '../interfaces/reaction.interface';
-import { SupportConversation, SupportMessage } from '../interfaces/support-chat.interface';
 
 let customer = '';
 
@@ -26,21 +26,11 @@ beforeAll(async () => {
   staff = await ApiHelper.login({ email: C.STAFF_EMAIL });
   outsider = await ApiHelper.login({ email: C.OTHER_EMAIL });
 
-  const [staffRow] = await DbHelper.query<{ id: string }>({ sql: C.USER_ID_SQL, params: [C.STAFF_EMAIL] });
-  customerId = (await DbHelper.query<{ id: string }>({ sql: C.USER_ID_SQL, params: [C.CUSTOMER_EMAIL] }))[0]?.id ?? '';
-  const opened = await ApiHelper.request<SupportConversation>({
-    method: 'POST',
-    path: C.CONVERSATIONS_PATH,
-    token: customer,
-    body: { staffUserId: staffRow?.id }
-  });
-  const sent = await ApiHelper.request<SupportMessage>({
-    method: 'POST',
-    path: `${C.CONVERSATIONS_PATH}/${opened.body.id}/messages`,
-    token: staff,
-    body: { body: T.TEXT }
-  });
-  path = `${C.CONVERSATIONS_PATH}/${opened.body.id}/messages/${sent.body.id}${T.REACTION_SUFFIX}`;
+  const staffUserId = await SupportTestHelper.userId({ email: C.STAFF_EMAIL });
+  customerId = await SupportTestHelper.userId({ email: C.CUSTOMER_EMAIL });
+  const opened = await SupportTestHelper.open({ token: customer, staffUserId });
+  const sent = await SupportTestHelper.send({ token: staff, conversationId: opened.body.id, body: T.TEXT });
+  path = `${SupportTestHelper.messagesPath({ conversationId: opened.body.id })}/${sent.body.id}${T.REACTION_SUFFIX}`;
 });
 
 afterAll(async () => {

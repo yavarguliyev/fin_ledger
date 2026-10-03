@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { StepUpRetryService } from '../../../core/services/step-up-retry.service';
@@ -15,6 +15,7 @@ import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 @Component({
   selector: 'app-payment-methods',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent],
   templateUrl: './templates/payment-methods.component.html'
 })
