@@ -28,17 +28,18 @@ export class UserDeviceRepository extends BaseRepository<UserDeviceDto> {
     return ['id', 'userId', 'visitorId', 'userAgent', 'lastIp', 'firstSeenAt', 'lastSeenAt'];
   }
 
-  async record ({ userId, visitorId, userAgent, ip }: RecordDeviceDto): Promise<DeviceSightingDto> {
-    const existing = await this.findOne({ where: { userId, visitorId } });
+  async record ({ userId, visitorId, userAgent, ip, adapter }: RecordDeviceDto): Promise<DeviceSightingDto> {
+    const existing = await this.findOne({ where: { userId, visitorId }, ...(adapter && { adapter }) });
     const seenAt = new Date().toISOString();
 
     if (existing) {
-      await this.update({ id: existing.id, data: { lastSeenAt: seenAt, ...(ip && { lastIp: ip }), ...(userAgent && { userAgent }) } });
+      await this.update({ id: existing.id, data: { lastSeenAt: seenAt, ...(ip && { lastIp: ip }), ...(userAgent && { userAgent }) }, ...(adapter && { adapter }) });
       return { isNewDevice: false };
     }
 
     await this.create({
-      data: { userId, visitorId, firstSeenAt: seenAt, lastSeenAt: seenAt, ...(ip && { lastIp: ip }), ...(userAgent && { userAgent }) }
+      data: { userId, visitorId, firstSeenAt: seenAt, lastSeenAt: seenAt, ...(ip && { lastIp: ip }), ...(userAgent && { userAgent }) },
+      ...(adapter && { adapter })
     });
 
     return { isNewDevice: true };

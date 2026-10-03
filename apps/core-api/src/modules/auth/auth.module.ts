@@ -17,6 +17,10 @@ import { PasskeyChallengeService } from './services/passkey-challenge.service';
 import { PasskeyService } from './services/passkey.service';
 import { PasskeyStepUpService } from './services/passkey-step-up.service';
 import { PasskeyStepUpUseCase } from './use-cases/commands/passkeys/passkey-step-up.use-case';
+import { RememberPasskeyChallengeUseCase } from './use-cases/commands/passkeys/remember-passkey-challenge.use-case';
+import { TakePasskeyChallengeUseCase } from './use-cases/commands/passkeys/take-passkey-challenge.use-case';
+import { GrantPasskeyStepUpUseCase } from './use-cases/commands/passkeys/grant-passkey-step-up.use-case';
+import { AssertPasskeyStepUpUseCase } from './use-cases/commands/passkeys/assert-passkey-step-up.use-case';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './repositories/auth.repository';
 import { AuthTokenRepository } from './repositories/auth-token.repository';
@@ -79,6 +83,10 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
     PasskeyService,
     PasskeyStepUpService,
     PasskeyStepUpUseCase,
+    RememberPasskeyChallengeUseCase,
+    TakePasskeyChallengeUseCase,
+    GrantPasskeyStepUpUseCase,
+    AssertPasskeyStepUpUseCase,
     GetJwksUseCase,
     TrackDeviceUseCase,
     ListSharedDevicesUseCase,

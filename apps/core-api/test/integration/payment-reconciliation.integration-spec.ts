@@ -1,40 +1,44 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+import { PAYMENT_RECONCILIATION as RECON } from '../constants/payment-reconciliation.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import {
+  ReconcileAttemptsRow,
+  ReconcileBalanceRow,
+  ReconcileIdRow,
+  ReconcilePaymentDto,
+  ReconcilePollDto,
+  ReconcileReviewItem,
+  ReconcileState,
+  StaleDepositDto
+} from '../interfaces/payment-reconciliation.interface';
 
-const email = 'player18@realtime-wallet-payments.com';
-
-const staleDeposit = async (key: string, status: string, chargeId: string | null, amount: number, ageHours = 1, attempts = 0): Promise<string> => {
-  const [row] = await DbHelper.query<{ id: string }>({
-    sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider, provider_charge_id, created_at, updated_at, reconcile_attempts)
-          SELECT $2, u.id, w.id, 'DEPOSIT', $5, w.currency, $3, 'stripe', $4, now() - make_interval(hours => $6), now() - interval '1 hour', $7
-          FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
-    params: [email, key, status, chargeId, amount, ageHours, attempts]
-  });
-
+const staleDeposit = async ({ key, status, chargeId, amount, ageHours = RECON.DEFAULT_AGE_HOURS, attempts = 0 }: StaleDepositDto): Promise<string> => {
+  const [row] = await DbHelper.query<ReconcileIdRow>({ sql: RECON.STALE_DEPOSIT_SQL, params: [RECON.EMAIL, key, status, chargeId, amount, ageHours, attempts] });
   return row?.id as string;
 };
 
-const state = async (paymentId: string): Promise<{ status: string; credits: number; failedEvents: number }> => {
-  const [row] = await DbHelper.query<{ status: string; credits: number; failedEvents: number }>({
-    sql: `SELECT p.status,
-                 (SELECT count(*)::int FROM wallet_transactions w WHERE w.ledger_transaction_id = p.ledger_transaction_id) AS credits,
-                 (SELECT count(*)::int FROM outbox_events o WHERE o.aggregate_id = p.id AND o.event_type = 'payment.failed') AS "failedEvents"
-          FROM payments p WHERE p.id = $1`,
-    params: [paymentId]
-  });
-
-  return row as { status: string; credits: number; failedEvents: number };
+const state = async ({ paymentId }: ReconcilePaymentDto): Promise<ReconcileState> => {
+  const [row] = await DbHelper.query<ReconcileState>({ sql: RECON.STATE_SQL, params: [paymentId] });
+  return row as ReconcileState;
 };
 
 const balance = async (): Promise<number> => {
-  const [row] = await DbHelper.query<{ balance: number }>({
-    sql: 'SELECT w.available_balance_minor::int AS balance FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
-    params: [email]
-  });
-
+  const [row] = await DbHelper.query<ReconcileBalanceRow>({ sql: RECON.BALANCE_SQL, params: [RECON.EMAIL] });
   return row?.balance ?? 0;
+};
+
+const attemptsOf = async ({ paymentId }: ReconcilePaymentDto): Promise<number | undefined> => {
+  const [row] = await DbHelper.query<ReconcileAttemptsRow>({ sql: RECON.ATTEMPTS_SQL, params: [paymentId] });
+  return row?.attempts;
+};
+
+const statusOf = async ({ paymentId }: ReconcilePaymentDto): Promise<string> => (await state({ paymentId })).status;
+
+const poll = async ({ done }: ReconcilePollDto): Promise<void> => {
+  const deadline = Date.now() + RECON.DEADLINE_MS;
+  while (!(await done()) && Date.now() < deadline) await sleep(RECON.POLL_MS);
 };
 
 afterAll(async () => DbHelper.close());
@@ -42,84 +46,61 @@ afterAll(async () => DbHelper.close());
 describe('Payment reconciliation', () => {
   it('completes, fails or leaves open stale deposits according to the provider', async () => {
     const before = await balance();
-    const charged = await staleDeposit('reconcile-charged', 'PROCESSING', 'pi_simulated_succeeded_reconcile', 2200);
-    const declined = await staleDeposit('reconcile-declined', 'REQUIRES_ACTION', 'pi_simulated_failed_reconcile', 1100);
-    const open = await staleDeposit('reconcile-open', 'PROCESSING', 'pi_still_open_reconcile', 900);
+    const charged = await staleDeposit(RECON.CHARGED);
+    const declined = await staleDeposit(RECON.DECLINED);
+    const open = await staleDeposit(RECON.OPEN);
 
-    const deadline = Date.now() + 20_000;
-    while (Date.now() < deadline) {
-      const [a, b] = await Promise.all([state(charged), state(declined)]);
-      if (a.status === 'COMPLETED' && b.status === 'FAILED') break;
-      await sleep(500);
-    }
+    await poll({
+      done: async () => (await statusOf({ paymentId: charged })) === RECON.COMPLETED && (await statusOf({ paymentId: declined })) === RECON.FAILED
+    });
 
-    await expect(state(charged)).resolves.toEqual({ status: 'COMPLETED', credits: 1, failedEvents: 0 });
-    await expect(state(declined)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-    await expect(state(open)).resolves.toEqual({ status: 'PROCESSING', credits: 0, failedEvents: 0 });
-    await expect(balance()).resolves.toBe(before + 2200);
-  }, 30_000);
+    await expect(state({ paymentId: charged })).resolves.toEqual(RECON.COMPLETED_ONCE);
+    await expect(state({ paymentId: declined })).resolves.toEqual(RECON.FAILED_ONCE);
+    await expect(state({ paymentId: open })).resolves.toEqual(RECON.STILL_PROCESSING);
+    await expect(balance()).resolves.toBe(before + RECON.CHARGED_MINOR);
+  }, RECON.TIMEOUT_MS);
 
   it('fails stale deposits the provider never saw, found by our payment ID', async () => {
-    const neverCharged = await staleDeposit('reconcile-never-charged', 'PENDING', null, 700);
-    const timedOut = await staleDeposit('reconcile-timed-out', 'REQUIRES_ACTION', null, 800);
+    const neverCharged = await staleDeposit(RECON.NEVER_CHARGED);
+    const timedOut = await staleDeposit(RECON.TIMED_OUT);
 
-    const deadline = Date.now() + 20_000;
+    await poll({
+      done: async () => (await statusOf({ paymentId: neverCharged })) === RECON.FAILED && (await statusOf({ paymentId: timedOut })) === RECON.FAILED
+    });
 
-    while (Date.now() < deadline) {
-      const [a, b] = await Promise.all([state(neverCharged), state(timedOut)]);
-      if (a.status === 'FAILED' && b.status === 'FAILED') break;
-      await sleep(500);
-    }
-
-    await expect(state(neverCharged)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-    await expect(state(timedOut)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-
-    await expect(
-      DbHelper.query({ sql: 'SELECT DISTINCT failure_code FROM payments WHERE id = ANY($1)', params: [[neverCharged, timedOut]] })
-    ).resolves.toEqual([{ failure_code: 'NOT_FOUND_AT_PROVIDER' }]);
-  }, 30_000);
+    await expect(state({ paymentId: neverCharged })).resolves.toEqual(RECON.FAILED_ONCE);
+    await expect(state({ paymentId: timedOut })).resolves.toEqual(RECON.FAILED_ONCE);
+    await expect(DbHelper.query({ sql: RECON.DISTINCT_FAILURE_SQL, params: [[neverCharged, timedOut]] })).resolves.toEqual(RECON.NOT_FOUND_CODE);
+  }, RECON.TIMEOUT_MS);
 });
 
 describe('Payment reconciliation: abandoned 3-D Secure deposits', () => {
   it('cancels and fails a 3-D Secure deposit the customer abandoned, but keeps a recent one open', async () => {
-    const abandoned = await staleDeposit('reconcile-abandoned-3ds', 'REQUIRES_ACTION', 'pi_simulated_requires_action_old', 600, 48);
-    const recent = await staleDeposit('reconcile-recent-3ds', 'REQUIRES_ACTION', 'pi_simulated_requires_action_new', 650);
+    const abandoned = await staleDeposit(RECON.ABANDONED);
+    const recent = await staleDeposit(RECON.RECENT);
 
-    const deadline = Date.now() + 20_000;
-    while ((await state(abandoned)).status !== 'FAILED' && Date.now() < deadline) await sleep(500);
+    await poll({ done: async () => (await statusOf({ paymentId: abandoned })) === RECON.FAILED });
 
-    await expect(state(abandoned)).resolves.toEqual({ status: 'FAILED', credits: 0, failedEvents: 1 });
-    await expect(DbHelper.query({ sql: 'SELECT failure_code FROM payments WHERE id = $1', params: [abandoned] })).resolves.toEqual([
-      { failure_code: 'canceled' }
-    ]);
-
-    await expect(state(recent)).resolves.toEqual({ status: 'REQUIRES_ACTION', credits: 0, failedEvents: 0 });
-  }, 30_000);
+    await expect(state({ paymentId: abandoned })).resolves.toEqual(RECON.FAILED_ONCE);
+    await expect(DbHelper.query({ sql: RECON.FAILURE_SQL, params: [abandoned] })).resolves.toEqual(RECON.CANCELED_CODE);
+    await expect(state({ paymentId: recent })).resolves.toEqual(RECON.STILL_REQUIRES_ACTION);
+  }, RECON.TIMEOUT_MS);
 
   it('flags a deposit the provider keeps reporting as open for manual review, and stops asking about it', async () => {
-    const almost = await staleDeposit('reconcile-almost-flagged', 'PROCESSING', 'pi_still_open_almost', 500, 1, 19);
-    const flagged = await staleDeposit('reconcile-flagged', 'PROCESSING', 'pi_still_open_flagged', 510, 1, 20);
+    const almost = await staleDeposit(RECON.ALMOST);
+    const flagged = await staleDeposit(RECON.FLAGGED);
 
-    const attempts = async (paymentId: string): Promise<number | undefined> => {
-      const [row] = await DbHelper.query<{ attempts: number }>({
-        sql: 'SELECT reconcile_attempts AS attempts FROM payments WHERE id = $1',
-        params: [paymentId]
-      });
-      return row?.attempts;
-    };
+    await poll({ done: async () => (await attemptsOf({ paymentId: almost })) === RECON.MAX_ATTEMPTS });
 
-    const deadline = Date.now() + 20_000;
-    while ((await attempts(almost)) !== 20 && Date.now() < deadline) await sleep(500);
+    await expect(attemptsOf({ paymentId: almost })).resolves.toBe(RECON.MAX_ATTEMPTS);
+    await expect(attemptsOf({ paymentId: flagged })).resolves.toBe(RECON.MAX_ATTEMPTS);
 
-    await expect(attempts(almost)).resolves.toBe(20);
-    await expect(attempts(flagged)).resolves.toBe(20);
-
-    const admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
-    const review = await ApiHelper.request<Array<{ id: string; status: string }>>({ method: 'GET', path: '/payments/unresolved', token: admin });
-    expect(review.status).toBe(200);
+    const admin = await ApiHelper.login({ email: RECON.ADMIN_EMAIL });
+    const review = await ApiHelper.request<ReconcileReviewItem[]>({ method: 'GET', path: RECON.UNRESOLVED_PATH, token: admin });
+    expect(review.status).toBe(RECON.OK);
     expect(review.body.map(({ id }) => id)).toEqual(expect.arrayContaining([almost, flagged]));
 
-    const player = await ApiHelper.login({ email });
-    await expect(ApiHelper.request({ method: 'GET', path: '/payments/unresolved', token: player })).resolves.toMatchObject({ status: 403 });
-  }, 40_000);
+    const player = await ApiHelper.login({ email: RECON.EMAIL });
+    await expect(ApiHelper.request({ method: 'GET', path: RECON.UNRESOLVED_PATH, token: player })).resolves.toMatchObject({ status: RECON.FORBIDDEN });
+  }, RECON.REVIEW_TIMEOUT_MS);
 });

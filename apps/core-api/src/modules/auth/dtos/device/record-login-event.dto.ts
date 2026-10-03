@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DatabaseAdapter } from '@common/libs';
 
 export const RecordLoginEventSchema = z.object({
   userId: z.string({ message: 'User ID must be a string' }),
@@ -9,7 +10,9 @@ export const RecordLoginEventSchema = z.object({
 
   ip: z.string({ message: 'IP must be a string' }).optional(),
 
-  isNewDevice: z.boolean({ message: 'Is new device must be a boolean' })
+  isNewDevice: z.boolean({ message: 'Is new device must be a boolean' }),
+
+  adapter: z.custom<DatabaseAdapter>().optional()
 });
 
 export type RecordLoginEventDto = z.infer<typeof RecordLoginEventSchema>;

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BaseHelper, EmailTemplateType, OutboxDestination, RequestScope } from '@common/libs';
+import { BaseHelper, EmailTemplateType, OutboxDestination, PostgresService, RequestScope } from '@common/libs';
 
 import { AuthBaseUseCase } from '../../base/auth-base.use-case';
 import { UserDeviceRepository } from '../../../repositories/user-device.repository';
 import { LoginEventRepository } from '../../../repositories/login-event.repository';
 import { TrackDeviceDto } from '../../../dtos/device/track-device.dto';
 import { PersistSightingDto } from '../../../dtos/device/persist-sighting.dto';
+import { WriteSightingDto } from '../../../dtos/device/write-sighting.dto';
+import { AlertNewDeviceDto } from '../../../dtos/device/alert-new-device.dto';
 import { DEVICE } from '../../../constants/device/device.constant';
 import { FRONTEND } from '../../../../../shared/constants/config/frontend.constant';
 
@@ -15,7 +17,8 @@ export class TrackDeviceUseCase extends AuthBaseUseCase<TrackDeviceDto, void> {
 
   constructor (
     private readonly userDeviceRepository: UserDeviceRepository,
-    private readonly loginEventRepository: LoginEventRepository
+    private readonly loginEventRepository: LoginEventRepository,
+    private readonly postgresService: PostgresService
   ) {
     super();
   }
@@ -32,8 +35,12 @@ export class TrackDeviceUseCase extends AuthBaseUseCase<TrackDeviceDto, void> {
     }
   }
 
-  private async persist ({ userId, email, visitorId, userAgent, ip }: PersistSightingDto): Promise<void> {
-    const seen = { ...(userAgent && { userAgent }), ...(ip && { ip }) };
+  private async persist (dto: PersistSightingDto): Promise<void> {
+    await this.postgresService.getWriteConnection().transaction({ callback: async adapter => this.write({ ...dto, adapter }) });
+  }
+
+  private async write ({ userId, email, visitorId, userAgent, ip, adapter }: WriteSightingDto): Promise<void> {
+    const seen = { ...(userAgent && { userAgent }), ...(ip && { ip }), adapter };
 
     if (!visitorId) {
       await this.loginEventRepository.record({ userId, isNewDevice: false, ...seen });
@@ -43,11 +50,12 @@ export class TrackDeviceUseCase extends AuthBaseUseCase<TrackDeviceDto, void> {
     const { isNewDevice } = await this.userDeviceRepository.record({ userId, visitorId, ...seen });
 
     await this.loginEventRepository.record({ userId, visitorId, isNewDevice, ...seen });
-    if (isNewDevice) await this.alert({ userId, email });
+    if (isNewDevice) await this.alert({ userId, email, adapter });
   }
 
-  private async alert ({ userId, email }: TrackDeviceDto): Promise<void> {
+  private async alert ({ userId, email, adapter }: AlertNewDeviceDto): Promise<void> {
     await this.outboxRepository.createEvent({
+      adapter,
       aggregateType: DEVICE.AGGREGATE_TYPE,
       aggregateId: userId,
       eventType: EmailTemplateType.NEW_DEVICE,

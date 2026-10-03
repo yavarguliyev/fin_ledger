@@ -16,6 +16,7 @@ export const PASSKEY = {
   GRANT_TTL_SECONDS: 300,
   GRANT_VALUE: 'granted',
   STEP_UP_ENABLED_KEY: 'PASSKEY_STEP_UP_ENABLED',
+  STEP_UP_ENABLED_VALUE: 'true',
   STEP_UP_REQUIRED_MESSAGE: 'Confirm with your passkey before continuing',
   STEP_UP_CONFIRMED_MESSAGE: 'Confirmed. Continue within the next five minutes.',
   NO_CHALLENGE_MESSAGE: 'Start the passkey ceremony again; the challenge has expired',

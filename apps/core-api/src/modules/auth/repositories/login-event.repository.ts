@@ -24,9 +24,10 @@ export class LoginEventRepository extends BaseRepository<LoginEventDto> {
     return ['id', 'userId', 'visitorId', 'userAgent', 'ip', 'isNewDevice', 'createdAt'];
   }
 
-  async record ({ userId, visitorId, userAgent, ip, isNewDevice }: RecordLoginEventDto): Promise<void> {
+  async record ({ userId, visitorId, userAgent, ip, isNewDevice, adapter }: RecordLoginEventDto): Promise<void> {
     await this.create({
-      data: { userId, isNewDevice, visitorId: visitorId ?? null, userAgent: userAgent ?? null, ip: ip ?? null }
+      data: { userId, isNewDevice, visitorId: visitorId ?? null, userAgent: userAgent ?? null, ip: ip ?? null },
+      ...(adapter && { adapter })
     });
   }
 }

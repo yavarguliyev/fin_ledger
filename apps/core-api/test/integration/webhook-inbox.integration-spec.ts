@@ -1,112 +1,89 @@
 import { setTimeout as sleep } from 'node:timers/promises';
 
+import { WEBHOOK_INBOX } from '../constants/webhook-inbox.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import { InboxDepositDto, InboxEventDto, InboxIdRow, InboxPaymentDto, InboxStatusRow, InboxWebhookDto } from '../interfaces/webhook-inbox.interface';
 
-const email = 'player25@realtime-wallet-payments.com';
-
-const failingAmount = 777;
-
-const send = (id: string, type: string, paymentId?: string): ReturnType<typeof ApiHelper.request> =>
+const send = ({ id, type, paymentId }: InboxWebhookDto): ReturnType<typeof ApiHelper.request> =>
   ApiHelper.request({
     method: 'POST',
-    path: '/webhooks/stripe',
-    body: { id, type, data: { object: { id: `pi_${id}`, metadata: paymentId ? { paymentId } : {} } } }
+    path: WEBHOOK_INBOX.WEBHOOK_PATH,
+    body: { id, type, data: { object: { id: `${WEBHOOK_INBOX.CHARGE_PREFIX}${id}`, metadata: paymentId ? { paymentId } : {} } } }
   });
 
-const eventRow = async (eventId: string): Promise<unknown> => {
-  const [row] = await DbHelper.query({
-    sql: 'SELECT status, attempts, processed_at IS NOT NULL AS processed FROM webhook_events WHERE provider = $1 AND event_id = $2',
-    params: ['stripe', eventId]
-  });
-
+const eventRow = async ({ eventId }: InboxEventDto): Promise<unknown> => {
+  const [row] = await DbHelper.query({ sql: WEBHOOK_INBOX.EVENT_ROW_SQL, params: [WEBHOOK_INBOX.PROVIDER, eventId] });
   return row;
 };
 
-const paymentStatus = async (paymentId: string): Promise<string | undefined> => {
-  const [row] = await DbHelper.query<{ status: string }>({ sql: 'SELECT status FROM payments WHERE id = $1', params: [paymentId] });
+const paymentStatus = async ({ paymentId }: InboxPaymentDto): Promise<string | undefined> => {
+  const [row] = await DbHelper.query<InboxStatusRow>({ sql: WEBHOOK_INBOX.STATUS_SQL, params: [paymentId] });
   return row?.status;
 };
 
-const pendingDeposit = async (amount: number, key: string): Promise<string> => {
-  const [row] = await DbHelper.query<{ id: string }>({
-    sql: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider)
-          SELECT $2, u.id, w.id, 'DEPOSIT', $3, w.currency, 'PENDING', 'stripe'
-          FROM users u JOIN wallets w ON w.user_id = u.id WHERE u.email = $1 RETURNING id`,
-    params: [email, key, amount]
-  });
-
+const pendingDeposit = async ({ amount, key }: InboxDepositDto): Promise<string> => {
+  const [row] = await DbHelper.query<InboxIdRow>({ sql: WEBHOOK_INBOX.PENDING_DEPOSIT_SQL, params: [WEBHOOK_INBOX.EMAIL, key, amount] });
   return row?.id as string;
 };
 
 beforeAll(async () => {
-  await DbHelper.query({
-    sql: `CREATE OR REPLACE FUNCTION test_fail_wallet_transaction() RETURNS trigger AS $$
-          BEGIN IF NEW.amount_minor = ${failingAmount} THEN RAISE EXCEPTION 'simulated crash while handling a webhook'; END IF; RETURN NEW; END $$ LANGUAGE plpgsql`
-  });
-
-  await DbHelper.query({
-    sql: 'CREATE TRIGGER test_fail_wallet_transaction BEFORE INSERT ON wallet_transactions FOR EACH ROW EXECUTE FUNCTION test_fail_wallet_transaction()'
-  });
+  await DbHelper.query({ sql: WEBHOOK_INBOX.CREATE_FUNCTION_SQL });
+  await DbHelper.query({ sql: WEBHOOK_INBOX.CREATE_TRIGGER_SQL });
 });
 
 afterAll(async () => {
-  await DbHelper.query({ sql: 'DROP TRIGGER IF EXISTS test_fail_wallet_transaction ON wallet_transactions' });
-  await DbHelper.query({ sql: 'DROP FUNCTION IF EXISTS test_fail_wallet_transaction()' });
+  await DbHelper.query({ sql: WEBHOOK_INBOX.DROP_TRIGGER_SQL });
+  await DbHelper.query({ sql: WEBHOOK_INBOX.DROP_FUNCTION_SQL });
   await DbHelper.close();
 });
 
 describe('Webhook inbox', () => {
   it('leaves a webhook whose handling failed retryable, and applies it once on redelivery', async () => {
-    const paymentId = await pendingDeposit(failingAmount, 'inbox-crash');
-    const failed = await send('evt_inbox_crash', 'payment_intent.succeeded', paymentId);
+    const paymentId = await pendingDeposit({ amount: WEBHOOK_INBOX.FAILING_AMOUNT, key: WEBHOOK_INBOX.CRASH_KEY });
+    const crash = { id: WEBHOOK_INBOX.CRASH_EVENT, type: WEBHOOK_INBOX.SUCCEEDED, paymentId };
 
-    expect(failed.status).toBe(500);
-
-    await expect(eventRow('evt_inbox_crash')).resolves.toEqual({ status: 'RECEIVED', attempts: 1, processed: false });
-    await expect(paymentStatus(paymentId)).resolves.toBe('PENDING');
-    await DbHelper.query({ sql: 'DROP TRIGGER test_fail_wallet_transaction ON wallet_transactions' });
-    await expect(send('evt_inbox_crash', 'payment_intent.succeeded', paymentId)).resolves.toMatchObject({ status: 200 });
-    await expect(eventRow('evt_inbox_crash')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
-    await expect(paymentStatus(paymentId)).resolves.toBe('COMPLETED');
+    await expect(send(crash)).resolves.toMatchObject({ status: WEBHOOK_INBOX.SERVER_ERROR });
+    await expect(eventRow({ eventId: WEBHOOK_INBOX.CRASH_EVENT })).resolves.toEqual(WEBHOOK_INBOX.RECEIVED_ONCE);
+    await expect(paymentStatus({ paymentId })).resolves.toBe(WEBHOOK_INBOX.PENDING);
+    await DbHelper.query({ sql: WEBHOOK_INBOX.DROP_TRIGGER_SQL });
+    await expect(send(crash)).resolves.toMatchObject({ status: WEBHOOK_INBOX.OK });
+    await expect(eventRow({ eventId: WEBHOOK_INBOX.CRASH_EVENT })).resolves.toEqual(WEBHOOK_INBOX.PROCESSED_TWICE);
+    await expect(paymentStatus({ paymentId })).resolves.toBe(WEBHOOK_INBOX.COMPLETED);
   });
 
   it('replays a webhook whose handling failed, without a redelivery', async () => {
-    const paymentId = await pendingDeposit(failingAmount, 'inbox-replay');
+    const paymentId = await pendingDeposit({ amount: WEBHOOK_INBOX.FAILING_AMOUNT, key: WEBHOOK_INBOX.REPLAY_KEY });
 
-    await DbHelper.query({
-      sql: 'CREATE TRIGGER test_fail_wallet_transaction BEFORE INSERT ON wallet_transactions FOR EACH ROW EXECUTE FUNCTION test_fail_wallet_transaction()'
+    await DbHelper.query({ sql: WEBHOOK_INBOX.CREATE_TRIGGER_SQL });
+
+    await expect(send({ id: WEBHOOK_INBOX.REPLAY_EVENT, type: WEBHOOK_INBOX.SUCCEEDED, paymentId })).resolves.toMatchObject({
+      status: WEBHOOK_INBOX.SERVER_ERROR
     });
+    await DbHelper.query({ sql: WEBHOOK_INBOX.DROP_TRIGGER_SQL });
 
-    await expect(send('evt_inbox_replay', 'payment_intent.succeeded', paymentId)).resolves.toMatchObject({ status: 500 });
-    await DbHelper.query({ sql: 'DROP TRIGGER test_fail_wallet_transaction ON wallet_transactions' });
+    const deadline = Date.now() + WEBHOOK_INBOX.REPLAY_DEADLINE_MS;
+    while ((await paymentStatus({ paymentId })) !== WEBHOOK_INBOX.COMPLETED && Date.now() < deadline) await sleep(WEBHOOK_INBOX.REPLAY_POLL_MS);
 
-    const deadline = Date.now() + 20_000;
-    while ((await paymentStatus(paymentId)) !== 'COMPLETED' && Date.now() < deadline) await sleep(500);
-
-    await expect(paymentStatus(paymentId)).resolves.toBe('COMPLETED');
-    await expect(eventRow('evt_inbox_replay')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
-  }, 30_000);
+    await expect(paymentStatus({ paymentId })).resolves.toBe(WEBHOOK_INBOX.COMPLETED);
+    await expect(eventRow({ eventId: WEBHOOK_INBOX.REPLAY_EVENT })).resolves.toEqual(WEBHOOK_INBOX.PROCESSED_TWICE);
+  }, WEBHOOK_INBOX.REPLAY_TIMEOUT_MS);
 
   it('does not apply a processed webhook again', async () => {
-    const paymentId = await pendingDeposit(900, 'inbox-duplicate');
+    const paymentId = await pendingDeposit({ amount: WEBHOOK_INBOX.DUPLICATE_AMOUNT, key: WEBHOOK_INBOX.DUPLICATE_KEY });
+    const duplicate = { id: WEBHOOK_INBOX.DUPLICATE_EVENT, type: WEBHOOK_INBOX.SUCCEEDED, paymentId };
 
-    await send('evt_inbox_duplicate', 'payment_intent.succeeded', paymentId);
-    await send('evt_inbox_duplicate', 'payment_intent.succeeded', paymentId);
+    await send(duplicate);
+    await send(duplicate);
 
-    await expect(eventRow('evt_inbox_duplicate')).resolves.toEqual({ status: 'PROCESSED', attempts: 2, processed: true });
-    await expect(
-      DbHelper.query({
-        sql: 'SELECT count(*)::int AS count FROM wallet_transactions w JOIN payments p ON p.ledger_transaction_id = w.ledger_transaction_id WHERE p.id = $1',
-        params: [paymentId]
-      })
-    ).resolves.toEqual([{ count: 1 }]);
+    await expect(eventRow({ eventId: WEBHOOK_INBOX.DUPLICATE_EVENT })).resolves.toEqual(WEBHOOK_INBOX.PROCESSED_TWICE);
+    await expect(DbHelper.query({ sql: WEBHOOK_INBOX.TRANSACTION_COUNT_SQL, params: [paymentId] })).resolves.toEqual(WEBHOOK_INBOX.ONE_TRANSACTION);
   });
 });
 
 describe('Webhook inbox: unhandled events', () => {
   it('marks event types we do not handle as ignored', async () => {
-    await expect(send('evt_inbox_unhandled', 'customer.created')).resolves.toMatchObject({ status: 200 });
-    await expect(eventRow('evt_inbox_unhandled')).resolves.toEqual({ status: 'IGNORED', attempts: 1, processed: false });
+    await expect(send({ id: WEBHOOK_INBOX.UNHANDLED_EVENT, type: WEBHOOK_INBOX.UNHANDLED_TYPE })).resolves.toMatchObject({ status: WEBHOOK_INBOX.OK });
+    await expect(eventRow({ eventId: WEBHOOK_INBOX.UNHANDLED_EVENT })).resolves.toEqual(WEBHOOK_INBOX.IGNORED_ONCE);
   });
 });

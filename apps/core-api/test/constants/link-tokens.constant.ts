@@ -1,0 +1,32 @@
+import { HTTP_STATUS } from './http-status.constant';
+
+export const LINK_TOKENS = {
+  ...HTTP_STATUS,
+  FORGOT_PATH: '/auth/forgot-password',
+  RESET_PATH: '/auth/reset-password',
+  VERIFY_PATH: '/auth/verify-email',
+  USERS_PATH: '/users',
+  TOKEN_PARAM: 'token',
+  HASH_EMAIL: 'player10@realtime-wallet-payments.com',
+  ONCE_EMAIL: 'player11@realtime-wallet-payments.com',
+  REVOKE_EMAIL: 'player12@realtime-wallet-payments.com',
+  EXPIRED_EMAIL: 'player13@realtime-wallet-payments.com',
+  PURPOSE_EMAIL: 'player14@realtime-wallet-payments.com',
+  GLOBAL_ADMIN_EMAIL: 'global_admin@realtime-wallet-payments.com',
+  INVITE_EMAIL: 'invite-once@integration.test',
+  INVITE_NAME: 'Invite Once',
+  INVITE_ROLE: 'ADMIN',
+  ONCE_PASSWORD: 'Reset#Once2026',
+  TWICE_PASSWORD: 'Reset#Twice2026',
+  FIRST_PASSWORD: 'Reset#First2026',
+  SECOND_PASSWORD: 'Reset#Second2026',
+  LATE_PASSWORD: 'Reset#Late2026',
+  CROSS_PASSWORD: 'Cross#Purpose2026',
+  STILL_PASSWORD: 'Reset#Still2026',
+  INVITE_PASSWORD: 'Invite#Once2026',
+  INVITE_AGAIN_PASSWORD: 'Invite#Twice2026',
+  ONE_ROW: [{ count: 1 }],
+  NO_ROW: [{ count: 0 }],
+  COUNT_BY_HASH_SQL: 'SELECT count(*)::int AS count FROM auth_tokens WHERE token_hash = $1',
+  EXPIRE_SQL: "UPDATE auth_tokens SET created_at = now() - interval '2 hours', expires_at = now() - interval '1 hour' WHERE token_hash = $1"
+} as const;
