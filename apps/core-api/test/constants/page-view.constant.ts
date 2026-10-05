@@ -7,6 +7,8 @@ export const PAGE_VIEW_TEST = {
   BAD_ROUTE: 'https://evil.example/<script>',
   TEXT_TYPE: 'text/plain;charset=UTF-8',
   JSON_TYPE: 'application/json',
+  CONTENT_TYPE_HEADER: 'Content-Type',
+  METHOD: 'POST',
   INITIAL: 4,
   LATER: 2,
   DUPLICATES: 1,

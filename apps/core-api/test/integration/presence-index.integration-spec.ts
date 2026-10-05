@@ -5,6 +5,7 @@ import { PRESENCE_INDEX_TEST as T } from '../constants/presence-index.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import { PresenceSeedHelper } from '../helpers/presence-seed.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 
 const callsOn = async (redis: Redis): Promise<Record<string, number>> => {
@@ -19,21 +20,11 @@ describe('Presence lookups do not grow with the number of users online', () => {
 
   beforeAll(async () => {
     staff = await ApiHelper.login({ email: T.STAFF_EMAIL });
-    const lastSeenAt = new Date().toISOString();
-    const pipeline = redis.pipeline();
-
-    for (const userId of extraIds) {
-      pipeline.set(`${T.KEY_PREFIX}${userId}`, JSON.stringify({ userId, displayName: T.DISPLAY_NAME, role: T.ROLE, lastSeenAt }), 'EX', T.TTL_SECONDS);
-      pipeline.zadd(T.INDEX_KEY, Date.now(), userId);
-    }
-
-    await pipeline.exec();
+    await PresenceSeedHelper.seed({ redis, userIds: extraIds, displayName: T.DISPLAY_NAME });
   });
 
   afterAll(async () => {
-    await redis.del(...extraIds.map(userId => `${T.KEY_PREFIX}${userId}`));
-    await redis.zrem(T.INDEX_KEY, ...extraIds);
-    await redis.quit();
+    await PresenceSeedHelper.clear({ redis, userIds: extraIds });
     await DbHelper.close();
   });
 

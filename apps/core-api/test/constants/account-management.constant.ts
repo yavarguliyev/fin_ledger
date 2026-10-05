@@ -15,5 +15,11 @@ export const ACCOUNT_MANAGEMENT = {
   DISPLAY_NAME: 'Account Owner',
   PASSWORD: 'Account#Pass2026',
   NEW_PASSWORD: 'Account#Pass2027',
-  WRONG_PASSWORD: 'Account#Wrong2026'
+  WRONG_PASSWORD: 'Account#Wrong2026',
+  TOKEN_PARAM: 'token',
+  HAS_IP: { has_ip: true },
+  NO_PENDING: [{ pending_email: null }],
+  HAS_IP_SQL: 'SELECT last_login_ip IS NOT NULL AS has_ip FROM users WHERE email = $1',
+  EMAILS_SQL: 'SELECT email, pending_email FROM users WHERE email = $1',
+  PENDING_SQL: 'SELECT pending_email FROM users WHERE email = $1'
 } as const;

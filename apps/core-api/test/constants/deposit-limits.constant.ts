@@ -17,6 +17,11 @@ export const DEPOSIT_LIMITS_TEST = {
   UNDER_LIMIT_MINOR: 4_000,
   ALREADY_SPENT_MINOR: 9_000,
   WITHIN_LIMIT_MINOR: 500,
+  TOKEN_PARAM: 'token',
+  OVER_KEY: 'limit-over',
+  UNDER_KEY: 'limit-under',
+  AMOUNT_SQL: 'SELECT amount_minor::text AS amount FROM deposit_limits d JOIN users u ON u.id = d.user_id WHERE u.email = $1',
+  EXPIRE_COOLING_OFF_SQL: "UPDATE deposit_limits SET pending_effective_at = now() - interval '1 minute' WHERE user_id = (SELECT id FROM users WHERE email = $1)",
   SEED_SQL: `
     INSERT INTO payments (idempotency_key, user_id, wallet_id, currency, type, status, amount_minor, provider)
     SELECT 'limit-seed', u.id, w.id, $2, 'DEPOSIT', 'PENDING', $3, 'stripe'

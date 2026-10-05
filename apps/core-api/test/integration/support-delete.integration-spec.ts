@@ -1,7 +1,5 @@
 import { SupportActionsTestHelper as A } from '../helpers/support-actions.helper';
-import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
-import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
 import { SUPPORT_DELETE_TEST } from '../constants/support-delete.constant';
@@ -14,14 +12,7 @@ let staff = '';
 let conversationId = '';
 
 beforeAll(async () => {
-  await TestUserHelper.ensure({ emails: [SUPPORT_DELETE_TEST.CUSTOMER_EMAIL] });
-  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_DELETE_TEST.CUSTOMER_EMAIL]] });
-  customer = await ApiHelper.login({ email: SUPPORT_DELETE_TEST.CUSTOMER_EMAIL });
-  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-  const staffUserId = await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-  const opened = await SupportTestHelper.open({ token: customer, staffUserId });
-  conversationId = opened.body.id;
+  ({ customer, staff, conversationId } = await SupportTestHelper.start({ customerEmail: SUPPORT_DELETE_TEST.CUSTOMER_EMAIL }));
 });
 
 afterAll(async () => {

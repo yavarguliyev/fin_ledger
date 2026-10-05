@@ -14,5 +14,9 @@ export const DEVICE_TRACKING = {
   KNOWN_DEVICE: 'integration-device-known',
   OTHER_DEVICE: 'integration-device-other',
   SHARED_DEVICE: 'integration-device-shared',
-  SHARED_ACCOUNTS: 2
+  SHARED_ACCOUNTS: 2,
+  TOKEN_PARAM: 'token',
+  DEVICES_SQL: 'SELECT count(*)::int AS count FROM user_devices d JOIN users u ON u.id = d.user_id WHERE u.email = $1',
+  NEW_DEVICE_LOGINS_SQL: 'SELECT count(*)::int AS count FROM login_events e JOIN users u ON u.id = e.user_id WHERE u.email = $1 AND e.is_new_device',
+  LOGINS_SQL: 'SELECT count(*)::int AS count FROM login_events e JOIN users u ON u.id = e.user_id WHERE u.email = $1'
 } as const;

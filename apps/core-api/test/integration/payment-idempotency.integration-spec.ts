@@ -1,19 +1,16 @@
+import { PAYMENT_IDEMPOTENCY as T } from '../constants/payment-idempotency.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
-
-const players = ['player7@realtime-wallet-payments.com', 'player8@realtime-wallet-payments.com'];
+import { ApiResponse } from '../interfaces/api-response.interface';
+import { IdempotencyDeposit, IdempotencyDepositDto, IdempotencyIdRow } from '../interfaces/payment-idempotency.interface';
 
 const methodIds: Record<string, string> = {};
 
 const tokens: Record<string, string> = {};
 
 beforeAll(async () => {
-  for (const [index, email] of players.entries()) {
-    const [method] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO payment_methods (user_id, type, status, provider, provider_method_id, account_holder, last_four, card_brand, expiry_month, expiry_year, is_default, verified_at)
-            SELECT id, 'CREDIT_CARD', 'VERIFIED', 'stripe', $2, display_name, '4242', 'visa', 12, 2034, true, now() FROM users WHERE email = $1 RETURNING id`,
-      params: [email, `pm_integration_${index}`]
-    });
+  for (const [index, email] of T.PLAYERS.entries()) {
+    const [method] = await DbHelper.query<IdempotencyIdRow>({ sql: T.METHOD_SQL, params: [email, `${T.METHOD_PREFIX}${index}`] });
 
     methodIds[email] = method?.id as string;
     tokens[email] = await ApiHelper.login({ email });
@@ -22,36 +19,34 @@ beforeAll(async () => {
 
 afterAll(async () => DbHelper.close());
 
-const deposit = (email: string, idempotencyKey: string): Promise<{ status: number; body: { id: string; userId: string } }> =>
-  ApiHelper.request({
+const deposit = ({ email, idempotencyKey }: IdempotencyDepositDto): Promise<ApiResponse<IdempotencyDeposit>> =>
+  ApiHelper.request<IdempotencyDeposit>({
     method: 'POST',
-    path: '/payments/deposit',
+    path: T.DEPOSIT_PATH,
     token: tokens[email] as string,
-    body: { amountMinor: 1500, currency: 'USD', idempotencyKey, paymentMethodId: methodIds[email] }
+    body: { amountMinor: T.DEPOSIT_MINOR, currency: T.CURRENCY, idempotencyKey, paymentMethodId: methodIds[email] }
   });
 
 describe('Payment idempotency keys', () => {
   it('keeps two users with the same client key apart, and a retry returns the original payment', async () => {
-    const idempotencyKey = 'shared-client-key';
-    const [first, second] = players as [string, string];
+    const idempotencyKey = T.SHARED_KEY;
+    const [first, second] = T.PLAYERS;
 
-    const firstDeposit = await deposit(first, idempotencyKey);
-    const secondDeposit = await deposit(second, idempotencyKey);
-    const retry = await deposit(first, idempotencyKey);
+    const firstDeposit = await deposit({ email: first, idempotencyKey });
+    const secondDeposit = await deposit({ email: second, idempotencyKey });
+    const retry = await deposit({ email: first, idempotencyKey });
 
-    expect(firstDeposit.status).toBe(201);
-    expect(secondDeposit.status).toBe(201);
+    expect(firstDeposit.status).toBe(T.CREATED);
+    expect(secondDeposit.status).toBe(T.CREATED);
     expect(secondDeposit.body.id).not.toBe(firstDeposit.body.id);
     expect(secondDeposit.body.userId).not.toBe(firstDeposit.body.userId);
     expect(retry.body.id).toBe(firstDeposit.body.id);
 
-    await expect(
-      DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM payments WHERE idempotency_key = $1', params: [idempotencyKey] })
-    ).resolves.toEqual([{ count: 2 }]);
+    await expect(DbHelper.query({ sql: T.COUNT_BY_KEY_SQL, params: [idempotencyKey] })).resolves.toEqual(T.TWO_PAYMENTS);
   });
 
   it('keeps the wallets and the ledger in agreement', async () => {
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM v_wallet_ledger_drift' })).resolves.toEqual([{ count: 0 }]);
-    await expect(DbHelper.query({ sql: 'SELECT count(*)::int AS count FROM v_ledger_balance_drift' })).resolves.toEqual([{ count: 0 }]);
+    await expect(DbHelper.query({ sql: T.WALLET_DRIFT_SQL })).resolves.toEqual(T.NO_DRIFT);
+    await expect(DbHelper.query({ sql: T.LEDGER_DRIFT_SQL })).resolves.toEqual(T.NO_DRIFT);
   });
 });

@@ -14,5 +14,6 @@ export const AUDIT_CHAIN_TEST = {
   APPEND_ONLY: 'append-only',
   METRICS_PATH: '/metrics',
   API_SUFFIX: /\/api\/v\d+$/,
+  INTACT_BREAKS: '0',
   BREAKS_METRIC: /^core_api_audit_chain_breaks (\d+)$/m
 } as const;

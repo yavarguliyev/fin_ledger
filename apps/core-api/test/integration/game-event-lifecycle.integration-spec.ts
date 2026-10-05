@@ -1,16 +1,8 @@
+import { GAME_EVENT_LIFECYCLE as G } from '../constants/game-event-lifecycle.constant';
 import { SEED_PASSWORD } from '../constants/seed-password.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
-
-interface GameEvent {
-  id: string;
-  status: string;
-  result?: string | null;
-}
-
-const PLAYER = 'player18@realtime-wallet-payments.com';
-const STAKE_MINOR = 500;
-const HOUR_MS = 60 * 60 * 1000;
+import { LifecycleBetDto, LifecycleEvent, LifecycleIdRow, LifecycleStatusDto } from '../interfaces/game-event-lifecycle.interface';
 
 let admin: string;
 
@@ -18,39 +10,39 @@ let player: string;
 
 let walletId: string;
 
-const createEvent = (): ReturnType<typeof ApiHelper.request<GameEvent>> =>
-  ApiHelper.request<GameEvent>({
+const createEvent = (): ReturnType<typeof ApiHelper.request<LifecycleEvent>> =>
+  ApiHelper.request<LifecycleEvent>({
     method: 'POST',
-    path: '/game-events',
+    path: G.GAME_EVENTS_PATH,
     token: admin,
     body: {
-      sport: 'Football',
-      label: `Lifecycle probe ${Date.now()}`,
-      odds: 2.5,
-      startsAt: new Date(Date.now() + HOUR_MS).toISOString(),
-      bettingClosesAt: new Date(Date.now() + HOUR_MS / 2).toISOString()
+      sport: G.SPORT,
+      label: `${G.LABEL} ${Date.now()}`,
+      odds: G.ODDS,
+      startsAt: new Date(Date.now() + G.HOUR_MS).toISOString(),
+      bettingClosesAt: new Date(Date.now() + G.HOUR_MS / 2).toISOString()
     }
   });
 
-const setStatus = (eventId: string, status: string, token = admin): ReturnType<typeof ApiHelper.request<GameEvent>> =>
-  ApiHelper.request<GameEvent>({ method: 'PATCH', path: `/game-events/${eventId}/status`, token, body: { status } });
+const setStatus = ({ eventId, status, token = admin }: LifecycleStatusDto): ReturnType<typeof ApiHelper.request<LifecycleEvent>> =>
+  ApiHelper.request<LifecycleEvent>({ method: 'PATCH', path: G.STATUS_PATH(eventId), token, body: { status } });
 
-const placeBet = (eventId: string): ReturnType<typeof ApiHelper.request> =>
+const placeBet = ({ eventId }: LifecycleBetDto): ReturnType<typeof ApiHelper.request> =>
   ApiHelper.request({
     method: 'POST',
-    path: '/bets',
+    path: G.BETS_PATH,
     token: player,
-    body: { eventId, walletId, stakeMinor: STAKE_MINOR, selection: 'HOME', idempotencyKey: `lifecycle-${eventId}` }
+    body: { eventId, walletId, stakeMinor: G.STAKE_MINOR, selection: G.HOME, idempotencyKey: `${G.KEY_PREFIX}${eventId}` }
   });
+
+const recordResult = ({ eventId }: LifecycleBetDto): ReturnType<typeof ApiHelper.request<LifecycleEvent>> =>
+  ApiHelper.request<LifecycleEvent>({ method: 'PATCH', path: G.RESULT_PATH(eventId), token: admin, body: { result: G.HOME } });
 
 beforeAll(async () => {
-  admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
-  player = await ApiHelper.login({ email: PLAYER, password: SEED_PASSWORD });
+  admin = await ApiHelper.login({ email: G.ADMIN_EMAIL });
+  player = await ApiHelper.login({ email: G.PLAYER_EMAIL, password: SEED_PASSWORD });
 
-  const [wallet] = await DbHelper.query<{ id: string }>({
-    sql: 'SELECT w.id FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
-    params: [PLAYER]
-  });
+  const [wallet] = await DbHelper.query<LifecycleIdRow>({ sql: G.WALLET_SQL, params: [G.PLAYER_EMAIL] });
 
   walletId = wallet?.id as string;
 });
@@ -61,56 +53,47 @@ describe('Game event lifecycle', () => {
   it('creates an event that opens for betting', async () => {
     const created = await createEvent();
 
-    expect(created.status).toBe(201);
-    expect(created.body?.status).toBe('SCHEDULED');
-    await expect(placeBet(created.body?.id)).resolves.toMatchObject({ status: 201 });
+    expect(created.status).toBe(G.CREATED);
+    expect(created.body?.status).toBe(G.SCHEDULED);
+    await expect(placeBet({ eventId: created.body?.id })).resolves.toMatchObject({ status: G.CREATED });
   });
 
   it('refuses a bet once the event is live', async () => {
-    const created = await createEvent();
-    const eventId = created.body?.id;
+    const eventId = (await createEvent()).body?.id;
 
-    await expect(setStatus(eventId, 'LIVE')).resolves.toMatchObject({ status: 200, body: { status: 'LIVE' } });
+    await expect(setStatus({ eventId, status: G.LIVE })).resolves.toMatchObject({ status: G.OK, body: { status: G.LIVE } });
 
-    const refused = await placeBet(eventId);
+    const refused = await placeBet({ eventId });
 
-    expect(refused.status).toBe(409);
+    expect(refused.status).toBe(G.CONFLICT);
   });
 
   it('refuses a transition the lifecycle does not allow', async () => {
-    const created = await createEvent();
-    const eventId = created.body?.id;
+    const eventId = (await createEvent()).body?.id;
 
-    await expect(setStatus(eventId, 'SETTLED')).resolves.toMatchObject({ status: 409 });
-    await expect(setStatus(eventId, 'CANCELLED')).resolves.toMatchObject({ status: 200 });
-    await expect(setStatus(eventId, 'LIVE')).resolves.toMatchObject({ status: 409 });
+    await expect(setStatus({ eventId, status: G.SETTLED })).resolves.toMatchObject({ status: G.CONFLICT });
+    await expect(setStatus({ eventId, status: G.CANCELLED })).resolves.toMatchObject({ status: G.OK });
+    await expect(setStatus({ eventId, status: G.LIVE })).resolves.toMatchObject({ status: G.CONFLICT });
   });
 });
 
 describe('Game event lifecycle: results', () => {
   it('records a result only once the event has finished', async () => {
-    const created = await createEvent();
-    const eventId = created.body?.id;
+    const eventId = (await createEvent()).body?.id;
 
-    const early = await ApiHelper.request({ method: 'PATCH', path: `/game-events/${eventId}/result`, token: admin, body: { result: 'HOME' } });
-    expect(early.status).toBe(409);
+    expect((await recordResult({ eventId })).status).toBe(G.CONFLICT);
 
-    await setStatus(eventId, 'LIVE');
-    await setStatus(eventId, 'FINISHED');
+    await setStatus({ eventId, status: G.LIVE });
+    await setStatus({ eventId, status: G.FINISHED });
 
-    const recorded = await ApiHelper.request<GameEvent>({
-      method: 'PATCH',
-      path: `/game-events/${eventId}/result`,
-      token: admin,
-      body: { result: 'HOME' }
-    });
-    expect(recorded.status).toBe(200);
-    expect(recorded.body?.result).toBe('HOME');
+    const recorded = await recordResult({ eventId });
+    expect(recorded.status).toBe(G.OK);
+    expect(recorded.body?.result).toBe(G.HOME);
   });
 
   it("keeps the lifecycle out of a player's hands", async () => {
     const created = await createEvent();
 
-    await expect(setStatus(created.body?.id, 'LIVE', player)).resolves.toMatchObject({ status: 403 });
+    await expect(setStatus({ eventId: created.body?.id, status: G.LIVE, token: player })).resolves.toMatchObject({ status: G.FORBIDDEN });
   });
 });

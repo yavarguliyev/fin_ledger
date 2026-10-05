@@ -9,7 +9,7 @@ import { AuthTokenHelper } from '../../../helpers/auth-token.helper';
 import { ConfirmEmailChangeRequestDto } from '../../../dtos/request/confirm-email-change-request.dto';
 import { AccountMessageResponseDto } from '../../../dtos/response/account-message-response.dto';
 import { ACCOUNT_EMAIL, ACCOUNT_ERRORS } from '../../../constants/account/account-email.constant';
-import { ChangedEmailDto } from '../../../dtos/helper/changed-email.dto';
+import { NotifyPreviousAddressDto } from '../../../dtos/helper/notify-previous-address.dto';
 
 @Injectable()
 export class ConfirmEmailChangeUseCase extends AuthBaseUseCase<ConfirmEmailChangeRequestDto, AccountMessageResponseDto> {
@@ -39,21 +39,22 @@ export class ConfirmEmailChangeUseCase extends AuthBaseUseCase<ConfirmEmailChang
         if (taken && taken.id !== userId) throw new BadRequestException(ACCOUNT_ERRORS.EMAIL_TAKEN);
 
         await this.authRepository.update({ id: userId, data: { email: user.pendingEmail, pendingEmail: null }, adapter });
+        await this.notifyPreviousAddress({ userId, previousEmail: user.email, newEmail: user.pendingEmail, adapter });
 
         return { userId, previousEmail: user.email, newEmail: user.pendingEmail };
       }
     });
 
     await this.refreshService.revokeEverySession({ userId: changed.userId });
-    await this.notifyPreviousAddress(changed);
 
     return { status: true, message: 'Your email address was changed. Please sign in again.' };
   }
 
-  private async notifyPreviousAddress ({ userId, previousEmail }: ChangedEmailDto): Promise<void> {
+  private async notifyPreviousAddress ({ userId, previousEmail, adapter }: NotifyPreviousAddressDto): Promise<void> {
     await this.publishAccountEmail({
       eventType: EmailTemplateType.EMAIL_CHANGED_NOTICE,
       userId,
+      adapter,
       eventPayload: {
         to: previousEmail,
         subject: ACCOUNT_EMAIL.EMAIL_CHANGED.SUBJECT,

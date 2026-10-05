@@ -15,6 +15,9 @@ export const SUPPORT_ATTACHMENTS_TEST = {
   FAKE_TEXT: 'this is not a picture',
   ORIGINAL_TEXT: 'My withdrawal is pending',
   EDITED_TEXT: 'My withdrawal is pending since Monday',
+  ATTACHMENTS_PATH: '/attachments',
+  MESSAGE_PATH: (id: string): string => `/messages/${id}`,
+  BODY_FIELD: 'body',
   PAYLOAD_TOO_LARGE: 413,
   UNSUPPORTED: 415
 } as const;

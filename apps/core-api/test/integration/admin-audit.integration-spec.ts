@@ -3,9 +3,10 @@ import { ApiHelper } from '../helpers/api.helper';
 import { AuditLogHelper } from '../helpers/audit-log.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
+import { AuditCreated, AuditPatchDto, AuditTokenDto } from '../interfaces/admin-audit.interface';
 
-const createEvent = (token: string): ReturnType<typeof ApiHelper.request<{ id: string }>> =>
-  ApiHelper.request<{ id: string }>({
+const createEvent = ({ token }: AuditTokenDto): ReturnType<typeof ApiHelper.request<AuditCreated>> =>
+  ApiHelper.request<AuditCreated>({
     method: 'POST',
     path: T.GAME_EVENTS_PATH,
     token,
@@ -21,8 +22,8 @@ const createEvent = (token: string): ReturnType<typeof ApiHelper.request<{ id: s
 describe('Auditing admin actions on game events and wallets', () => {
   let admin: string;
 
-  const patch = (path: string, body: object): ReturnType<typeof ApiHelper.request<{ id: string }>> =>
-    ApiHelper.request<{ id: string }>({ method: 'PATCH', path, token: admin, body });
+  const patch = ({ path, body }: AuditPatchDto): ReturnType<typeof ApiHelper.request<AuditCreated>> =>
+    ApiHelper.request<AuditCreated>({ method: 'PATCH', path, token: admin, body });
 
   beforeAll(async () => {
     await TestUserHelper.ensure({ emails: [T.OWNER_EMAIL] });
@@ -32,13 +33,13 @@ describe('Auditing admin actions on game events and wallets', () => {
   afterAll(async () => DbHelper.close());
 
   it('records creating, moving and resulting a game event under the named actions', async () => {
-    const created = await createEvent(admin);
+    const created = await createEvent({ token: admin });
     const eventId = created.body?.id;
     const eventPath = `${T.GAME_EVENTS_PATH}/${eventId}`;
 
-    await patch(`${eventPath}${T.STATUS_SUFFIX}`, { status: T.LIVE });
-    await patch(`${eventPath}${T.STATUS_SUFFIX}`, { status: T.FINISHED });
-    await patch(`${eventPath}${T.RESULT_SUFFIX}`, { result: T.RESULT });
+    await patch({ path: `${eventPath}${T.STATUS_SUFFIX}`, body: { status: T.LIVE } });
+    await patch({ path: `${eventPath}${T.STATUS_SUFFIX}`, body: { status: T.FINISHED } });
+    await patch({ path: `${eventPath}${T.RESULT_SUFFIX}`, body: { result: T.RESULT } });
 
     for (const action of T.GAME_EVENT_ACTIONS) {
       await expect(AuditLogHelper.waitFor({ entityId: eventId, action })).resolves.toEqual({
@@ -51,12 +52,12 @@ describe('Auditing admin actions on game events and wallets', () => {
 
   it('records a wallet status change against the wallet', async () => {
     const owner = await ApiHelper.login({ email: T.OWNER_EMAIL });
-    const opened = await ApiHelper.request<{ id: string }>({ method: 'POST', path: T.WALLETS_PATH, token: owner, body: { currency: T.CURRENCY } });
+    const opened = await ApiHelper.request<AuditCreated>({ method: 'POST', path: T.WALLETS_PATH, token: owner, body: { currency: T.CURRENCY } });
     const walletId = opened.body?.id;
     const statusPath = `${T.WALLETS_PATH}/${walletId}${T.STATUS_SUFFIX}`;
 
-    await patch(statusPath, { status: T.SUSPENDED });
-    await patch(statusPath, { status: T.ACTIVE });
+    await patch({ path: statusPath, body: { status: T.SUSPENDED } });
+    await patch({ path: statusPath, body: { status: T.ACTIVE } });
 
     await expect(AuditLogHelper.waitFor({ entityId: walletId, action: T.WALLET_STATUS_CHANGED })).resolves.toEqual({
       action: T.WALLET_STATUS_CHANGED,

@@ -1,12 +1,13 @@
-import { PROVIDER_CUSTOMERS_TEST } from '../constants/provider-customers.constant';
+import { PROVIDER_CUSTOMERS_TEST as P } from '../constants/provider-customers.constant';
 import { DbHelper } from '../helpers/db.helper';
+import { ProviderCountRow, ProviderCustomerDto, ProviderEmailDto } from '../interfaces/provider-customers.interface';
 
 describe('Provider customers', () => {
-  const insert = (email: string, customerId: string, provider: string = PROVIDER_CUSTOMERS_TEST.PROVIDER): Promise<unknown> =>
-    DbHelper.query({ sql: PROVIDER_CUSTOMERS_TEST.INSERT_SQL, params: [email, provider, customerId] });
+  const insert = ({ email, customerId, provider = P.PROVIDER }: ProviderCustomerDto): Promise<unknown> =>
+    DbHelper.query({ sql: P.INSERT_SQL, params: [email, provider, customerId] });
 
-  const countFor = async (email: string): Promise<number> => {
-    const [row] = await DbHelper.query<{ count: number }>({ sql: PROVIDER_CUSTOMERS_TEST.COUNT_SQL, params: [email] });
+  const countFor = async ({ email }: ProviderEmailDto): Promise<number> => {
+    const [row] = await DbHelper.query<ProviderCountRow>({ sql: P.COUNT_SQL, params: [email] });
 
     return row?.count ?? 0;
   };
@@ -14,28 +15,28 @@ describe('Provider customers', () => {
   afterAll(async () => DbHelper.close());
 
   it('stores one customer per provider for a user', async () => {
-    await insert(PROVIDER_CUSTOMERS_TEST.FIRST_EMAIL, PROVIDER_CUSTOMERS_TEST.CUSTOMER_ID);
+    await insert({ email: P.FIRST_EMAIL, customerId: P.CUSTOMER_ID });
 
-    await expect(countFor(PROVIDER_CUSTOMERS_TEST.FIRST_EMAIL)).resolves.toBe(1);
+    await expect(countFor({ email: P.FIRST_EMAIL })).resolves.toBe(1);
   });
 
   it('refuses a second customer for the same user and provider, which is what the email search used to allow', async () => {
-    await expect(insert(PROVIDER_CUSTOMERS_TEST.FIRST_EMAIL, PROVIDER_CUSTOMERS_TEST.OTHER_CUSTOMER_ID)).rejects.toThrow(
-      PROVIDER_CUSTOMERS_TEST.UNIQUE_USER_CONSTRAINT
+    await expect(insert({ email: P.FIRST_EMAIL, customerId: P.OTHER_CUSTOMER_ID })).rejects.toThrow(
+      P.UNIQUE_USER_CONSTRAINT
     );
 
-    await expect(countFor(PROVIDER_CUSTOMERS_TEST.FIRST_EMAIL)).resolves.toBe(1);
+    await expect(countFor({ email: P.FIRST_EMAIL })).resolves.toBe(1);
   });
 
   it('refuses the same provider customer being shared by two accounts', async () => {
-    await expect(insert(PROVIDER_CUSTOMERS_TEST.SECOND_EMAIL, PROVIDER_CUSTOMERS_TEST.CUSTOMER_ID)).rejects.toThrow(
-      PROVIDER_CUSTOMERS_TEST.UNIQUE_EXTERNAL_CONSTRAINT
+    await expect(insert({ email: P.SECOND_EMAIL, customerId: P.CUSTOMER_ID })).rejects.toThrow(
+      P.UNIQUE_EXTERNAL_CONSTRAINT
     );
   });
 
   it('refuses a provider that is not one of the adapters', async () => {
     await expect(
-      insert(PROVIDER_CUSTOMERS_TEST.SECOND_EMAIL, PROVIDER_CUSTOMERS_TEST.OTHER_CUSTOMER_ID, PROVIDER_CUSTOMERS_TEST.BAD_PROVIDER)
-    ).rejects.toThrow(PROVIDER_CUSTOMERS_TEST.PROVIDER_CONSTRAINT);
+      insert({ email: P.SECOND_EMAIL, customerId: P.OTHER_CUSTOMER_ID, provider: P.BAD_PROVIDER })
+    ).rejects.toThrow(P.PROVIDER_CONSTRAINT);
   });
 });

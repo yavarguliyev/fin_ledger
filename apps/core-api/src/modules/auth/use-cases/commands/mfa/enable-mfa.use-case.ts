@@ -40,19 +40,19 @@ export class EnableMfaUseCase extends AuthBaseUseCase<EnableMfaDto, MfaRecoveryC
           adapter
         });
         await mfaRecoveryCodeRepository.replace({ userId, hashes, adapter });
-      }
-    });
-
-    await this.publishAccountEmail({
-      eventType: EmailTemplateType.MFA_ENABLED,
-      userId,
-      eventPayload: {
-        to: user.email,
-        subject: MFA_EMAIL.ENABLED.SUBJECT,
-        purpose: MFA_EMAIL.ENABLED.PURPOSE,
-        title: MFA_EMAIL.ENABLED.TITLE,
-        body: MFA_EMAIL.ENABLED.BODY,
-        url: `${this.frontendUrl}${MFA_EMAIL.PROFILE_PATH}`
+        await this.publishAccountEmail({
+          eventType: EmailTemplateType.MFA_ENABLED,
+          userId,
+          adapter,
+          eventPayload: {
+            to: user.email,
+            subject: MFA_EMAIL.ENABLED.SUBJECT,
+            purpose: MFA_EMAIL.ENABLED.PURPOSE,
+            title: MFA_EMAIL.ENABLED.TITLE,
+            body: MFA_EMAIL.ENABLED.BODY,
+            url: `${this.frontendUrl}${MFA_EMAIL.PROFILE_PATH}`
+          }
+        });
       }
     });
 

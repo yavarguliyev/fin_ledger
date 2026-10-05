@@ -40,19 +40,19 @@ export class DisableMfaUseCase extends AuthBaseUseCase<DisableMfaDto, MfaDisable
         await MfaHelper.verifySecondFactor({ user, code, totpService, mfaRecoveryCodeRepository, adapter });
         await this.authRepository.update({ id: userId, data: { mfaSecretEncrypted: null, mfaEnabledAt: null, mfaLastUsedStep: null }, adapter });
         await mfaRecoveryCodeRepository.retire({ userId, adapter });
-      }
-    });
-
-    await this.publishAccountEmail({
-      eventType: EmailTemplateType.MFA_DISABLED,
-      userId,
-      eventPayload: {
-        to: user.email,
-        subject: MFA_EMAIL.DISABLED.SUBJECT,
-        purpose: MFA_EMAIL.DISABLED.PURPOSE,
-        title: MFA_EMAIL.DISABLED.TITLE,
-        body: MFA_EMAIL.DISABLED.BODY,
-        url: `${this.frontendUrl}${MFA_EMAIL.PROFILE_PATH}`
+        await this.publishAccountEmail({
+          eventType: EmailTemplateType.MFA_DISABLED,
+          userId,
+          adapter,
+          eventPayload: {
+            to: user.email,
+            subject: MFA_EMAIL.DISABLED.SUBJECT,
+            purpose: MFA_EMAIL.DISABLED.PURPOSE,
+            title: MFA_EMAIL.DISABLED.TITLE,
+            body: MFA_EMAIL.DISABLED.BODY,
+            url: `${this.frontendUrl}${MFA_EMAIL.PROFILE_PATH}`
+          }
+        });
       }
     });
 

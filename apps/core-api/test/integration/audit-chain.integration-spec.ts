@@ -1,11 +1,11 @@
 import { AUDIT_CHAIN_TEST as T } from '../constants/audit-chain.constant';
 import { DbHelper } from '../helpers/db.helper';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
-import { ChainBreak, ChainedRow } from '../interfaces/audit-chain.interface';
+import { ChainBreak, ChainEditDto, ChainedRow } from '../interfaces/audit-chain.interface';
 
 const breaks = async (): Promise<string[]> => (await DbHelper.query<ChainBreak>({ sql: T.BREAKS_SQL })).map(row => row.chainSeq);
 
-const editBypassingGuard = async (action: string, chainSeq: string): Promise<void> => {
+const editBypassingGuard = async ({ action, chainSeq }: ChainEditDto): Promise<void> => {
   await DbHelper.query({ sql: T.DISABLE_SQL });
   try {
     await DbHelper.query({ sql: T.EDIT_SQL, params: [action, chainSeq] });
@@ -38,16 +38,16 @@ describe('Audit log hash chain', () => {
   it('pinpoints a row edited behind the guard, and heals once it is put back', async () => {
     const target = rows[1]?.chainSeq ?? '';
 
-    await editBypassingGuard(T.EDITED_ACTION, target);
+    await editBypassingGuard({ action: T.EDITED_ACTION, chainSeq: target });
     await expect(breaks()).resolves.toEqual([target]);
 
-    await editBypassingGuard(T.ACTION, target);
+    await editBypassingGuard({ action: T.ACTION, chainSeq: target });
     await expect(breaks()).resolves.toEqual([]);
   });
 
   it('reports the chain as intact on the metrics endpoint', async () => {
     const response = await fetch(`${(process.env[TEST_ENV_KEYS.API_URL] as string).replace(T.API_SUFFIX, '')}${T.METRICS_PATH}`);
 
-    expect((await response.text()).match(T.BREAKS_METRIC)?.[1]).toBe('0');
+    expect((await response.text()).match(T.BREAKS_METRIC)?.[1]).toBe(T.INTACT_BREAKS);
   });
 });

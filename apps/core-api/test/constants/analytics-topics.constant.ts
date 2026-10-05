@@ -1,6 +1,9 @@
 import { HTTP_STATUS } from './http-status.constant';
 
 export const ANALYTICS_TOPICS_TEST = {
+  EVENT_PREFIX: 'evt_',
+  SUCCESS_KEY: 'analytics-topics-success',
+  BET_KEY: 'analytics-topics-bet',
   ...HTTP_STATUS,
   EMAIL: 'player17@realtime-wallet-payments.com',
   DEPOSIT_PATH: '/payments/deposit',

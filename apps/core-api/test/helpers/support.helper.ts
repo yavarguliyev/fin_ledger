@@ -1,4 +1,5 @@
 import { ApiHelper } from './api.helper';
+import { DbHelper } from './db.helper';
 import { SseReaderHelper } from './sse-reader.helper';
 import { TestUserHelper } from './test-user.helper';
 import { SUPPORT_CHAT_TEST as T } from '../constants/support-chat.constant';
@@ -13,11 +14,26 @@ import {
   SupportMultipartDto,
   SupportOpenDto,
   SupportSendDto,
+  SupportSession,
+  SupportStartDto,
   SupportThreadDto,
   SupportTokenDto
 } from '../interfaces/support-test.interface';
 
 export class SupportTestHelper {
+  static async start ({ customerEmail, otherEmails = [] }: SupportStartDto): Promise<SupportSession> {
+    const emails = [customerEmail, ...otherEmails];
+
+    await TestUserHelper.ensure({ emails });
+    await DbHelper.query({ sql: T.CLEAN_SQL, params: [emails] });
+
+    const customer = await ApiHelper.login({ email: customerEmail });
+    const staff = await ApiHelper.login({ email: T.STAFF_EMAIL });
+    const opened = await SupportTestHelper.open({ token: customer, staffUserId: await SupportTestHelper.userId({ email: T.STAFF_EMAIL }) });
+
+    return { customer, staff, conversationId: opened.body.id };
+  }
+
   static open ({ token, staffUserId, subject }: SupportOpenDto): Promise<ApiResponse<SupportConversation>> {
     return ApiHelper.request<SupportConversation>({ method: 'POST', path: T.CONVERSATIONS_PATH, token, body: { staffUserId, ...(subject && { subject }) } });
   }

@@ -5,6 +5,7 @@ import { PRESENCE_COUNT_TEST as T } from '../constants/presence-count.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
+import { PresenceSeedHelper } from '../helpers/presence-seed.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 
 describe('Presence count beyond the list cap', () => {
@@ -20,22 +21,12 @@ describe('Presence count beyond the list cap', () => {
     await TestUserHelper.ensure({ emails: [T.CUSTOMER_EMAIL] });
     staff = await ApiHelper.login({ email: T.STAFF_EMAIL });
     customer = await ApiHelper.login({ email: T.CUSTOMER_EMAIL });
-    const lastSeenAt = new Date().toISOString();
-    const pipeline = redis.pipeline();
-
-    for (const userId of extraIds) {
-      pipeline.set(`${T.KEY_PREFIX}${userId}`, JSON.stringify({ userId, displayName: T.DISPLAY_NAME, role: T.ROLE, lastSeenAt }), T.EXPIRE_FLAG, T.TTL_SECONDS);
-      pipeline.zadd(T.INDEX_KEY, Date.now(), userId);
-    }
-
-    await pipeline.exec();
+    await PresenceSeedHelper.seed({ redis, userIds: extraIds, displayName: T.DISPLAY_NAME });
     await ApiHelper.request({ method: 'POST', path: T.HEARTBEAT_PATH, token: staff, body: {} });
   });
 
   afterAll(async () => {
-    await redis.del(...extraIds.map(userId => `${T.KEY_PREFIX}${userId}`));
-    await redis.zrem(T.INDEX_KEY, ...extraIds);
-    await redis.quit();
+    await PresenceSeedHelper.clear({ redis, userIds: extraIds });
     await DbHelper.close();
   });
 

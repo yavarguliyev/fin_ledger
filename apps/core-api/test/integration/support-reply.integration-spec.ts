@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
-import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST as C } from '../constants/support-chat.constant';
 import { SUPPORT_REPLY_TEST as T } from '../constants/support-reply.constant';
@@ -14,14 +12,7 @@ describe('Replying to a message', () => {
   let originalId = '';
 
   beforeAll(async () => {
-    await TestUserHelper.ensure({ emails: [C.CUSTOMER_EMAIL] });
-    await DbHelper.query({ sql: C.CLEAN_SQL, params: [[C.CUSTOMER_EMAIL]] });
-    customer = await ApiHelper.login({ email: C.CUSTOMER_EMAIL });
-    staff = await ApiHelper.login({ email: C.STAFF_EMAIL });
-
-    const staffUserId = await SupportTestHelper.userId({ email: C.STAFF_EMAIL });
-    const opened = await SupportTestHelper.open({ token: customer, staffUserId });
-    conversationId = opened.body.id;
+    ({ customer, staff, conversationId } = await SupportTestHelper.start({ customerEmail: C.CUSTOMER_EMAIL }));
     originalId = (await SupportTestHelper.send({ token: customer, conversationId, body: T.ORIGINAL })).body.id;
   });
 

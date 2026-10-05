@@ -44,3 +44,14 @@ export interface SupportReactDto extends SupportTokenDto {
   path: string;
   emoji?: string;
 }
+
+export interface SupportStartDto {
+  customerEmail: string;
+  otherEmails?: string[];
+}
+
+export interface SupportSession {
+  customer: string;
+  staff: string;
+  conversationId: string;
+}

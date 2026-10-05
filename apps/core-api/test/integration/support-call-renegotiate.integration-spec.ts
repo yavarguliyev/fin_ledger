@@ -5,13 +5,14 @@ import { TestUserHelper } from '../helpers/test-user.helper';
 import { CALL_RENEGOTIATE_TEST as T } from '../constants/call-renegotiate.constant';
 import { SUPPORT_CALLS_TEST as CALLS } from '../constants/support-calls.constant';
 import { SUPPORT_CHAT_TEST as CHAT } from '../constants/support-chat.constant';
+import { CallPostDto, StartedCall } from '../interfaces/call-renegotiate.interface';
 
 let customer = '';
 let stranger = '';
 let staff = '';
 let callId = '';
 
-const post = (token: string, path: string, body: object): ReturnType<typeof ApiHelper.request> =>
+const post = ({ token, path, body }: CallPostDto): ReturnType<typeof ApiHelper.request> =>
   ApiHelper.request({ method: 'POST', path: `${CALLS.CALLS_PATH}${path}`, token, body });
 
 beforeAll(async () => {
@@ -23,18 +24,18 @@ beforeAll(async () => {
 
   const staffUserId = await SupportTestHelper.userId({ email: CHAT.STAFF_EMAIL });
   const opened = await SupportTestHelper.open({ token: customer, staffUserId });
-  const started = await ApiHelper.request<{ callId: string }>({
+  const started = await ApiHelper.request<StartedCall>({
     method: 'POST',
     path: CALLS.CALLS_PATH,
     token: customer,
     body: { conversationId: opened.body.id, media: CALLS.AUDIO, sdp: CALLS.SDP }
   });
   callId = started.body.callId;
-  await post(staff, `/${callId}${T.ANSWER_SUFFIX}`, { sdp: CALLS.SDP });
+  await post({ token: staff, path: `/${callId}${T.ANSWER_SUFFIX}`, body: { sdp: CALLS.SDP } });
 });
 
 afterAll(async () => {
-  await post(customer, `/${callId}${T.END_SUFFIX}`, { reason: CALLS.HANGUP });
+  await post({ token: customer, path: `/${callId}${T.END_SUFFIX}`, body: { reason: CALLS.HANGUP } });
   await DbHelper.query({ sql: CHAT.CLEAN_SQL, params: [[T.CUSTOMER_EMAIL]] });
   await DbHelper.close();
 });
@@ -44,7 +45,7 @@ describe('Restarting a call after a network drop', () => {
     const stream = await SupportTestHelper.openStream({ token: staff });
 
     try {
-      const sent = await post(customer, `/${callId}${T.RENEGOTIATE_SUFFIX}`, { sdp: T.RESTART_SDP, sdpType: T.OFFER });
+      const sent = await post({ token: customer, path: `/${callId}${T.RENEGOTIATE_SUFFIX}`, body: { sdp: T.RESTART_SDP, sdpType: T.OFFER } });
       const event = await stream.waitFor({ type: T.EVENT, timeoutMs: CHAT.STREAM_WAIT_MS });
 
       expect(sent.status).toBe(CALLS.CREATED);
@@ -55,7 +56,7 @@ describe('Restarting a call after a network drop', () => {
   });
 
   it('refuses someone outside the call and an unknown description type', async () => {
-    await expect(post(stranger, `/${callId}${T.RENEGOTIATE_SUFFIX}`, { sdp: T.RESTART_SDP, sdpType: T.OFFER })).resolves.toMatchObject({ status: CALLS.NOT_FOUND });
-    await expect(post(customer, `/${callId}${T.RENEGOTIATE_SUFFIX}`, { sdp: T.RESTART_SDP, sdpType: T.NOT_A_TYPE })).resolves.toMatchObject({ status: T.BAD_REQUEST });
+    await expect(post({ token: stranger, path: `/${callId}${T.RENEGOTIATE_SUFFIX}`, body: { sdp: T.RESTART_SDP, sdpType: T.OFFER } })).resolves.toMatchObject({ status: CALLS.NOT_FOUND });
+    await expect(post({ token: customer, path: `/${callId}${T.RENEGOTIATE_SUFFIX}`, body: { sdp: T.RESTART_SDP, sdpType: T.NOT_A_TYPE } })).resolves.toMatchObject({ status: T.BAD_REQUEST });
   });
 });

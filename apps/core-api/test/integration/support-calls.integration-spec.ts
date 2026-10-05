@@ -1,6 +1,5 @@
 import { ApiHelper } from '../helpers/api.helper';
 import { SupportTestHelper } from '../helpers/support.helper';
-import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CALLS_TEST } from '../constants/support-calls.constant';
 import { SUPPORT_CHAT_TEST } from '../constants/support-chat.constant';
@@ -26,15 +25,11 @@ const lastLog = async (): Promise<SupportMessage | undefined> => {
 };
 
 beforeAll(async () => {
-  await TestUserHelper.ensure({ emails: [SUPPORT_CALLS_TEST.CUSTOMER_EMAIL, SUPPORT_CALLS_TEST.STRANGER_EMAIL] });
-  await DbHelper.query({ sql: SUPPORT_CHAT_TEST.CLEAN_SQL, params: [[SUPPORT_CALLS_TEST.CUSTOMER_EMAIL]] });
-  customer = await ApiHelper.login({ email: SUPPORT_CALLS_TEST.CUSTOMER_EMAIL });
+  ({ customer, staff, conversationId } = await SupportTestHelper.start({
+    customerEmail: SUPPORT_CALLS_TEST.CUSTOMER_EMAIL,
+    otherEmails: [SUPPORT_CALLS_TEST.STRANGER_EMAIL]
+  }));
   stranger = await ApiHelper.login({ email: SUPPORT_CALLS_TEST.STRANGER_EMAIL });
-  staff = await ApiHelper.login({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-
-  const staffUserId = await SupportTestHelper.userId({ email: SUPPORT_CHAT_TEST.STAFF_EMAIL });
-  const opened = await SupportTestHelper.open({ token: customer, staffUserId });
-  conversationId = opened.body.id;
 });
 
 afterAll(async () => {
