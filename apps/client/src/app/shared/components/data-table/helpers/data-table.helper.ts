@@ -1,3 +1,4 @@
+import { DateHelper } from '../../../../core/helpers/common/date.helper';
 import { ActionIconsConfig } from '../../../../core/interfaces/ui/action-icons-config.interface';
 import { TABLE } from '../../../../core/constants/ui/table.constant';
 import { BADGE_CLASSES } from '../../../../core/constants/ui/badge-class.constant';
@@ -42,6 +43,7 @@ export class DataTableHelper {
   static getCellText<T> ({ row, column }: CellRefDto<T>): string {
     const value = DataTableHelper.getCellValue({ row, column });
     if (column.format) return column.format({ value, row });
+    if (column.type === TABLE.DATE_TYPE) return DateHelper.formatDateTime(value as string | null | undefined);
     if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
     return TABLE.EMPTY_CELL;
   }

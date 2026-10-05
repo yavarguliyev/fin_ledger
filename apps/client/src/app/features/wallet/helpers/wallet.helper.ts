@@ -1,10 +1,10 @@
+import { ReferenceHelper } from '../../../core/helpers/common/reference.helper';
 import { FilterOption } from '../../../core/interfaces/ui/filter-option.interface';
 import { DataTableConfig } from '../../../core/interfaces/ui/data-table-config.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { Transaction } from '../../../core/types/wallet/transaction.type';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
 import { TransactionHelper } from '../../../core/helpers/wallet/transaction.helper';
-import { TABLE } from '../../../core/constants/ui/table.constant';
 import { AMOUNT_CLASS } from '../../../core/constants/ui/amount-class.constant';
 import { RECEIPT } from '../../../core/constants/payment/receipt.constant';
 
@@ -48,7 +48,7 @@ export class WalletHelper {
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
+        format: ({ value }): string => ReferenceHelper.short({ reference: value })
       },
       {
         key: RECEIPT.COLUMN_KEY,

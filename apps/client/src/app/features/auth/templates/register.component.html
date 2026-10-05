@@ -75,7 +75,7 @@
             <button
               type="button"
               (click)="togglePasswordVisibility()"
-              class="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
+              class="absolute right-0 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
               [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
             >
               @if (showPassword()) {
@@ -122,7 +122,7 @@
             <button
               type="button"
               (click)="toggleConfirmPasswordVisibility()"
-              class="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
+              class="absolute right-0 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
               [attr.aria-label]="showConfirmPassword() ? 'Hide password' : 'Show password'"
             >
               @if (showConfirmPassword()) {
@@ -154,10 +154,12 @@
         </div>
 
         <label class="flex items-start gap-2 text-sm text-ink-600 dark:text-ink-300 cursor-pointer">
-          <input type="checkbox" formControlName="terms" class="mt-0.5 rounded border-ink-300 text-primary focus:ring-primary/40" />
+          <span class="-m-3 flex h-11 w-11 shrink-0 items-center justify-center">
+            <input type="checkbox" formControlName="terms" class="h-5 w-5 rounded border-ink-300 text-primary focus:ring-primary/40" />
+          </span>
           <span
-            >I agree to the <a routerLink="/legal/terms" class="text-primary hover:text-primary-dark">Terms</a> and
-            <a routerLink="/legal/privacy" class="text-primary hover:text-primary-dark">Privacy Policy</a></span
+            >I agree to the <a routerLink="/legal/terms" class="inline-block py-3 -my-3 px-1 -mx-1 text-primary hover:text-primary-dark">Terms</a> and
+            <a routerLink="/legal/privacy" class="inline-block py-3 -my-3 px-1 -mx-1 text-primary hover:text-primary-dark">Privacy Policy</a></span
           >
         </label>
 
@@ -179,7 +181,7 @@
 
       <p class="text-center text-sm text-ink-500 dark:text-night-muted mt-6">
         Already have an account?
-        <a routerLink="/auth/login" class="text-primary hover:text-primary-dark font-medium">Sign in</a>
+        <a routerLink="/auth/login" class="inline-block py-3 -my-3 px-1 -mx-1 text-primary hover:text-primary-dark font-medium">Sign in</a>
       </p>
     </div>
   </div>

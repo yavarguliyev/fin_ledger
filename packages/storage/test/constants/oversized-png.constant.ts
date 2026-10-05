@@ -1,0 +1,11 @@
+export const OVERSIZED_PNG = {
+  WIDTH: 8_000,
+  HEIGHT: 6_000,
+  SEED_SIZE: 1,
+  CHANNELS: 3,
+  WIDTH_OFFSET: 16,
+  HEIGHT_OFFSET: 20,
+  CRC_START: 12,
+  CRC_OFFSET: 29,
+  BACKGROUND: { r: 0, g: 0, b: 0 }
+} as const;

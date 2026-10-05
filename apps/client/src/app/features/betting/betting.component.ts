@@ -22,6 +22,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { BettingEventsService } from './services/betting-events.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
+import { EVENT_BADGE } from '../../core/constants/betting/event-badge.constant';
 
 @Component({
   selector: 'app-betting',
@@ -38,6 +39,7 @@ export class BettingComponent implements OnInit {
   private readonly bettingService = inject(BettingService);
   private readonly toast = inject(ToastService);
 
+  readonly badge = EVENT_BADGE;
   readonly selectedEvent = signal<GameEvent | null>(null);
   readonly loading = signal(false);
   readonly eventsList = inject(BettingEventsService);
@@ -52,7 +54,7 @@ export class BettingComponent implements OnInit {
   readonly currency = computed(() => this.bettingService.currency());
 
   readonly form = this.fb.group({
-    stake: this.fb.control<number | null>(null, {
+    stake: this.fb.control<number | null>({ value: null, disabled: true }, {
       validators: [ValidatorsHelper.createRequiredValidator(), ValidatorsHelper.createMinValidator(1)],
       nonNullable: false
     })
@@ -84,7 +86,10 @@ export class BettingComponent implements OnInit {
     this.form.controls.stake.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => this.stakeValue.set(value));
   }
 
-  selectEvent = (event: GameEvent): void => this.selectedEvent.set(event);
+  selectEvent = (event: GameEvent): void => {
+    this.selectedEvent.set(event);
+    this.form.controls.stake.enable();
+  };
 
   onPageChange (page: number): void {
     this.currentPage.set(page);
@@ -117,7 +122,7 @@ export class BettingComponent implements OnInit {
       next: settled => {
         this.loadBets();
         this.announce(settled);
-        this.form.reset();
+        this.form.controls.stake.reset({ value: null, disabled: true });
         this.selectedEvent.set(null);
         this.loading.set(false);
       },

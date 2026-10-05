@@ -4,7 +4,6 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
-import { NotificationService } from '../../core/services/notification.service';
 import { Transaction } from '../../core/types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../../core/interfaces/wallet/wallet-transaction-summary.interface';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
@@ -32,7 +31,6 @@ import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 export class DashboardComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
-  private readonly notif = inject(NotificationService);
 
   private readonly requestedCurrency = signal<string | null>(null);
   private readonly isStaff = this.auth.isStaff;
@@ -90,7 +88,6 @@ export class DashboardComponent implements OnInit {
   }
 
   load (): void {
-    const user = this.auth.currentUser();
     this.loading.set(true);
     this.failed.set(false);
 
@@ -106,7 +103,6 @@ export class DashboardComponent implements OnInit {
       });
     }
 
-    if (user?.id) this.notif.getNotifications().subscribe();
   }
 
   private loadActivity (scope: string): void {

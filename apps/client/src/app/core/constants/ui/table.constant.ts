@@ -1,5 +1,6 @@
 export const TABLE = {
   EMPTY_CELL: '—',
+  DATE_TYPE: 'date',
   ALIGN_PREFIX: 'text-',
   DEFAULT_ALIGN: 'left',
   DEFAULT_DELETE_LABEL: 'Delete',

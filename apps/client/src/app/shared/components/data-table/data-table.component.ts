@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, input, output, computed, TemplateRe
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
+import { SkeletonComponent } from '../skeleton/skeleton.component';
 import { PaginationComponent } from '../pagination/pagination.component';
 import { ToggleComponent } from '../toggle/toggle.component';
 import { ActionIconsComponent } from '../action-icons/action-icons';
@@ -19,7 +20,7 @@ import { DataTableHelper } from './helpers/data-table.helper';
   selector: 'app-data-table',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, PaginationComponent, ToggleComponent, ActionIconsComponent],
+  imports: [CommonModule, RouterLink, PaginationComponent, ToggleComponent, ActionIconsComponent, SkeletonComponent],
   templateUrl: './data-table.component.html'
 })
 export class DataTableComponent<T = unknown> {

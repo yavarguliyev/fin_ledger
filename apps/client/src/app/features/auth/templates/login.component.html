@@ -114,7 +114,7 @@
               <button
                 type="button"
                 (click)="togglePasswordVisibility()"
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
+                class="absolute right-0 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-ink-400 hover:text-ink-600 dark:hover:text-ink-200"
                 [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
               >
                 @if (showPassword()) {
@@ -155,7 +155,7 @@
               <input type="checkbox" formControlName="remember" class="rounded border-ink-300 text-primary focus:ring-primary/40" />
               Remember me
             </label>
-            <a routerLink="/auth/forgot-password" class="text-sm text-primary hover:text-primary-dark">Forgot password?</a>
+            <a routerLink="/auth/forgot-password" class="inline-block py-3 -my-3 px-1 -mx-1 text-sm text-primary hover:text-primary-dark">Forgot password?</a>
           </div>
 
           @if (error()) {
@@ -179,7 +179,7 @@
 
       <p class="text-center text-sm text-ink-500 dark:text-night-muted mt-6">
         Don't have an account?
-        <a routerLink="/auth/register" class="text-primary hover:text-primary-dark font-medium">Sign up</a>
+        <a routerLink="/auth/register" class="inline-block py-3 -my-3 px-1 -mx-1 text-primary hover:text-primary-dark font-medium">Sign up</a>
       </p>
     </div>
   </div>

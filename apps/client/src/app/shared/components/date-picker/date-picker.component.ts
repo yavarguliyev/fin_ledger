@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ElementRef, computed, forwardRef, inject, input, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ElementRef, computed, forwardRef, inject, input, signal, viewChild } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 import { DATE_PICKER } from '../../../core/constants/ui/date-picker.constant';
@@ -15,6 +15,7 @@ import { CalendarShiftDto } from '../../../core/interfaces/ui/calendar-shift.int
 })
 export class DatePickerComponent implements ControlValueAccessor {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly trigger = viewChild<ElementRef<HTMLButtonElement>>(DATE_PICKER.TRIGGER_REF);
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -74,7 +75,7 @@ export class DatePickerComponent implements ControlValueAccessor {
     if (!iso || !this.isSelectable(iso)) return;
     this.value.set(iso);
     this.onChange(iso);
-    this.close();
+    this.dismiss();
   }
 
   moveMonths (months: number): void {
@@ -97,14 +98,14 @@ export class DatePickerComponent implements ControlValueAccessor {
 
     if (step) this.moveTo(CalendarHelper.shift({ iso: this.focused(), ...step }));
     else if (event.key === KEYS.ENTER || event.key === KEYS.SPACE) this.select(this.focused());
-    else if (event.key === KEYS.ESCAPE) this.close();
+    else if (event.key === KEYS.ESCAPE) this.dismiss();
     else return;
 
     event.preventDefault();
   }
 
   onEscape (): void {
-    if (this.isOpen()) this.close();
+    if (this.isOpen()) this.dismiss();
   }
 
   onDocumentClick (event: MouseEvent): void {
@@ -122,6 +123,11 @@ export class DatePickerComponent implements ControlValueAccessor {
 
   dayOf (iso: string): number {
     return CalendarHelper.parse({ iso })?.day ?? 0;
+  }
+
+  private dismiss (): void {
+    this.close();
+    this.trigger()?.nativeElement.focus();
   }
 
   private moveTo (iso: string): void {

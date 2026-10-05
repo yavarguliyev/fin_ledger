@@ -18,7 +18,14 @@ describe('Page view telemetry', () => {
     expect(metrics).toContain(T.DUPLICATE_SERIES);
   });
 
-  it('rejects a route that is not a route template, so labels stay clean', async () => {
+  it('lets the client on another port of the same site read the beacon response', async () => {
+    const summary = JSON.stringify({ route: T.ROUTE, initialCalls: T.INITIAL, laterCalls: T.LATER, duplicates: T.DUPLICATES });
+    const response = await send({ body: summary, type: T.TEXT_TYPE });
+
+    expect(response.headers.get(T.RESOURCE_POLICY_HEADER)).toBe(T.RESOURCE_POLICY);
+  });
+
+    it('rejects a route that is not a route template, so labels stay clean', async () => {
     const summary = JSON.stringify({ route: T.BAD_ROUTE, initialCalls: T.INITIAL, laterCalls: T.LATER, duplicates: T.DUPLICATES });
 
     await expect(send({ body: summary, type: T.JSON_TYPE })).resolves.toMatchObject({ status: T.BAD_REQUEST });

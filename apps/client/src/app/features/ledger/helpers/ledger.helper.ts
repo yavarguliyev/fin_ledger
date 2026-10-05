@@ -1,7 +1,7 @@
+import { ReferenceHelper } from '../../../core/helpers/common/reference.helper';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { LedgerEntry } from '../../../core/interfaces/ledger/ledger-entry.interface';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
-import { TABLE } from '../../../core/constants/ui/table.constant';
 import { LEDGER_TABLE } from '../../../core/constants/ui/ledger-table.constant';
 
 export class LedgerHelper {
@@ -13,7 +13,8 @@ export class LedgerHelper {
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        cellClass: 'font-mono text-xs truncate max-w-[120px]'
+        cellClass: 'font-mono text-xs',
+        format: ({ value }): string => ReferenceHelper.short({ reference: value })
       },
       {
         key: 'entryType',
@@ -31,14 +32,21 @@ export class LedgerHelper {
         mobileVisible: true,
         format: ({ value, row }): string => CurrencyHelper.formatCurrency({ amountMinor: value as number, currency: row.currency })
       },
-      { key: 'description', label: 'Description', type: 'text', align: 'center', mobileVisible: true },
+      {
+        key: 'description',
+        label: 'Description',
+        type: 'text',
+        align: 'center',
+        mobileVisible: true,
+        format: ({ value }): string => ReferenceHelper.short({ reference: value })
+      },
       {
         key: 'reference',
         label: 'Reference',
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
+        format: ({ value }): string => ReferenceHelper.short({ reference: value })
       },
       { key: 'createdAt', label: 'Date', type: 'date', align: 'center', mobileVisible: true }
     ];

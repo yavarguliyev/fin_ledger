@@ -3,6 +3,7 @@ import sharp from 'sharp';
 
 import { StorageHelper } from '../../src/modules/helpers/storage.helper';
 import { IMAGE_FORMATS } from '../../src/modules/constants/image/image-formats.constant';
+import { OversizedPngFixture } from '../fixtures/oversized-png.fixture';
 
 const image = (format: 'jpeg' | 'png' | 'tiff', size = 8): Promise<Buffer> =>
   sharp({ create: { width: size, height: size, channels: 3, background: { r: 200, g: 100, b: 50 } } })
@@ -45,9 +46,7 @@ describe('StorageHelper.normalizeImage', () => {
   });
 
   it('rejects an image with too many pixels before decoding it', async () => {
-    const huge = await sharp({ create: { width: 8000, height: 6000, channels: 3, background: { r: 0, g: 0, b: 0 } } })
-      .png({ compressionLevel: 9 })
-      .toBuffer();
+    const huge = await OversizedPngFixture.build();
 
     await expect(StorageHelper.normalizeImage({ file: { buffer: huge, mimetype: 'image/png', originalname: 'bomb.png' } })).rejects.toBeInstanceOf(
       BadRequestException

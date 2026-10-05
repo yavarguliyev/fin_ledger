@@ -1,3 +1,4 @@
+import { ReferenceHelper } from '../../../core/helpers/common/reference.helper';
 import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
 import { TableColumn } from '../../../core/interfaces/ui/table-column.interface';
 import { WalletTransactionSummary } from '../../../core/interfaces/wallet/wallet-transaction-summary.interface';
@@ -5,7 +6,6 @@ import { DASHBOARD_STATS } from '../constants/dashboard-stats.constant';
 import { Transaction } from '../../../core/types/wallet/transaction.type';
 import { CurrencyHelper } from '../../../core/helpers/wallet/currency.helper';
 import { TransactionHelper } from '../../../core/helpers/wallet/transaction.helper';
-import { TABLE } from '../../../core/constants/ui/table.constant';
 import { AMOUNT_CLASS } from '../../../core/constants/ui/amount-class.constant';
 
 export class DashboardHelper {
@@ -36,7 +36,7 @@ export class DashboardHelper {
         type: 'text',
         align: 'center',
         mobileVisible: false,
-        format: ({ value }): string => (value && typeof value === 'string' ? value : TABLE.EMPTY_CELL)
+        format: ({ value }): string => ReferenceHelper.short({ reference: value })
       },
       {
         key: 'createdAt',

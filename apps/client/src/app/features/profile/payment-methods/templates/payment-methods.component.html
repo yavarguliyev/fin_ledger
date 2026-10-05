@@ -17,9 +17,7 @@
   </div>
 
   @if (loading()) {
-    <div class="py-6 flex justify-center text-ink-400">
-      <span class="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-    </div>
+    <app-skeleton />
   } @else if (failed()) {
     <app-error-state [message]="states.METHODS_ERROR" (retry)="loadMethods()" />
   } @else if (methods().length === 0) {

@@ -17,6 +17,19 @@ describe('Date picker closing', () => {
     expect(picker.isOpen()).toBe(false);
   });
 
+  it('gives focus back to the field after a day is picked or Escape is pressed, so keyboard users are not dropped on the page', () => {
+    const picker = create();
+    const focus = jest.fn();
+    Object.defineProperty(picker, 'trigger', { value: () => ({ nativeElement: { focus } }) });
+
+    picker.toggle();
+    picker.select(picker.focused());
+    picker.toggle();
+    picker.onEscape();
+
+    expect(focus).toHaveBeenCalledTimes(2);
+  });
+
   it('ignores Escape while it is closed', () => {
     const picker = create();
 

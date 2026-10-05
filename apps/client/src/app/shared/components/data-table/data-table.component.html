@@ -62,8 +62,8 @@
       <tbody class="divide-y divide-ink-100 dark:divide-night-border">
         @if (loading()) {
           <tr>
-            <td [attr.colspan]="visibleColumns().length" class="px-5 py-8 text-center">
-              <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
+            <td [attr.colspan]="visibleColumns().length" class="px-5 py-4">
+              <app-skeleton />
             </td>
           </tr>
         } @else {
@@ -126,8 +126,8 @@
 
     <div class="md:hidden divide-y divide-ink-100 dark:divide-night-border">
       @if (loading()) {
-        <div class="px-4 py-8 text-center">
-          <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-primary border-r-transparent"></div>
+        <div class="px-4 py-4">
+          <app-skeleton />
         </div>
       } @else {
         @for (row of paginatedData(); track row) {

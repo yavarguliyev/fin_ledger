@@ -1,4 +1,5 @@
 export const DATE_PICKER = {
+  TRIGGER_REF: 'trigger',
   LOCALE: 'en-GB',
   TIME_ZONE: 'UTC',
   ISO_PATTERN: /^\d{4}-\d{2}-\d{2}$/,

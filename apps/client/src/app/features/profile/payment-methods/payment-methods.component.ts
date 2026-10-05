@@ -10,13 +10,14 @@ import { PaymentMethodHelper } from './helpers/payment-method.helper';
 import { PAYMENT_PROVIDERS } from '../../../core/constants/payment/payment-providers.constant';
 import { PAYMENT_METHOD_LABELS } from '../../../core/constants/payment/payment-method-labels.constant';
 import { ErrorStateComponent } from '../../../shared/components/error-state/error-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
 
 @Component({
   selector: 'app-payment-methods',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent],
+  imports: [CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent, SkeletonComponent],
   templateUrl: './templates/payment-methods.component.html'
 })
 export class PaymentMethodsComponent implements OnInit {

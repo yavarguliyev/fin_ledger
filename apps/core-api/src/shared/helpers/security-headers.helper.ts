@@ -14,7 +14,8 @@ export class SecurityHeadersHelper {
       },
       strictTransportSecurity: { maxAge: H.HSTS_MAX_AGE_SECONDS, includeSubDomains: true },
       referrerPolicy: { policy: H.REFERRER_POLICY },
-      frameguard: { action: H.FRAME_GUARD }
+      frameguard: { action: H.FRAME_GUARD },
+      crossOriginResourcePolicy: { policy: H.RESOURCE_POLICY }
     });
     const docsPrefix = `${H.PATH_SEPARATOR}${docsPath}`;
 

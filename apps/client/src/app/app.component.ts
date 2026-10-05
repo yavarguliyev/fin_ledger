@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, OnInit, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, OnInit, effect, untracked } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -21,10 +21,14 @@ export class App implements OnInit {
 
   constructor () {
     effect(() => {
-      if (this.isAuthenticated()) {
-        this.notificationService.connectSSE();
-        this.notificationService.getNotifications().subscribe();
-      } else this.notificationService.disconnectSSE();
+      const authenticated = this.isAuthenticated();
+
+      untracked(() => {
+        if (authenticated) {
+          this.notificationService.connectSSE();
+          this.notificationService.getNotifications().subscribe();
+        } else this.notificationService.disconnectSSE();
+      });
     });
   }
 

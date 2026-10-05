@@ -9,6 +9,8 @@ export const PAGE_VIEW_TEST = {
   JSON_TYPE: 'application/json',
   CONTENT_TYPE_HEADER: 'Content-Type',
   METHOD: 'POST',
+  RESOURCE_POLICY_HEADER: 'cross-origin-resource-policy',
+  RESOURCE_POLICY: 'same-site',
   INITIAL: 4,
   LATER: 2,
   DUPLICATES: 1,
