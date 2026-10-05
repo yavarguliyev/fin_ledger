@@ -1,5 +1,4 @@
 import type Stripe from 'stripe';
-import { PaymentIntent } from 'stripe';
 import { ProviderChargeStatus, ProviderErrorCategory } from '@common/shared-libs';
 
 import { StripeIntentHelper } from '../../../src/modules/adapters/stripe/helpers/stripe-intent.helper';
@@ -8,8 +7,8 @@ import { STRIPE_INTENT_DEFAULTS } from '../../../src/modules/constants/stripe/st
 import { CHARGE_INPUT } from '../../../src/modules/constants/testing/charge-input.constant';
 import { aStripeClient } from '../../fakes/stripe.fake';
 
-const intentOf = (fields: Partial<PaymentIntent>): PaymentIntent =>
-  ({ id: 'pi_test', client_secret: null, last_payment_error: null, ...fields }) as PaymentIntent;
+const intentOf = (fields: Partial<Stripe.PaymentIntent>): Stripe.PaymentIntent =>
+  ({ id: 'pi_test', client_secret: null, last_payment_error: null, ...fields }) as Stripe.PaymentIntent;
 
 describe('Stripe PaymentIntent status mapping', () => {
   it.each([
@@ -56,7 +55,7 @@ describe('StripeOperationHelper.createCharge', () => {
     const sent: unknown[] = [];
     const client = aStripeClient({
       paymentIntents: {
-        create: async (params: unknown): Promise<PaymentIntent> => {
+        create: async (params: unknown): Promise<Stripe.PaymentIntent> => {
           sent.push(params);
           return Promise.resolve(intentOf({ status: 'succeeded' }));
         }
@@ -69,7 +68,7 @@ describe('StripeOperationHelper.createCharge', () => {
 
   it('is what createCharge returns', async () => {
     const client = aStripeClient({
-      paymentIntents: { create: async (): Promise<PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) }
+      paymentIntents: { create: async (): Promise<Stripe.PaymentIntent> => Promise.resolve(intentOf({ status: 'processing' })) }
     });
 
     await expect(StripeOperationHelper.createCharge({ client, dto: CHARGE_INPUT })).resolves.toEqual({
@@ -85,7 +84,7 @@ describe('StripeOperationHelper.retrieveCharge', () => {
     const client = aStripeClient({
       charges: { retrieve: async (): Promise<unknown> => Promise.resolve({ payment_intent: 'pi_from_charge' }) },
       paymentIntents: {
-        retrieve: async (id: string): Promise<PaymentIntent> => {
+        retrieve: async (id: string): Promise<Stripe.PaymentIntent> => {
           retrieved.push(id);
           return Promise.resolve(intentOf({ id, status: 'succeeded', amount: 1500, currency: 'usd' }));
         }
@@ -130,7 +129,7 @@ describe('StripeOperationHelper.cancelCharge', () => {
     const cancelled: string[] = [];
     const client = aStripeClient({
       paymentIntents: {
-        cancel: async (id: string): Promise<PaymentIntent> => {
+        cancel: async (id: string): Promise<Stripe.PaymentIntent> => {
           cancelled.push(id);
           return Promise.resolve(intentOf({ id, status: 'canceled', amount: 900, currency: 'usd' }));
         }

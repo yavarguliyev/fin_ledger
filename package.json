@@ -2,7 +2,7 @@
   "name": "realtime-wallet-payments",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "npm@10.9.2",
+  "packageManager": "npm@11.19.0",
   "workspaces": ["packages/*", "apps/core-api", "apps/client"],
   "scripts": {
     "install:all": "npm install",
@@ -43,7 +43,7 @@
     "@eslint/js": "^9.18.0",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.19.1",
     "argon2": "^0.45.1",
     "concurrently": "^9.1.2",
     "eslint": "^9.18.0",
@@ -56,12 +56,12 @@
     "prettier": "^3.4.2",
     "ts-jest": "^29.4.12",
     "turbo": "^2.3.3",
-    "typescript": "^5.7.3",
+    "typescript": "~6.0.3",
     "typescript-eslint": "^8.20.0",
     "uuid": "^14.0.2",
     "wait-on": "^8.0.1"
   },
   "engines": {
-    "node": ">=24.9"
+    "node": ">=24.21.0"
   }
 }

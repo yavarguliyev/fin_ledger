@@ -1,5 +1,5 @@
 import { InternalServerErrorException } from '@nestjs/common';
-import { PaymentMethod, SetupIntent } from 'stripe';
+import type Stripe from 'stripe';
 import { PaymentMethodStatus, PaymentMethodType } from '@common/shared-libs';
 
 import { ProviderMethodResultDto } from '../../../dtos/operation/provider-method-result.dto';
@@ -24,8 +24,8 @@ export class StripeMethodHelper {
 
   static async retrieveSessionMethod ({ client, sessionId }: RetrieveSessionMethodDto): Promise<ProviderMethodResultDto> {
     const session = await client.checkout.sessions.retrieve(sessionId, { expand: ['setup_intent.payment_method'] });
-    const setupIntent = session.setup_intent as SetupIntent | null;
-    const pm = (setupIntent?.payment_method as PaymentMethod) ?? null;
+    const setupIntent = session.setup_intent as Stripe.SetupIntent | null;
+    const pm = (setupIntent?.payment_method as Stripe.PaymentMethod) ?? null;
 
     if (!pm) throw new InternalServerErrorException('Payment method not found on setup session');
     return StripeMethodHelper.toMethodResult({ paymentMethod: pm });

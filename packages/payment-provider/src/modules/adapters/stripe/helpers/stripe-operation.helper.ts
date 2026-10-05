@@ -1,4 +1,4 @@
-import { PaymentIntentCreateParams } from 'stripe';
+import type Stripe from 'stripe';
 
 import { OperationResultDto } from '../../../dtos/adapter/operation-result.dto';
 import { BuildChargeParamsDto } from '../../../dtos/helper/build-charge-params.dto';
@@ -25,7 +25,7 @@ export class StripeOperationHelper {
     return customerId;
   }
 
-  static buildChargeParams ({ dto, customerId }: BuildChargeParamsDto): PaymentIntentCreateParams {
+  static buildChargeParams ({ dto, customerId }: BuildChargeParamsDto): Stripe.PaymentIntentCreateParams {
     return {
       amount: dto.amount,
       currency: dto.currency.toLowerCase(),

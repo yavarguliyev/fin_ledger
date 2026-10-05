@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import type { PaymentIntent } from 'stripe';
+import type Stripe from 'stripe';
 
-export const StripeIntentSchema: z.ZodObject<{ intent: z.ZodCustom<PaymentIntent, PaymentIntent> }> = z.object({
-  intent: z.custom<PaymentIntent>()
+export const StripeIntentSchema: z.ZodObject<{ intent: z.ZodCustom<Stripe.PaymentIntent, Stripe.PaymentIntent> }> = z.object({
+  intent: z.custom<Stripe.PaymentIntent>()
 });
 
 export type StripeIntentDto = z.infer<typeof StripeIntentSchema>;

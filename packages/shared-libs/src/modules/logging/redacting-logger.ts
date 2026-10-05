@@ -11,8 +11,7 @@ export class RedactingLogger extends ConsoleLogger {
     this.revealLinks = revealLinks;
   }
 
-  protected override stringifyMessage (message: unknown, logLevel: LogLevel): unknown {
-    const text: unknown = super.stringifyMessage(message, logLevel);
-    return typeof text === 'string' ? LogRedactionHelper.redact({ message: text, revealLinks: this.revealLinks }) : text;
+  protected override stringifyMessage (message: unknown, logLevel: LogLevel): string {
+    return LogRedactionHelper.redact({ message: super.stringifyMessage(message, logLevel), revealLinks: this.revealLinks });
   }
 }

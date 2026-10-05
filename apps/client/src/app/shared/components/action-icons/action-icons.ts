@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-config.interface';
@@ -6,6 +6,7 @@ import { ActionIconsConfig } from '../../../core/interfaces/ui/action-icons-conf
 @Component({
   selector: 'app-action-icons',
   imports: [CommonModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './action-icons.html'
 })
 export class ActionIconsComponent {

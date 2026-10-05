@@ -1,7 +1,7 @@
 import { inject, provideAppInitializer } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withXhr } from '@angular/common/http';
 
 import { App } from './app/app.component';
 import { routes } from './app/app.routes';
@@ -17,7 +17,10 @@ import { PageViewTrackerService } from './app/core/services/page-view-tracker.se
 bootstrapApplication(App, {
   providers: [
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
-    provideHttpClient(withInterceptors([pageViewInterceptor, requestSharingInterceptor, authInterceptor, readRetryInterceptor, requestTimeoutInterceptor])),
+    provideHttpClient(
+      withXhr(),
+      withInterceptors([pageViewInterceptor, requestSharingInterceptor, authInterceptor, readRetryInterceptor, requestTimeoutInterceptor])
+    ),
     provideAppInitializer(() => inject(PageViewTrackerService).listen()),
     provideAppInitializer(() => {
       const config = inject(AppConfigService);

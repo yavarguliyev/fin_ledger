@@ -7,6 +7,6 @@ module.exports = {
     '^@common/shared-libs$': '<rootDir>/../../shared-libs/src'
   },
   transform: {
-    '^.+\\.ts$': ['ts-jest', { tsconfig: { experimentalDecorators: true, emitDecoratorMetadata: true, strict: false } }]
+    '^.+\\.ts$': ['ts-jest', { tsconfig: '<rootDir>/../tsconfig.json' }]
   }
 };
