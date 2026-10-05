@@ -1,4 +1,5 @@
 export const LAST_SEEN_SPEC = {
+  NOON_HOUR: 12,
   OFFLINE: 'Offline',
   JUST_NOW: 'Last seen just now',
   PREFIX: 'Last seen',

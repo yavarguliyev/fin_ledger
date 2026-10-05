@@ -7,7 +7,7 @@
     </div>
   }
 
-  <app-stats-card [stats]="stats()" [columns]="4" />
+  <app-stats-card [stats]="stats()" [columns]="4" (choose)="volumeCurrency.choose($event)" />
 
   <app-data-table
     [config]="tableConfig()"

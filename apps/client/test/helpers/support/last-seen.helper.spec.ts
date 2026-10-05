@@ -4,6 +4,14 @@ import { LAST_SEEN_SPEC } from '../../constants/last-seen.constant';
 const agoBy = (ms: number): string => new Date(Date.now() - ms).toISOString();
 
 describe('LastSeenHelper.label', () => {
+  beforeEach(() => {
+    const noon = new Date();
+    noon.setHours(LAST_SEEN_SPEC.NOON_HOUR, 0, 0, 0);
+    jest.useFakeTimers({ now: noon });
+  });
+
+  afterEach(() => jest.useRealTimers());
+
   it('says offline when nobody has ever been seen', () => {
     expect(LastSeenHelper.label({ iso: null })).toBe(LAST_SEEN_SPEC.OFFLINE);
   });

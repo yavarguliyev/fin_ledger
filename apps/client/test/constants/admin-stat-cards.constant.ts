@@ -1,6 +1,7 @@
 export const ADMIN_STAT_CARDS_TEST = {
   USD: 'USD',
   EUR: 'EUR',
+  MISSING: 'JPY',
   USD_MINOR: 150_000,
   EUR_MINOR: 250_000,
   TOTAL_USERS: 4,

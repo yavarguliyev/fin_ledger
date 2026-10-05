@@ -7,7 +7,9 @@ export const AlertmanagerAlertSchema = z.object({
 
   annotations: z.record(z.string(), z.string(), { message: 'Alert annotations must be a string map' }).optional(),
 
-  startsAt: z.string({ message: 'Alert start must be a string' }).optional()
+  startsAt: z.string({ message: 'Alert start must be a string' }).optional(),
+
+  endsAt: z.string({ message: 'Alert end must be a string' }).optional()
 });
 
 export type AlertmanagerAlertDto = z.infer<typeof AlertmanagerAlertSchema>;

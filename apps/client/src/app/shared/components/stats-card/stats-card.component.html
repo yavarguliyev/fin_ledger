@@ -22,6 +22,25 @@
       }
       <p class="text-2xl font-bold text-ink-900 dark:text-white mt-3 truncate">{{ stat.value }}</p>
       <p class="text-xs text-ink-500 dark:text-night-muted mt-0.5">{{ stat.label }}</p>
+      @if (stat.choices) {
+        <div class="mt-3 flex flex-wrap gap-1" role="group" [attr.aria-label]="stat.label + ' currency'">
+          @for (choice of stat.choices; track choice.key) {
+            <button
+              type="button"
+              (click)="choose.emit(choice.key)"
+              [attr.aria-pressed]="choice.active"
+              class="px-2 py-0.5 rounded-md text-xs font-medium border transition-colors"
+              [ngClass]="
+                choice.active
+                  ? 'border-primary bg-primary/10 text-primary-dark dark:text-primary-light'
+                  : 'border-ink-200 dark:border-night-border text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg'
+              "
+            >
+              {{ choice.label }}
+            </button>
+          }
+        </div>
+      }
     </div>
   }
 </div>

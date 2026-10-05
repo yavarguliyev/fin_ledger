@@ -8,12 +8,12 @@ import { AccountStatusColumnDto } from '../../../core/interfaces/admin/account-s
 import { ActionsColumnDto } from '../../../core/interfaces/admin/actions-column.interface';
 import { ToggleColumnsDto } from '../../../core/interfaces/admin/toggle-columns.interface';
 import { MinorAmountDto } from '../../../core/interfaces/wallet/minor-amount.interface';
-import { DashboardStatsRefDto } from '../../../core/interfaces/admin/dashboard-stats-ref.interface';
+import { StatCardsInputDto } from '../../../core/interfaces/admin/stat-cards-input.interface';
 import { StatCardHelper } from './stat-card.helper';
 
 export class AdminHelper {
-  static buildStatCards ({ stats }: DashboardStatsRefDto): StatCard[] {
-    return StatCardHelper.build({ stats });
+  static buildStatCards (dto: StatCardsInputDto): StatCard[] {
+    return StatCardHelper.build(dto);
   }
 
   static formatCurrencyCompact ({ amountMinor }: MinorAmountDto): string {

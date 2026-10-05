@@ -2,6 +2,8 @@ import { ElementRef, Injector, runInInjectionContext } from '@angular/core';
 
 import { CountrySelectComponent } from '../../src/app/shared/components/country-select/country-select.component';
 import { DatePickerComponent } from '../../src/app/shared/components/date-picker/date-picker.component';
+import { MessageThreadComponent } from '../../src/app/features/support/components/message-thread.component';
+import { PICKER_ESCAPE_TEST as T } from '../constants/picker-escape.constant';
 
 const injector = (): Injector => Injector.create({ providers: [{ provide: ElementRef, useValue: { nativeElement: { contains: (): boolean => false } } }] });
 
@@ -46,5 +48,18 @@ describe('Country select closing', () => {
 
     select.onEscape();
     expect(select.isOpen()).toBe(false);
+  });
+});
+
+describe('Reaction picker closing', () => {
+  it('closes the reaction picker and the full emoji panel on Escape', () => {
+    const thread = runInInjectionContext(injector(), () => new MessageThreadComponent());
+    thread.pickerFor.set(T.MESSAGE_ID);
+    thread.expandedFor.set(T.MESSAGE_ID);
+
+    thread.closePicker();
+
+    expect(thread.pickerFor()).toBeNull();
+    expect(thread.expandedFor()).toBeNull();
   });
 });

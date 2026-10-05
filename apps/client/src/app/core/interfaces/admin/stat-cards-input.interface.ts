@@ -1,5 +1,6 @@
 import { DashboardStats } from './dashboard-stats.interface';
 
-export interface DashboardStatsRefDto {
+export interface StatCardsInputDto {
   stats: DashboardStats | null;
+  currency: string | null;
 }

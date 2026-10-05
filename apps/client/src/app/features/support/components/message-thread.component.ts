@@ -26,7 +26,8 @@ import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-tog
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, NgOptimizedImage],
-  templateUrl: '../templates/message-thread.component.html'
+  templateUrl: '../templates/message-thread.component.html',
+  host: { '(document:keydown.escape)': 'closePicker()' }
 })
 export class MessageThreadComponent {
   readonly messages = input<SupportMessage[]>([]);
@@ -58,6 +59,12 @@ export class MessageThreadComponent {
 
   reactionsOf (message: SupportMessage): ReactionSummary[] {
     return ReactionHelper.summarize({ reactions: message.reactions ?? [], myUserId: this.userId() });
+  }
+
+  closePicker (): void {
+    if (!this.pickerFor()) return;
+    this.pickerFor.set(null);
+    this.expandedFor.set(null);
   }
 
   pick ({ messageId, emoji }: ReactionToggleDto): void {

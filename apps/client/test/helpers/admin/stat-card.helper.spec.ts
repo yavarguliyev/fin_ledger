@@ -14,17 +14,36 @@ const stats: DashboardStats = {
 };
 
 describe('Admin stat cards', () => {
-  it('shows total volume per currency instead of one sum across currencies', () => {
-    const volume = StatCardHelper.build({ stats })[T.VOLUME_INDEX];
+  it('shows the largest currency by default and offers the others as choices, largest first', () => {
+    const volume = StatCardHelper.build({ stats, currency: null })[T.VOLUME_INDEX];
 
     expect(volume?.label).toBe(ADMIN_TABLE.VOLUME_LABEL);
-    expect(volume?.value).toContain(T.EUR_TEXT);
-    expect(volume?.value).toContain(T.USD_TEXT);
+    expect(volume?.value).toBe(T.EUR_TEXT);
+    expect(volume?.choices?.map(choice => [choice.key, choice.active])).toEqual([
+      [T.EUR, true],
+      [T.USD, false]
+    ]);
+  });
+
+  it('shows the chosen currency and never one sum across currencies', () => {
+    const volume = StatCardHelper.build({ stats, currency: T.USD })[T.VOLUME_INDEX];
+
+    expect(volume?.value).toBe(T.USD_TEXT);
     expect(volume?.value).not.toContain(T.JOINED_SUM_TEXT);
   });
 
+  it('falls back to the largest currency when the remembered one has no volume', () => {
+    expect(StatCardHelper.build({ stats, currency: T.MISSING })[T.VOLUME_INDEX]?.value).toBe(T.EUR_TEXT);
+  });
+
+  it('offers no choices for a single currency', () => {
+    const single = { ...stats, volumes: [{ currency: T.USD, amountMinor: T.USD_MINOR }] };
+
+    expect(StatCardHelper.build({ stats: single, currency: null })[T.VOLUME_INDEX]?.choices).toBeUndefined();
+  });
+
   it('falls back to zero values before the stats arrive', () => {
-    const cards = StatCardHelper.build({ stats: null });
+    const cards = StatCardHelper.build({ stats: null, currency: null });
 
     expect(cards.map(card => card.value)).toEqual([ADMIN_TABLE.ZERO_COUNT, ADMIN_TABLE.ZERO_COUNT, ADMIN_TABLE.ZERO_VOLUME, ADMIN_TABLE.ZERO_COUNT]);
   });

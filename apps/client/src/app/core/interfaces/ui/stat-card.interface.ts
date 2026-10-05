@@ -1,7 +1,10 @@
+import { StatChoice } from './stat-choice.interface';
+
 export interface StatCard {
   label: string;
   value: string;
   icon: string;
   trend?: string;
   toneClass?: string;
+  choices?: StatChoice[];
 }

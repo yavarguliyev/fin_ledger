@@ -21,6 +21,7 @@ import { AdminApiService } from '../../core/services/admin-api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AdminHandlers } from './admin-handlers';
+import { VolumeCurrencyStore } from '../../core/services/volume-currency.store';
 import { AdminHelper } from './helpers/admin.helper';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
@@ -67,7 +68,8 @@ export class AdminComponent implements OnInit {
     availablePageSizes: [10, 25, 50, 100]
   }));
 
-  readonly stats = computed<StatCard[]>(() => AdminHelper.buildStatCards({ stats: this.dashboardStats() }));
+  readonly volumeCurrency = inject(VolumeCurrencyStore);
+  readonly stats = computed<StatCard[]>(() => AdminHelper.buildStatCards({ stats: this.dashboardStats(), currency: this.volumeCurrency.selected() }));
 
   readonly tableConfig = computed<DataTableConfig<AdminUser>>(() => ({
     title: 'User Management',

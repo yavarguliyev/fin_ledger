@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
@@ -13,4 +13,5 @@ import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
 export class StatsCardComponent {
   readonly stats = input.required<StatCard[]>();
   readonly columns = input<number>(4);
+  readonly choose = output<string>();
 }

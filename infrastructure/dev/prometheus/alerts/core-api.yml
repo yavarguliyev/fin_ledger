@@ -6,8 +6,9 @@ groups:
         for: 2m
         labels: { severity: critical }
         annotations:
-          summary: 'Core API is not answering /metrics'
-          description: 'Prometheus could not scrape {{ $labels.instance }} for 2 minutes.'
+          summary: 'Core API is down'
+          description: 'Prometheus could not reach the API for 2 minutes.'
+          recovery: 'Core API is back'
       - alert: HighServerErrorRate
         expr: |
           sum(rate(core_api_http_request_duration_seconds_count{status=~"5.."}[5m]))
@@ -88,6 +89,7 @@ groups:
         labels: { severity: critical }
         annotations:
           summary: 'PostgreSQL is unreachable'
+          recovery: 'PostgreSQL is reachable again'
       - alert: PostgresConnectionsHigh
         expr: sum(pg_stat_database_numbackends) / max(pg_settings_max_connections) > 0.85
         for: 5m
@@ -100,6 +102,7 @@ groups:
         labels: { severity: critical }
         annotations:
           summary: 'Redis is unreachable'
+          recovery: 'Redis is reachable again'
       - alert: RedisEvictingKeys
         expr: increase(redis_evicted_keys_total[10m]) > 0
         labels: { severity: warning }
@@ -111,12 +114,14 @@ groups:
         labels: { severity: critical }
         annotations:
           summary: 'RabbitMQ is unreachable'
+          recovery: 'RabbitMQ is reachable again'
       - alert: KafkaDown
         expr: up{job="kafka"} == 0 or kafka_brokers < 1
         for: 1m
         labels: { severity: critical }
         annotations:
           summary: 'Kafka is unreachable'
+          recovery: 'Kafka is reachable again'
       - alert: KafkaConsumerLagHigh
         expr: sum by (consumergroup) (kafka_consumergroup_lag) > 1000
         for: 10m
