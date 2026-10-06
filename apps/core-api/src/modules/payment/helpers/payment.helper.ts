@@ -5,8 +5,7 @@ import { PaymentRefDto } from '../dtos/helper/payment-ref.dto';
 import { PaymentAnalyticsEventPayloadDto } from '../dtos/analytics/payment-analytics-event.dto';
 import { PaymentFailedEventPayloadDto } from '../dtos/analytics/payment-failed-event.dto';
 import { ValidateAndGetPaymentMethodDto } from '../dtos/helper/validate-and-get-payment-method.dto';
-import { PaymentMethodDto } from '../../payment-methods/dtos/payment-method/payment-method.dto';
-import { PAYMENT_METHOD_STATUS } from '../../payment-methods/constants/status/payment-method-status.constant';
+import { PaymentMethodDto, PAYMENT_METHOD_STATUS } from '../../payment-methods';
 
 export class PaymentHelper {
   static async validateAndGetPaymentMethod (dto: ValidateAndGetPaymentMethodDto): Promise<PaymentMethodDto> {

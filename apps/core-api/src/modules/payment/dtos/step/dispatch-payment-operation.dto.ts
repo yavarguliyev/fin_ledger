@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { WalletSummarySchema } from '../../../wallet/dtos/wallet/wallet-summary.dto';
-import { PaymentMethodSchema } from '../../../payment-methods/dtos/payment-method/payment-method.dto';
+import { WalletSummarySchema } from '../../../wallet';
+import { PaymentMethodSchema } from '../../../payment-methods';
 import { PaymentSchema } from '../payment/payment.dto';
 import { ProcessPaymentSchema } from '../input/process-payment.dto';
 

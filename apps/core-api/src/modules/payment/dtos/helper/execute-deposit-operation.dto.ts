@@ -3,9 +3,8 @@ import { CapableProvider, PaymentCapability } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
 import { CompletePaymentUseCase } from '../../use-cases/commands/complete-payment.use-case';
-import { WalletService } from '../../../wallet/wallet.service';
-import { WalletSummarySchema } from '../../../wallet/dtos/wallet/wallet-summary.dto';
-import { PaymentMethodSchema } from '../../../payment-methods/dtos/payment-method/payment-method.dto';
+import { WalletService, WalletSummarySchema } from '../../../wallet';
+import { PaymentMethodSchema } from '../../../payment-methods';
 import { PaymentSchema } from '../payment/payment.dto';
 import { ProcessPaymentSchema } from '../input/process-payment.dto';
 

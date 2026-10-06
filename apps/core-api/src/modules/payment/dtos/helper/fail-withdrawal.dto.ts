@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { WalletService } from '../../../wallet/wallet.service';
+import { WalletService } from '../../../wallet';
 
 export const FailWithdrawalSchema = z.object({
   walletService: z.custom<WalletService>(),

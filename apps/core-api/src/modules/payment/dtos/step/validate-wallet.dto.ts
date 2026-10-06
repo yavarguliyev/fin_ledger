@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { WalletSummarySchema } from '../../../wallet/dtos/wallet/wallet-summary.dto';
+import { WalletSummarySchema } from '../../../wallet';
 import { ProcessPaymentSchema } from '../input/process-payment.dto';
 
 export const ValidateWalletSchema = z.object({

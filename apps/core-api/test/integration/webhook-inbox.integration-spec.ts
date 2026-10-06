@@ -44,6 +44,7 @@ describe('Webhook inbox', () => {
     const crash = { id: WEBHOOK_INBOX.CRASH_EVENT, type: WEBHOOK_INBOX.SUCCEEDED, paymentId };
 
     await expect(send(crash)).resolves.toMatchObject({ status: WEBHOOK_INBOX.SERVER_ERROR });
+    await DbHelper.query({ sql: WEBHOOK_INBOX.HOLD_REPLAY_SQL, params: [WEBHOOK_INBOX.PROVIDER, WEBHOOK_INBOX.CRASH_EVENT] });
     await expect(eventRow({ eventId: WEBHOOK_INBOX.CRASH_EVENT })).resolves.toEqual(WEBHOOK_INBOX.RECEIVED_ONCE);
     await expect(paymentStatus({ paymentId })).resolves.toBe(WEBHOOK_INBOX.PENDING);
     await DbHelper.query({ sql: WEBHOOK_INBOX.DROP_TRIGGER_SQL });

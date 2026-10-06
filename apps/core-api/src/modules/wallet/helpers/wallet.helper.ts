@@ -10,7 +10,7 @@ import { ProcessWalletTransactionDto } from '../dtos/helper/process-wallet-trans
 import { ValidateWalletTransactionDto } from '../dtos/helper/validate-wallet-transaction.dto';
 import { WalletTransactionInputDto } from '../dtos/helper/wallet-transaction-input.dto';
 import { AssertWalletStatusDto } from '../dtos/helper/assert-wallet-status.dto';
-import { AnalyticsEventPayloadDto } from '../../analytics/dtos/payload/analytics-event-payload.dto';
+import { AnalyticsEventPayloadDto } from '../../analytics';
 import { WalletLedgerHelper } from './wallet-ledger.helper';
 
 export class WalletHelper {

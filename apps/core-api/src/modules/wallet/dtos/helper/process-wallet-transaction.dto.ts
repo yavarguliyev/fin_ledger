@@ -3,8 +3,8 @@ import { AGGREGATE_TYPES, BETTING_TYPES, DomainEventType, EntryType, OutboxRepos
 
 import { WalletOperationSchema } from '../input/wallet-operation.dto';
 import { WalletRepository } from '../../repositories/wallet.repository';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
+import { LedgerService } from '../../../ledger';
+import { WalletTransactionRepository } from '../../../wallet-transactions';
 
 export const ProcessWalletTransactionSchema = WalletOperationSchema.extend({
   walletRepository: z.custom<WalletRepository>(),

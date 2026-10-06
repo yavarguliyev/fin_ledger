@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { EntryType, WalletTransactionType } from '@common/libs';
 
 import { WalletTransactionInputSchema } from './wallet-transaction-input.dto';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
+import { LedgerService } from '../../../ledger';
+import { WalletTransactionRepository } from '../../../wallet-transactions';
 
 export const RecordWalletTransactionSchema = z.object({
   input: WalletTransactionInputSchema,

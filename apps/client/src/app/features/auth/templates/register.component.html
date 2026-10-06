@@ -23,7 +23,7 @@
             placeholder="John Doe"
           />
           @if (displayNameControl.invalid && displayNameControl.touched) {
-            <p class="mt-1.5 text-xs text-danger">
+            <p class="mt-1.5 text-xs text-danger-deep dark:text-danger-light">
               @if (displayNameControl.hasError('required')) {
                 Name is required
               } @else if (displayNameControl.hasError('minlength')) {
@@ -50,7 +50,7 @@
             placeholder="you@example.com"
           />
           @if (emailControl.invalid && emailControl.touched) {
-            <p class="mt-1.5 text-xs text-danger">
+            <p class="mt-1.5 text-xs text-danger-deep dark:text-danger-light">
               @if (emailControl.hasError('required')) {
                 Email is required
               } @else if (emailControl.hasError('email')) {
@@ -104,7 +104,7 @@
             </button>
           </div>
           @if (passwordControl.invalid && passwordControl.touched) {
-            <p class="mt-1.5 text-xs text-danger">Min 8 chars, upper + lower + number</p>
+            <p class="mt-1.5 text-xs text-danger-deep dark:text-danger-light">Min 8 chars, upper + lower + number</p>
           }
           <app-field-error [control]="passwordControl" fieldId="password" />
         </div>
@@ -152,7 +152,7 @@
             </button>
           </div>
           @if (form.hasError('mismatch') && confirmPasswordControl.touched) {
-            <p class="mt-1.5 text-xs text-danger">Passwords don't match</p>
+            <p class="mt-1.5 text-xs text-danger-deep dark:text-danger-light">Passwords don't match</p>
           }
           <app-field-error [control]="confirmPasswordControl" fieldId="confirmPassword" />
         </div>
@@ -168,7 +168,7 @@
         </label>
 
         @if (error()) {
-          <div class="p-3 rounded-lg bg-danger/10 border border-danger/30 text-danger text-sm" role="alert">{{ error() }}</div>
+          <div class="p-3 rounded-lg bg-danger/10 border border-danger/30 text-danger-deep dark:text-danger-light text-sm" role="alert">{{ error() }}</div>
         }
 
         <button

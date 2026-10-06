@@ -6,5 +6,6 @@ export const JWKS_SPEC = {
   ALGORITHM: 'RS256',
   KEY_TYPE: 'RSA',
   USE: 'sig',
-  KEY_COUNT: 1
+  KEY_COUNT: 1,
+  ROTATED_KEY_COUNT: 2
 } as const;

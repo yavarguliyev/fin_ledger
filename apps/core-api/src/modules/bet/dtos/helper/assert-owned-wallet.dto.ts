@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { WalletSchema } from '../../../wallet/dtos/wallet/wallet.dto';
+import { WalletSchema } from '../../../wallet';
 
 export const AssertOwnedWalletSchema = z.object({
   wallet: WalletSchema.nullable(),

@@ -5,8 +5,8 @@ import { PaymentRepository } from '../../repositories/payment.repository';
 import { PaymentIdRequestDto } from '../../dtos/request/payment-id-request.dto';
 import { RECEIPT } from '../../constants/receipt/receipt.constant';
 import { ReceiptHelper } from '../../helpers/receipt.helper';
-import { AuthRepository } from '../../../auth/repositories/auth.repository';
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
+import { AuthRepository } from '../../../auth';
+import { PaymentMethodRepository } from '../../../payment-methods';
 
 @Injectable()
 export class GetPaymentReceiptUseCase {

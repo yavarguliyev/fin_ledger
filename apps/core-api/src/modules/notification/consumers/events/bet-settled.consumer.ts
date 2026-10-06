@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseHelper, DomainEventType, NotificationType, NotificationTitle } from '@common/libs';
 
 import { NotificationBaseConsumer } from '../base/notification.consumer';
-import { BetSettledPayloadDto } from '../../../bet/dtos/event/bet-settled-payload.dto';
-import { BET_STATUS } from '../../../bet/constants/bet/bet-status.constant';
+import { BetSettledPayloadDto, BET_STATUS } from '../../../bet';
 
 @Injectable()
 export class BetSettledConsumer extends NotificationBaseConsumer<BetSettledPayloadDto> {

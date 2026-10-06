@@ -6,6 +6,7 @@ import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SER
 
 import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
+import { EnvelopeHelper } from '../helpers/envelope.helper';
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
 import { OutboxSettingsHelper } from '../helpers/outbox-settings.helper';
 import { OutboxSettingsDto } from '../dtos/outbox/outbox-settings.dto';
@@ -66,17 +67,20 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
         eventType: event.eventType,
         payload: event.payload,
         attempts: event.attempts,
-        destination: event.destination
+        destination: event.destination,
+        occurredAt: event.createdAt,
+        ...(event.traceId && { correlationId: event.traceId })
       });
     }
 
     return events.length;
   }
 
-  async publishEvent ({ eventId, eventType, payload, attempts, destination }: PublishOutboxEventDto): Promise<void> {
+  async publishEvent ({ eventId, eventType, payload, attempts, destination, occurredAt, correlationId }: PublishOutboxEventDto): Promise<void> {
     try {
-      if (destination === OutboxDestination.KAFKA) await this.kafkaService.send({ topic: eventType, payload });
-      else await this.rabbitmqService.publish({ payload, routingKey: eventType, persistent: true });
+      const headers = EnvelopeHelper.headers({ eventId, eventType, occurredAt, ...(correlationId && { correlationId }) });
+      if (destination === OutboxDestination.KAFKA) await this.kafkaService.send({ topic: eventType, payload, headers });
+      else await this.rabbitmqService.publish({ payload, routingKey: eventType, persistent: true, headers });
 
       await this.outboxRepository.markPublished({ id: eventId });
     } catch (error) {

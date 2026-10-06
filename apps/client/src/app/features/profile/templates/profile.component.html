@@ -47,7 +47,7 @@
           <button
             type="button"
             (click)="deleteAllImages()"
-            class="px-4 py-2 rounded-lg border border-danger text-danger font-semibold hover:bg-danger hover:text-white transition-colors text-sm"
+            class="px-4 py-2 rounded-lg border border-danger text-danger-deep dark:text-danger-light font-semibold hover:bg-danger hover:text-white transition-colors text-sm"
           >
             Delete All
           </button>
@@ -135,13 +135,13 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Country</label>
-          <app-country-select formControlName="countryCode" ariaLabel="Country" />
-          <app-field-error [control]="profileForm.get('countryCode')" />
+          <app-country-select formControlName="countryCode" ariaLabel="Country" describedBy="profile-country-error" />
+          <app-field-error [control]="profileForm.get('countryCode')" fieldId="profile-country" />
         </div>
         <div>
           <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Date of birth</label>
-          <app-date-picker formControlName="dateOfBirth" [min]="earliestBirthDate" [max]="latestBirthDate" ariaLabel="Date of birth" />
-          <app-field-error [control]="profileForm.get('dateOfBirth')" />
+          <app-date-picker formControlName="dateOfBirth" [min]="earliestBirthDate" [max]="latestBirthDate" ariaLabel="Date of birth" describedBy="profile-date-of-birth-error" />
+          <app-field-error [control]="profileForm.get('dateOfBirth')" fieldId="profile-date-of-birth" />
         </div>
       </div>
 

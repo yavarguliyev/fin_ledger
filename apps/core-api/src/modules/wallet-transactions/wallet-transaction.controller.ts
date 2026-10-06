@@ -17,7 +17,7 @@ import { WalletTransactionSummaryDto } from './dtos/summary/wallet-transaction-s
 import { WalletTransactionService } from './wallet-transaction.service';
 import { ListWalletTransactionsRequestDto, ListWalletTransactionsRequestSchema } from './dtos/request/list-wallet-transactions-request.dto';
 import { GetWalletSummaryRequestDto, GetWalletSummaryRequestSchema } from './dtos/request/get-wallet-summary-request.dto';
-import { WalletAccessGuard } from '../wallet/guards/wallet-access.guard';
+import { WalletAccessGuard } from '../wallet';
 
 @ApiTags(SHARED_CONSTANTS.WALLET_TRANSACTION.key)
 @UseGuards(SessionGuard, RolesGuard, WalletAccessGuard)

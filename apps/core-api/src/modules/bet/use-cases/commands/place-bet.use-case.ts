@@ -6,7 +6,7 @@ import { BetHelper } from '../../helpers/bet.helper';
 import { BetDto } from '../../dtos/bet/bet.dto';
 import { PlaceBetDto } from '../../dtos/input/place-bet.dto';
 import { PlaceBetTransactionDto } from '../../dtos/step/place-bet-transaction.dto';
-import { SelfExclusionHelper } from '../../../user/helpers/self-exclusion.helper';
+import { SelfExclusionHelper } from '../../../user';
 
 @Injectable()
 export class PlaceBetUseCase extends BetBaseUseCase<PlaceBetDto, BetDto> {

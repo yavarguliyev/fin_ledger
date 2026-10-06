@@ -1,11 +1,12 @@
 import { z } from 'zod';
-import { Environment, MailTransportKind, SmsTransportKind } from '@common/shared-libs';
+import { Environment, MailTransportKind, ProcessRolesSchema, SmsTransportKind } from '@common/shared-libs';
 
 import { ENVIRONMENT_CONSTANTS } from '../../constants/environment/env.constant';
 
 export const EnvironmentVariablesSchema = z.object({
   NODE_ENV: z.enum(Environment, { message: 'NODE_ENV must be a valid Environment enum' }),
   HOST: z.string({ message: 'HOST must be a string' }).default('0.0.0.0'),
+  PROCESS_ROLES: ProcessRolesSchema,
 
   PORT: z.coerce
     .number({ message: 'PORT must be a number' })
@@ -47,6 +48,7 @@ export const EnvironmentVariablesSchema = z.object({
 
   JWT_PRIVATE_KEY: z.string({ message: 'JWT_PRIVATE_KEY must be a string' }).min(1, { message: 'JWT_PRIVATE_KEY is required' }),
   JWT_PUBLIC_KEY: z.string({ message: 'JWT_PUBLIC_KEY must be a string' }).min(1, { message: 'JWT_PUBLIC_KEY is required' }),
+  JWT_PREVIOUS_PUBLIC_KEY: z.string({ message: 'JWT_PREVIOUS_PUBLIC_KEY must be a string' }).optional(),
   JWT_EXPIRES_IN: z.string({ message: 'JWT_EXPIRES_IN must be a string' }).min(1, { message: 'JWT_EXPIRES_IN is required' }),
   JWT_ISSUER: z.string({ message: 'JWT_ISSUER must be a string' }).min(1, { message: 'JWT_ISSUER is required' }),
   JWT_AUDIENCE: z.string({ message: 'JWT_AUDIENCE must be a string' }).min(1, { message: 'JWT_AUDIENCE is required' }),

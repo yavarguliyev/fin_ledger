@@ -4,12 +4,14 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
+import { moduleBoundaries } from './eslint-rules/module-boundaries.mjs';
+
 export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
   {
-    ignores: ['eslint.config.mjs']
+    ignores: ['eslint.config.mjs', 'eslint-rules/**']
   },
   {
     languageOptions: {
@@ -49,5 +51,10 @@ export default tseslint.config(
       'no-use-before-define': 'off',
       'no-redeclare': 'off'
     }
+  },
+  {
+    files: ['apps/core-api/src/modules/**/*.ts'],
+    plugins: { local: { rules: { 'module-boundaries': moduleBoundaries } } },
+    rules: { 'local/module-boundaries': 'error' }
   }
 );

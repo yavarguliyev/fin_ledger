@@ -16,3 +16,5 @@ export * from './modules/support/support-values.contract';
 export * from './modules/support/support-message.contract';
 export * from './modules/support/support-conversation.contract';
 export * from './modules/support/presence.contract';
+export * from './modules/events/event-envelope-values.contract';
+export * from './modules/events/event-envelope.contract';

@@ -17,6 +17,7 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests"
   },
   "dependencies": {
+    "@common/contracts": "1.0.0",
     "@common/database": "1.0.0",
     "@common/kafka": "1.0.0",
     "@common/shared-libs": "1.0.0",

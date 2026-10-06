@@ -4,13 +4,13 @@ import { AuthTokenPurpose, PostgresService, SessionHelper, RequestScope } from '
 import { AuthRepository } from '../../repositories/auth.repository';
 import { AuthTokenRepository } from '../../repositories/auth-token.repository';
 import { RegisterDto } from '../../dtos/request/register.dto';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletService } from '../../../wallet/wallet.service';
+import { LedgerService } from '../../../ledger';
+import { WalletService } from '../../../wallet';
 import { RegisterResponseDto } from '../../dtos/response/register-response.dto';
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
 import { AuthHelper } from '../../helpers/auth.helper';
 import { AuthTokenHelper } from '../../helpers/auth-token.helper';
-import { EmailHelper } from '../../../email/helpers/email.helper';
+import { EmailHelper } from '../../../email';
 import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()

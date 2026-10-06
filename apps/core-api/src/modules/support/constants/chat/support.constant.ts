@@ -6,6 +6,7 @@ export const SUPPORT = {
   SUBJECT_MAX_LENGTH: 200,
   PAGE_SIZE: 50,
   PAGE_SIZE_MAX: 100,
+  CURSOR_MESSAGE: 'Pass both before and beforeId, or neither',
   CONVERSATION_PAGE_SIZE: 30,
   NOT_FOUND_MESSAGE: 'Conversation not found',
   REPLY_TARGET_MESSAGE: 'You can only reply to a message in this conversation',

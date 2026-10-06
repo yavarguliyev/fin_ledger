@@ -2,29 +2,21 @@ import { Client } from 'pg';
 import { RETENTION } from '../../src/modules/retention/constants/retention.constant';
 
 import { DbHelper } from '../helpers/db.helper';
+import { RETENTION_TEST as T } from '../constants/retention.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
-
-const OUTBOX_DAYS = 7;
-const WEBHOOK_DAYS = 90;
-const VERSION_SPREAD = 100;
+import { RetentionAgeDto, RetentionIdRow } from '../interfaces/retention.interface';
 
 let aggregateId: string;
 
 let app: Client;
 
-const seedPublishedOutbox = async ({ ageDays }: { ageDays: number }): Promise<string> => {
-  const [row] = await DbHelper.query<{ id: string }>({
-    sql: `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, status, published_at)
-          VALUES ('User', $1, 'none', $2, '{"retention": true}'::jsonb, 'PUBLISHED', now() - make_interval(days => $3))
-          RETURNING id`,
-    params: [aggregateId, Date.now() * VERSION_SPREAD + ageDays, ageDays]
-  });
-
+const seedPublishedOutbox = async ({ ageDays }: RetentionAgeDto): Promise<string> => {
+  const [row] = await DbHelper.query<RetentionIdRow>({ sql: T.PUBLISHED_SQL, params: [aggregateId, Date.now() * T.VERSION_SPREAD + ageDays, ageDays] });
   return row?.id as string;
 };
 
 beforeAll(async () => {
-  const [user] = await DbHelper.query<{ id: string }>({ sql: 'SELECT id FROM users LIMIT 1' });
+  const [user] = await DbHelper.query<RetentionIdRow>({ sql: T.FIRST_USER_SQL });
 
   aggregateId = user?.id as string;
   app = new Client({ connectionString: process.env[TEST_ENV_KEYS.APP_DATABASE_URL] });
@@ -39,33 +31,27 @@ afterAll(async () => {
 
 describe('Retention of append-only tables', () => {
   it('removes published outbox rows past the window and keeps the recent ones', async () => {
-    const stale = await seedPublishedOutbox({ ageDays: OUTBOX_DAYS + 3 });
-    const fresh = await seedPublishedOutbox({ ageDays: 1 });
+    const stale = await seedPublishedOutbox({ ageDays: T.OUTBOX_DAYS + T.STALE_EXTRA_DAYS });
+    const fresh = await seedPublishedOutbox({ ageDays: T.FRESH_DAYS });
 
-    await DbHelper.query({ sql: RETENTION.DELETE_OUTBOX_SQL, params: [OUTBOX_DAYS] });
+    await DbHelper.query({ sql: RETENTION.DELETE_OUTBOX_SQL, params: [T.OUTBOX_DAYS] });
 
-    const remaining = await DbHelper.query<{ id: string }>({
-      sql: 'SELECT id FROM outbox_events WHERE id = ANY($1)',
-      params: [[stale, fresh]]
-    });
-
+    const remaining = await DbHelper.query<RetentionIdRow>({ sql: T.IDS_SQL, params: [[stale, fresh]] });
     expect(remaining.map(row => row.id)).toEqual([fresh]);
   });
 
   it('leaves unpublished rows alone however old they are', async () => {
-    const [pending] = await DbHelper.query<{ id: string }>({
-      sql: `INSERT INTO outbox_events (aggregate_type, aggregate_id, event_type, aggregate_version, payload, available_at)
-            VALUES ('User', $1, 'none', $2, '{"retention": true}'::jsonb, now() - make_interval(days => $3))
-            RETURNING id`,
-      params: [aggregateId, Date.now() + 999, OUTBOX_DAYS + 30]
+    const [pending] = await DbHelper.query<RetentionIdRow>({
+      sql: T.PENDING_SQL,
+      params: [aggregateId, Date.now() + T.PENDING_VERSION_OFFSET, T.OUTBOX_DAYS + T.PENDING_EXTRA_DAYS]
     });
 
-    await DbHelper.query({ sql: RETENTION.DELETE_OUTBOX_SQL, params: [OUTBOX_DAYS] });
-    await expect(DbHelper.query({ sql: 'SELECT id FROM outbox_events WHERE id = $1', params: [pending?.id] })).resolves.toHaveLength(1);
+    await DbHelper.query({ sql: RETENTION.DELETE_OUTBOX_SQL, params: [T.OUTBOX_DAYS] });
+    await expect(DbHelper.query({ sql: T.IDS_SQL, params: [[pending?.id]] })).resolves.toHaveLength(1);
   });
 
   it('refuses the delete to the API login, so only the worker can prune', async () => {
-    await expect(app.query(RETENTION.DELETE_OUTBOX_SQL, [OUTBOX_DAYS])).rejects.toThrow(/permission denied/i);
-    await expect(app.query(RETENTION.DELETE_WEBHOOKS_SQL, [WEBHOOK_DAYS])).rejects.toThrow(/permission denied/i);
+    await expect(app.query(RETENTION.DELETE_OUTBOX_SQL, [T.OUTBOX_DAYS])).rejects.toThrow(T.PERMISSION_DENIED);
+    await expect(app.query(RETENTION.DELETE_WEBHOOKS_SQL, [T.WEBHOOK_DAYS])).rejects.toThrow(T.PERMISSION_DENIED);
   });
 });

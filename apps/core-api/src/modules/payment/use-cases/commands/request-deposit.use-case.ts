@@ -3,8 +3,7 @@ import { PaymentType } from '@common/libs';
 
 import { PaymentBaseUseCase } from '../base/payment-base.use-case';
 import { PaymentActorDto } from '../../dtos/step/payment-actor.dto';
-import { SelfExclusionHelper } from '../../../user/helpers/self-exclusion.helper';
-import { AssertDepositAllowedUseCase } from '../../../user/use-cases/queries/assert-deposit-allowed.use-case';
+import { SelfExclusionHelper, AssertDepositAllowedUseCase } from '../../../user';
 
 @Injectable()
 export class RequestDepositUseCase extends PaymentBaseUseCase {

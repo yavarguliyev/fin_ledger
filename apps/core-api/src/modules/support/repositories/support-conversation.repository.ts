@@ -55,10 +55,10 @@ export class SupportConversationRepository extends BaseExtendedRepository<Suppor
     });
   }
 
-  async listForActor ({ actorId, role, limit, offset }: ListConversationsDto): Promise<SupportConversationDto[]> {
+  async listForActor ({ actorId, role, limit, before, beforeId }: ListConversationsDto): Promise<SupportConversationDto[]> {
     const result = await this.service.getWriteConnection().query<SupportConversationDto>({
       sql: SUPPORT_SQL.LIST_CONVERSATIONS,
-      params: [actorId, limit ?? SUPPORT.CONVERSATION_PAGE_SIZE, offset ?? 0, SupportAccessHelper.isStaff({ role })]
+      params: [actorId, limit ?? SUPPORT.CONVERSATION_PAGE_SIZE, before ?? null, SupportAccessHelper.isStaff({ role }), beforeId ?? null]
     });
 
     return result.rows;

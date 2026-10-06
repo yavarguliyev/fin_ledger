@@ -10,6 +10,7 @@ export * from '../common/game.enum';
 export * from '../common/notification.enum';
 export * from '../common/outbox.enum';
 export * from '../common/payment.enum';
+export * from '../common/process-role.enum';
 export * from '../common/resource.enum';
 export * from '../common/responsible-gaming.enum';
 export * from '../common/support.enum';

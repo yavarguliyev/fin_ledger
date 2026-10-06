@@ -7,7 +7,7 @@ import { ForgotPasswordResponseDto } from '../../dtos/response/forgot-password-r
 import { AuthRepository } from '../../repositories/auth.repository';
 import { AuthTokenRepository } from '../../repositories/auth-token.repository';
 import { AuthTokenHelper } from '../../helpers/auth-token.helper';
-import { EmailHelper } from '../../../email/helpers/email.helper';
+import { EmailHelper } from '../../../email';
 import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()

@@ -25,6 +25,7 @@ import { VolumeCurrencyStore } from '../../core/services/volume-currency.store';
 import { AdminHelper } from './helpers/admin.helper';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { ADMIN_USERS_PAGE } from '../../core/constants/admin/admin-users-page.constant';
 
 @Component({
   selector: 'app-admin',
@@ -50,6 +51,7 @@ export class AdminComponent implements OnInit {
   readonly allUsers = signal<AdminUser[]>([]);
   readonly loading = signal(true);
   readonly states = LOAD_STATE;
+  readonly loadMoreLabel = ADMIN_USERS_PAGE.LOAD_MORE;
   readonly dashboardStats = signal<DashboardStats | null>(null);
   readonly selectedUser = signal<AdminUser | null>(null);
   readonly showCreateModal = signal(false);

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { WalletSchema } from '../../../wallet/dtos/wallet/wallet.dto';
+import { WalletSchema } from '../../../wallet';
 
 export const CreateLedgerEntriesSchema = z.object({
   wallet: WalletSchema,

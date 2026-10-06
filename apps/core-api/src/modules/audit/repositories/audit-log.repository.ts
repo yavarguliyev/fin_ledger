@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { BaseRepository, PostgresService, UnknownRecord } from '@common/libs';
+import { BaseRepository, PostgresService } from '@common/libs';
 
 import { AuditLogDto } from '../dtos/audit/audit-log.dto';
 import { FindAuditLogsDto } from '../dtos/repository/find-audit-logs.dto';
 import { CreateAuditLogDto } from '../dtos/repository/create-audit-log.dto';
+import { AUDIT_LOG_LIST } from '../constants/list/audit-log-list.constant';
 
 @Injectable()
 export class AuditLogRepository extends BaseRepository<AuditLogDto> {
@@ -49,20 +50,9 @@ export class AuditLogRepository extends BaseRepository<AuditLogDto> {
     return this.create({ data: dto });
   }
 
-  async findPaginated (dto: FindAuditLogsDto): Promise<AuditLogDto[]> {
-    const { limit, offset } = dto;
-
-    return this.findAll({ where: this.buildWhere(dto), orderBy: 'created_at', orderDirection: 'DESC', limit, offset });
+  async findPage ({ limit, action, entityType, entityId, actorUserId, before, beforeId }: FindAuditLogsDto): Promise<AuditLogDto[]> {
+    const params = [action ?? null, entityType ?? null, entityId ?? null, actorUserId ?? null, before ?? null, beforeId ?? null, limit];
+    const result = await this.service.getConnection().query<AuditLogDto>({ sql: AUDIT_LOG_LIST.KEYSET_SQL, params });
+    return result.rows;
   }
-
-  async countLogs (dto: FindAuditLogsDto): Promise<number> {
-    return this.count({ where: this.buildWhere(dto) });
-  }
-
-  private buildWhere = ({ action, entityType, entityId, actorUserId }: FindAuditLogsDto): UnknownRecord => ({
-    ...(action && { action }),
-    ...(entityType && { entity_type: entityType }),
-    ...(entityId && { entity_id: entityId }),
-    ...(actorUserId && { actor_user_id: actorUserId })
-  });
 }

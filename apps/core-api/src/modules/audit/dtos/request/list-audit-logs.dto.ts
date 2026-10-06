@@ -1,16 +1,10 @@
 import { z } from 'zod';
-import { PaginatedRequestSchema } from '@common/libs';
 
-export const ListAuditLogsSchema = PaginatedRequestSchema({
-  shape: {
-    action: z.string({ message: 'Action must be a string' }).optional(),
+import { AUDIT_LOG_LIST } from '../../constants/list/audit-log-list.constant';
+import { FindAuditLogsSchema } from '../repository/find-audit-logs.dto';
 
-    entityType: z.string({ message: 'Entity type must be a string' }).optional(),
-
-    entityId: z.string({ message: 'Entity ID must be a string' }).optional(),
-
-    actorUserId: z.string({ message: 'Actor user ID must be a string' }).optional()
-  }
-});
+export const ListAuditLogsSchema = FindAuditLogsSchema.extend({
+  limit: z.coerce.number({ message: 'Limit must be a number' }).int().positive().max(AUDIT_LOG_LIST.MAX_LIMIT).default(AUDIT_LOG_LIST.DEFAULT_LIMIT)
+}).refine(({ before, beforeId }) => !before === !beforeId, { message: AUDIT_LOG_LIST.CURSOR_MESSAGE });
 
 export type ListAuditLogsDto = z.infer<typeof ListAuditLogsSchema>;

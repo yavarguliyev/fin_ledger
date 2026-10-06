@@ -1,0 +1,21 @@
+export const LINK_PREVIEW = {
+  PATH: 'link-preview',
+  URL_MAX: 2048,
+  CACHE_PREFIX: 'support:link-preview:',
+  CACHE_TTL_SECONDS: 86_400,
+  DIGEST: 'sha256',
+  ENCODING: 'hex',
+  TIMEOUT_MS: 3_000,
+  MAX_BYTES: 262_144,
+  MAX_REDIRECTS: 3,
+  HTTPS: 'https:',
+  REDIRECT_MIN: 300,
+  REDIRECT_MAX: 399,
+  OK_MIN: 200,
+  OK_MAX: 299,
+  HTML_TYPE: 'text/html',
+  HEADERS: { 'user-agent': 'RealtimeWalletLinkPreview/1.0', accept: 'text/html' },
+  UTF8: 'utf8',
+  BLOCKED_CODE: 'ERR_BLOCKED_ADDRESS',
+  REFUSED: 'This link cannot be previewed'
+} as const;

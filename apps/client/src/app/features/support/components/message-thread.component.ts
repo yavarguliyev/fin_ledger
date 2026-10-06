@@ -17,6 +17,8 @@ import { SUPPORT_MESSAGE_RULES } from '../../../core/constants/support/support-m
 import { MESSAGE_REACTION } from '../../../core/constants/support/message-reaction.constant';
 import { EMOJI_CATALOG } from '../constants/emoji-catalog.constant';
 import { EmojiPanelComponent } from './emoji-panel.component';
+import { LinkPreviewComponent } from './link-preview.component';
+import { LinkPreviewHelper } from '../../../core/helpers/support/link-preview.helper';
 import { ReactionHelper } from '../../../core/helpers/support/reaction.helper';
 import { ReactionSummary } from '../../../core/interfaces/support/reaction-summary.interface';
 import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-toggle.interface';
@@ -25,7 +27,7 @@ import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-tog
   selector: 'app-message-thread',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, NgOptimizedImage],
+  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, NgOptimizedImage, LinkPreviewComponent],
   templateUrl: '../templates/message-thread.component.html',
   host: { '(document:keydown.escape)': 'closePicker()' }
 })
@@ -48,6 +50,7 @@ export class MessageThreadComponent {
   readonly attachment = SUPPORT_ATTACHMENT;
   readonly labels = SUPPORT_MESSAGES;
   readonly view = SUPPORT_VIEW;
+  readonly linkOf = (text: string): string | null => LinkPreviewHelper.firstUrl({ text });
 
   get groups (): MessageGroupDto[] {
     return SupportChatHelper.groupByDay({ messages: this.messages() });

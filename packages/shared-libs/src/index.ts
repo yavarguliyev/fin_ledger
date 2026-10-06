@@ -143,3 +143,5 @@ export * from './modules/logging/redacting-logger';
 export * from './modules/helpers/exception-log.helper';
 export * from './modules/dtos/filter/write-exception-log.dto';
 export * from './modules/dtos/filter/exception-status.dto';
+export * from './modules/lifecycle/base/background.base';
+export * from './modules/helpers/base/link-preview.base';

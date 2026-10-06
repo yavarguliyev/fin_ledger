@@ -6,7 +6,7 @@ export const USER_STATUS_TEST = {
   PLAYER_EMAIL: 'player1@realtime-wallet-payments.com',
   LOGIN_PATH: '/auth/login',
   WALLETS_PATH: '/wallets',
-  DASHBOARD_PATH: '/admin/dashboard',
+  USERS_PATH: '/admin/users?limit=100',
   STATUS_PATH: ({ id, action }: UserStatusPathDto): string => `/users/${id}/${action}`,
   SUSPEND: 'suspend',
   REACTIVATE: 'reactivate',

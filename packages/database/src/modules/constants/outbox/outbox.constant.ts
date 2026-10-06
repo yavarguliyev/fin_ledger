@@ -22,7 +22,9 @@ export const OUTBOX_CONSTANTS = {
            payload,
            attempts,
            max_attempts AS "maxAttempts",
-           destination
+           destination,
+           created_at AS "createdAt",
+           trace_id AS "traceId"
   `,
   MARK_PUBLISHED_SQL: `
     UPDATE outbox_events

@@ -56,7 +56,7 @@
               @if (peer.typing()) {
                 <span class="italic text-primary">{{ view.TYPING_LABEL }}</span>
               } @else {
-                <span [class]="peer.online() ? 'text-success' : 'text-ink-500 dark:text-night-muted'">{{ peer.status() }}</span>
+                <span [class]="peer.online() ? 'text-success-deep dark:text-success-light' : 'text-ink-500 dark:text-night-muted'">{{ peer.status() }}</span>
               }
             </p>
           </div>

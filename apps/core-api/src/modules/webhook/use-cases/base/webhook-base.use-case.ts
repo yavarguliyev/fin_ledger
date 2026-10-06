@@ -1,8 +1,8 @@
 import { Inject } from '@nestjs/common';
 import { OutboxRepository, PaymentMethodStatus, PaymentStatus } from '@common/libs';
 
-import { PaymentRepository } from '../../../payment/repositories/payment.repository';
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
+import { PaymentRepository } from '../../../payment';
+import { PaymentMethodRepository } from '../../../payment-methods';
 
 export abstract class WebhookBaseUseCase<TInput, TOutput> {
   @Inject(OutboxRepository)

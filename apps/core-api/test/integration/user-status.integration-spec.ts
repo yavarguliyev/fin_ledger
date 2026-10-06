@@ -4,7 +4,7 @@ import { USER_STATUS_TEST as T } from '../constants/user-status.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
-import { AdminUsersBody, ChangeStatusDto, UserStatusBody } from '../interfaces/user-status.interface';
+import { AdminUserRow, ChangeStatusDto, UserStatusBody } from '../interfaces/user-status.interface';
 
 let admin: string;
 
@@ -16,8 +16,8 @@ const login = (): ReturnType<typeof ApiHelper.request> =>
 const changeStatus = ({ action, token = admin, id = userId }: ChangeStatusDto): ReturnType<typeof ApiHelper.request<UserStatusBody>> =>
   ApiHelper.request<UserStatusBody>({ method: 'POST', path: T.STATUS_PATH({ id, action }), token });
 
-const dashboard = (): ReturnType<typeof ApiHelper.request<AdminUsersBody>> =>
-  ApiHelper.request<AdminUsersBody>({ method: 'GET', path: T.DASHBOARD_PATH, token: admin });
+const dashboard = (): ReturnType<typeof ApiHelper.request<AdminUserRow[]>> =>
+  ApiHelper.request<AdminUserRow[]>({ method: 'GET', path: T.USERS_PATH, token: admin });
 
 beforeAll(async () => {
   admin = await ApiHelper.login({ email: T.ADMIN_EMAIL });
@@ -41,14 +41,14 @@ describe('Suspending and reactivating users', () => {
 
   it('shows the account status in the admin user list so the table can act on it', async () => {
     const before = await dashboard();
-    const listed = before.body?.users.find(user => user.id === userId);
+    const listed = before.body?.find(user => user.id === userId);
 
     expect(listed?.user_status).toBe(T.ACTIVE);
 
     await expect(changeStatus({ action: T.SUSPEND })).resolves.toMatchObject({ status: HTTP_STATUS.CREATED });
 
     const after = await dashboard();
-    const suspended = after.body?.users.find(user => user.id === userId);
+    const suspended = after.body?.find(user => user.id === userId);
 
     expect(suspended?.user_status).toBe(T.SUSPENDED);
     expect(suspended?.status).not.toBe(T.SUSPENDED);

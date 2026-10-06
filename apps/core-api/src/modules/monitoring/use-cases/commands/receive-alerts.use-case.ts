@@ -7,7 +7,7 @@ import { AlertDeliveryDto } from '../../dtos/alert/alert-delivery.dto';
 import { AlertMessageHelper } from '../../helpers/alert-message.helper';
 import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 import { MONITORING } from '../../constants/monitoring.constant';
-import { NotificationService } from '../../../notification/notification.service';
+import { NotificationService } from '../../../notification';
 import { ReceiveAlertsDto } from '../../dtos/input/receive-alerts.dto';
 
 @Injectable()

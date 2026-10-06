@@ -36,9 +36,10 @@ export class SessionService {
     const issuer = this.configService.get<string>('JWT_ISSUER');
     const audience = this.configService.get<string>('JWT_AUDIENCE');
 
-    return jwt.sign({ ...data, jti }, privateKey, {
+    return jwt.sign({ ...data, jti, roles: data.role ? [data.role] : [] }, privateKey, {
       algorithm: JWKS.ALGORITHM,
       keyid,
+      subject: data.userId,
       expiresIn,
       ...(issuer && { issuer }),
       ...(audience && { audience })
@@ -46,7 +47,12 @@ export class SessionService {
   }
 
   async getSession ({ token }: SessionTokenDto): Promise<SessionData | null> {
-    const publicKey = JwksHelper.pem({ key: this.configService.get<string>('JWT_PUBLIC_KEY')! });
+    const previousPublicKey = this.configService.get<string>(JWKS.PREVIOUS_PUBLIC_KEY_CONFIG);
+    const publicKey = JwksHelper.verificationKey({
+      token,
+      publicKey: this.configService.get<string>('JWT_PUBLIC_KEY')!,
+      ...(previousPublicKey && { previousPublicKey })
+    });
     const issuer = this.configService.get<string>('JWT_ISSUER');
     const audience = this.configService.get<string>('JWT_AUDIENCE');
 

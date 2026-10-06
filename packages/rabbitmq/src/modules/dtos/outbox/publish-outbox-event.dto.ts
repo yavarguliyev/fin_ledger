@@ -10,7 +10,11 @@ export const PublishOutboxEventSchema = z.object({
 
   payload: z.record(z.string(), z.unknown(), { message: 'Payload must be an object' }),
 
-  attempts: z.number({ message: 'Attempts must be a number' }).int().nonnegative()
+  attempts: z.number({ message: 'Attempts must be a number' }).int().nonnegative(),
+
+  occurredAt: z.date({ message: 'Occurred at must be a date' }),
+
+  correlationId: z.string({ message: 'Correlation ID must be a string' }).optional()
 });
 
 export type PublishOutboxEventDto = z.infer<typeof PublishOutboxEventSchema>;

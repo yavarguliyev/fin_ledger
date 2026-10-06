@@ -1,6 +1,7 @@
 export const ADMIN_HANDLERS_TEST = {
   USER_ID: 'user-1',
   OTHER_ID: 'user-2',
+  PAGE_SIZE: 25,
   EMAIL: 'player@example.com',
   NAME: 'Player One',
   ROLE: 'USER',

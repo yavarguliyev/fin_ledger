@@ -8,6 +8,7 @@ interface FakeEvent {
   payload: Record<string, unknown>;
   attempts: number;
   destination: string;
+  createdAt: Date;
 }
 
 const batchOf = (size: number): FakeEvent[] =>
@@ -16,7 +17,8 @@ const batchOf = (size: number): FakeEvent[] =>
     eventType: OUTBOX_DRAIN_TEST.EVENT_TYPE,
     payload: {},
     attempts: 0,
-    destination: OUTBOX_DRAIN_TEST.KAFKA
+    destination: OUTBOX_DRAIN_TEST.KAFKA,
+    createdAt: new Date()
   }));
 
 describe('OutboxPublisherService draining', () => {

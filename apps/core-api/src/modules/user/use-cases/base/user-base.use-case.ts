@@ -2,9 +2,7 @@ import { BadRequestException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EmailTemplateType, OutboxDestination, OutboxRepository, SendEmailDto, SessionService, StorageService } from '@common/libs';
 
-import { PublishUserEmailDto } from '../../../email/dtos/step/publish-user-email.dto';
-import { RecordEmailEventDto } from '../../../email/dtos/step/record-email-event.dto';
-import { EmailLinkHelper } from '../../../email/helpers/email-link.helper';
+import { PublishUserEmailDto, RecordEmailEventDto, EmailLinkHelper } from '../../../email';
 
 import { UserRepository } from '../../repositories/user.repository';
 import { UserStorageHelper } from '../../helpers/user-storage.helper';

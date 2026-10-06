@@ -4,8 +4,8 @@ import { PostgresService, QueueHelper, RABBITMQ_SERVICE, RabbitmqService } from 
 import { MetricsRegistryHelper } from '../../helpers/metrics-registry.helper';
 import { METRICS } from '../../constants/metrics.constant';
 import { OutboxGaugeRow } from '../../interfaces/outbox-gauge-row.interface';
-import { LedgerIntegrityJob } from '../../../ledger/jobs/ledger-integrity.job';
-import { NOTIFICATION_QUEUE } from '../../../notification/constants/messaging/notification-queue.constant';
+import { LedgerIntegrityJob } from '../../../ledger';
+import { NOTIFICATION_QUEUE } from '../../../notification';
 
 @Injectable()
 export class ScrapeMetricsUseCase {

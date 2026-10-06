@@ -4,7 +4,7 @@ import { PaymentType } from '@common/libs';
 import { PaymentBaseUseCase } from '../base/payment-base.use-case';
 import { ValidateWalletDto } from '../../dtos/step/validate-wallet.dto';
 import { PaymentActorDto } from '../../dtos/step/payment-actor.dto';
-import { PasskeyStepUpService } from '../../../auth/services/passkey-step-up.service';
+import { PasskeyStepUpService } from '../../../auth';
 
 @Injectable()
 export class RequestWithdrawalUseCase extends PaymentBaseUseCase {

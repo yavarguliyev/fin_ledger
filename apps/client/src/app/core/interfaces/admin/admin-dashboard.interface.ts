@@ -1,7 +1,6 @@
+import { AdminUserPage } from './admin-user-page.interface';
 import { DashboardStats } from './dashboard-stats.interface';
-import { UserWithWallet } from './user-with-wallet.interface';
 
-export interface AdminDashboard {
+export interface AdminDashboard extends AdminUserPage {
   stats: DashboardStats;
-  users: UserWithWallet[];
 }

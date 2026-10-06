@@ -1,9 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles } from '@common/libs';
+import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles, WalletStatus } from '@common/libs';
 
 import { UserDto } from '../dtos/user/user.dto';
 import { UserWithWalletDto } from '../dtos/user/user-with-wallet.dto';
-import { UserRowHelper } from '../helpers/user-row.helper';
+import { FindPlayerPageDto } from '../dtos/repository/find-player-page.dto';
+import { PlayerTotalsDto } from '../dtos/repository/player-totals.dto';
+import { PlayerVolumeDto } from '../dtos/repository/player-volume.dto';
+import { ADMIN_USER_LIST } from '../constants/admin-list/admin-user-list.constant';
 import { UpdateUserRecordDto } from '../dtos/repository/update-user-record.dto';
 import { UserIdRequestDto } from '../dtos/request/user-id-request.dto';
 import { AnonymizeUserRecordDto } from '../dtos/repository/anonymize-user-record.dto';
@@ -100,44 +103,19 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
     });
   }
 
-  async findAllWithWallets (): Promise<UserWithWalletDto[]> {
-    const columns = [
-      'users.id',
-      'users.email',
-      'users.displayName',
-      'users.role',
-      'users.status',
-      'users.isEmailVerified',
-      'users.deletedAt',
-      'users.createdAt',
-      'wallets.id',
-      'wallets.available_balance_minor',
-      'wallets.reserved_balance_minor',
-      'wallets.currency',
-      'wallets.status'
-    ];
+  async findPlayerPage ({ limit, before, beforeId }: FindPlayerPageDto): Promise<UserWithWalletDto[]> {
+    const params = [UserRoles.USER, before ?? null, beforeId ?? null, limit];
+    const result = await this.service.getConnection().query<UserWithWalletDto>({ sql: ADMIN_USER_LIST.PAGE_SQL, params });
+    return result.rows;
+  }
 
-    const joins = [
-      {
-        table: 'wallets',
-        left: 'users.id',
-        right: 'wallets.user_id',
-        type: 'LEFT' as const
-      }
-    ];
+  async playerTotals (): Promise<PlayerTotalsDto> {
+    const result = await this.service.getConnection().query<PlayerTotalsDto>({ sql: ADMIN_USER_LIST.TOTALS_SQL, params: [UserRoles.USER, WalletStatus.ACTIVE] });
+    return result.rows[0] ?? { totalUsers: 0, activeWallets: 0 };
+  }
 
-    const { query, params } = this.builder.buildSelectQuery({
-      columns,
-      options: {
-        where: { role: UserRoles.USER },
-        orderBy: 'users.createdAt',
-        orderDirection: 'DESC'
-      },
-      joins
-    });
-
-    const result = await this.service.getConnection().query<Record<string, unknown>>({ sql: query, params });
-
-    return result.rows.map(row => UserRowHelper.toUserWithWallet({ row }));
+  async playerVolumes (): Promise<PlayerVolumeDto[]> {
+    const result = await this.service.getConnection().query<PlayerVolumeDto>({ sql: ADMIN_USER_LIST.VOLUMES_SQL, params: [UserRoles.USER] });
+    return result.rows;
   }
 }

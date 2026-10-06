@@ -2,9 +2,9 @@ import { Inject } from '@nestjs/common';
 import { PostgresService } from '@common/libs';
 
 import { BetRepository } from '../../repositories/bet.repository';
-import { GameEventRepository } from '../../../game-events/repositories/game-event.repository';
-import { WalletService } from '../../../wallet/wallet.service';
-import { AuthRepository } from '../../../auth/repositories/auth.repository';
+import { GameEventRepository } from '../../../game-events';
+import { WalletService } from '../../../wallet';
+import { AuthRepository } from '../../../auth';
 
 export abstract class BetBaseUseCase<TInput, TOutput> {
   @Inject(PostgresService)

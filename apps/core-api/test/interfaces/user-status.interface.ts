@@ -18,7 +18,3 @@ export interface AdminUserRow {
   user_status: string;
   status: string | null;
 }
-
-export interface AdminUsersBody {
-  users: AdminUserRow[];
-}

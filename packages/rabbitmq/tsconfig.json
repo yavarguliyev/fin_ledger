@@ -12,6 +12,9 @@
     },
     {
       "path": "../database"
+    },
+    {
+      "path": "../contracts"
     }
   ],
   "include": ["src/**/*.ts", "test/**/*.ts"],

@@ -6,5 +6,6 @@ export const JWKS = {
   ENCODING: 'base64url',
   FORMAT: 'jwk',
   ESCAPED_NEWLINE: /\\n/g,
-  NEWLINE: '\n'
+  NEWLINE: '\n',
+  PREVIOUS_PUBLIC_KEY_CONFIG: 'JWT_PREVIOUS_PUBLIC_KEY'
 } as const;

@@ -8,11 +8,14 @@ import { UserIdRefDto } from '../../core/interfaces/user/user-id-ref.interface';
 import { UserToggleDto } from '../../core/interfaces/admin/user-toggle.interface';
 import { WalletToggleDto } from '../../core/interfaces/admin/wallet-toggle.interface';
 import { AdminUserHelper } from './helpers/admin-user.helper';
+import { ADMIN_USERS_PAGE } from '../../core/constants/admin/admin-users-page.constant';
+import { AdminUserPageQuery } from '../../core/interfaces/admin/admin-user-page-query.interface';
 
 export class AdminHandlers {
   constructor (private readonly deps: AdminHandlersDeps) {}
 
   readonly failed = signal(false);
+  readonly next = signal<AdminUserPageQuery | null>(null);
 
   onView ({ userId }: UserIdRefDto): void {
     const user = this.deps.allUsers().find(u => u.id === userId);
@@ -102,6 +105,7 @@ export class AdminHandlers {
         this.deps.setDashboardStats(dashboard.stats);
 
         this.deps.updateUsers(() => dashboard.users.map(user => AdminUserHelper.fromRecord({ user })));
+        this.next.set(dashboard.next);
         this.deps.setLoading(false);
       },
       error: () => {
@@ -112,6 +116,24 @@ export class AdminHandlers {
 
         this.failed.set(true);
         this.deps.setLoading(false);
+      }
+    });
+  }
+
+  loadMoreUsers (): void {
+    const query = this.next();
+    if (!query) return;
+
+    this.deps.setLoading(true);
+    this.deps.adminApi.getUsers(query).subscribe({
+      next: page => {
+        this.deps.updateUsers(users => [...users, ...page.users.map(user => AdminUserHelper.fromRecord({ user }))]);
+        this.next.set(page.next);
+        this.deps.setLoading(false);
+      },
+      error: (err: HttpError) => {
+        this.deps.setLoading(false);
+        this.deps.toast.error(ErrorMessageHelper.from({ error: err, fallback: ADMIN_USERS_PAGE.LOAD_FAILED }));
       }
     });
   }

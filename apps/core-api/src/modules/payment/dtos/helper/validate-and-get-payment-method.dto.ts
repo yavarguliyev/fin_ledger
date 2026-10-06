@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
+import { PaymentMethodRepository } from '../../../payment-methods';
 
 export const ValidateAndGetPaymentMethodSchema = z.object({
   userId: z.string({ message: 'User ID must be a string' }),

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { DatabaseAdapter } from '@common/libs';
 
-import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/payload/analytics-event-payload.dto';
+import { AnalyticsEventPayloadDto } from '../../../analytics';
 
 export const PublishWalletAnalyticsSchema = z.object({
   eventPayload: z.custom<AnalyticsEventPayloadDto>(),

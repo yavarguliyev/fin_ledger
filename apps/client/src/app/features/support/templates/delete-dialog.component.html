@@ -13,13 +13,13 @@
         @if (forEveryone()) {
           <button
             type="button"
-            class="rounded-full px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10"
+            class="rounded-full px-4 py-2 text-sm font-medium text-danger-deep dark:text-danger-light hover:bg-danger/10"
             (click)="chosen.emit(rules.SCOPE_EVERYONE)"
           >
             {{ rules.DELETE_FOR_EVERYONE }}
           </button>
         }
-        <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-danger hover:bg-danger/10" (click)="chosen.emit(rules.SCOPE_ME)">
+        <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-danger-deep dark:text-danger-light hover:bg-danger/10" (click)="chosen.emit(rules.SCOPE_ME)">
           {{ rules.DELETE_FOR_ME }}
         </button>
         <button

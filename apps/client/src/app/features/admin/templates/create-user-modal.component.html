@@ -1,6 +1,6 @@
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
   <div>
-    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Display Name <span class="text-danger">*</span> </label>
+    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Display Name <span class="text-danger-deep dark:text-danger-light">*</span> </label>
     <input
       formControlName="displayName"
       type="text"
@@ -8,12 +8,12 @@
       placeholder="John Doe"
     />
     @if (form.controls.displayName.touched && form.controls.displayName.invalid) {
-      <p class="text-xs text-danger mt-1">Display name is required (min 2 characters)</p>
+      <p class="text-xs text-danger-deep dark:text-danger-light mt-1">Display name is required (min 2 characters)</p>
     }
   </div>
 
   <div>
-    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Email Address <span class="text-danger">*</span> </label>
+    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Email Address <span class="text-danger-deep dark:text-danger-light">*</span> </label>
     <input
       formControlName="email"
       type="email"
@@ -21,12 +21,12 @@
       placeholder="john@example.com"
     />
     @if (form.controls.email.touched && form.controls.email.invalid) {
-      <p class="text-xs text-danger mt-1">Valid email address is required</p>
+      <p class="text-xs text-danger-deep dark:text-danger-light mt-1">Valid email address is required</p>
     }
   </div>
 
   <div>
-    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Role <span class="text-danger">*</span> </label>
+    <label class="block text-xs font-semibold text-ink-700 dark:text-night-text mb-1"> Role <span class="text-danger-deep dark:text-danger-light">*</span> </label>
     <div class="relative">
       <select
         formControlName="role"
@@ -44,7 +44,7 @@
       </div>
     </div>
     @if (form.controls.role.touched && form.controls.role.invalid) {
-      <p class="text-xs text-danger mt-1">Role is required</p>
+      <p class="text-xs text-danger-deep dark:text-danger-light mt-1">Role is required</p>
     }
   </div>
 

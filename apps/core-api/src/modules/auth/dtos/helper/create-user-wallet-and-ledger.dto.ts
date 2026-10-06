@@ -3,8 +3,8 @@ import { DatabaseAdapter, OutboxRepository } from '@common/libs';
 
 import { RegisterSchema } from '../request/register.dto';
 import { AuthRepository } from '../../repositories/auth.repository';
-import { LedgerService } from '../../../ledger/ledger.service';
-import { WalletService } from '../../../wallet/wallet.service';
+import { LedgerService } from '../../../ledger';
+import { WalletService } from '../../../wallet';
 
 export const CreateUserWalletAndLedgerSchema = z.object({
   dto: RegisterSchema,

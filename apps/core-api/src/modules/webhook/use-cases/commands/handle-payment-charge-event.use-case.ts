@@ -3,9 +3,7 @@ import { PaymentStatus } from '@common/libs';
 
 import { HandlePaymentChargeEventDto } from '../../dtos/input/handle-payment-charge-event.dto';
 import { WebhookBaseUseCase } from '../base/webhook-base.use-case';
-import { CompletePaymentUseCase } from '../../../payment/use-cases/commands/complete-payment.use-case';
-import { FailPaymentUseCase } from '../../../payment/use-cases/commands/fail-payment.use-case';
-import { PaymentDto } from '../../../payment/dtos/payment/payment.dto';
+import { CompletePaymentUseCase, FailPaymentUseCase, PaymentDto } from '../../../payment';
 import { ChargeEventHelper } from '../../helpers/charge-event.helper';
 import { FindChargePaymentDto } from '../../dtos/helper/find-charge-payment.dto';
 

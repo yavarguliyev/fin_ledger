@@ -4,9 +4,8 @@ import { AuthTokenPurpose, CryptoHelper, SessionHelper } from '@common/libs';
 import { UserCreateDto } from '../../dtos/request/user-create.dto';
 import { UserCreateResponseDto } from '../../dtos/response/user-create-response.dto';
 import { UserBaseCase } from '../base/user-base.use-case';
-import { EmailHelper } from '../../../email/helpers/email.helper';
-import { AuthTokenRepository } from '../../../auth/repositories/auth-token.repository';
-import { AuthTokenHelper } from '../../../auth/helpers/auth-token.helper';
+import { EmailHelper } from '../../../email';
+import { AuthTokenRepository, AuthTokenHelper } from '../../../auth';
 import { FRONTEND } from '../../../../shared/constants/config/frontend.constant';
 
 @Injectable()

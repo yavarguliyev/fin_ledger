@@ -34,6 +34,8 @@ export * from './modules/helpers/jwks.helper';
 export * from './modules/constants/auth/jwks.constant';
 export * from './modules/dtos/helper/public-key.dto';
 export * from './modules/dtos/helper/pem-key.dto';
+export * from './modules/dtos/helper/signing-keys.dto';
+export * from './modules/dtos/helper/verification-key.dto';
 export * from './modules/interfaces/public-jwk.interface';
 
 export * from './modules/interfaces/jwt-payload.interface';

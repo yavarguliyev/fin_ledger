@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { AGGREGATE_TYPES, DatabaseAdapter, DomainEventType, OutboxRepository } from '@common/libs';
 
-import { AnalyticsEventPayloadSchema } from '../../../analytics/dtos/payload/analytics-event-payload.dto';
+import { AnalyticsEventPayloadSchema } from '../../../analytics';
 
 export const CreateWalletEventSchema = z.object({
   eventPayload: AnalyticsEventPayloadSchema,

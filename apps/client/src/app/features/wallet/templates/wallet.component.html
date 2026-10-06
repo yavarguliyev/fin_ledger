@@ -23,7 +23,7 @@
   @if (loading() && !wallet()) {
     <div class="h-48 rounded-2xl skeleton"></div>
   } @else if (wallet() && isUser()) {
-    <div class="grid sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="sm:col-span-2 rounded-2xl bg-gradient-to-br from-success to-success-dark p-6 text-white shadow-card">
         <p class="text-white/80 text-sm">Available Balance</p>
         <p class="text-4xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
@@ -98,7 +98,7 @@
         </span>
         <span class="font-medium text-ink-800 dark:text-ink-100">{{ tx.formatType(row.type) }}</span>
       </div>
-      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger' : 'text-success'">
+      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger-deep dark:text-danger-light' : 'text-success-deep dark:text-success-light'">
         {{ row.amountMinor | currencyFormat: row.currency }}
       </span>
     </div>

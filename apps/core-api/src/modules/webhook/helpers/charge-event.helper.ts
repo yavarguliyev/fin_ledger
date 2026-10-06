@@ -3,7 +3,7 @@ import { UnknownRecord } from '@common/libs';
 
 import { ChargeEventPayloadDto } from '../dtos/helper/charge-event-payload.dto';
 import { ChargeEventObjectDto } from '../dtos/helper/charge-event-object.dto';
-import { PAYMENT_METADATA_KEYS } from '../../payment/constants/operations/payment-metadata.constant';
+import { PAYMENT_METADATA_KEYS } from '../../payment';
 
 export class ChargeEventHelper {
   static objectOf ({ payload }: ChargeEventPayloadDto): UnknownRecord {

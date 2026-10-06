@@ -38,9 +38,10 @@ export const SUPPORT_SQL = {
       LEFT JOIN users customer ON customer.id = c.customer_user_id
       LEFT JOIN users staff ON staff.id = c.assigned_staff_id
       LEFT JOIN support_read_receipts r ON r.conversation_id = c.id AND r.user_id = $1
-     WHERE c.customer_user_id = $1 OR c.assigned_staff_id = $1 OR (c.assigned_staff_id IS NULL AND $4::boolean)
-     ORDER BY c.last_message_at DESC
-     LIMIT $2 OFFSET $3
+     WHERE (c.customer_user_id = $1 OR c.assigned_staff_id = $1 OR (c.assigned_staff_id IS NULL AND $4::boolean))
+       AND ($3::timestamptz IS NULL OR (date_trunc('milliseconds', c.last_message_at), c.id) < ($3::timestamptz, $5::uuid))
+     ORDER BY date_trunc('milliseconds', c.last_message_at) DESC, c.id DESC
+     LIMIT $2
   `,
   LIST_MESSAGES: `
     SELECT m.id,

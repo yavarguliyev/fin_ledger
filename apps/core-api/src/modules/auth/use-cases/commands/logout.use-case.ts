@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
 import { AuthBaseUseCase } from '../base/auth-base.use-case';
-import { LeavePresenceUseCase } from '../../../support/use-cases/commands/presence/leave-presence.use-case';
+import { LeavePresenceUseCase } from '../../../support';
 import { LogoutSessionDto } from '../../dtos/input/logout-session.dto';
 
 @Injectable()

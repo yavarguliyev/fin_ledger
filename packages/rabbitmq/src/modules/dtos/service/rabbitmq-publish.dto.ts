@@ -7,7 +7,9 @@ export const RabbitmqPublishSchema = z.object({
 
   exchange: z.string({ message: 'Exchange must be a string' }).optional(),
 
-  persistent: z.boolean({ message: 'Persistent must be a boolean' }).optional()
+  persistent: z.boolean({ message: 'Persistent must be a boolean' }).optional(),
+
+  headers: z.record(z.string(), z.string(), { message: 'Headers must be strings' }).optional()
 });
 
 export type RabbitmqPublishDto = z.infer<typeof RabbitmqPublishSchema>;

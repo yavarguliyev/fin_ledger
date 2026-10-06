@@ -99,6 +99,9 @@
 
             @if (message.body) {
               <p class="whitespace-pre-wrap break-words text-sm">{{ message.body }}</p>
+              @if (linkOf(message.body); as link) {
+                <app-link-preview [url]="link" />
+              }
             }
 
             <p

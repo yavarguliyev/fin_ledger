@@ -23,6 +23,7 @@ export class DatePickerComponent implements ControlValueAccessor {
   readonly max = input<string>('');
   readonly placeholder = input<string>(DATE_PICKER.PLACEHOLDER);
   readonly ariaLabel = input<string>(DATE_PICKER.PLACEHOLDER);
+  readonly describedBy = input<string | null>(null);
 
   readonly text = DATE_PICKER;
   readonly weekdays = DATE_PICKER.WEEKDAYS;

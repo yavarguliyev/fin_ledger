@@ -2,7 +2,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 import { EntryType, WalletTransactionStatus } from '@common/libs';
 
 import { RecordWalletTransactionDto } from '../dtos/helper/record-wallet-transaction.dto';
-import { LedgerHelper } from '../../ledger/helpers/ledger.helper';
+import { LedgerHelper } from '../../ledger';
 
 export class WalletLedgerHelper {
   static async recordTransaction (options: RecordWalletTransactionDto): Promise<string> {

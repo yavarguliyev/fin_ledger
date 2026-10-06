@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <app-page-header title="Betting" [subtitle]="'Available: ' + (availableBalance() | currencyFormat: currency())" />
 
-  <div class="grid lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-4">
       <h2 class="font-semibold text-ink-900 dark:text-white">Available Events</h2>
       @if (eventsList.status() === statuses.LOADING && eventsList.visible().length === 0) {
@@ -65,7 +65,7 @@
             placeholder="0.00"
           />
           @if (form.controls.stake.invalid && form.controls.stake.touched) {
-            <p class="text-xs text-danger mt-1">Minimum stake is $1.00</p>
+            <p class="text-xs text-danger-deep dark:text-danger-light mt-1">Minimum stake is $1.00</p>
           }
         </div>
 
@@ -76,7 +76,7 @@
           </div>
           <div class="flex justify-between">
             <span class="text-ink-500 dark:text-night-muted">Potential win</span
-            ><span class="font-semibold text-success">{{ potentialWin() | currencyFormat: currency() }}</span>
+            ><span class="font-semibold text-success-deep dark:text-success-light">{{ potentialWin() | currencyFormat: currency() }}</span>
           </div>
         </div>
 
@@ -120,7 +120,7 @@
             </div>
           </div>
           <div class="text-right shrink-0">
-            <p class="text-base font-bold text-danger">{{ bet.stakeMinor | currencyFormat: bet.currency }}</p>
+            <p class="text-base font-bold text-danger-deep dark:text-danger-light">{{ bet.stakeMinor | currencyFormat: bet.currency }}</p>
             @if (bet.status === 'PENDING') {
               <p class="text-xs text-ink-500 dark:text-night-muted mt-0.5">To win {{ bet.potentialPayoutMinor | currencyFormat: bet.currency }}</p>
             } @else {

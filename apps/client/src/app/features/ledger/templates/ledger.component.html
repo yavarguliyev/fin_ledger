@@ -2,7 +2,7 @@
   <app-page-header title="Ledger" subtitle="Double-entry accounting view" />
 
   @if (account() && isUser()) {
-    <div class="grid sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5">
         <p class="text-xs text-ink-500 dark:text-night-muted">Account ID</p>
         <p class="font-mono text-sm text-ink-900 dark:text-white mt-1 truncate">{{ account()!.id }}</p>

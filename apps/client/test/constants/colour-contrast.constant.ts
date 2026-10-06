@@ -32,6 +32,12 @@ export const COLOUR_CONTRAST_TEST = {
     { LABEL: 'warning.deep on the warning tint', FG: 'warning.deep', BG: 'warning', TINTED: true },
     { LABEL: 'danger.deep on the danger tint', FG: 'danger.deep', BG: 'danger', TINTED: true },
     { LABEL: 'ink.600 on white', FG: 'ink.600', BG: 'white', TINTED: false },
+    { LABEL: 'success.deep on white', FG: 'success.deep', BG: 'white', TINTED: false },
+    { LABEL: 'warning.deep on white', FG: 'warning.deep', BG: 'white', TINTED: false },
+    { LABEL: 'danger.deep on white', FG: 'danger.deep', BG: 'white', TINTED: false },
+    { LABEL: 'success.light on night.surface', FG: 'success.light', BG: 'night.surface', TINTED: false },
+    { LABEL: 'warning.light on night.surface', FG: 'warning.light', BG: 'night.surface', TINTED: false },
+    { LABEL: 'danger.light on night.surface', FG: 'danger.light', BG: 'night.surface', TINTED: false },
     { LABEL: 'night.muted on night.surface', FG: 'night.muted', BG: 'night.surface', TINTED: false }
   ]
 } as const;

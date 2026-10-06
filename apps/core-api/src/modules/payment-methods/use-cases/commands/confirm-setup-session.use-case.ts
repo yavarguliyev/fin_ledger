@@ -5,7 +5,7 @@ import { PaymentMethodBaseUseCase } from '../base/payment-method-base.use-case';
 import { PaymentMethodMapper } from '../../helpers/payment-method.mapper';
 import { PaymentMethodDto } from '../../dtos/payment-method/payment-method.dto';
 import { ConfirmSetupSessionDto } from '../../dtos/input/confirm-setup-session.dto';
-import { PasskeyStepUpService } from '../../../auth/services/passkey-step-up.service';
+import { PasskeyStepUpService } from '../../../auth';
 
 @Injectable()
 export class ConfirmSetupSessionUseCase extends PaymentMethodBaseUseCase<ConfirmSetupSessionDto, PaymentMethodDto> {

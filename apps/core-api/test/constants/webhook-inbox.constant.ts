@@ -26,6 +26,7 @@ export const WEBHOOK_INBOX = {
   PROCESSED_TWICE: { status: 'PROCESSED', attempts: 2, processed: true },
   IGNORED_ONCE: { status: 'IGNORED', attempts: 1, processed: false },
   ONE_TRANSACTION: [{ count: 1 }],
+  HOLD_REPLAY_SQL: "UPDATE webhook_events SET received_at = now() + interval '1 hour' WHERE provider = $1 AND event_id = $2",
   EVENT_ROW_SQL: 'SELECT status, attempts, processed_at IS NOT NULL AS processed FROM webhook_events WHERE provider = $1 AND event_id = $2',
   STATUS_SQL: 'SELECT status FROM payments WHERE id = $1',
   PENDING_DEPOSIT_SQL: `INSERT INTO payments (idempotency_key, user_id, wallet_id, type, amount_minor, currency, status, provider)

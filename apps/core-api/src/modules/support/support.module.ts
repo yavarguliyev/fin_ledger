@@ -44,10 +44,14 @@ import { IssueSupportStreamTicketUseCase } from './use-cases/commands/stream/iss
 import { StreamSupportEventsUseCase } from './use-cases/queries/stream/stream-support-events.use-case';
 import { ListContactsUseCase } from './use-cases/queries/presence/list-contacts.use-case';
 import { SupportContactRepository } from './repositories/support-contact.repository';
+import { SupportLinkController } from './support-link.controller';
+import { SupportLinkService } from './support-link.service';
+import { GetLinkPreviewUseCase } from './use-cases/queries/link/get-link-preview.use-case';
+import { LinkPreviewRepository } from './repositories/link-preview.repository';
 
 @Module({
   imports: [SharedModule, StorageModule.forRoot({ clientId: ClientIds.API_GATEWAY })],
-  controllers: [SupportController, SupportMessageController, SupportCallController, SupportReactionController],
+  controllers: [SupportController, SupportMessageController, SupportCallController, SupportReactionController, SupportLinkController],
   providers: [
     SupportService,
     SupportConversationRepository,
@@ -86,7 +90,10 @@ import { SupportContactRepository } from './repositories/support-contact.reposit
     RelayCallCandidateUseCase,
     RelayCallRenegotiationUseCase,
     EndCallUseCase,
-    GetCallConfigUseCase
+    GetCallConfigUseCase,
+    SupportLinkService,
+    GetLinkPreviewUseCase,
+    LinkPreviewRepository
   ],
   exports: [SupportService, SupportConversationRepository, SupportMessageRepository, PresenceRepository, LeavePresenceUseCase]
 })

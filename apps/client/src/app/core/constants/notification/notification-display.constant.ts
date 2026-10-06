@@ -16,10 +16,10 @@ export const NOTIFICATION_ICONS: Record<NotificationType, string> = {
 };
 
 export const NOTIFICATION_CLASSES: Record<NotificationType, string> = {
-  BET_WON: 'bg-warning/10 text-warning',
+  BET_WON: 'bg-warning/10 text-warning-deep dark:text-warning-light',
   INFO: 'bg-ink-100 text-ink-500',
-  PAYMENT_COMPLETED: 'bg-success/10 text-success',
-  PAYMENT_FAILED: 'bg-danger/10 text-danger',
+  PAYMENT_COMPLETED: 'bg-success/10 text-success-deep dark:text-success-light',
+  PAYMENT_FAILED: 'bg-danger/10 text-danger-deep dark:text-danger-light',
   SYSTEM: 'bg-ink-100 text-ink-500',
   WALLET_CREDITED: 'bg-primary/10 text-primary',
   WALLET_DEBITED: 'bg-primary/10 text-primary'

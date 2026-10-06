@@ -1,1 +1,1 @@
-export const AMOUNT_CLASS = { NEGATIVE: 'text-danger font-semibold', POSITIVE: 'text-success font-semibold' } as const;
+export const AMOUNT_CLASS = { NEGATIVE: 'text-danger-deep dark:text-danger-light font-semibold', POSITIVE: 'text-success-deep dark:text-success-light font-semibold' } as const;

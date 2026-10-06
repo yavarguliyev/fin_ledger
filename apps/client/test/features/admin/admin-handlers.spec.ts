@@ -29,16 +29,17 @@ const dashboard: AdminDashboard = {
       availableBalanceMinor: T.AVAILABLE_MINOR,
       reservedBalanceMinor: T.RESERVED_MINOR
     }
-  ]
+  ],
+  next: { limit: T.PAGE_SIZE, before: T.CREATED_AT, beforeId: T.USER_ID }
 };
 
-const build = ({ response, authEnding }: AdminHandlersFixtureDto): AdminHandlersFixture => {
+const build = ({ response, page, authEnding }: AdminHandlersFixtureDto): AdminHandlersFixture => {
   const users = signal<AdminUser[]>([]);
   const loading = signal(true);
   const selected = signal<AdminUser | null>(null);
   const shownStats = signal<DashboardStats | null>(null);
   const handlers = new AdminHandlers({
-    adminApi: anAdminApi({ dashboard: response }),
+    adminApi: anAdminApi({ dashboard: response, ...(page && { page }) }),
     userService: aUserService(),
     toast: aToast(),
     allUsers: users,
@@ -74,6 +75,19 @@ describe('Admin handlers', () => {
     handlers.onView({ userId: T.USER_ID });
 
     expect(selected()?.email).toBe(T.EMAIL);
+  });
+
+  it('appends the next page of users and stops when the server has no more', () => {
+    const more = { users: dashboard.users.map(user => ({ ...user, id: T.OTHER_ID })), next: null };
+    const { handlers, users } = build({ response: of(dashboard), page: of(more), authEnding: false });
+    handlers.loadDashboardData();
+
+    expect(handlers.next()).toEqual(dashboard.next);
+
+    handlers.loadMoreUsers();
+
+    expect(users().map(user => user.id)).toEqual([T.USER_ID, T.OTHER_ID]);
+    expect(handlers.next()).toBeNull();
   });
 
   it('reports a failed load as an error unless the session is ending', () => {

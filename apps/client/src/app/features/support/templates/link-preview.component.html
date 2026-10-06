@@ -1,0 +1,14 @@
+@if (preview()?.title; as title) {
+  <a
+    class="mt-1 block rounded-lg border-l-4 border-primary bg-black/5 px-3 py-2 text-left hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15"
+    [href]="url()"
+    [target]="link.TARGET"
+    [rel]="link.REL"
+  >
+    <span class="block truncate text-xs">{{ host() }}</span>
+    <span class="block text-sm font-semibold">{{ title }}</span>
+    @if (preview()?.description; as description) {
+      <span class="mt-0.5 line-clamp-2 block text-xs">{{ description }}</span>
+    }
+  </a>
+}

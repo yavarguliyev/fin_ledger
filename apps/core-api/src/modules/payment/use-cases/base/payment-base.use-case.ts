@@ -2,20 +2,18 @@ import { BadRequestException, Inject, InternalServerErrorException } from '@nest
 import { PaymentCapability, PaymentProviderRegistry, PaymentStatus, PaymentType, WalletStatus } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { PaymentMethodRepository } from '../../../payment-methods/repositories/payment-method.repository';
-import { WalletService } from '../../../wallet/wallet.service';
+import { PaymentMethodRepository, ProviderCustomerRepository } from '../../../payment-methods';
+import { WalletService, WalletHelper } from '../../../wallet';
 import { ProcessPaymentDto } from '../../dtos/input/process-payment.dto';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
 import { PaymentResultDto } from '../../dtos/payment/payment-result.dto';
 import { PaymentHelper } from '../../helpers/payment.helper';
 import { PaymentOperationHelper } from '../../helpers/payment-operation.helper';
-import { WalletHelper } from '../../../wallet/helpers/wallet.helper';
 import { CreatePaymentRecordDto } from '../../dtos/step/create-payment-record.dto';
 import { DispatchPaymentOperationDto } from '../../dtos/step/dispatch-payment-operation.dto';
 import { ValidateWalletDto } from '../../dtos/step/validate-wallet.dto';
 import { CompletePaymentUseCase } from '../commands/complete-payment.use-case';
-import { AuthRepository } from '../../../auth/repositories/auth.repository';
-import { ProviderCustomerRepository } from '../../../payment-methods/repositories/provider-customer.repository';
+import { AuthRepository } from '../../../auth';
 import { PaymentActorDto } from '../../dtos/step/payment-actor.dto';
 
 export abstract class PaymentBaseUseCase {

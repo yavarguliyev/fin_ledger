@@ -10,6 +10,7 @@
       role="combobox"
       autocomplete="off"
       [attr.aria-label]="ariaLabel()"
+      [attr.aria-describedby]="describedBy()"
       [attr.aria-expanded]="isOpen()"
       [attr.aria-controls]="text.LIST_ID"
       [attr.aria-activedescendant]="isOpen() ? activeId() : null"

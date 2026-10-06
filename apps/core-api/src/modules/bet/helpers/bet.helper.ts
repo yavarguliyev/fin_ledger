@@ -1,8 +1,8 @@
 import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { BettingHelper, GameEventStatus } from '@common/libs';
 
-import { GameEventDto } from '../../game-events/dtos/game-event/game-event.dto';
-import { WalletDto } from '../../wallet/dtos/wallet/wallet.dto';
+import { GameEventDto } from '../../game-events';
+import { WalletDto } from '../../wallet';
 import { BetDto } from '../dtos/bet/bet.dto';
 import { BetOutcomeDto } from '../dtos/bet/bet-outcome.dto';
 import { AssertOwnedWalletDto } from '../dtos/helper/assert-owned-wallet.dto';

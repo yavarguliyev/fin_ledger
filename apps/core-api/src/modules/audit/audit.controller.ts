@@ -1,6 +1,6 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { ENVIRONMENT_CONSTANTS, PaginatedResponseDto, ParamsQueryAndHeaders, Roles, RolesGuard, SessionGuard, UserRoles } from '@common/libs';
+import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, Roles, RolesGuard, SessionGuard, UserRoles } from '@common/libs';
 
 import { AuditService } from './audit.service';
 import { AuditLogDto } from './dtos/audit/audit-log.dto';
@@ -15,7 +15,7 @@ export class AuditController {
   constructor (private readonly auditService: AuditService) {}
 
   @Get()
-  async findAuditLogs (@ParamsQueryAndHeaders({ schema: ListAuditLogsSchema }) query: ListAuditLogsDto): Promise<PaginatedResponseDto<AuditLogDto>> {
+  async findAuditLogs (@ParamsQueryAndHeaders({ schema: ListAuditLogsSchema }) query: ListAuditLogsDto): Promise<AuditLogDto[]> {
     return this.auditService.getAuditLogs(query);
   }
 }

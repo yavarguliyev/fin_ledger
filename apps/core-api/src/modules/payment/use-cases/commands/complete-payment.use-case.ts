@@ -2,8 +2,7 @@ import { Inject, Injectable, InternalServerErrorException, NotFoundException } f
 import { AnalyticsEventTopic, DomainEventType, OutboxDestination, OutboxRepository, PaymentStatus, PaymentType, PostgresService } from '@common/libs';
 
 import { PaymentRepository } from '../../repositories/payment.repository';
-import { WalletService } from '../../../wallet/wallet.service';
-import { WalletOperationResultDto } from '../../../wallet/dtos/transaction/wallet-operation-result.dto';
+import { WalletService, WalletOperationResultDto } from '../../../wallet';
 import { PaymentDto } from '../../dtos/payment/payment.dto';
 import { CompletePaymentDto } from '../../dtos/input/complete-payment.dto';
 import { CompletePaymentInTransactionDto } from '../../dtos/helper/complete-payment-in-transaction.dto';

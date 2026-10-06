@@ -58,13 +58,14 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     this.connection = null;
   }
 
-  async publish ({ payload, routingKey, exchange, persistent }: RabbitmqPublishDto): Promise<void> {
+  async publish ({ payload, routingKey, exchange, persistent, headers }: RabbitmqPublishDto): Promise<void> {
     await PublishHelper.confirmed({
       channel: this.requireChannel(),
       exchange: exchange ?? RABBITMQ_CONSTANTS.RABBITMQ_EXCHANGE.key,
       routingKey,
       content: Buffer.from(JSON.stringify(payload)),
-      persistent: persistent ?? true
+      persistent: persistent ?? true,
+      ...(headers && { headers })
     });
   }
 

@@ -1,6 +1,6 @@
 @if (statusStore.status(); as current) {
   @if (current.required && !current.enabled) {
-    <p class="mb-3 rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger" role="alert">
+    <p class="mb-3 rounded-lg bg-danger/10 px-3 py-2 text-xs text-danger-deep dark:text-danger-light" role="alert">
       Two-factor authentication is required for your role. The rest of the app stays locked until you set it up.
     </p>
   }
@@ -15,16 +15,16 @@
   @if (statusStore.status(); as current) {
     <div class="flex items-center gap-2 shrink-0">
       @if (current.enabled) {
-        <span class="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success">Enabled</span>
+        <span class="text-xs font-medium px-2 py-1 rounded-full bg-success/10 text-success-deep dark:text-success-light">Enabled</span>
         <button type="button" (click)="regenerateOpen.set(true)" class="text-sm font-medium text-primary hover:underline">New codes</button>
         @if (!current.required) {
-          <button type="button" (click)="disableOpen.set(true)" class="text-sm font-medium text-danger hover:underline">Turn off</button>
+          <button type="button" (click)="disableOpen.set(true)" class="text-sm font-medium text-danger-deep dark:text-danger-light hover:underline">Turn off</button>
         }
       } @else {
         @if (current.required) {
-          <span class="text-xs font-medium px-2 py-1 rounded-full bg-danger/10 text-danger">Required</span>
+          <span class="text-xs font-medium px-2 py-1 rounded-full bg-danger/10 text-danger-deep dark:text-danger-light">Required</span>
         } @else {
-          <span class="text-xs font-medium px-2 py-1 rounded-full bg-warning/10 text-warning">Not enabled</span>
+          <span class="text-xs font-medium px-2 py-1 rounded-full bg-warning/10 text-warning-deep dark:text-warning-light">Not enabled</span>
         }
         <button
           type="button"
@@ -58,7 +58,7 @@
       </p>
       <app-otp-input [disabled]="loading()" [invalid]="!!error()" (valueChange)="forms.setupCode.setValue($event)" (completed)="confirmSetup()" />
       @if (error()) {
-        <p class="text-sm text-danger" role="alert">{{ error() }}</p>
+        <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
       }
       <button
         type="button"
@@ -117,7 +117,7 @@
       class="w-full px-4 py-2.5 rounded-lg border border-ink-300 bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
     />
     @if (error()) {
-      <p class="text-sm text-danger" role="alert">{{ error() }}</p>
+      <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
     }
     <button type="submit" [disabled]="loading()" class="w-full py-2.5 rounded-lg bg-danger-dark text-white font-semibold disabled:opacity-60">
       {{ loading() ? 'Turning off…' : 'Turn off' }}
@@ -157,7 +157,7 @@
     </div>
 
     @if (error()) {
-      <p class="text-sm text-danger" role="alert">{{ error() }}</p>
+      <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
     }
 
     <button

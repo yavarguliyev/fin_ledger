@@ -3,7 +3,7 @@ import { HealthIndicatorService, HealthIndicatorResult } from '@nestjs/terminus'
 import { BaseHelper, RABBITMQ_SERVICE, RabbitmqService } from '@common/libs';
 
 import { HEALTH } from '../constants/health.constant';
-import { NOTIFICATION_QUEUE } from '../../notification/constants/messaging/notification-queue.constant';
+import { NOTIFICATION_QUEUE } from '../../notification';
 
 @Injectable()
 export class BrokerHealthIndicator {

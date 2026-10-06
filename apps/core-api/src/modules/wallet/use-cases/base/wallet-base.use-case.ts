@@ -15,11 +15,11 @@ import {
 import { PublishWalletAnalyticsDto } from '../../dtos/step/publish-wallet-analytics.dto';
 import { RecordWalletAnalyticsDto } from '../../dtos/step/record-wallet-analytics.dto';
 import { WalletRepository } from '../../repositories/wallet.repository';
-import { LedgerService } from '../../../ledger/ledger.service';
+import { LedgerService } from '../../../ledger';
 import { WalletOperationDto } from '../../dtos/input/wallet-operation.dto';
-import { AnalyticsEventPayloadDto } from '../../../analytics/dtos/payload/analytics-event-payload.dto';
+import { AnalyticsEventPayloadDto } from '../../../analytics';
 import { WalletOperationResultDto } from '../../dtos/transaction/wallet-operation-result.dto';
-import { WalletTransactionRepository } from '../../../wallet-transactions/repositories/wallet-transaction.repository';
+import { WalletTransactionRepository } from '../../../wallet-transactions';
 import { WalletHelper } from '../../helpers/wallet.helper';
 
 export abstract class WalletBaseUseCase<TInput, TOutput> {

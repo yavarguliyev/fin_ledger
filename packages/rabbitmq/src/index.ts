@@ -2,6 +2,7 @@ export * from './modules/constants/messaging/rabbitmq.constant';
 export * from './modules/constants/messaging/topology.constant';
 
 export * from './modules/dtos/outbox/publish-outbox-event.dto';
+export * from './modules/dtos/outbox/envelope-headers.dto';
 export * from './modules/dtos/service/rabbitmq-publish.dto';
 export * from './modules/dtos/service/rabbitmq-subscribe.dto';
 export * from './modules/dtos/step/cancel-consumers.dto';
@@ -23,6 +24,7 @@ export * from './modules/dtos/topology/retry-queue.dto';
 export * from './modules/interfaces/open-connection.interface';
 
 export * from './modules/helpers/connection.helper';
+export * from './modules/helpers/envelope.helper';
 export * from './modules/helpers/consume.helper';
 export * from './modules/helpers/publish.helper';
 export * from './modules/helpers/queue.helper';

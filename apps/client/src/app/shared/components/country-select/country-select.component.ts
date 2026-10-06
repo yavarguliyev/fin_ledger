@@ -20,6 +20,7 @@ export class CountrySelectComponent implements ControlValueAccessor {
   private onTouched: () => void = () => undefined;
 
   readonly ariaLabel = input<string>(COUNTRY_SELECT.PLACEHOLDER);
+  readonly describedBy = input<string | null>(null);
 
   readonly text = COUNTRY_SELECT;
   readonly value = signal('');
