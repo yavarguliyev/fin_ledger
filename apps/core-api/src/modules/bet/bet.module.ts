@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { BetController } from './bet.controller';
-import { BetService } from './bet.service';
+import { BetController } from './controllers/bet.controller';
+import { BetService } from './services/bet.service';
 import { BetRepository } from './repositories/bet.repository';
 import { PlaceBetUseCase } from './use-cases/commands/place-bet.use-case';
 import { SettleBetUseCase } from './use-cases/commands/settle-bet.use-case';

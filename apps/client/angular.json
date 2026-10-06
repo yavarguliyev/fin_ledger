@@ -68,7 +68,15 @@
             "outputPath": "dist/demo",
             "polyfills": [],
             "scripts": [],
-            "styles": ["src/global_styles.css"],
+            "styles": [
+              "src/global_styles.css",
+              {
+                "input": "../../node_modules/leaflet/dist/leaflet.css",
+                "bundleName": "leaflet",
+                "inject": false
+              }
+            ],
+            "allowedCommonJsDependencies": ["leaflet"],
             "tsConfig": "tsconfig.app.json"
           }
         },

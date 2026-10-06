@@ -12,7 +12,8 @@
   },
   "scripts": {
     "build": "nest build",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "@nestjs/testing": "^12.1.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.19.1",
+    "ts-jest": "^29.4.14",
     "typescript": "~6.0.3"
   }
 }

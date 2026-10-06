@@ -7,4 +7,4 @@ export * from './dtos/summary/wallet-transaction-summary.dto';
 export * from './repositories/wallet-transaction.repository';
 export * from './helpers/wallet.helper';
 export * from './guards/wallet-access.guard';
-export * from './wallet.service';
+export * from './services/wallet.service';

@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, D
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { BettingService } from '../../core/services/betting.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -28,7 +29,7 @@ import { EVENT_BADGE } from '../../core/constants/betting/event-badge.constant';
   selector: 'app-betting',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
   providers: [BettingEventsService],
   templateUrl: './templates/betting.component.html'
 })
@@ -139,9 +140,7 @@ export class BettingComponent implements OnInit {
 
   private announce (bet: Bet): void {
     if (bet.status === 'WON') {
-      return this.toast.success(
-        `Bet won! You collected ${CurrencyHelper.formatCurrency({ amountMinor: bet.payoutMinor ?? 0, currency: bet.currency })}.`
-      );
+      return this.toast.success(`Bet won! You collected ${CurrencyHelper.formatCurrency({ amountMinor: bet.payoutMinor ?? 0, currency: bet.currency })}.`);
     }
 
     if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');

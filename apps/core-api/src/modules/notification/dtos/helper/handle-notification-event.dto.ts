@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { NotificationType } from '@common/libs';
 
 import { EventTitleSchema } from '../notification/event-title.dto';
-import { NotificationService } from '../../notification.service';
+import { NotificationService } from '../../services/notification.service';
 
 export const HandleNotificationEventSchema = z.object({
   title: EventTitleSchema,

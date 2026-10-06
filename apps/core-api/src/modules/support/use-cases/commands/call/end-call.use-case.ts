@@ -8,7 +8,7 @@ import { OK_RESPONSE } from '../../../constants/response/ok-response.constant';
 import { OkResponseDto } from '../../../dtos/response/ok-response.dto';
 import { SUPPORT_EVENTS } from '../../../constants/chat/support-events.constant';
 import { SupportCallProvider } from '../../../providers/support-call.provider';
-import { SupportCallRepository } from '../../../repositories/support-call.repository';
+import { CallSessionService } from '../../../services/call-session.service';
 import { SupportConversationRepository } from '../../../repositories/support-conversation.repository';
 import { SupportMapperHelper } from '../../../helpers/support-mapper.helper';
 import { SupportMessageRepository } from '../../../repositories/support-message.repository';
@@ -17,7 +17,7 @@ import { SupportThreadProvider } from '../../../providers/support-thread.provide
 @Injectable()
 export class EndCallUseCase {
   constructor (
-    private readonly callRepository: SupportCallRepository,
+    private readonly sessions: CallSessionService,
     private readonly calls: SupportCallProvider,
     private readonly conversationRepository: SupportConversationRepository,
     private readonly messageRepository: SupportMessageRepository,
@@ -27,7 +27,7 @@ export class EndCallUseCase {
   async execute ({ callId, reason, userId }: EndCallDto): Promise<OkResponseDto> {
     const call = await this.calls.requireParty({ callId, userId });
 
-    await this.callRepository.remove({ call });
+    await this.sessions.remove({ call });
     this.calls.signal({ type: SUPPORT_EVENTS.CALL_ENDED, call, fromUserId: userId, extra: { reason } });
     await RequestScope.runSystem(() => this.log({ call, reason }));
 

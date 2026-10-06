@@ -5,7 +5,7 @@ import type { AuthenticationResponseJSON, VerifyAuthenticationResponseOpts } fro
 import { AuthBaseUseCase } from '../../base/auth-base.use-case';
 import { UserCredentialRepository } from '../../../repositories/user-credential.repository';
 import { PasskeyChallengeService } from '../../../services/passkey-challenge.service';
-import { PasskeyStepUpService } from '../../../services/passkey-step-up.service';
+import { PasskeyGrantService } from '../../../services/passkey-grant.service';
 import { PasskeyHelper } from '../../../helpers/passkey.helper';
 import { PasskeyOwnerDto } from '../../../dtos/passkeys/passkey-owner.dto';
 import { VerifyStepUpDto } from '../../../dtos/passkeys/verify-step-up.dto';
@@ -17,7 +17,7 @@ export class PasskeyStepUpUseCase extends AuthBaseUseCase<VerifyStepUpDto, Accou
   constructor (
     private readonly credentialRepository: UserCredentialRepository,
     private readonly challenges: PasskeyChallengeService,
-    private readonly stepUp: PasskeyStepUpService
+    private readonly grants: PasskeyGrantService
   ) {
     super();
   }
@@ -44,7 +44,7 @@ export class PasskeyStepUpUseCase extends AuthBaseUseCase<VerifyStepUpDto, Accou
     if (!verification.verified) throw new UnauthorizedException(PASSKEY.NOT_VERIFIED_MESSAGE);
 
     await this.credentialRepository.recordUsage({ id: credential.id, signCount: verification.authenticationInfo.newCounter });
-    await this.stepUp.grant({ userId });
+    await this.grants.grant({ userId });
 
     return { status: true, message: PASSKEY.STEP_UP_CONFIRMED_MESSAGE };
   }

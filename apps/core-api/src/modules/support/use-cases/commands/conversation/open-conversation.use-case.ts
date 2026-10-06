@@ -21,10 +21,10 @@ export class OpenConversationUseCase {
     const staff = await this.contactRepository.findStaff(dto);
     if (!staff) throw new NotFoundException(SUPPORT.STAFF_NOT_FOUND_MESSAGE);
 
-    const id = await this.conversationRepository.openOrGet(dto);
-    if (!id) throw new NotFoundException(SUPPORT.NOT_FOUND_MESSAGE);
+    const opened = await this.conversationRepository.openOrGet(dto);
+    if (!opened) throw new NotFoundException(SUPPORT.NOT_FOUND_MESSAGE);
 
-    const conversation = await this.conversationRepository.findById({ id });
+    const conversation = await this.conversationRepository.findById({ id: opened.id });
     if (!conversation) throw new NotFoundException(SUPPORT.NOT_FOUND_MESSAGE);
 
     return SupportMapperHelper.toConversation({ row: conversation });

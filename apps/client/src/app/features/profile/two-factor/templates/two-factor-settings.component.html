@@ -30,7 +30,7 @@
           type="button"
           (click)="startSetup()"
           [disabled]="loading()"
-          class="text-sm font-medium text-primary hover:underline disabled:opacity-60"
+          class="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline disabled:opacity-60"
         >
           Set up
         </button>
@@ -60,14 +60,9 @@
       @if (error()) {
         <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
       }
-      <button
-        type="button"
-        (click)="confirmSetup()"
-        [disabled]="loading()"
-        class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
-      >
+      <app-button [fullWidth]="true" [disabled]="loading()" (pressed)="confirmSetup()">
         {{ loading() ? 'Checking…' : 'Turn on' }}
-      </button>
+      </app-button>
     </div>
   } @else if (recoveryCodes(); as codes) {
     <div class="space-y-4">
@@ -81,14 +76,14 @@
         }
       </ul>
       <div class="flex gap-2">
-        <button type="button" (click)="copyRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">Copy</button>
-        <button type="button" (click)="downloadRecoveryCodes()" class="flex-1 py-2 rounded-lg border border-ink-300 text-sm font-medium">
+        <app-button variant="secondary" [fullWidth]="true" (pressed)="copyRecoveryCodes()">Copy</app-button>
+        <app-button variant="secondary" [fullWidth]="true" (pressed)="downloadRecoveryCodes()">
           Download
-        </button>
+        </app-button>
       </div>
-      <button type="button" (click)="closeSetup()" class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark">
+      <app-button [fullWidth]="true" (pressed)="closeSetup()">
         I've saved them
-      </button>
+      </app-button>
     </div>
   }
 </app-modal>
@@ -160,12 +155,8 @@
       <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
     }
 
-    <button
-      type="submit"
-      [disabled]="loading()"
-      class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
-    >
+    <app-button type="submit" [fullWidth]="true" [disabled]="loading()">
       Create new codes
-    </button>
+    </app-button>
   </form>
 </app-modal>

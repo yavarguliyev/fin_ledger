@@ -1,16 +1,15 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
-import { CacheProvider, REDIS_CACHE_PROVIDER } from '@common/libs';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import { AuthBaseUseCase } from '../../base/auth-base.use-case';
-import { UserCredentialRepository } from '../../../repositories/user-credential.repository';
-import { PasskeyHelper } from '../../../helpers/passkey.helper';
-import { PasskeyOwnerDto } from '../../../dtos/passkeys/passkey-owner.dto';
 import { PASSKEY } from '../../../constants/passkeys/passkey.constant';
+import { PasskeyGrantService } from '../../../services/passkey-grant.service';
+import { PasskeyOwnerDto } from '../../../dtos/passkeys/passkey-owner.dto';
+import { UserCredentialRepository } from '../../../repositories/user-credential.repository';
 
 @Injectable()
 export class AssertPasskeyStepUpUseCase extends AuthBaseUseCase<PasskeyOwnerDto, void> {
   constructor (
-    @Inject(REDIS_CACHE_PROVIDER) private readonly redis: CacheProvider,
+    private readonly grants: PasskeyGrantService,
     private readonly credentialRepository: UserCredentialRepository
   ) {
     super();
@@ -22,12 +21,7 @@ export class AssertPasskeyStepUpUseCase extends AuthBaseUseCase<PasskeyOwnerDto,
     const credentials = await this.credentialRepository.findForUser({ userId });
     if (credentials.length === 0) return;
 
-    const key = PasskeyHelper.grantKey({ userId });
-    const granted = await this.redis.get<string>({ key });
-
-    if (granted !== PASSKEY.GRANT_VALUE) throw new ForbiddenException(PASSKEY.STEP_UP_REQUIRED_MESSAGE);
-
-    await this.redis.delete({ key });
+    if ((await this.grants.take({ userId })) !== PASSKEY.GRANT_VALUE) throw new ForbiddenException(PASSKEY.STEP_UP_REQUIRED_MESSAGE);
   }
 
   private enabled (): boolean {

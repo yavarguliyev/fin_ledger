@@ -3,18 +3,25 @@ import { REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 import { CacheProvider } from '../interfaces/cache-provider.interface';
 import { GetCachedKey } from '../interfaces/get-cached-key.interface';
 import { BuildCacheKeyDto } from '../dtos/helper/build-cache-key.dto';
+import { RegisterCacheProviderDto } from '../dtos/helper/register-cache-provider.dto';
 import { ResolveProviderDto } from '../dtos/helper/resolve-provider.dto';
 import { TryCacheResultDto } from '../dtos/helper/try-cache-result.dto';
 import { TryEvictCacheDto } from '../dtos/helper/try-evict-cache.dto';
 import { TryGetCachedDto } from '../dtos/helper/try-get-cached.dto';
 
 export class CacheHelper {
+  private static registered: CacheProvider | null = null;
+
+  static register ({ provider }: RegisterCacheProviderDto): void {
+    CacheHelper.registered = provider;
+  }
+
   static async tryCacheResult ({ provider, key, value, ttl }: TryCacheResultDto): Promise<void> {
     await provider.set({ key, value, ...(ttl !== undefined && { ttlSeconds: ttl }) });
   }
 
   static resolveProvider ({ target }: ResolveProviderDto): CacheProvider | null {
-    return (target[REDIS_CACHE_PROVIDER] as CacheProvider | undefined) ?? null;
+    return (target[REDIS_CACHE_PROVIDER] as CacheProvider | undefined) ?? CacheHelper.registered;
   }
 
   static async tryGetCached<T> ({ provider, cacheKey }: TryGetCachedDto): Promise<GetCachedKey<T>> {

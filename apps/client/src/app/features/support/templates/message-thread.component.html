@@ -220,6 +220,34 @@
                 </svg>
               </button>
             }
+            @if (!message.deletedAt && !isSystem(message)) {
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full hover:bg-ink-100 dark:hover:bg-night-card"
+                [class]="starredIds().has(message.id) ? 'text-warning-dark' : 'text-ink-400'"
+                [title]="starredIds().has(message.id) ? starLabels.UNSTAR_ACTION : starLabels.STAR_ACTION"
+                [attr.aria-label]="starredIds().has(message.id) ? starLabels.UNSTAR_ACTION : starLabels.STAR_ACTION"
+                [attr.aria-pressed]="starredIds().has(message.id)"
+                (click)="starToggled.emit(message.id)"
+              >
+                <svg class="w-4 h-4" [attr.fill]="starredIds().has(message.id) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linejoin="round" stroke-width="2" d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path>
+                </svg>
+              </button>
+            }
+            @if (canDownload(message)) {
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 dark:hover:bg-night-card"
+                [title]="attachment.DOWNLOAD_ACTION"
+                [attr.aria-label]="attachment.DOWNLOAD_ACTION"
+                (click)="downloadRequested.emit(message.id)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v11m0 0l-4-4m4 4l4-4M5 19h14"></path>
+                </svg>
+              </button>
+            }
             @if (canEdit(message)) {
               <button
                 type="button"

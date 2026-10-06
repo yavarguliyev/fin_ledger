@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { WalletController } from './wallet.controller';
-import { WalletService } from './wallet.service';
+import { WalletController } from './controllers/wallet.controller';
+import { WalletService } from './services/wallet.service';
 import { WalletRepository } from './repositories/wallet.repository';
 import { CreateWalletUseCase } from './use-cases/commands/wallet/create-wallet.use-case';
 import { GetWalletUseCase } from './use-cases/queries/get-wallet.use-case';

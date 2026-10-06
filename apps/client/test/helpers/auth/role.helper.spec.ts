@@ -13,6 +13,13 @@ describe('RoleHelper', () => {
     expect(RoleHelper.isStaff({ role: ROLES.USER })).toBe(false);
   });
 
+  it('counts only the two admin roles as admin, so a moderator gets no admin link', () => {
+    expect(RoleHelper.isAdmin({ role: ROLES.GLOBAL_ADMIN })).toBe(true);
+    expect(RoleHelper.isAdmin({ role: ROLES.ADMIN })).toBe(true);
+    expect(RoleHelper.isAdmin({ role: ROLES.MODERATOR })).toBe(false);
+    expect(RoleHelper.isAdmin({ role: null })).toBe(false);
+  });
+
   it('treats a missing role as neither staff nor player, so a signed-out view shows nothing privileged', () => {
     expect(RoleHelper.isStaff({ role: null })).toBe(false);
     expect(RoleHelper.isStaff({ role: undefined })).toBe(false);

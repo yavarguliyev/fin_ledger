@@ -9,12 +9,13 @@ import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { MfaHelper } from '../../core/helpers/auth/mfa.helper';
 import { OtpInputComponent } from '../../shared/components/otp-input/otp-input.component';
 import { PasskeyButtonComponent } from '../../shared/components/passkey-button/passkey-button.component';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, OtpInputComponent, PasskeyButtonComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, OtpInputComponent, PasskeyButtonComponent, ButtonComponent],
   templateUrl: './templates/login.component.html'
 })
 export class LoginComponent implements OnInit {

@@ -5,6 +5,8 @@ export interface SupportConversation {
   status: string;
   unreadCount: number;
   lastMessagePreview?: string | null;
+  privacyEnabled?: boolean;
+  locked?: boolean;
 }
 
 export interface SupportMessage {

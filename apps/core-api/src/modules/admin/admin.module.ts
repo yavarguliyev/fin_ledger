@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { AdminController } from './admin.controller';
-import { AdminService } from './admin.service';
+import { AdminController } from './controllers/admin.controller';
+import { AdminService } from './services/admin.service';
 import { GetAdminDashboardUseCase } from './use-cases/queries/get-admin-dashboard.use-case';
 import { ListAdminUsersUseCase } from './use-cases/queries/list-admin-users.use-case';
 import { GetSharedDevicesUseCase } from './use-cases/queries/get-shared-devices.use-case';

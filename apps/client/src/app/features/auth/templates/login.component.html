@@ -54,16 +54,12 @@
             <div class="p-3 rounded-lg bg-danger/10 border border-danger/30 text-danger-deep dark:text-danger-light text-sm" role="alert">{{ error() }}</div>
           }
 
-          <button
-            type="submit"
-            [disabled]="loading()"
-            class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
+          <app-button type="submit" [fullWidth]="true" [disabled]="loading()">
             @if (loading()) {
               <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             }
             {{ loading() ? 'Verifying…' : 'Verify' }}
-          </button>
+          </app-button>
 
           <button
             type="button"
@@ -162,16 +158,12 @@
             <div class="p-3 rounded-lg bg-danger/10 border border-danger/30 text-danger-deep dark:text-danger-light text-sm" role="alert">{{ error() }}</div>
           }
 
-          <button
-            type="submit"
-            [disabled]="loading()"
-            class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
+          <app-button type="submit" [fullWidth]="true" [disabled]="loading()">
             @if (loading()) {
               <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             }
             {{ loading() ? 'Signing in…' : 'Sign in' }}
-          </button>
+          </app-button>
         </form>
 
         <app-passkey-button (signedIn)="completeSignIn()" />

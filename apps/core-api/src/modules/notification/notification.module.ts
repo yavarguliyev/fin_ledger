@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { InboxRepository } from '@common/libs';
 
-import { NotificationController } from './notification.controller';
-import { NotificationService } from './notification.service';
+import { NotificationController } from './controllers/notification.controller';
+import { NotificationService } from './services/notification.service';
 import { NotificationRepository } from './repositories/notification.repository';
 import { NotificationStreamProvider } from './providers/notification-stream.provider';
 import { CreateNotificationUseCase } from './use-cases/commands/create-notification.use-case';

@@ -1,0 +1,22 @@
+export const ADDRESS_CARD = {
+  TITLE: 'Postal address',
+  HINT: 'Use your current location, pick a spot on the map, or start typing. Check the fields before saving.',
+  LOCATE: 'Use my current location',
+  LOCATING: 'Finding you…',
+  MAP_LABEL: 'Map. Tap to place the pin, or drag the pin to adjust.',
+  MAP_HINT: 'Tap the map or drag the pin to adjust.',
+  LINE1: 'Street address',
+  LINE1_PLACEHOLDER: 'Start typing your address',
+  LINE2: 'Apartment, suite or floor (optional)',
+  CITY: 'City',
+  REGION: 'State or region (optional)',
+  POSTAL: 'Postal code (optional)',
+  COUNTRY: 'Country',
+  SAVE: 'Save address',
+  REMOVE: 'Remove address',
+  SUGGESTIONS_LABEL: 'Address suggestions',
+  SUGGESTIONS_ID: 'address-suggestions',
+  REQUIRED: 'This field is required',
+  IDS: { LINE1: 'address-line1', LINE2: 'address-line2', CITY: 'address-city', REGION: 'address-region', POSTAL: 'address-postal', COUNTRY: 'address-country' },
+  AUTOCOMPLETE: { LINE1: 'address-line1', LINE2: 'address-line2', CITY: 'address-level2', REGION: 'address-level1', POSTAL: 'postal-code' }
+} as const;

@@ -145,3 +145,4 @@ export * from './modules/dtos/filter/write-exception-log.dto';
 export * from './modules/dtos/filter/exception-status.dto';
 export * from './modules/lifecycle/base/background.base';
 export * from './modules/helpers/base/link-preview.base';
+export * from './modules/helpers/base/geocode.base';

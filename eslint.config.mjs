@@ -37,7 +37,7 @@ export default tseslint.config(
       complexity: ['error', 15],
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-unsafe-argument': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-require-imports': 'error',
       '@typescript-eslint/no-redeclare': 'error',
       '@typescript-eslint/ban-ts-comment': 'error',

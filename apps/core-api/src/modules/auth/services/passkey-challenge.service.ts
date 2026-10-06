@@ -1,22 +1,20 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CacheTake, CacheWrite } from '@common/libs';
 
-import { RememberPasskeyChallengeUseCase } from '../use-cases/commands/passkeys/remember-passkey-challenge.use-case';
-import { TakePasskeyChallengeUseCase } from '../use-cases/commands/passkeys/take-passkey-challenge.use-case';
-import { StoreChallengeDto } from '../dtos/passkeys/store-challenge.dto';
 import { ChallengeScopeDto } from '../dtos/passkeys/challenge-scope.dto';
+import { PASSKEY } from '../constants/passkeys/passkey.constant';
+import { PasskeyHelper } from '../helpers/passkey.helper';
+import { StoreChallengeDto } from '../dtos/passkeys/store-challenge.dto';
 
 @Injectable()
 export class PasskeyChallengeService {
-  constructor (
-    private readonly rememberPasskeyChallengeUseCase: RememberPasskeyChallengeUseCase,
-    private readonly takePasskeyChallengeUseCase: TakePasskeyChallengeUseCase
-  ) {}
-
-  async remember (dto: StoreChallengeDto): Promise<void> {
-    return this.rememberPasskeyChallengeUseCase.execute(dto);
+  @CacheWrite({ key: (dto: StoreChallengeDto) => PasskeyHelper.challengeKey(dto), ttlSeconds: PASSKEY.CHALLENGE_TTL_SECONDS })
+  async remember ({ challenge }: StoreChallengeDto): Promise<string> {
+    return Promise.resolve(challenge);
   }
 
-  async take (dto: ChallengeScopeDto): Promise<string> {
-    return this.takePasskeyChallengeUseCase.execute(dto);
+  @CacheTake({ key: (scope: ChallengeScopeDto) => PasskeyHelper.challengeKey(scope) })
+  async take (_scope: ChallengeScopeDto): Promise<string> {
+    return Promise.reject(new BadRequestException(PASSKEY.NO_CHALLENGE_MESSAGE));
   }
 }

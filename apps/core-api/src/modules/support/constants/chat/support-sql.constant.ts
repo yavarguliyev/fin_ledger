@@ -28,11 +28,14 @@ export const SUPPORT_SQL = {
                AND m.sender_user_id IS DISTINCT FROM $1
                AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
            ) AS "unreadCount",
-           c.last_message_preview AS "lastMessagePreview"
+           CASE WHEN c.privacy_enabled OR chat_lock.user_id IS NOT NULL THEN NULL ELSE c.last_message_preview END AS "lastMessagePreview",
+           c.privacy_enabled AS "privacyEnabled",
+           chat_lock.user_id IS NOT NULL AS "locked"
       FROM support_conversations c
       LEFT JOIN users customer ON customer.id = c.customer_user_id
       LEFT JOIN users staff ON staff.id = c.assigned_staff_id
       LEFT JOIN support_read_receipts r ON r.conversation_id = c.id AND r.user_id = $1
+      LEFT JOIN support_conversation_locks chat_lock ON chat_lock.conversation_id = c.id AND chat_lock.user_id = $1
      WHERE (c.customer_user_id = $1 OR c.assigned_staff_id = $1 OR (c.assigned_staff_id IS NULL AND $4::boolean))
        AND ($3::timestamptz IS NULL OR (c.last_message_at, c.id) < ($3::timestamptz, $5::uuid))
      ORDER BY c.last_message_at DESC, c.id DESC

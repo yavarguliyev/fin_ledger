@@ -13,4 +13,5 @@ export interface SupportStreamEvent {
   reactions?: Reaction[];
   presence?: PresenceEntry;
   call?: CallSignal;
+  privacyEnabled?: boolean;
 }

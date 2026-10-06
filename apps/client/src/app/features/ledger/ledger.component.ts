@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, computed, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { LedgerService } from '../../core/services/ledger.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,7 +22,7 @@ import { LoadOnScrollDirective } from '../../shared/directives/load-on-scroll.di
   selector: 'app-ledger',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent, LoadOnScrollDirective],
+  imports: [ButtonComponent, CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent, LoadOnScrollDirective],
   templateUrl: './templates/ledger.component.html'
 })
 export class LedgerComponent implements OnInit {

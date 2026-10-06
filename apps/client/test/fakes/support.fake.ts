@@ -29,6 +29,8 @@ export const aSupportConversation = (overrides: Partial<SupportConversation> = {
   status: F.OPEN_STATUS,
   unreadCount: 0,
   lastMessagePreview: null,
+  privacyEnabled: false,
+  locked: false,
   lastMessageAt: F.CREATED_AT,
   createdAt: F.CREATED_AT,
   ...overrides

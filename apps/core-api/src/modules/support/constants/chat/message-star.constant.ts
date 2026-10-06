@@ -1,4 +1,5 @@
 export const MESSAGE_STAR = {
+  TABLE: 'support_message_stars',
   NOT_FOUND_MESSAGE: 'Message not found',
   DELETED_MESSAGE: 'A deleted message cannot be starred',
   STAR_SQL: `
@@ -14,5 +15,15 @@ export const MESSAGE_STAR = {
       JOIN support_messages m ON m.id = s.message_id
      WHERE s.user_id = $1 AND m.conversation_id = $2 AND m.deleted_at IS NULL
      ORDER BY s.created_at DESC
+  `,
+  LIST_ALL_LIMIT: 100,
+  LIST_ALL_SQL: `
+    SELECT m.id AS "messageId", m.conversation_id AS "conversationId", m.kind, m.body, m.file_name AS "fileName",
+           m.created_at AS "createdAt", s.created_at AS "starredAt"
+      FROM support_message_stars s
+      JOIN support_messages m ON m.id = s.message_id
+     WHERE s.user_id = $1 AND m.deleted_at IS NULL
+     ORDER BY s.created_at DESC
+     LIMIT $2
   `
 } as const;

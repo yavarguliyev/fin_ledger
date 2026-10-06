@@ -20,6 +20,7 @@ import { ObjectPrefixDto } from '../dtos/strategy/object-prefix.dto';
 import { UploadObjectDto } from '../dtos/strategy/upload-object.dto';
 import { DownloadUrlDto } from '../dtos/strategy/download-url.dto';
 import { EndpointDto } from '../dtos/strategy/endpoint.dto';
+import { ContentDispositionHelper } from '../helpers/content-disposition.helper';
 
 export class S3StorageStrategy extends BaseStrategy {
   private readonly client: S3Client;
@@ -68,8 +69,9 @@ export class S3StorageStrategy extends BaseStrategy {
     await this.client.send(command);
   }
 
-  async getDownloadUrl ({ key, expiresIn }: DownloadUrlDto): Promise<string> {
-    const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key });
+  async getDownloadUrl ({ key, expiresIn, contentDisposition }: DownloadUrlDto): Promise<string> {
+    const disposition = contentDisposition && { ResponseContentDisposition: ContentDispositionHelper.header(contentDisposition) };
+    const command = new GetObjectCommand({ Bucket: this.bucketName, Key: key, ...disposition });
     return getSignedUrl(this.urlClient, command, { expiresIn: expiresIn ?? 3600 });
   }
 

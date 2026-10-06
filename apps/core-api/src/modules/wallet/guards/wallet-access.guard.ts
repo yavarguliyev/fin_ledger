@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { RequestContext, STAFF_ROLES } from '@common/libs';
 
-import { WalletService } from '../wallet.service';
+import { WalletService } from '../services/wallet.service';
 
 @Injectable()
 export class WalletAccessGuard implements CanActivate {

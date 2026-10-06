@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -14,7 +15,7 @@ import { FieldErrorComponent } from '../../shared/components/field-error/field-e
   selector: 'app-register',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, RouterLink, FieldErrorComponent],
   templateUrl: './templates/register.component.html'
 })
 export class RegisterComponent {

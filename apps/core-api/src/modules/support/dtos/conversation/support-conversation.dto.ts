@@ -11,6 +11,8 @@ export const SupportConversationSchema = z.object({
   status: z.enum(SUPPORT_CONVERSATION_STATUSES, { message: 'Status must be a valid conversation status' }),
   unreadCount: z.number({ message: 'Unread count must be a number' }).optional(),
   lastMessagePreview: z.string({ message: 'Last message preview must be a string' }).nullable().optional(),
+  privacyEnabled: z.boolean({ message: 'Privacy enabled must be a boolean' }).optional(),
+  locked: z.boolean({ message: 'Locked must be a boolean' }).optional(),
   lastMessageAt: z.string({ message: 'Last message at must be a string' }),
   createdAt: z.string({ message: 'Created at must be a string' })
 });

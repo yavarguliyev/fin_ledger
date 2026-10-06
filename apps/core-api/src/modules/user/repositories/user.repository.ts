@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseExtendedRepository, PostgresService, UnknownRecord, UserRoles, WalletStatus } from '@common/libs';
 
 import { UserDto } from '../dtos/user/user.dto';
+import { RetainedRowDto } from '../dtos/repository/retained-row.dto';
 import { UserWithWalletDto } from '../dtos/user/user-with-wallet.dto';
 import { FindPlayerPageDto } from '../dtos/repository/find-player-page.dto';
 import { PlayerTotalsDto } from '../dtos/repository/player-totals.dto';
@@ -76,9 +77,9 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
     return this.update({ id: userId, data: transformedUpdates, adapter });
   }
 
-  async hasRetainedRecords ({ userId }: UserIdRequestDto): Promise<boolean> {
-    const result = await this.service.getConnection().query<{ retained: boolean }>({ sql: USER_CONSTANTS.RETAINED_RECORDS_QUERY, params: [userId] });
-    return result.rows[0]?.retained ?? false;
+  async retainedRecords ({ userId }: UserIdRequestDto): Promise<RetainedRowDto | null> {
+    const result = await this.service.getConnection().query<RetainedRowDto>({ sql: USER_CONSTANTS.RETAINED_RECORDS_QUERY, params: [userId] });
+    return result.rows[0] ?? null;
   }
 
   async findAnonymizationBlockers ({ userId }: UserIdRequestDto): Promise<AnonymizationBlockersDto> {
@@ -91,7 +92,7 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
   }
 
   async anonymize ({ userId, email, displayName }: AnonymizeUserRecordDto): Promise<void> {
-    const { ANONYMIZE_USER_SQL, CLOSE_USER_WALLETS_SQL, REMOVE_USER_PAYMENT_METHODS_SQL, DELETE_USER_NOTIFICATIONS_SQL } = USER_CONSTANTS;
+    const { ANONYMIZE_USER_SQL, CLOSE_USER_WALLETS_SQL, REMOVE_USER_PAYMENT_METHODS_SQL, DELETE_USER_NOTIFICATIONS_SQL, DELETE_USER_ADDRESS_SQL } = USER_CONSTANTS;
 
     await this.service.getWriteConnection().transaction({
       callback: async adapter => {
@@ -99,13 +100,16 @@ export class UserRepository extends BaseExtendedRepository<UserDto> {
         await adapter.query({ sql: CLOSE_USER_WALLETS_SQL, params: [userId] });
         await adapter.query({ sql: REMOVE_USER_PAYMENT_METHODS_SQL, params: [userId, displayName] });
         await adapter.query({ sql: DELETE_USER_NOTIFICATIONS_SQL, params: [userId] });
+        await adapter.query({ sql: DELETE_USER_ADDRESS_SQL, params: [userId] });
       }
     });
   }
 
   async findPlayerPage ({ limit, before, beforeId }: FindPlayerPageDto): Promise<UserWithWalletDto[]> {
-    const params = [UserRoles.USER, before ?? null, beforeId ?? null, limit];
-    const result = await this.service.getConnection().query<UserWithWalletDto>({ sql: ADMIN_USER_LIST.PAGE_SQL, params });
+    const result = await this.service.getConnection().query<UserWithWalletDto>({
+      sql: ADMIN_USER_LIST.PAGE_SQL,
+      params: [UserRoles.USER, before ?? null, beforeId ?? null, limit]
+    });
     return result.rows;
   }
 

@@ -39,6 +39,8 @@ export class SupportMapperHelper {
       status: row.status,
       unreadCount: row.unreadCount ?? 0,
       lastMessagePreview: row.lastMessagePreview ?? null,
+      privacyEnabled: row.privacyEnabled ?? false,
+      locked: row.locked ?? false,
       lastMessageAt: row.lastMessageAt,
       createdAt: row.createdAt
     };

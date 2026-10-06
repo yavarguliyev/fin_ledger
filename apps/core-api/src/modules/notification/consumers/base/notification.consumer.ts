@@ -11,7 +11,7 @@ import {
   UnknownRecord
 } from '@common/libs';
 
-import { NotificationService } from '../../notification.service';
+import { NotificationService } from '../../services/notification.service';
 import { EventTitleDto } from '../../dtos/notification/event-title.dto';
 import { NotificationHelper } from '../../helpers/notification.helper';
 import { NOTIFICATION_QUEUE } from '../../constants/messaging/notification-queue.constant';

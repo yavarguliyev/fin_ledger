@@ -35,5 +35,6 @@ export const USER_CONSTANTS = {
            deleted_at = COALESCE(deleted_at, now())
      WHERE user_id = $1
   `,
+  DELETE_USER_ADDRESS_SQL: 'SELECT erase_user_address($1)',
   DELETE_USER_NOTIFICATIONS_SQL: 'DELETE FROM notifications WHERE user_id = $1'
 } as const;

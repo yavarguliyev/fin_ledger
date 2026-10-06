@@ -5,6 +5,16 @@ export * from './modules/dtos/config/env-config-source.dto';
 export * from './modules/helpers/database-config.helper';
 
 export * from './modules/infrastructure.module';
+export * from './modules/helpers/api-http.helper';
+export * from './modules/helpers/app-bootstrap.helper';
+export * from './modules/helpers/security-headers.helper';
+export * from './modules/dtos/bootstrap/app-bootstrap.dto';
+export * from './modules/dtos/bootstrap/http-app.dto';
+export * from './modules/dtos/security/security-headers-options.dto';
+export * from './modules/types/bootstrap/http-setup.type';
+export * from './modules/constants/bootstrap/app-bootstrap.constant';
+export * from './modules/constants/security/security-headers.constant';
+export * from './modules/constants/bootstrap/runtime.constant';
 
 export * from '@common/contracts';
 export * from '@common/database';

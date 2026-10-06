@@ -9,6 +9,10 @@ export class RoleHelper {
     return !!role && ROLE_SETS.STAFF.includes(role);
   }
 
+  static isAdmin ({ role }: RoleRefDto): boolean {
+    return !!role && ROLE_SETS.ADMIN.includes(role);
+  }
+
   static isStaffName ({ role }: RoleNameRefDto): boolean {
     return (ROLE_SETS.STAFF as readonly string[]).includes(role);
   }

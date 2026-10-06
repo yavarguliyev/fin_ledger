@@ -23,6 +23,7 @@
     "@angular/router": "^22.2.1",
     "@common/contracts": "1.0.0",
     "@simplewebauthn/browser": "^14.0.0",
+    "leaflet": "^1.9.4",
     "rxjs": "^7.8.2",
     "tslib": "^2.5.0",
     "uuid": "^14.0.2"
@@ -32,6 +33,7 @@
     "@angular/cli": "^22.2.1",
     "@angular/compiler-cli": "^22.2.1",
     "@types/jest": "^30.0.0",
+    "@types/leaflet": "^1.9.22",
     "autoprefixer": "^10.5.4",
     "postcss": "^8.5.24",
     "tailwindcss": "^3.4.17",

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, effect, inject, untracked } from '@angular/core';
 
 import { ChatPeerService } from './services/chat-peer.service';
 import { NewMessagesService } from './services/new-messages.service';
@@ -27,13 +27,22 @@ import { SupportCallStore } from '../../core/services/support-call.store';
 import { SUPPORT_CALL } from '../../core/constants/support/support-call.constant';
 import { SupportPresenceStore } from '../../core/services/support-presence.store';
 import { OFFLINE_QUEUE } from '../../core/constants/support/offline-queue.constant';
+import { InfoPanelComponent } from './components/info-panel.component';
+import { StarredListComponent } from './components/starred-list.component';
+import { SupportPanelStore } from '../../core/services/support-panel.store';
+import { SupportStarStore } from '../../core/services/support-star.store';
+import { SupportPrivacyStore } from '../../core/services/support-privacy.store';
+import { SupportLockStore } from '../../core/services/support-lock.store';
+import { ChatNavigationService } from './services/chat-navigation.service';
+import { INFO_PANEL } from './constants/info-panel.constant';
+import { STARRED_LIST } from './constants/starred-list.constant';
 
 @Component({
   selector: 'app-support',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent, UploadProgressComponent],
-  providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService],
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent, UploadProgressComponent, InfoPanelComponent, StarredListComponent],
+  providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService, ChatNavigationService],
   templateUrl: './templates/support.component.html'
 })
 export class SupportComponent implements OnInit, OnDestroy {
@@ -57,6 +66,23 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly callLabels = SUPPORT_CALL;
   readonly labels = SUPPORT_MESSAGES;
   readonly view = SUPPORT_VIEW;
+  readonly panel = inject(SupportPanelStore);
+  readonly stars = inject(SupportStarStore);
+  readonly privacy = inject(SupportPrivacyStore);
+  readonly locks = inject(SupportLockStore);
+  readonly nav = inject(ChatNavigationService);
+  readonly panelLabels = INFO_PANEL;
+  readonly starredLabels = STARRED_LIST;
+
+  constructor () {
+    effect(() => {
+      this.chat.activeId();
+      untracked(() => {
+        this.panel.hide();
+        this.stars.load();
+      });
+    });
+  }
 
   private timers: ReturnType<typeof setInterval>[] = [];
 
@@ -86,17 +112,6 @@ export class SupportComponent implements OnInit, OnDestroy {
     window.removeEventListener('focus', this.onFocus);
     this.chat.close();
     this.compose.reset();
-  }
-
-  onPick (conversationId: string): void {
-    this.compose.cancelEdit();
-    this.chat.select({ conversationId });
-    this.peer.track();
-  }
-
-  onPickContact (staffUserId: string): void {
-    this.compose.cancelEdit();
-    this.chat.openWith({ staffUserId });
   }
 
   private resyncPresence (): void {

@@ -4,6 +4,7 @@ import { BaseRepository, PostgresService } from '@common/libs';
 import { DepositLimitDto } from '../dtos/deposit-limits/deposit-limit.dto';
 import { UserIdRequestDto } from '../dtos/request/user-id-request.dto';
 import { SpentInPeriodDto } from '../dtos/deposit-limits/spent-in-period.dto';
+import { SpentRowDto } from '../dtos/deposit-limits/spent-row.dto';
 import { DEPOSIT_LIMIT } from '../constants/deposit-limits/deposit-limit.constant';
 
 @Injectable()
@@ -31,12 +32,12 @@ export class DepositLimitRepository extends BaseRepository<DepositLimitDto> {
     return this.findAll({ where: { userId } });
   }
 
-  async spentInPeriod ({ userId, currency, period }: SpentInPeriodDto): Promise<number> {
-    const result = await this.service.getConnection().query<{ spent: string }>({
+  async spentInPeriod ({ userId, currency, period }: SpentInPeriodDto): Promise<SpentRowDto | null> {
+    const result = await this.service.getConnection().query<SpentRowDto>({
       sql: DEPOSIT_LIMIT.SPENT_SQL,
       params: [userId, currency, DEPOSIT_LIMIT.PERIOD_TRUNC[period], DEPOSIT_LIMIT.EXCLUDED_STATUSES]
     });
 
-    return Number(result.rows[0]?.spent ?? 0);
+    return result.rows[0] ?? null;
   }
 }

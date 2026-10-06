@@ -3,7 +3,7 @@
     <p class="text-sm font-medium text-ink-900 dark:text-white">Password</p>
     <p class="text-xs text-ink-500 dark:text-night-muted">Changing it signs every other device out</p>
   </div>
-  <button type="button" (click)="openPassword()" class="text-sm font-medium text-primary hover:underline shrink-0">Change</button>
+  <button type="button" (click)="openPassword()" class="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline shrink-0">Change</button>
 </div>
 
 <div class="flex items-center justify-between py-2 gap-3 border-t border-ink-100 dark:border-night-border">
@@ -17,7 +17,7 @@
       }
     </p>
   </div>
-  <button type="button" (click)="openEmail()" class="text-sm font-medium text-primary hover:underline shrink-0">Change</button>
+  <button type="button" (click)="openEmail()" class="inline-flex min-h-11 items-center text-sm font-medium text-primary hover:underline shrink-0">Change</button>
 </div>
 
 <app-modal [isOpen]="passwordOpen()" title="Change password" maxWidth="max-w-md" (close)="closePassword()">
@@ -60,13 +60,9 @@
       <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
     }
 
-    <button
-      type="submit"
-      [disabled]="passwordDisabled()"
-      class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
-    >
+    <app-button type="submit" [fullWidth]="true" [disabled]="passwordDisabled()">
       {{ saving() ? 'Saving…' : 'Change password' }}
-    </button>
+    </app-button>
   </form>
 </app-modal>
 
@@ -110,12 +106,8 @@
       <p class="text-sm text-danger-deep dark:text-danger-light" role="alert">{{ error() }}</p>
     }
 
-    <button
-      type="submit"
-      [disabled]="emailDisabled()"
-      class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark disabled:opacity-60"
-    >
+    <app-button type="submit" [fullWidth]="true" [disabled]="emailDisabled()">
       {{ saving() ? 'Sending…' : 'Send confirmation link' }}
-    </button>
+    </app-button>
   </form>
 </app-modal>

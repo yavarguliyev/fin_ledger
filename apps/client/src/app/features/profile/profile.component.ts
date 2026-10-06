@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, DestroyRef, inject, computed, OnInit } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { AuthService } from '../../core/services/auth.service';
 import { PROFILE } from '../../core/constants/profile/profile.constant';
@@ -28,12 +29,13 @@ import { CalendarHelper } from '../../core/helpers/common/calendar.helper';
 import { ROLES } from '../../core/constants/auth/roles.constant';
 import { UploadProgressComponent } from '../../shared/components/upload-progress/upload-progress.component';
 import { ToggleComponent } from '../../shared/components/toggle/toggle.component';
+import { AddressCardComponent } from './address/address-card.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent, ToggleComponent, NgOptimizedImage],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, ShowMoreComponent, PaymentMethodsComponent, PageHeaderComponent, TwoFactorSettingsComponent, PasskeySettingsComponent, AccountSecurityComponent, FieldErrorComponent, DatePickerComponent, CountrySelectComponent, UploadProgressComponent, ToggleComponent, NgOptimizedImage, AddressCardComponent],
   providers: [ProfileFormService, ProfileSaveService],
   templateUrl: './templates/profile.component.html'
 })

@@ -48,13 +48,9 @@
           </button>
         }
       </div>
-      <button
-        (click)="next()"
-        [disabled]="amountControl.invalid"
-        class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
-      >
+      <app-button [fullWidth]="true" [disabled]="amountControl.invalid" (pressed)="next()">
         Continue
-      </button>
+      </app-button>
     </div>
   }
 
@@ -63,7 +59,7 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <label class="block text-sm font-medium text-ink-700 dark:text-night-text">Select Payment Method</label>
-          <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline flex items-center gap-1"> + Manage methods </a>
+          <a routerLink="/profile" class="text-xs text-primary font-medium hover:underline inline-flex min-h-11 items-center gap-1"> + Manage methods </a>
         </div>
 
         @if (formService.loadingMethods()) {
@@ -84,16 +80,21 @@
             </a>
           </div>
         } @else {
-          <div class="space-y-2.5">
+          <div class="space-y-2.5" role="radiogroup" aria-label="Payment method">
             @for (m of formService.verifiedMethods(); track m.id) {
               <div
+                role="radio"
+                tabindex="0"
+                [attr.aria-checked]="formService.selectedMethodId() === m.id"
                 (click)="formService.selectMethod(m.id)"
+                (keydown.enter)="formService.selectMethod(m.id)"
+                (keydown.space)="$event.preventDefault(); formService.selectMethod(m.id)"
                 [class.border-primary]="formService.selectedMethodId() === m.id"
                 [class.bg-primary/5]="formService.selectedMethodId() === m.id"
                 [class.dark:bg-primary/10]="formService.selectedMethodId() === m.id"
                 [class.border-ink-200]="formService.selectedMethodId() !== m.id"
                 [class.dark:border-night-border]="formService.selectedMethodId() !== m.id"
-                class="cursor-pointer border rounded-xl p-3.5 flex items-center justify-between transition-all hover:border-primary/60"
+                class="cursor-pointer border rounded-xl p-3.5 flex items-center justify-between transition-all hover:border-primary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-lg bg-ink-100 dark:bg-night-bg flex items-center justify-center text-ink-700 dark:text-night-text">
@@ -161,13 +162,9 @@
         >
           Back
         </button>
-        <button
-          (click)="next()"
-          [disabled]="!formService.selectedMethodId() || !termsControl.value || connectivity.offline()"
-          class="flex-1 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50"
-        >
+        <app-button [fullWidth]="true" [disabled]="!formService.selectedMethodId() || !termsControl.value || connectivity.offline()" (pressed)="next()">
           Continue
-        </button>
+        </app-button>
       </div>
     </div>
   }
@@ -244,12 +241,9 @@
                 {{ receiptText.DOWNLOAD_LABEL }}
               </button>
             }
-            <button
-              (click)="router.navigate(['/wallet'])"
-              class="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
-            >
+            <app-button (pressed)="router.navigate(['/wallet'])">
               Back to Wallet
-            </button>
+            </app-button>
           </div>
         </div>
       }

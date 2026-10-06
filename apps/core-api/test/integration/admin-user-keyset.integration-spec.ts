@@ -1,3 +1,5 @@
+import { CacheResetHelper } from '../helpers/cache-reset.helper';
+import { CACHE_RESET } from '../constants/cache-reset.constant';
 import { ADMIN_USER_KEYSET_TEST as T } from '../constants/admin-user-keyset.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
@@ -49,6 +51,7 @@ describe('Admin user list paged by cursor', () => {
   });
 
   it('counts players and active wallets in SQL for the dashboard stats', async () => {
+    await CacheResetHelper.clear({ pattern: CACHE_RESET.ADMIN_DASHBOARD_PATTERN });
     const dashboard = await ApiHelper.request<AdminStatsBody>({ path: T.DASHBOARD_PATH, token: admin });
     const [counts] = await DbHelper.query<PlayerCountRow>({ sql: T.COUNTS_SQL });
 

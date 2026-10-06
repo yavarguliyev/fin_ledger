@@ -1,0 +1,264 @@
+<div class="fixed inset-0 z-40 bg-ink-900/40 md:hidden" aria-hidden="true" (click)="panel.hide()"></div>
+<aside
+  class="fixed inset-x-0 bottom-0 top-12 z-50 flex flex-col rounded-t-2xl bg-white shadow-xl dark:bg-night-card md:static md:inset-auto md:z-auto md:w-96 md:shrink-0 md:rounded-none md:border-l md:border-ink-200 md:shadow-none md:dark:border-ink-800"
+  [attr.aria-labelledby]="labels.TITLE_ID"
+>
+  <header class="flex items-center gap-2 border-b border-ink-200 px-2 py-2 dark:border-ink-800">
+    @if (panel.storageView()) {
+      <button
+        type="button"
+        class="grid h-11 w-11 place-items-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg"
+        [attr.aria-label]="labels.BACK_LABEL"
+        (click)="panel.showStorage(false)"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
+    }
+    <h2 [id]="labels.TITLE_ID" class="flex-1 px-2 text-sm font-semibold text-ink-900 dark:text-white">
+      {{ panel.storageView() ? labels.STORAGE_TITLE : labels.TITLE }}
+    </h2>
+    <button
+      type="button"
+      class="grid h-11 w-11 place-items-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg"
+      [attr.aria-label]="labels.CLOSE_LABEL"
+      (click)="panel.hide()"
+    >
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-y-auto">
+    @if (panel.storageView()) {
+      @if (storage.summary(); as summary) {
+        <section class="border-b border-ink-200 px-4 py-4 dark:border-ink-800">
+          <p class="text-2xl font-semibold text-ink-900 dark:text-white">{{ size(summary.totalBytes) }}</p>
+          <p class="text-sm text-ink-500 dark:text-night-muted">{{ summary.fileCount }} · {{ labels.STORAGE_USED }}</p>
+          @if (summary.customerTotalBytes !== undefined) {
+            <p class="mt-2 text-sm text-ink-600 dark:text-night-text">{{ labels.CUSTOMER_TOTAL }}: {{ size(summary.customerTotalBytes) }}</p>
+          }
+        </section>
+        @if (summary.files.length === 0) {
+          <p class="px-4 py-8 text-center text-sm text-ink-500 dark:text-night-muted">{{ labels.NO_FILES }}</p>
+        } @else {
+          <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+            @for (file of summary.files; track file.messageId) {
+              <li class="flex min-h-14 items-center gap-3 px-4 py-2">
+                @if (file.mine) {
+                  <input
+                    type="checkbox"
+                    class="h-5 w-5 shrink-0 rounded border-ink-300 text-primary focus-visible:ring-2 focus-visible:ring-primary"
+                    [id]="labels.STORAGE_ID_PREFIX + file.messageId"
+                    [checked]="storage.selected().has(file.messageId)"
+                    (change)="storage.toggle({ messageId: file.messageId })"
+                  />
+                } @else {
+                  <span class="h-5 w-5 shrink-0" [title]="labels.THEIRS_LABEL"></span>
+                }
+                <label class="min-w-0 flex-1" [attr.for]="file.mine ? labels.STORAGE_ID_PREFIX + file.messageId : null">
+                  <span class="block truncate text-sm text-ink-900 dark:text-white">{{ file.fileName ?? labels.ATTACHMENT_LABEL }}</span>
+                  <span class="block text-xs text-ink-500 dark:text-night-muted">
+                    {{ size(file.sizeBytes) }} · {{ file.createdAt | date: labels.DATE_FORMAT }} · {{ file.mine ? labels.YOURS_LABEL : labels.THEIRS_LABEL }}
+                  </span>
+                </label>
+              </li>
+            }
+          </ul>
+        }
+      }
+    } @else {
+      <section class="flex flex-col items-center gap-2 border-b border-ink-200 px-4 py-6 text-center dark:border-ink-800">
+        <app-support-avatar [name]="panel.contact()?.name ?? panel.contact()?.team ?? null" [showDot]="true" [online]="online()" />
+        <p class="text-base font-semibold text-ink-900 dark:text-white">{{ panel.contact()?.name ?? panel.contact()?.team }}</p>
+        @if (panel.contact()?.team && panel.contact()?.name) {
+          <p class="text-sm text-ink-500 dark:text-night-muted">{{ panel.contact()?.team }}</p>
+        }
+        <p class="text-xs text-ink-500 dark:text-night-muted">{{ status() }}</p>
+      </section>
+
+      @if (panel.contact(); as contact) {
+        @if (!contact.isStaff) {
+          <dl class="grid grid-cols-2 gap-x-4 gap-y-2 border-b border-ink-200 px-4 py-4 text-sm dark:border-ink-800">
+            <dt class="text-ink-500 dark:text-night-muted">{{ labels.ROLE_LABEL }}</dt>
+            <dd class="text-ink-900 dark:text-white">{{ contact.role }}</dd>
+            <dt class="text-ink-500 dark:text-night-muted">{{ labels.MEMBER_SINCE_LABEL }}</dt>
+            <dd class="text-ink-900 dark:text-white">{{ contact.memberSince | date: labels.DATE_FORMAT }}</dd>
+            <dt class="text-ink-500 dark:text-night-muted">{{ labels.ACCOUNT_LABEL }}</dt>
+            <dd class="text-ink-900 dark:text-white">{{ contact.accountStatus }}</dd>
+            <dt class="text-ink-500 dark:text-night-muted">{{ labels.KYC_LABEL }}</dt>
+            <dd class="text-ink-900 dark:text-white">{{ contact.kycStatus }}</dd>
+          </dl>
+          @if (isAdmin()) {
+            <a
+              class="flex min-h-11 items-center px-4 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              [routerLink]="labels.ADMIN_ROUTE"
+            >
+              {{ labels.ADMIN_LINK }}
+            </a>
+          }
+        }
+      }
+
+      <button
+        type="button"
+        class="flex min-h-14 w-full items-center justify-between border-b border-ink-200 px-4 text-left text-sm hover:bg-ink-50 dark:border-ink-800 dark:hover:bg-night-bg"
+        (click)="panel.showStorage(true)"
+      >
+        <span class="font-medium text-ink-900 dark:text-white">{{ labels.STORAGE_TITLE }}</span>
+        <span class="text-ink-500 dark:text-night-muted">{{ size(storage.summary()?.totalBytes ?? 0) }}</span>
+      </button>
+
+      <section class="flex items-start gap-3 border-b border-ink-200 px-4 py-3 dark:border-ink-800">
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium text-ink-900 dark:text-white">{{ labels.PRIVACY_TITLE }}</p>
+          <p class="mt-0.5 text-xs text-ink-500 dark:text-night-muted">{{ labels.PRIVACY_HINT }}</p>
+        </div>
+        <app-toggle
+          variant="preference"
+          [checked]="privacy.enabled()"
+          [disabled]="privacy.saving()"
+          [label]="labels.PRIVACY_TITLE"
+          (toggleChange)="privacy.change($event)"
+        />
+      </section>
+
+      <section class="flex items-start gap-3 border-b border-ink-200 px-4 py-3 dark:border-ink-800">
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium text-ink-900 dark:text-white">{{ labels.LOCK_TITLE }}</p>
+          <p class="mt-0.5 text-xs text-ink-500 dark:text-night-muted">{{ labels.LOCK_HINT }}</p>
+        </div>
+        <app-toggle
+          variant="preference"
+          [checked]="locks.activeLocked()"
+          [label]="labels.LOCK_TITLE"
+          (toggleChange)="$event ? locks.lock() : locks.removeLock()"
+        />
+      </section>
+
+      <div class="px-2 pt-3">
+        <app-tabs [tabs]="[...labels.TAB_ITEMS]" [label]="labels.TABS_LABEL" [active]="panel.tab()" (activeChange)="panel.selectTab({ tab: $event })" />
+      </div>
+
+      <div class="px-3 py-3" role="tabpanel" [id]="tabStyles.PANEL_ID_PREFIX + panel.tab()" [attr.aria-labelledby]="tabStyles.TAB_ID_PREFIX + panel.tab()">
+        @switch (panel.tab()) {
+          @case (tabIds.MEDIA) {
+            <div class="grid grid-cols-3 gap-1.5">
+              @for (item of panel.media(); track item.id) {
+                <button
+                  type="button"
+                  class="relative aspect-square overflow-hidden rounded-lg bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:bg-night-bg"
+                  [attr.aria-label]="item.attachment?.fileName ?? labels.VIDEO_LABEL"
+                  (click)="go(item.id)"
+                >
+                  @if (isImage(item) && item.attachment?.url) {
+                    <img class="object-cover" [ngSrc]="item.attachment?.url ?? ''" fill [alt]="item.attachment?.fileName ?? ''" />
+                  } @else {
+                    <span class="grid h-full place-items-center text-ink-500">
+                      <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.55-2.28A1 1 0 0121 8.62v6.76a1 1 0 01-1.45.9L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                      </svg>
+                    </span>
+                  }
+                </button>
+              }
+            </div>
+            @if (panel.media().length === 0 && !panel.loading()) {
+              <p class="py-8 text-center text-sm text-ink-500 dark:text-night-muted">{{ emptyText() }}</p>
+            }
+          }
+          @case (tabIds.DOCS) {
+            <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+              @for (item of panel.docs(); track item.id) {
+                <li>
+                  <button type="button" class="flex min-h-14 w-full items-center gap-3 px-1 py-2 text-left hover:bg-ink-50 dark:hover:bg-night-bg" (click)="go(item.id)">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 3h7l5 5v13H7zM14 3v5h5"></path>
+                      </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm text-ink-900 dark:text-white">{{ fileLabel(item) }}</span>
+                      <span class="block text-xs text-ink-500 dark:text-night-muted">{{ size(item.attachment?.sizeBytes ?? 0) }} · {{ item.createdAt | date: labels.DATE_FORMAT }}</span>
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (panel.docs().length === 0 && !panel.loading()) {
+              <p class="py-8 text-center text-sm text-ink-500 dark:text-night-muted">{{ emptyText() }}</p>
+            }
+          }
+          @case (tabIds.LINKS) {
+            <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+              @for (link of panel.links(); track link.id) {
+                <li class="flex items-center gap-1">
+                  <button type="button" class="min-h-14 min-w-0 flex-1 px-1 py-2 text-left hover:bg-ink-50 dark:hover:bg-night-bg" (click)="go(link.messageId)">
+                    <span class="block truncate text-sm text-primary">{{ link.url }}</span>
+                    <span class="block truncate text-xs text-ink-500 dark:text-night-muted">{{ link.senderName }} · {{ link.createdAt | date: labels.DATE_FORMAT }}</span>
+                  </button>
+                  <a
+                    class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-500 hover:bg-ink-100 dark:hover:bg-night-bg"
+                    [href]="link.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    [attr.aria-label]="labels.OPEN_LINK"
+                  >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"></path>
+                    </svg>
+                  </a>
+                </li>
+              }
+            </ul>
+            @if (panel.links().length === 0 && !panel.loading()) {
+              <p class="py-8 text-center text-sm text-ink-500 dark:text-night-muted">{{ emptyText() }}</p>
+            }
+          }
+          @case (tabIds.STARRED) {
+            <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+              @for (item of stars.starred(); track item.messageId) {
+                <li class="flex items-center gap-1">
+                  <button type="button" class="min-h-14 min-w-0 flex-1 px-1 py-2 text-left hover:bg-ink-50 dark:hover:bg-night-bg" (click)="go(item.messageId)">
+                    <span class="block truncate text-sm text-ink-900 dark:text-white">{{ item.body ?? item.fileName ?? labels.ATTACHMENT_LABEL }}</span>
+                    <span class="block text-xs text-ink-500 dark:text-night-muted">{{ item.createdAt | date: labels.DATE_FORMAT }}</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-warning-dark hover:bg-ink-100 dark:hover:bg-night-bg"
+                    [attr.aria-label]="labels.UNSTAR_LABEL"
+                    (click)="stars.toggle({ messageId: item.messageId })"
+                  >
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path>
+                    </svg>
+                  </button>
+                </li>
+              }
+            </ul>
+            @if (stars.starred().length === 0) {
+              <p class="py-8 text-center text-sm text-ink-500 dark:text-night-muted">{{ emptyText() }}</p>
+            }
+          }
+        }
+
+        @if (panel.hasMore()[panel.tab()]) {
+          <div class="flex justify-center pt-3" appLoadOnScroll [paused]="panel.loading()" (reached)="panel.loadMore()">
+            <app-button variant="secondary" [busy]="panel.loading()" (pressed)="panel.loadMore()">{{ labels.LOAD_MORE }}</app-button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (panel.storageView() && storage.selectedCount() > 0) {
+    <footer class="border-t border-ink-200 p-3 dark:border-ink-800">
+      <p class="mb-2 text-xs text-ink-600 dark:text-night-text">{{ labels.DELETE_NOTE }}</p>
+      <app-button variant="danger" [fullWidth]="true" [busy]="storage.deleting()" (pressed)="storage.deleteSelected()">
+        {{ labels.DELETE_SELECTED }} ({{ storage.selectedCount() }})
+      </app-button>
+    </footer>
+  }
+</aside>

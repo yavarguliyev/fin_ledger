@@ -29,7 +29,9 @@ export const SupportStreamEventSchema = z.object({
 
   messageId: z.string({ message: 'Message ID must be a string' }).optional(),
 
-  reactions: z.array(ReactionSchema).optional()
+  reactions: z.array(ReactionSchema).optional(),
+
+  privacyEnabled: z.boolean({ message: 'Privacy enabled must be a boolean' }).optional()
 });
 
 export type SupportStreamEventDto = z.infer<typeof SupportStreamEventSchema>;

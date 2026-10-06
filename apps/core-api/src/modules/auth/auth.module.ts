@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { MfaModule } from '@common/libs';
 
-import { AuthController } from './auth.controller';
-import { AuthMfaController } from './auth-mfa.controller';
-import { AuthPasskeyController } from './auth-passkey.controller';
-import { AuthKeysController } from './auth-keys.controller';
+import { AuthController } from './controllers/auth.controller';
+import { AuthMfaController } from './controllers/auth-mfa.controller';
+import { AuthPasskeyController } from './controllers/auth-passkey.controller';
+import { AuthKeysController } from './controllers/auth-keys.controller';
 import { GetJwksUseCase } from './use-cases/queries/get-jwks.use-case';
 import { TrackDeviceUseCase } from './use-cases/commands/device/track-device.use-case';
 import { ListSharedDevicesUseCase } from './use-cases/queries/list-shared-devices.use-case';
@@ -17,11 +17,9 @@ import { PasskeyChallengeService } from './services/passkey-challenge.service';
 import { PasskeyService } from './services/passkey.service';
 import { PasskeyStepUpService } from './services/passkey-step-up.service';
 import { PasskeyStepUpUseCase } from './use-cases/commands/passkeys/passkey-step-up.use-case';
-import { RememberPasskeyChallengeUseCase } from './use-cases/commands/passkeys/remember-passkey-challenge.use-case';
-import { TakePasskeyChallengeUseCase } from './use-cases/commands/passkeys/take-passkey-challenge.use-case';
-import { GrantPasskeyStepUpUseCase } from './use-cases/commands/passkeys/grant-passkey-step-up.use-case';
+import { PasskeyGrantService } from './services/passkey-grant.service';
 import { AssertPasskeyStepUpUseCase } from './use-cases/commands/passkeys/assert-passkey-step-up.use-case';
-import { AuthService } from './auth.service';
+import { AuthService } from './services/auth.service';
 import { AuthRepository } from './repositories/auth.repository';
 import { AuthTokenRepository } from './repositories/auth-token.repository';
 import { MfaRecoveryCodeRepository } from './repositories/mfa-recovery-code.repository';
@@ -47,13 +45,18 @@ import { SharedModule } from '../../shared/shared.module';
 import { LedgerModule } from '../ledger/ledger.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { SupportModule } from '../support/support.module';
+import { AuthChatLockController } from './controllers/auth-chat-lock.controller';
+import { ChatLockService } from './services/chat-lock.service';
+import { ConsumePasskeyGrantUseCase } from './use-cases/commands/passkeys/consume-passkey-grant.use-case';
+import { LockChatUseCase } from './use-cases/commands/passkeys/lock-chat.use-case';
+import { UnlockChatUseCase } from './use-cases/commands/passkeys/unlock-chat.use-case';
 import { EmailVerificationUseCase } from './use-cases/commands/email-verification.use-case';
 import { ForgotPasswordUseCase } from './use-cases/commands/forgot-password.use-case';
 import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-case';
 
 @Module({
   imports: [SharedModule, LedgerModule, SupportModule, WalletModule, MfaModule.forRoot()],
-  controllers: [AuthController, AuthMfaController, AuthPasskeyController, AuthKeysController],
+  controllers: [AuthController, AuthMfaController, AuthPasskeyController, AuthKeysController, AuthChatLockController],
   providers: [
     AuthService,
     EmailVerificationUseCase,
@@ -82,11 +85,13 @@ import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-ca
     PasskeyChallengeService,
     PasskeyService,
     PasskeyStepUpService,
+    ChatLockService,
+    ConsumePasskeyGrantUseCase,
+    LockChatUseCase,
+    UnlockChatUseCase,
     PasskeyStepUpUseCase,
-    RememberPasskeyChallengeUseCase,
-    TakePasskeyChallengeUseCase,
-    GrantPasskeyStepUpUseCase,
     AssertPasskeyStepUpUseCase,
+    PasskeyGrantService,
     GetJwksUseCase,
     TrackDeviceUseCase,
     ListSharedDevicesUseCase,

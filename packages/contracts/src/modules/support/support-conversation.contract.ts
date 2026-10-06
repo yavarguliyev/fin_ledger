@@ -21,6 +21,10 @@ export const SupportConversationContractSchema = z.object({
 
   lastMessagePreview: z.string({ message: 'Last message preview must be a string' }).nullable(),
 
+  privacyEnabled: z.boolean({ message: 'Privacy enabled must be a boolean' }),
+
+  locked: z.boolean({ message: 'Locked must be a boolean' }),
+
   lastMessageAt: z.string({ message: 'Last message at must be a string' }),
 
   createdAt: z.string({ message: 'Created at must be a string' })

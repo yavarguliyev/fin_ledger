@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { PaymentController } from './payment.controller';
-import { PaymentService } from './payment.service';
+import { PaymentController } from './controllers/payment.controller';
+import { PaymentService } from './services/payment.service';
 import { PaymentRepository } from './repositories/payment.repository';
 import { RequestDepositUseCase } from './use-cases/commands/request-deposit.use-case';
 import { RequestWithdrawalUseCase } from './use-cases/commands/request-withdrawal.use-case';

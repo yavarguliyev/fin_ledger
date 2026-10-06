@@ -16,10 +16,6 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@nestjs/common": "^12.1.2",
-    "@nestjs/config": "^12.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.2",
     "@common/database": "1.0.0",
     "@common/env": "1.0.0",
     "@common/kafka": "1.0.0",
@@ -32,11 +28,20 @@
     "@common/shared-libs": "1.0.0",
     "@common/sms": "1.0.0",
     "@common/storage": "1.0.0",
-    "@common/tasks": "1.0.0"
+    "@common/tasks": "1.0.0",
+    "@nestjs/common": "^12.1.2",
+    "@nestjs/config": "^12.0.1",
+    "@nestjs/core": "^12.1.2",
+    "@nestjs/platform-express": "^12.1.2",
+    "helmet": "^8.3.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@nestjs/cli": "^12.0.8",
     "@nestjs/testing": "^12.1.2",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.19.1",
     "typescript": "~6.0.3"

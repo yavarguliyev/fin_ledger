@@ -15,48 +15,16 @@ import { MessageHitResponseDto } from '../dtos/response/message-hit-response.dto
 import { SearchMessagesDto } from '../dtos/input/search-messages.dto';
 import { SearchTermHelper } from '../helpers/search-term.helper';
 import { SUPPORT_MESSAGE_SQL } from '../constants/chat/support-message-sql.constant';
+import { SUPPORT_MESSAGE_COLUMNS } from '../constants/chat/support-message-columns.constant';
 
 @Injectable()
 export class SupportMessageRepository extends BaseExtendedRepository<SupportMessageDto> {
   constructor (postgresService: PostgresService) {
-    super({
-      service: postgresService,
-      tableName: 'support_messages',
-      columnMappings: {
-        conversationId: 'conversation_id',
-        senderUserId: 'sender_user_id',
-        storageKey: 'storage_key',
-        fileName: 'file_name',
-        mimeType: 'mime_type',
-        sizeBytes: 'size_bytes',
-        durationSeconds: 'duration_seconds',
-        externalId: 'external_id',
-        replyToMessageId: 'reply_to_message_id',
-        editedAt: 'edited_at',
-        deletedAt: 'deleted_at',
-        createdAt: 'created_at'
-      }
-    });
+    super({ service: postgresService, tableName: SUPPORT_MESSAGE_COLUMNS.TABLE, columnMappings: { ...SUPPORT_MESSAGE_COLUMNS.MAPPINGS } });
   }
 
   protected getSelectColumns (): string[] {
-    return [
-      'id',
-      'conversationId',
-      'senderUserId',
-      'kind',
-      'source',
-      'body',
-      'storageKey',
-      'fileName',
-      'mimeType',
-      'sizeBytes',
-      'durationSeconds',
-      'editedAt',
-      'deletedAt',
-      'createdAt',
-      'replyToMessageId'
-    ];
+    return [...SUPPORT_MESSAGE_COLUMNS.SELECT];
   }
 
   async add (dto: CreateSupportMessageDto): Promise<SupportMessageDto | null> {

@@ -69,16 +69,11 @@
   <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
 
   @if (history.hasMore()) {
-    <div class="flex justify-center">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-night-text hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"
-        [disabled]="history.loading()"
-        (click)="history.loadOlder()"
-      >
+    <div class="flex justify-center" appLoadOnScroll [paused]="history.loading()" (reached)="history.loadOlder()">
+      <app-button variant="secondary" [disabled]="history.loading()" (pressed)="history.loadOlder()">
         <span [class.animate-spin]="history.loading()">↻</span>
         {{ pageLabels.LOAD_OLDER }}
-      </button>
+      </app-button>
     </div>
   }
 </div>

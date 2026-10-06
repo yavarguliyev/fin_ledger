@@ -8,6 +8,7 @@ export const SUPPORT_STAR_TEST = {
   MESSAGES: '/messages/',
   STAR: '/star',
   STARRED: '/starred',
+  ALL_STARRED_PATH: '/support/starred',
   PUT: 'PUT',
   DELETE: 'DELETE',
   KEEP_TEXT: 'Your reference number is 4471',

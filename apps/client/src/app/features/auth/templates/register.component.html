@@ -171,16 +171,12 @@
           <div class="p-3 rounded-lg bg-danger/10 border border-danger/30 text-danger-deep dark:text-danger-light text-sm" role="alert">{{ error() }}</div>
         }
 
-        <button
-          type="submit"
-          [disabled]="loading()"
-          class="w-full py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark active:scale-[0.98] transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-        >
+        <app-button type="submit" [fullWidth]="true" [disabled]="loading()">
           @if (loading()) {
             <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
           }
           {{ loading() ? 'Creating account…' : 'Create account' }}
-        </button>
+        </app-button>
       </form>
 
       <p class="text-center text-sm text-ink-500 dark:text-night-muted mt-6">

@@ -12,7 +12,7 @@ export class DeleteUserFromDbUseCase extends UserBaseCase<UserIdRequestDto, Dele
     const user = await this.userRepository.findById({ id: userId });
     if (!user) throw new NotFoundException(`User with ID ${userId} not found`);
 
-    if (await this.userRepository.hasRetainedRecords(dto)) {
+    if ((await this.userRepository.retainedRecords(dto))?.retained) {
       throw new ConflictException('User has financial or audit history and cannot be permanently removed. Use soft delete instead.');
     }
 

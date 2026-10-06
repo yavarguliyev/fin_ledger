@@ -17,7 +17,6 @@
     "dev:api": "bash scripts/dev.sh api",
     "dev:client": "npm run dev -w apps/client",
     "build:api": "turbo run build --filter=@core/api",
-    "remove:running:port": "lsof -ti:3000 | xargs kill -9",
     "dev:stop": "lsof -ti:3000,4200 -sTCP:LISTEN | xargs kill 2>/dev/null; pkill -f 'scripts/start-all.mjs' || true",
     "build:client": "turbo run build --filter=@core/client",
     "test": "turbo run test",

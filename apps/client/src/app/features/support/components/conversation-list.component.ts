@@ -19,6 +19,8 @@ export class ConversationListComponent {
   readonly labels = SUPPORT_MESSAGES;
 
   preview (conversation: SupportConversation): string {
+    if (conversation.locked) return this.labels.LOCKED_PREVIEW;
+    if (conversation.privacyEnabled) return this.labels.PRIVATE_PREVIEW;
     return conversation.lastMessagePreview ?? conversation.subject ?? this.labels.NO_MESSAGES;
   }
 }

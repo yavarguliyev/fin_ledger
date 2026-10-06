@@ -2,6 +2,9 @@ export * from './modules/constants/cache/storage-cache.constant';
 export * from './modules/helpers/storage-cache.helper';
 
 export * from './modules/constants/errors/storage-errors.constant';
+export * from './modules/constants/download/content-disposition.constant';
+export * from './modules/dtos/strategy/content-disposition.dto';
+export * from './modules/helpers/content-disposition.helper';
 export * from './modules/constants/image/image-formats.constant';
 export * from './modules/constants/image/image-upload-limits.constant';
 

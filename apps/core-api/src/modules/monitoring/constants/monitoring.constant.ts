@@ -6,6 +6,7 @@ export const MONITORING = {
   BEARER_PREFIX: 'Bearer ',
   DIGEST: 'sha256',
   UNAUTHORIZED_MESSAGE: 'Invalid alert webhook token',
+  USERS_TABLE: 'users',
   ADMINS_SQL: `SELECT id, email FROM users
                 WHERE role IN ('GLOBAL_ADMIN', 'ADMIN') AND status = 'ACTIVE' AND deleted_at IS NULL`,
   FIRING: 'firing',

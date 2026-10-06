@@ -32,6 +32,8 @@ describe('Starred support messages', () => {
     expect(afterStar.status).toBe(T.OK);
     expect(afterStar.body.map(row => row.body)).toEqual([T.KEEP_TEXT]);
     expect((await starred({ token: staff, conversationId })).body).toEqual([]);
+    const everywhere = await ApiHelper.request<StarredMessage[]>({ path: T.ALL_STARRED_PATH, token: customer });
+    expect(everywhere.body.map(row => row.messageId)).toContain(messageId);
 
     expect((await star({ token: customer, conversationId, messageId, method: T.DELETE })).body).toEqual([]);
   });

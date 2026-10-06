@@ -17,7 +17,8 @@ export class AssertDepositAllowedUseCase extends UserBaseCase<DepositAllowanceDt
 
     for (const limit of limits.filter(entry => entry.currency === currency)) {
       const allowed = DepositLimitHelper.effectiveAmount({ limit });
-      const spent = await this.depositLimitRepository.spentInPeriod({ userId, currency, period: limit.period });
+      const row = await this.depositLimitRepository.spentInPeriod({ userId, currency, period: limit.period });
+      const spent = Number(row?.spent ?? DEPOSIT_LIMIT.NOTHING_SPENT);
 
       if (spent + amountMinor > allowed) throw new ForbiddenException(DEPOSIT_LIMIT.EXCEEDED_MESSAGE);
     }

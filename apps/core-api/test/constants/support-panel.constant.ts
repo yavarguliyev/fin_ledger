@@ -1,0 +1,29 @@
+import { HTTP_STATUS } from './http-status.constant';
+
+export const SUPPORT_PANEL_TEST = {
+  ...HTTP_STATUS,
+  CUSTOMER_EMAIL: 'panel-customer@support-tests.realtime-wallet-payments.com',
+  OUTSIDER_EMAIL: 'panel-outsider@support-tests.realtime-wallet-payments.com',
+  CONVERSATIONS_PATH: '/support/conversations/',
+  CONTACT: '/contact',
+  MEDIA: '/media',
+  DOCS: '/docs',
+  LINKS: '/links',
+  STORAGE: '/storage',
+  ATTACHMENTS: '/attachments',
+  FIELD_NAME: 'files',
+  POST: 'POST',
+  DELETE: 'DELETE',
+  PNG_BYTES: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
+  PNG_TYPE: 'image/png',
+  FIRST_PNG: 'first.png',
+  SECOND_PNG: 'second.png',
+  PDF_BYTES: [0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a],
+  PDF_TYPE: 'application/pdf',
+  PDF_NAME: 'statement.pdf',
+  LINK_TEXT: 'The guide is at https://help.example.com/deposits, thanks',
+  LINK_URL: 'https://help.example.com/deposits',
+  CUSTOMER_KEYS: ['isStaff', 'name', 'team'],
+  STAFF_FIELDS: ['userId', 'role', 'memberSince', 'accountStatus', 'kycStatus'],
+  PAGE_ONE: 1
+} as const;

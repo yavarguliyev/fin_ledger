@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 
 import { SharedModule } from '../../shared/shared.module';
-import { MetricsController } from './metrics.controller';
-import { PageViewController } from './page-view.controller';
-import { PageViewService } from './page-view.service';
+import { MetricsController } from './controllers/metrics.controller';
+import { PageViewController } from './controllers/page-view.controller';
+import { PageViewService } from './services/page-view.service';
 import { RecordPageViewUseCase } from './use-cases/commands/record-page-view.use-case';
 import { MetricsService } from './services/metrics.service';
 import { MetricsRegistryHelper } from './helpers/metrics-registry.helper';

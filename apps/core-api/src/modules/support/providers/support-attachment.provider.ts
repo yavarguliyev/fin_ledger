@@ -1,5 +1,5 @@
 import { Injectable, UnsupportedMediaTypeException } from '@nestjs/common';
-import { BaseStrategy, CryptoHelper, SupportMessageContract } from '@common/libs';
+import { BaseStrategy, CONTENT_DISPOSITION, CryptoHelper, SupportMessageContract } from '@common/libs';
 
 import { AttachmentSignatureHelper } from '../helpers/attachment-signature.helper';
 import { MessageRowRefDto } from '../dtos/message/message-row-ref.dto';
@@ -10,6 +10,8 @@ import { StoredAttachmentDto } from '../dtos/attachment/stored-attachment.dto';
 import { SUPPORT_ATTACHMENT } from '../constants/attachment/support-attachment.constant';
 import { SupportMapperHelper } from '../helpers/support-mapper.helper';
 import { UploadFilesRefDto } from '../dtos/attachment/upload-files-ref.dto';
+import { DownloadFileDto } from '../dtos/attachment/download-file.dto';
+import { SUPPORT_PRIVACY } from '../constants/chat/support-privacy.constant';
 
 @Injectable()
 export class SupportAttachmentProvider {
@@ -40,7 +42,11 @@ export class SupportAttachmentProvider {
     const message = SupportMapperHelper.toMessage({ row });
     if (!row.storageKey || row.deletedAt) return message;
 
-    const url = await this.storage.getDownloadUrl({ key: row.storageKey, expiresIn: SUPPORT_ATTACHMENT.URL_TTL_SECONDS });
+    const url = await this.storage.getDownloadUrl({
+      key: row.storageKey,
+      expiresIn: SUPPORT_ATTACHMENT.URL_TTL_SECONDS,
+      contentDisposition: { disposition: CONTENT_DISPOSITION.INLINE }
+    });
     const attachment = {
       url,
       fileName: row.fileName,
@@ -54,6 +60,14 @@ export class SupportAttachmentProvider {
 
   async toContracts ({ rows }: MessageRowsRefDto): Promise<SupportMessageContract[]> {
     return Promise.all(rows.map(row => this.toContract({ row })));
+  }
+
+  async downloadUrl ({ storageKey, fileName }: DownloadFileDto): Promise<string> {
+    return this.storage.getDownloadUrl({
+      key: storageKey,
+      expiresIn: SUPPORT_PRIVACY.DOWNLOAD_TTL_SECONDS,
+      contentDisposition: { disposition: CONTENT_DISPOSITION.ATTACHMENT, fileName }
+    });
   }
 
   async remove ({ storageKey }: StorageKeyRefDto): Promise<void> {

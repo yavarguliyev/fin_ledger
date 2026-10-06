@@ -10,6 +10,9 @@ import { SUPPORT_SQL } from '../constants/chat/support-sql.constant';
 import { SupportConversationDto } from '../dtos/conversation/support-conversation.dto';
 import { AssignStaffDto } from '../dtos/input/assign-staff.dto';
 import { SupportAccessHelper } from '../helpers/support-access.helper';
+import { SetPrivacyDto } from '../dtos/input/set-privacy.dto';
+import { ConversationIdRowDto } from '../dtos/conversation/conversation-id-row.dto';
+import { SUPPORT_PRIVACY } from '../constants/chat/support-privacy.constant';
 
 @Injectable()
 export class SupportConversationRepository extends BaseExtendedRepository<SupportConversationDto> {
@@ -21,6 +24,7 @@ export class SupportConversationRepository extends BaseExtendedRepository<Suppor
         customerUserId: 'customer_user_id',
         assignedStaffId: 'assigned_staff_id',
         lastMessageAt: 'last_message_at',
+        privacyEnabled: 'privacy_enabled',
         createdAt: 'created_at',
         updatedAt: 'updated_at'
       }
@@ -28,7 +32,7 @@ export class SupportConversationRepository extends BaseExtendedRepository<Suppor
   }
 
   protected getSelectColumns (): string[] {
-    return ['id', 'customerUserId', 'assignedStaffId', 'subject', 'status', 'lastMessageAt', 'createdAt'];
+    return ['id', 'customerUserId', 'assignedStaffId', 'subject', 'status', 'privacyEnabled', 'lastMessageAt', 'createdAt'];
   }
 
   async touch ({ conversationId }: ConversationRefDto): Promise<void> {
@@ -39,13 +43,13 @@ export class SupportConversationRepository extends BaseExtendedRepository<Suppor
     await this.service.getWriteConnection().query({ sql: SUPPORT_SQL.ASSIGN_STAFF, params: [conversationId, staffUserId] });
   }
 
-  async openOrGet ({ userId, subject, staffUserId }: OpenConversationDto): Promise<string | null> {
-    const result = await this.service.getWriteConnection().query<{ id: string }>({
+  async openOrGet ({ userId, subject, staffUserId }: OpenConversationDto): Promise<ConversationIdRowDto | null> {
+    const result = await this.service.getWriteConnection().query<ConversationIdRowDto>({
       sql: SUPPORT_SQL.OPEN_OR_CREATE,
       params: [userId, subject ?? SUPPORT.DEFAULT_SUBJECT, staffUserId]
     });
 
-    return result.rows[0]?.id ?? null;
+    return result.rows[0] ?? null;
   }
 
   async markRead ({ conversationId, userId, lastReadMessageId }: MarkReadDto): Promise<void> {
@@ -62,5 +66,10 @@ export class SupportConversationRepository extends BaseExtendedRepository<Suppor
     });
 
     return result.rows;
+  }
+
+  async setPrivacy ({ conversationId, userId, enabled }: SetPrivacyDto): Promise<ConversationIdRowDto | null> {
+    const result = await this.service.getWriteConnection().query<ConversationIdRowDto>({ sql: SUPPORT_PRIVACY.SET_SQL, params: [conversationId, enabled, userId] });
+    return result.rows[0] ?? null;
   }
 }

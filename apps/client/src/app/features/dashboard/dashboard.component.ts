@@ -20,12 +20,15 @@ import { DashboardHelper } from './helpers/dashboard.helper';
 import { ACTIVITY } from '../../core/constants/wallet/activity.constant';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { TabsComponent } from '../../shared/components/tabs/tabs.component';
+import { TabItemDto } from '../../core/interfaces/ui/tab-item.interface';
+import { DASHBOARD_VIEW } from './constants/dashboard-view.constant';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent],
   templateUrl: './templates/dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -54,6 +57,9 @@ export class DashboardComponent implements OnInit {
 
   readonly currencies = computed(() => this.summaries().map(summary => summary.currency));
   readonly hasMultipleCurrencies = computed(() => this.currencies().length > 1);
+  readonly currencyTabs = computed<TabItemDto[]>(() => this.currencies().map(currency => ({ id: currency, label: currency })));
+  readonly currencyTabsLabel = DASHBOARD_VIEW.CURRENCY_TABS_LABEL;
+  readonly activeCurrency = computed(() => this.selectedCurrency() ?? DASHBOARD_VIEW.NO_CURRENCY);
 
   readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
     title: 'Recent Activity',

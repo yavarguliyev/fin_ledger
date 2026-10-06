@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { GameEventsController } from './game-events.controller';
-import { GameEventsService } from './game-events.service';
+import { GameEventsController } from './controllers/game-events.controller';
+import { GameEventsService } from './services/game-events.service';
 import { GameEventRepository } from './repositories/game-event.repository';
 import { GetGameEventsUseCase } from './use-cases/queries/get-game-events.use-case';
 import { CreateGameEventUseCase } from './use-cases/commands/create-game-event.use-case';

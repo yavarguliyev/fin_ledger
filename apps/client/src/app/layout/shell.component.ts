@@ -17,10 +17,12 @@ import { SupportCallStore } from '../core/services/support-call.store';
 import { SupportTypingStore } from '../core/services/support-typing.store';
 import { SupportOfflineQueueStore } from '../core/services/support-offline-queue.store';
 import { SupportReactionStore } from '../core/services/support-reaction.store';
+import { SupportPrivacyStore } from '../core/services/support-privacy.store';
 import { CallOverlayComponent } from './call-overlay.component';
 import { CallStateService } from '../core/services/call-state.service';
 import { ConnectivityService } from '../core/services/connectivity.service';
 import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
+import { SHELL_LAYOUT } from '../core/constants/layout/shell-layout.constant';
 
 @Component({
   selector: 'app-shell',
@@ -34,6 +36,7 @@ export class ShellComponent implements OnInit {
   private readonly theme = inject(ThemeService);
   private readonly notif = inject(NotificationService);
   readonly profileImageService = inject(ProfileImageService);
+  readonly layout = SHELL_LAYOUT;
   private readonly chat = inject(SupportChatStore);
   private readonly chatStream = inject(SupportStreamService);
   private readonly presenceStore = inject(SupportPresenceStore);
@@ -44,6 +47,7 @@ export class ShellComponent implements OnInit {
   private readonly typing = inject(SupportTypingStore);
   private readonly offlineQueue = inject(SupportOfflineQueueStore);
   private readonly reactions = inject(SupportReactionStore);
+  private readonly privacy = inject(SupportPrivacyStore);
 
   readonly isDark = computed(() => this.theme.isDark());
   readonly unread = computed(() => this.notif.unreadCount());
@@ -87,6 +91,7 @@ export class ShellComponent implements OnInit {
         this.calls.applyEvent({ event });
         this.typing.applyEvent({ event });
         this.reactions.applyEvent({ event });
+        this.privacy.applyEvent({ event });
       },
       onReconnect: () => {
         this.chat.loadConversations();
@@ -128,5 +133,10 @@ export class ShellComponent implements OnInit {
   private visible ({ items }: NavItemsRefDto): NavItem[] {
     const role = this.auth.currentUser()?.role;
     return items.filter(item => !item.roles || (!!role && item.roles.includes(role)));
+  }
+
+  skipToContent (event: Event): void {
+    event.preventDefault();
+    document.getElementById(SHELL_LAYOUT.MAIN_ID)?.focus();
   }
 }

@@ -7,14 +7,14 @@ import { StoredCallDto } from '../../../dtos/call/stored-call.dto';
 import { SUPPORT_CALL } from '../../../constants/call/support-call.constant';
 import { SUPPORT_EVENTS } from '../../../constants/chat/support-events.constant';
 import { SupportCallProvider } from '../../../providers/support-call.provider';
-import { SupportCallRepository } from '../../../repositories/support-call.repository';
+import { CallSessionService } from '../../../services/call-session.service';
 import { SupportThreadProvider } from '../../../providers/support-thread.provider';
 
 @Injectable()
 export class StartCallUseCase {
   constructor (
     private readonly thread: SupportThreadProvider,
-    private readonly callRepository: SupportCallRepository,
+    private readonly sessions: CallSessionService,
     private readonly calls: SupportCallProvider
   ) {}
 
@@ -23,8 +23,8 @@ export class StartCallUseCase {
     const calleeId = conversation.customerUserId === userId ? conversation.assignedStaffId : conversation.customerUserId;
     if (!calleeId) throw new NotFoundException(SUPPORT_CALL.NOT_FOUND_MESSAGE);
 
-    if (await this.callRepository.activeFor({ userId })) throw new ConflictException(SUPPORT_CALL.SELF_BUSY_MESSAGE);
-    if (await this.callRepository.activeFor({ userId: calleeId })) throw new ConflictException(SUPPORT_CALL.BUSY_MESSAGE);
+    if (await this.calls.isBusy({ userId })) throw new ConflictException(SUPPORT_CALL.SELF_BUSY_MESSAGE);
+    if (await this.calls.isBusy({ userId: calleeId })) throw new ConflictException(SUPPORT_CALL.BUSY_MESSAGE);
 
     const call: StoredCallDto = {
       callId: CryptoHelper.uuid(),
@@ -39,7 +39,7 @@ export class StartCallUseCase {
       answeredAt: null
     };
 
-    await this.callRepository.save({ call });
+    await this.sessions.save({ call });
     this.calls.signal({ type: SUPPORT_EVENTS.CALL_INCOMING, call, fromUserId: userId, extra: { fromName: displayName, sdp } });
 
     return { callId: call.callId };

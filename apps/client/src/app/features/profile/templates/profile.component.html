@@ -44,13 +44,9 @@
           <app-upload-progress class="flex-1" [progress]="imageService.uploadProgress()" (cancelled)="imageService.cancelUpload()" />
         }
         @if (imageService.hasImages()) {
-          <button
-            type="button"
-            (click)="deleteAllImages()"
-            class="px-4 py-2 rounded-lg border border-danger text-danger-deep dark:text-danger-light font-semibold hover:bg-danger hover:text-white transition-colors text-sm"
-          >
+          <app-button variant="secondary" (pressed)="deleteAllImages()">
             Delete All
-          </button>
+          </app-button>
         }
       </div>
     </div>
@@ -86,13 +82,9 @@
                 class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2"
               >
                 @if (image.index !== imageService.profileImageIndex()) {
-                  <button
-                    type="button"
-                    (click)="imageService.setMainImage(image.index)"
-                    class="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:bg-primary-dark transition-colors"
-                  >
+                  <app-button (pressed)="imageService.setMainImage(image.index)">
                     Set as Main
-                  </button>
+                  </app-button>
                 }
                 <button
                   type="button"
@@ -174,6 +166,14 @@
         }
       </button>
     </form>
+  </div>
+
+  <div class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-6">
+    @defer (on viewport) {
+      <app-address-card />
+    } @placeholder {
+      <div class="h-64 rounded-xl skeleton"></div>
+    }
   </div>
 
   @if (canManagePayments()) {

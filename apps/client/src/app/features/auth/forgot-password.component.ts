@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -11,7 +12,7 @@ import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
   selector: 'app-forgot-password',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './templates/forgot-password.component.html'
 })
 export class ForgotPasswordComponent {

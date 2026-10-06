@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, computed, OnInit, inject, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
@@ -26,19 +27,13 @@ import { AdminHelper } from './helpers/admin.helper';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { ADMIN_USERS_PAGE } from '../../core/constants/admin/admin-users-page.constant';
+import { LoadOnScrollDirective } from '../../shared/directives/load-on-scroll.directive';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    DataTableComponent,
-    StatsCardComponent,
-    PageHeaderComponent,
-    ModalComponent,
-    UserDetailModalComponent,
-    CreateUserModalComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, DataTableComponent, StatsCardComponent, PageHeaderComponent, ModalComponent, UserDetailModalComponent, CreateUserModalComponent, ErrorStateComponent, LoadOnScrollDirective],
   templateUrl: './templates/admin.component.html'
 })
 export class AdminComponent implements OnInit {

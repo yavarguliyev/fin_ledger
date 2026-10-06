@@ -17,6 +17,7 @@ export const PASSKEY = {
   GRANT_VALUE: 'granted',
   STEP_UP_ENABLED_KEY: 'PASSKEY_STEP_UP_ENABLED',
   STEP_UP_ENABLED_VALUE: 'true',
+  PASSKEY_REQUIRED_MESSAGE: 'Add a passkey on your profile before locking a chat',
   STEP_UP_REQUIRED_MESSAGE: 'Confirm with your passkey before continuing',
   STEP_UP_CONFIRMED_MESSAGE: 'Confirmed. Continue within the next five minutes.',
   NO_CHALLENGE_MESSAGE: 'Start the passkey ceremony again; the challenge has expired',

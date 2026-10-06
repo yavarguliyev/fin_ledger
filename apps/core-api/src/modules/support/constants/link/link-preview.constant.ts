@@ -1,10 +1,8 @@
 export const LINK_PREVIEW = {
   PATH: 'link-preview',
   URL_MAX: 2048,
-  CACHE_PREFIX: 'support:link-preview:',
+  CACHE_PREFIX: 'support:link-preview',
   CACHE_TTL_SECONDS: 86_400,
-  DIGEST: 'sha256',
-  ENCODING: 'hex',
   TIMEOUT_MS: 3_000,
   MAX_BYTES: 262_144,
   MAX_REDIRECTS: 3,

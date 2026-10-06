@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ClientIds, StorageModule } from '@common/libs';
 
-import { UserController } from './user.controller';
-import { UserAdminController } from './user-admin.controller';
-import { UserService } from './user.service';
+import { UserController } from './controllers/user.controller';
+import { UserAdminController } from './controllers/user-admin.controller';
+import { UserService } from './services/user.service';
 import { UserRepository } from './repositories/user.repository';
 import { UpdateUserUseCase } from './use-cases/commands/update-user.use-case';
 import { SetSelfExclusionUseCase } from './use-cases/commands/set-self-exclusion.use-case';
@@ -25,10 +25,18 @@ import { LedgerModule } from '../ledger/ledger.module';
 import { UserCreateUseCase } from './use-cases/commands/user-create.use-case';
 import { DeleteUserFromDbUseCase } from './use-cases/commands/delete-user-from-db.use-case';
 import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-case';
+import { UserAddressController } from './controllers/user-address.controller';
+import { UserAddressService } from './services/user-address.service';
+import { UserAddressRepository } from './repositories/user-address.repository';
+import { GetAddressUseCase } from './use-cases/queries/get-address.use-case';
+import { SaveAddressUseCase } from './use-cases/commands/save-address.use-case';
+import { DeleteAddressUseCase } from './use-cases/commands/delete-address.use-case';
+import { SearchAddressUseCase } from './use-cases/queries/search-address.use-case';
+import { ReverseGeocodeUseCase } from './use-cases/queries/reverse-geocode.use-case';
 
 @Module({
   imports: [SharedModule, StorageModule.forRoot({ clientId: ClientIds.API_GATEWAY }), AuthModule, WalletModule, LedgerModule],
-  controllers: [UserController, UserAdminController],
+  controllers: [UserController, UserAdminController, UserAddressController],
   providers: [
     UserService,
     UserRepository,
@@ -47,7 +55,14 @@ import { AnonymizeUserUseCase } from './use-cases/commands/anonymize-user.use-ca
     DeleteUserFromDbUseCase,
     AnonymizeUserUseCase,
     UpdateEmailVerificationUseCase,
-    ChangeUserStatusUseCase
+    ChangeUserStatusUseCase,
+    UserAddressService,
+    UserAddressRepository,
+    GetAddressUseCase,
+    SaveAddressUseCase,
+    DeleteAddressUseCase,
+    SearchAddressUseCase,
+    ReverseGeocodeUseCase
   ],
   exports: [UserService, UserRepository, AssertDepositAllowedUseCase]
 })

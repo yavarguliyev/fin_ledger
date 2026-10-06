@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { LedgerController } from './ledger.controller';
-import { LedgerService } from './ledger.service';
+import { LedgerController } from './controllers/ledger.controller';
+import { LedgerService } from './services/ledger.service';
 import { LedgerAccountRepository } from './repositories/ledger-account.repository';
 import { LedgerTransactionRepository } from './repositories/ledger-transaction.repository';
 import { LedgerEntryRepository } from './repositories/ledger-entry.repository';

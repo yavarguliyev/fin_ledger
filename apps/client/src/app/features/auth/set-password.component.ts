@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ErrorMessageHelper } from '../../core/helpers/http/error-message.helper';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -13,7 +14,7 @@ import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
   selector: 'app-set-password',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule],
   templateUrl: './templates/set-password.component.html'
 })
 export class SetPasswordComponent implements OnInit {

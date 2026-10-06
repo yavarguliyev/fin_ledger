@@ -8,6 +8,7 @@ export const SUPPORT_ATTACHMENT = {
   ACCEPT: 'image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,text/csv,application/msword,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,video/mp4,video/webm,audio/webm,audio/ogg,audio/mp4',
   MIME_PARAMS_SEPARATOR: ';',
   DURATION_FIELD: 'durationSeconds',
+  DOWNLOAD_ACTION: 'Download',
   VOICE_KIND: 'VOICE',
   VIDEO_KIND: 'VIDEO',
   ACCEPT_SEPARATOR: ',',

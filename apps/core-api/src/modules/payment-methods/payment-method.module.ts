@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { PaymentMethodController } from './payment-method.controller';
-import { PaymentMethodService } from './payment-method.service';
+import { PaymentMethodController } from './controllers/payment-method.controller';
+import { PaymentMethodService } from './services/payment-method.service';
 import { PaymentMethodRepository } from './repositories/payment-method.repository';
 import { ProviderCustomerRepository } from './repositories/provider-customer.repository';
 import { RemovePaymentMethodUseCase } from './use-cases/commands/remove-payment-method.use-case';

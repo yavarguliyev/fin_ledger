@@ -1,1 +1,1 @@
-export * from './wallet-transaction.service';
+export * from './services/wallet-transaction.service';

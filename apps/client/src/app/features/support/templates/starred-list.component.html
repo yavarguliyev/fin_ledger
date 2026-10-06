@@ -1,0 +1,25 @@
+<div class="flex-1 overflow-y-auto">
+  @if (items().length === 0) {
+    <p class="px-6 py-10 text-center text-sm text-ink-500 dark:text-night-muted">{{ labels.EMPTY }}</p>
+  } @else {
+    <ul class="divide-y divide-ink-100 dark:divide-ink-800">
+      @for (item of items(); track item.messageId) {
+        <li>
+          <button
+            type="button"
+            class="flex min-h-14 w-full items-start gap-3 px-4 py-3 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary dark:hover:bg-night-bg"
+            (click)="picked.emit(item)"
+          >
+            <svg class="mt-0.5 h-4 w-4 shrink-0 text-warning-dark" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path>
+            </svg>
+            <span class="min-w-0 flex-1">
+              <span class="line-clamp-2 text-sm text-ink-900 dark:text-white">{{ item.body ?? item.fileName ?? labels.ATTACHMENT_LABEL }}</span>
+              <span class="block text-xs text-ink-500 dark:text-night-muted">{{ item.createdAt | date: dateFormat }}</span>
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { ROLES } from '../../core/constants/auth/roles.constant';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 @Component({
   selector: 'app-create-user-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule],
   templateUrl: './templates/create-user-modal.component.html'
 })
 export class CreateUserModalComponent {

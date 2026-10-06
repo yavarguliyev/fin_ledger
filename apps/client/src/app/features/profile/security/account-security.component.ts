@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 import { AccountService } from '../../../core/services/account.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -18,7 +19,7 @@ import { PasswordToggleComponent } from '../../../shared/components/password-tog
   selector: 'app-account-security',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, PasswordToggleComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, ModalComponent, FieldErrorComponent, PasswordToggleComponent],
   templateUrl: './templates/account-security.component.html'
 })
 export class AccountSecurityComponent {

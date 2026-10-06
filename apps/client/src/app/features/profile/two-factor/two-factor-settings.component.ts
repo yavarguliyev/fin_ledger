@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 import { MfaService } from '../../../core/services/mfa.service';
 import { StepUpRetryService } from '../../../core/services/step-up-retry.service';
@@ -23,7 +24,7 @@ import { PasswordToggleComponent } from '../../../shared/components/password-tog
   selector: 'app-two-factor-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent, PasswordToggleComponent, SkeletonComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, ModalComponent, OtpInputComponent, PasswordToggleComponent, SkeletonComponent, ErrorStateComponent],
   providers: [MfaFormService, MfaStatusService],
   templateUrl: './templates/two-factor-settings.component.html'
 })

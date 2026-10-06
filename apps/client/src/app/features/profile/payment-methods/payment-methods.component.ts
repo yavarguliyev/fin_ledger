@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 import { StepUpRetryService } from '../../../core/services/step-up-retry.service';
 import { PaymentMethodService } from '../../../core/services/payment-method.service';
@@ -17,7 +18,7 @@ import { LOAD_STATE } from '../../../core/constants/ui/load-state.constant';
   selector: 'app-payment-methods',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent, SkeletonComponent],
+  imports: [ButtonComponent, CommonModule, AddPaymentMethodModalComponent, ErrorStateComponent, SkeletonComponent],
   templateUrl: './templates/payment-methods.component.html'
 })
 export class PaymentMethodsComponent implements OnInit {

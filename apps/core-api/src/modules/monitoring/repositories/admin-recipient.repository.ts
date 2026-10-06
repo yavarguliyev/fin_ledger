@@ -1,15 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { PostgresService } from '@common/libs';
+import { Injectable } from '@nestjs/common';
+import { BaseExtendedRepository, PostgresService } from '@common/libs';
 
-import { MONITORING } from '../constants/monitoring.constant';
 import { AdminRecipient } from '../interfaces/admin-recipient.interface';
+import { MONITORING } from '../constants/monitoring.constant';
 
 @Injectable()
-export class AdminRecipientRepository {
-  constructor (@Inject(PostgresService) private readonly postgresService: PostgresService) {}
+export class AdminRecipientRepository extends BaseExtendedRepository<AdminRecipient> {
+  constructor (postgresService: PostgresService) {
+    super({ service: postgresService, tableName: MONITORING.USERS_TABLE });
+  }
+
+  protected getSelectColumns (): string[] {
+    return ['id', 'email'];
+  }
 
   async findActive (): Promise<AdminRecipient[]> {
-    const result = await this.postgresService.getConnection().query<AdminRecipient>({ sql: MONITORING.ADMINS_SQL });
+    const result = await this.service.getConnection().query<AdminRecipient>({ sql: MONITORING.ADMINS_SQL });
     return result.rows;
   }
 }

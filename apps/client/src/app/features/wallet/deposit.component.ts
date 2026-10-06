@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
@@ -26,7 +27,7 @@ import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
   selector: 'app-deposit',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, ErrorStateComponent],
   providers: [DepositFormService],
   templateUrl: './templates/deposit.component.html'
 })

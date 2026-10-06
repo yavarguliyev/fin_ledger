@@ -8,6 +8,8 @@ import type { SortedSetRangeDto } from '../dtos/cache/sorted-set-range.dto';
 import type { SortedSetLatestDto } from '../dtos/cache/sorted-set-latest.dto';
 import type { SortedSetCountDto } from '../dtos/cache/sorted-set-count.dto';
 import type { CacheSetIfNotExistsDto } from '../dtos/cache/cache-set-if-not-exists.dto';
+import type { RateLimitHitDto } from '../dtos/rate-limit/rate-limit-hit.dto';
+import type { RateLimitHitRecord } from './rate-limit-hit-record.interface';
 
 export interface CacheProvider {
   get<T>(dto: CacheKeyDto): Promise<T | null>;
@@ -24,5 +26,6 @@ export interface CacheProvider {
   latestInSortedSet(dto: SortedSetLatestDto): Promise<string[]>;
   countSortedSet(dto: SortedSetCountDto): Promise<number>;
   setIfNotExists(dto: CacheSetIfNotExistsDto): Promise<boolean>;
+  hitRateLimit(dto: RateLimitHitDto): Promise<RateLimitHitRecord>;
   disconnect(): Promise<void> | void;
 }

@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { BackgroundTask, BackgroundWorker, BaseHelper, ProcessRole, WebhookStatus } from '@common/libs';
 import { TaskHandler, TaskQueueService, TaskRegistry, TaskSchedulerService } from '@common/tasks';
 
-import { WebhookService } from '../webhook.service';
+import { WebhookService } from '../services/webhook.service';
 import { WebhookEventRepository } from '../repositories/webhook-event.repository';
 import { ReplayWebhookEventDto } from '../dtos/step/replay-webhook-event.dto';
 import { WEBHOOK_REPLAY } from '../constants/jobs/webhook-replay.constant';

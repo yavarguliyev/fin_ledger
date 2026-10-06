@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 import { NotificationService } from '../../core/services/notification.service';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
@@ -15,6 +16,7 @@ import { LoadStatus } from '../../core/types/ui/load-status.type';
 import { NotificationHistoryService } from '../../core/services/notification-history.service';
 import { NOTIFICATION_PAGE } from '../../core/constants/notification/notification-page.constant';
 import { NotificationType } from '../../core/types/notification/notification-type.type';
+import { LoadOnScrollDirective } from '../../shared/directives/load-on-scroll.directive';
 import {
   NOTIFICATION_CLASSES,
   NOTIFICATION_ICONS,
@@ -25,7 +27,7 @@ import {
   selector: 'app-notifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, LoadOnScrollDirective],
   templateUrl: './templates/notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {

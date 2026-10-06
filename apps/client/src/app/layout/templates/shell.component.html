@@ -1,3 +1,10 @@
+<a
+  [href]="'#' + layout.MAIN_ID"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary focus:shadow-lg dark:focus:bg-night-card"
+  (click)="skipToContent($event)"
+>
+  {{ layout.SKIP_LINK }}
+</a>
 <div class="flex min-h-screen">
   <aside class="hidden md:flex w-64 flex-col bg-white dark:bg-night-sidebar border-r border-ink-200 dark:border-night-border">
     <a routerLink="/dashboard" class="px-6 py-5 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
@@ -91,7 +98,7 @@
       </div>
     </header>
 
-    <main class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
+    <main [id]="layout.MAIN_ID" tabindex="-1" class="flex-1 outline-none p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
       @if (connectivity.offline()) {
         <p class="mb-4 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning-dark dark:text-warning" role="status" aria-live="polite">
           {{ connectivity.banner }}

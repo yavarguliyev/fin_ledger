@@ -22,6 +22,7 @@ import { LinkPreviewHelper } from '../../../core/helpers/support/link-preview.he
 import { ReactionHelper } from '../../../core/helpers/support/reaction.helper';
 import { ReactionSummary } from '../../../core/interfaces/support/reaction-summary.interface';
 import { ReactionToggleDto } from '../../../core/interfaces/support/reaction-toggle.interface';
+import { STARRED_LIST } from '../constants/starred-list.constant';
 
 @Component({
   selector: 'app-message-thread',
@@ -41,6 +42,11 @@ export class MessageThreadComponent {
   readonly replyRequested = output<SupportMessage>();
   readonly quoteRequested = output<string>();
   readonly reacted = output<ReactionToggleDto>();
+  readonly starredIds = input<ReadonlySet<string>>(new Set());
+  readonly starToggled = output<string>();
+  readonly privacyOn = input(false);
+  readonly downloadRequested = output<string>();
+  readonly starLabels = STARRED_LIST;
   readonly pickerFor = signal<string | null>(null);
   readonly expandedFor = signal<string | null>(null);
   readonly moreLabel = EMOJI_CATALOG.MORE_LABEL;
@@ -84,6 +90,10 @@ export class MessageThreadComponent {
 
   isSystem (message: SupportMessage): boolean {
     return message.kind === SUPPORT_MESSAGE_RULES.SYSTEM_KIND;
+  }
+
+  canDownload (message: SupportMessage): boolean {
+    return !!message.attachment && (!this.privacyOn() || this.isOwn(message));
   }
 
   canEdit (message: SupportMessage): boolean {

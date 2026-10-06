@@ -1,0 +1,113 @@
+<section class="space-y-4" aria-labelledby="address-card-title">
+  <div>
+    <h2 id="address-card-title" class="font-semibold text-ink-900 dark:text-white">{{ labels.TITLE }}</h2>
+    <p class="mt-1 text-sm text-ink-500 dark:text-night-muted">{{ labels.HINT }}</p>
+  </div>
+
+  <app-button [fullWidth]="true" [busy]="store.locating()" [disabled]="store.locating()" (pressed)="store.locate()">
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" stroke-width="2"></circle>
+      <path stroke-linecap="round" stroke-width="2" d="M12 2v3m0 14v3M2 12h3m14 0h3"></path>
+    </svg>
+    {{ store.locating() ? labels.LOCATING : labels.LOCATE }}
+  </app-button>
+
+  <p class="min-h-5 text-sm text-danger-deep dark:text-danger-light" role="status" aria-live="polite">{{ store.error() }}</p>
+
+  <div>
+    <app-address-map [pin]="store.pin()" [label]="labels.MAP_LABEL" (picked)="store.dropPin($event)" />
+    <p class="mt-1.5 text-xs text-ink-500 dark:text-night-muted">{{ labels.MAP_HINT }}</p>
+  </div>
+
+  <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="relative">
+      <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.LINE1">{{ labels.LINE1 }}</label>
+      <input
+        [id]="labels.IDS.LINE1"
+        formControlName="line1"
+        role="combobox"
+        aria-autocomplete="list"
+        [attr.aria-expanded]="store.suggestions().length > 0"
+        [attr.aria-controls]="labels.SUGGESTIONS_ID"
+        [attr.autocomplete]="labels.AUTOCOMPLETE.LINE1"
+        [placeholder]="labels.LINE1_PLACEHOLDER"
+        (input)="onType($event)"
+        class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+      />
+      @if (store.suggestions().length > 0) {
+        <ul
+          [id]="labels.SUGGESTIONS_ID"
+          role="listbox"
+          [attr.aria-label]="labels.SUGGESTIONS_LABEL"
+          class="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-ink-200 bg-white shadow-lg dark:border-night-border dark:bg-night-card"
+        >
+          @for (suggestion of store.suggestions(); track suggestion.label) {
+            <li role="option" [attr.aria-selected]="false">
+              <button
+                type="button"
+                class="block min-h-11 w-full px-4 py-2 text-left text-sm text-ink-800 hover:bg-ink-50 focus-visible:bg-ink-50 focus-visible:outline-none dark:text-night-text dark:hover:bg-night-bg"
+                (click)="choose(suggestion)"
+              >
+                {{ suggestion.label }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      <app-field-error [control]="form.controls.line1" [fieldId]="labels.IDS.LINE1" />
+    </div>
+
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.LINE2">{{ labels.LINE2 }}</label>
+        <input
+          [id]="labels.IDS.LINE2"
+          formControlName="line2"
+        [attr.autocomplete]="labels.AUTOCOMPLETE.LINE2"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.CITY">{{ labels.CITY }}</label>
+        <input
+          [id]="labels.IDS.CITY"
+          formControlName="city"
+        [attr.autocomplete]="labels.AUTOCOMPLETE.CITY"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+        <app-field-error [control]="form.controls.city" [fieldId]="labels.IDS.CITY" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.REGION">{{ labels.REGION }}</label>
+        <input
+          [id]="labels.IDS.REGION"
+          formControlName="region"
+        [attr.autocomplete]="labels.AUTOCOMPLETE.REGION"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.POSTAL">{{ labels.POSTAL }}</label>
+        <input
+          [id]="labels.IDS.POSTAL"
+          formControlName="postalCode"
+        [attr.autocomplete]="labels.AUTOCOMPLETE.POSTAL"
+          class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5" [attr.for]="labels.IDS.COUNTRY">{{ labels.COUNTRY }}</label>
+        <app-country-select formControlName="countryCode" [ariaLabel]="labels.COUNTRY" />
+        <app-field-error [control]="form.controls.countryCode" [fieldId]="labels.IDS.COUNTRY" />
+      </div>
+    </div>
+
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      @if (store.saved()) {
+        <app-button variant="ghost" (pressed)="store.remove()">{{ labels.REMOVE }}</app-button>
+      }
+      <app-button type="submit" [busy]="store.saving()">{{ labels.SAVE }}</app-button>
+    </div>
+  </form>
+</section>

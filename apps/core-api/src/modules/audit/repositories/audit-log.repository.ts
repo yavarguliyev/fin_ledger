@@ -51,8 +51,10 @@ export class AuditLogRepository extends BaseRepository<AuditLogDto> {
   }
 
   async findPage ({ limit, action, entityType, entityId, actorUserId, before, beforeId }: FindAuditLogsDto): Promise<AuditLogDto[]> {
-    const params = [action ?? null, entityType ?? null, entityId ?? null, actorUserId ?? null, before ?? null, beforeId ?? null, limit];
-    const result = await this.service.getConnection().query<AuditLogDto>({ sql: AUDIT_LOG_LIST.KEYSET_SQL, params });
+    const result = await this.service.getConnection().query<AuditLogDto>({
+      sql: AUDIT_LOG_LIST.KEYSET_SQL,
+      params: [action ?? null, entityType ?? null, entityId ?? null, actorUserId ?? null, before ?? null, beforeId ?? null, limit]
+    });
     return result.rows;
   }
 }

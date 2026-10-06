@@ -4,16 +4,12 @@
       <h3 class="text-base font-bold text-ink-900 dark:text-white">Saved Payment Methods</h3>
       <p class="text-xs text-ink-500 dark:text-night-muted mt-0.5">Manage bank accounts, cards, and digital wallets.</p>
     </div>
-    <button
-      type="button"
-      (click)="openAddModal()"
-      class="px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary-dark transition-colors flex items-center gap-1.5 shadow-sm"
-    >
+    <app-button (pressed)="openAddModal()">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       Add Method
-    </button>
+    </app-button>
   </div>
 
   @if (loading()) {

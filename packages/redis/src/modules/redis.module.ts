@@ -5,10 +5,13 @@ import { ClientIdDto, REDIS_CACHE_PROVIDER } from '@common/shared-libs';
 import { RedisCacheProvider } from './services/redis-cache-provider.class';
 import { RedisModuleAsyncOptionsDto } from './dtos/module/redis-module-async-options.dto';
 import { REDIS_DEFAULTS } from './constants/connection/redis-defaults.constant';
+import { CacheHelper } from './helpers/cache.helper';
 
 @Module({})
 export class RedisModule implements OnModuleDestroy {
-  constructor (@Inject(REDIS_CACHE_PROVIDER) private readonly provider: RedisCacheProvider) {}
+  constructor (@Inject(REDIS_CACHE_PROVIDER) private readonly provider: RedisCacheProvider) {
+    CacheHelper.register({ provider });
+  }
 
   static registerAsync (options: RedisModuleAsyncOptionsDto): DynamicModule {
     const cacheProvider = {
