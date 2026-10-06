@@ -19,6 +19,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await worker.end();
+  await DbHelper.close();
 });
 
 describe('Inbox claims under the worker login', () => {

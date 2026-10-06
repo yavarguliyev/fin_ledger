@@ -8,30 +8,31 @@
 
 1. [Features](#-features)
 2. [Architecture Overview](#-architecture-overview)
-3. [Interaction Flow: How it Works](#-interaction-flow-how-it-works)
-4. [Security Model](#-security-model)
-5. [Background Jobs & the Outbox Relay](#-background-jobs--the-outbox-relay)
-6. [Database Migrations & Security Setup](#-database-migrations--security-setup)
-7. [Key Technical Features](#-key-technical-features)
-8. [Design Patterns](#-design-patterns)
-9. [Principles](#-principles)
-10. [Technologies](#-technologies)
-11. [Getting Started](#-getting-started)
-12. [Environment Configuration & .env Locations](#-environment-configuration--env-locations)
-13. [RSA Key Generation (JWT Authentication)](#-rsa-key-generation-jwt-authentication)
-14. [Project Structure](#-project-structure)
-15. [API Documentation (Interactive Swagger)](#-api-documentation-interactive-swagger)
-16. [Running the Application](#-running-the-application)
-17. [Event-Driven Messaging (RabbitMQ & Kafka)](#-event-driven-messaging-rabbitmq--kafka)
-18. [Usage](#-usage)
-19. [Health Monitoring & Observability](#-health-monitoring--observability)
-20. [Flexible Storage: Local MinIO to AWS S3](#-flexible-storage-local-minio-to-aws-s3)
-21. [Local AWS (LocalStack) & Hybrid Services](#-local-aws-localstack--hybrid-services)
-22. [Testing & Validation](#-testing--validation)
-23. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
-24. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
-25. [Contributing](#-contributing)
-26. [License](#-license)
+3. [AWS Target Architecture](#-aws-target-architecture)
+4. [Interaction Flow: How it Works](#-interaction-flow-how-it-works)
+5. [Security Model](#-security-model)
+6. [Background Jobs & the Outbox Relay](#-background-jobs--the-outbox-relay)
+7. [Database Migrations & Security Setup](#-database-migrations--security-setup)
+8. [Key Technical Features](#-key-technical-features)
+9. [Design Patterns](#-design-patterns)
+10. [Principles](#-principles)
+11. [Technologies](#-technologies)
+12. [Getting Started](#-getting-started)
+13. [Environment Configuration & .env Locations](#-environment-configuration--env-locations)
+14. [RSA Key Generation (JWT Authentication)](#-rsa-key-generation-jwt-authentication)
+15. [Project Structure](#-project-structure)
+16. [API Documentation (Interactive Swagger)](#-api-documentation-interactive-swagger)
+17. [Running the Application](#-running-the-application)
+18. [Event-Driven Messaging (RabbitMQ & Kafka)](#-event-driven-messaging-rabbitmq--kafka)
+19. [Usage](#-usage)
+20. [Health Monitoring & Observability](#-health-monitoring--observability)
+21. [Flexible Storage: Local MinIO to AWS S3](#-flexible-storage-local-minio-to-aws-s3)
+22. [Local AWS (LocalStack) & Hybrid Services](#-local-aws-localstack--hybrid-services)
+23. [Testing & Validation](#-testing--validation)
+24. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
+25. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
+26. [Contributing](#-contributing)
+27. [License](#-license)
 
 ---
 
@@ -76,6 +77,11 @@
 ## Shared Contracts
 
 - **One Source of Truth for Shapes**: `@common/contracts` holds a Zod definition per domain object. The API and the Angular client both derive their types from it, so renaming a field breaks **both** typechecks instead of silently breaking the UI.
+
+## Hybrid Local / AWS Infrastructure
+
+- **One Switch per Concern**: Storage (MinIO or S3), e-mail (console, SMTP or SES), notifications (RabbitMQ or SNS/SQS) and secrets (`.env.local` or Secrets Manager) each change by configuration alone; `apps/core-api/.env.aws` switches them all at once.
+- **Local AWS as Code**: Terraform creates the AWS resources in LocalStack with least-privilege IAM roles, a KMS key per concern and a security scan that gates every apply.
 
 ## Flexible Storage & Observability
 
@@ -150,6 +156,31 @@ Three ideas carry most of the weight:
 | **Double-entry ledger** | Every movement writes balanced debit and credit rows that are never updated or deleted. | Money cannot be created or destroyed by a bug; the books can always be re-derived. |
 | **Transactional outbox** | Events are written in the same transaction as the change, and a relay publishes them afterwards. | A message can never describe a change that rolled back, and a change can never fail to produce its message. |
 | **Row-level security** | The database itself decides which rows an account can see. | A forgotten `WHERE` clause returns nothing instead of leaking another customer's data. |
+
+---
+
+# ☁️ AWS Target Architecture
+
+How the same system runs on AWS. It is drawn ahead of the build on purpose, so every piece carries its status:
+**green** is built and verified on LocalStack, **amber** is planned on LocalStack next, **grey** runs only on real
+AWS (locally it is the Docker service from `infrastructure/dev`). The markers change as the pieces land.
+
+![AWS target architecture](docs/architecture/aws-target-architecture.svg)
+
+| Path | What happens |
+| :--- | :--- |
+| **Web** | CloudFront serves the Angular build from an S3 website; the browser calls API Gateway. |
+| **`/api/*`** | API Gateway forwards to the API service (ECS Fargate), which uses RDS PostgreSQL, ElastiCache Redis and the KMS-encrypted file bucket. |
+| **`/webhooks/*`** | Payment-provider webhooks land in an SQS queue first, so none is lost while the API is down; the worker processes them. |
+| **Notifications** | The outbox relay publishes to the SNS topic, which fans out to one SQS queue per event type; consumers retry after 5 s, 30 s and 5 min. |
+| **Failures** | After the fourth failure a message moves to its dead-letter queue; an EventBridge Pipe turns that into an SNS alert e-mail. |
+| **E-mail, audit, analytics** | The relay publishes to Kafka (Amazon MSK); the e-mail consumer sends through SES. |
+| **Platform** | Secrets Manager (read at startup), KMS keys per concern, IAM roles per process, CloudWatch logs and alarms, SSM parameters. |
+
+The diagram is a plain SVG (`docs/architecture/aws-target-architecture.svg`), edited by hand as pieces land. Terraform for
+every green and amber piece lives in [`infrastructure/aws`](infrastructure/aws/README.md), and the local switches are
+described in
+[Local AWS (LocalStack) & Hybrid Services](#-local-aws-localstack--hybrid-services).
 
 ---
 
@@ -360,7 +391,9 @@ RLS, row-level security is not protecting anything.
 - **Domain-Driven Design (DDD)**: Clean domain models, bounded contexts, and separation of business rules from transport protocols.
 - **Double-Entry Bookkeeping**: Strict adherence to formal accounting principles ensuring balanced journal entries.
 - **Minor Currency Representation**: Storing monetary values as integers (`amountMinor`) to prevent floating-point truncation bugs.
-- **Transactional Outbox Pattern**: Guaranteed event publishing without dual-write consistency issues, with per-row `destination` routing to Kafka or RabbitMQ.
+- **Transactional Outbox Pattern**: Guaranteed event publishing without dual-write consistency issues, with per-row `destination` routing to Kafka or the notification broker (RabbitMQ or SNS/SQS).
+- **Broker-Agnostic Messaging**: One `MessageBroker` contract with RabbitMQ and SNS/SQS implementations; the same retries, dead-letter queues, replay and inbox deduplication on both.
+- **Secrets Before Startup**: With `SECRETS_SOURCE=aws`, passwords and keys come from AWS Secrets Manager before the environment is validated, so they need not live in env files.
 - **Row-Level Security**: Ownership enforced in PostgreSQL, so a forgotten `WHERE` clause reads nothing rather than leaking.
 - **Passkeys & Step-Up**: WebAuthn sign-in plus single-use re-authentication in front of the actions that move money.
 - **Postgres-Backed Job Queue**: `FOR UPDATE SKIP LOCKED` claiming, exponential backoff, and advisory-lock scheduling across instances.
@@ -370,6 +403,7 @@ RLS, row-level security is not protecting anything.
 - **Idempotent Money Paths**: Client-supplied idempotency keys plus a webhook inbox, so a retry or a replayed webhook can never double-charge.
 - **Interactive Swagger Documentation**: Automatically generated OpenAPI 3.0 schema and web test UI at `/api-docs`.
 - **Automated Schema Migrations**: Version-controlled migrations via `node-pg-migrate`, every one with a working `down`.
+- **Infrastructure as Code**: Terraform modules for S3, SES, SNS/SQS, Secrets Manager, KMS and IAM, scanned by Trivy and applied to LocalStack locally.
 - **Pre-commit Quality Checks (Husky)**: Automated linting, formatting, and type-checking across all monorepo workspaces.
 
 ---
@@ -391,14 +425,17 @@ RLS, row-level security is not protecting anything.
 ## 5. Decorator Pattern
 - Custom decorators (`@Roles()`, `@User()`, `@Public()`) enhance route handlers with declarative authorization and context injection.
 
-## 6. Strategy Pattern (Storage & Notification)
+## 6. Strategy Pattern (Storage, Mail & Messaging)
 - Pluggable storage provider interface supporting **MinIO** (local S3 emulator) and **AWS S3 / Cloudflare R2** via `S3StorageStrategy`.
+- Mail transports (console, SMTP, SES) behind one `MailTransport` interface; message brokers (RabbitMQ, SNS/SQS) behind one `MessageBroker` contract. Callers depend on the interface and never know which one runs.
 
 ## 7. Factory Pattern
 - Dynamic instantiation of NestJS modules, database clients, and messaging connections across environments.
+- `MailTransportHelper` and `MessageBrokerHelper` pick the implementation from configuration (`MAIL_TRANSPORT`, `QUEUE_TRANSPORT`), and the `MESSAGE_BROKER` token hands it to every caller.
 
 ## 8. Circuit Breaker & Retry Strategy
 - Resilient external service communication with exponential backoff for message consumers and external providers.
+- A failed message is retried after 5 s, 30 s and 5 min, then moved to a **dead-letter queue** that can be replayed — on RabbitMQ through retry queues, on SQS through the visibility timeout and a redrive policy.
 
 ## 9. Migration Strategy Pattern
 - Decouples database schema evolution from application deployments via versioned migration scripts.
@@ -411,9 +448,16 @@ RLS, row-level security is not protecting anything.
 ## 11. Idempotency & Inbox Pattern
 - Money-moving requests carry a client idempotency key; a repeat returns the original payment instead of creating a second one.
 - Inbound webhooks are recorded in a `webhook_inbox` keyed by provider and event id, so a provider re-sending an event changes nothing.
+- Broker messages are claimed in `inbox_messages` by event id before their handler runs, so a redelivery is skipped; a failed handler releases its claim so the retry runs.
 
 ## 12. Row-Level Security as a Backstop
 - Ownership is enforced by PostgreSQL policies, not only by application filters, so a missing predicate fails closed.
+
+## 13. Template Method (Abstract Base Classes)
+- Shared behaviour lives once in an abstract base and each implementation fills in only its own step: `BaseMailTransport` composes the message and SMTP/SES implement `deliver`; `BaseMessageBroker` owns inbox deduplication, the subscription registry and draining, and RabbitMQ/SQS implement `publish`, `consume` and `cancel`.
+
+## 14. Adapter Pattern (Cloud Services)
+- AWS services sit behind the application's own interfaces — S3 behind storage, SES behind the mailer, SNS/SQS behind the broker, Secrets Manager behind the secrets loader — so the domain code never imports an AWS SDK.
 
 ---
 
@@ -424,18 +468,23 @@ RLS, row-level security is not protecting anything.
 - **KISS (Keep It Simple, Stupid)**: Clean modular architecture avoiding unnecessary abstraction layers while preserving enterprise readiness.
 - **Zero-Sum Ledger Invariance**: Total debits must equal total credits in all financial transactions ($\Delta \text{Assets} - \Delta \text{Liabilities} = \Delta \text{Equity}$).
 - **ACID Financial Guarantees**: Strict atomicity and consistency for all monetary ledger updates.
+- **Least Privilege**: Each process has its own database login and IAM role, and each permission is scoped to the resources it needs — no wildcard actions.
+- **Secure by Default**: Encryption with customer-managed KMS keys, no public buckets, secrets kept out of Terraform state and out of committed files, fail closed when a secret cannot be read.
+- **Configuration over Code**: The same build runs locally, on LocalStack and on AWS; only environment files and variables change (real environment > `.env.aws` > `.env.local`).
+- **Infrastructure as Code**: Every cloud resource is declared in Terraform, scanned before it is applied, and reproducible from zero.
 
 ---
 
 # 💻 Technologies
 
 - **Monorepo Management**: NPM Workspaces & Turborepo (`turbo`)
-- **Backend Framework**: NestJS 12, Node.js (v22+), TypeScript 5.7+
+- **Backend Framework**: NestJS 12, Node.js 24, TypeScript 6.0
 - **Validation**: Zod 4 & `nestjs-zod`, with shared contracts in `@common/contracts`
 - **Passwordless Authentication**: WebAuthn via `@simplewebauthn/server` and `@simplewebauthn/browser`
 - **Two-Factor**: TOTP with encrypted secrets and single-use recovery codes
+- **AWS SDK v3**: S3, SES, SNS, SQS and Secrets Manager clients
 - **Integration Testing**: Testcontainers (Postgres, Redis, RabbitMQ, Kafka) against the built API
-- **Frontend**: Angular 21 (Standalone Components), RxJS, Tailwind CSS
+- **Frontend**: Angular 22 (Standalone Components), RxJS, Tailwind CSS
 - **Primary Database**: PostgreSQL 16 (via `node-pg-migrate` & native client pool)
 - **In-Memory Cache**: Redis 7
 - **Message Broker**: RabbitMQ 3 (AMQP) or AWS SNS/SQS, chosen by `QUEUE_TRANSPORT`
@@ -454,7 +503,7 @@ RLS, row-level security is not protecting anything.
 ## 1. Prerequisites
 
 - **Node.js**: v24.9 or higher (NestJS 12 ships ES modules that Jest can only load from Node 24.9)
-- **npm**: v10.x or higher
+- **npm**: v11.x or higher
 - **Docker & Docker Compose**: For local infrastructure services
 - **OpenSSL**: For generating RSA key pairs
 
@@ -801,7 +850,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 049)
 │   │   ├── .env.local.example     # Core API env template (local stack)
 │   │   └── .env.aws.example       # Optional AWS overlay template
-│   └── client/                    # Angular 21 Standalone Frontend Application
+│   └── client/                    # Angular 22 Standalone Frontend Application
 │       ├── src/
 │       │   ├── app/
 │       │   │   ├── core/          # Interceptors, guards, and singleton services
@@ -1124,7 +1173,7 @@ The platform includes built-in health monitoring and metrics aggregation.
 
 - **PostgreSQL**: Connection pool health, query latency, active transactions.
 - **Redis**: PING health, memory consumption, key evictions.
-- **RabbitMQ**: Channel status, queue lengths, message consumption rates.
+- **Notification broker** (RabbitMQ or SQS): queue depth in the readiness check, dead-letter depth in the metrics.
 - **Kafka**: Producer readiness, consumer lag, topic partitioning.
 
 ---
@@ -1167,7 +1216,7 @@ cd apps/core-api && TESTCONTAINERS_RYUK_PRIVILEGED=true NODE_OPTIONS=--experimen
 
 - `npm run build` must succeed first — the stack runs `dist/main.js`.
 - The stack is fully isolated and provisions its own `app_api` and `app_worker` logins, so RLS is exercised for real.
-- Current coverage: **214 tests across 43 suites**, plus the unit suites.
+- Current coverage: **363 tests across 104 suites**, plus the unit suites.
 
 ### Workspace-Specific Checks
 

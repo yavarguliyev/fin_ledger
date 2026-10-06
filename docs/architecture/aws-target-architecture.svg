@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1860" height="1060" viewBox="0 0 1860 1060" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="head" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L8,5 L1,9" fill="none" stroke="#232F3E" stroke-width="2"/></marker><marker id="head-start" markerWidth="10" markerHeight="10" refX="2" refY="5" orient="auto" markerUnits="userSpaceOnUse"><path d="M9,1 L2,5 L9,9" fill="none" stroke="#232F3E" stroke-width="2"/></marker></defs>
+<rect width="1860" height="1060" fill="#ffffff"/>
+<rect x="1625" y="40" width="190" height="770" rx="4" fill="#F2F3F3" stroke="#232F3E" stroke-width="1.6"/>
+<text x="1641" y="794" font-size="14" fill="#5F6B7A" text-anchor="start" font-weight="600">Failure alerting</text>
+<rect x="40" y="790" width="610" height="230" rx="4" fill="#F2F3F3" stroke="#232F3E" stroke-width="1.6"/>
+<text x="56" y="818" font-size="14" fill="#5F6B7A" text-anchor="start" font-weight="600">Platform · used by every service</text>
+<g transform="translate(70,430)" fill="none" stroke="#232F3E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-8" cy="-14" r="8"/><path d="M-22,14 Q-22,-2 -8,-2 Q2,-2 5,4"/><path d="M2,6 L24,6 L20,20 L-2,20 Z"/></g>
+<text x="70" y="480" font-size="15" fill="#232F3E" text-anchor="middle" font-weight="400">User</text>
+<rect x="178" y="398" width="64" height="64" rx="6" fill="#8C4FFF"/>
+<g transform="translate(210,430)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle r="17"/><circle cx="-7" cy="-6" r="3" fill="#fff"/><circle cx="8" cy="-3" r="3" fill="#fff"/><circle cx="-1" cy="9" r="3" fill="#fff"/><path d="M-7,-6 L8,-3 L-1,9 Z"/></g>
+<circle cx="240" cy="400" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="210" y="484" font-size="15" fill="#8C4FFF" text-anchor="middle" font-weight="400">CloudFront</text>
+<text x="210" y="503" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Distribution</text>
+<rect x="318" y="398" width="64" height="64" rx="6" fill="#7AA116"/>
+<g transform="translate(350,430)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cy="-11" rx="16" ry="5"/><path d="M-16,-11 L-12,15 Q0,20 12,15 L16,-11"/></g>
+<circle cx="380" cy="400" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="350" y="484" font-size="15" fill="#7AA116" text-anchor="middle" font-weight="400">S3 Website</text>
+<text x="350" y="503" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Angular client</text>
+<rect x="458" y="398" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(490,430)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-17 L-21,-17 L-21,17 L-17,17 M17,-17 L21,-17 L21,17 L17,17"/><path d="M-6,-8 L-13,0 L-6,8 M6,-8 L13,0 L6,8 M3,-11 L-3,11"/></g>
+<circle cx="520" cy="400" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="490" y="484" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">API Gateway</text>
+<polyline points="100,430 176,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="244,430 316,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="384,430 456,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="524,430 580,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="580,230 580,660" fill="none" stroke="#232F3E" stroke-width="2.2"/>
+<polyline points="580,230 726,230" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="600" y="218" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">/api/*</text>
+<polyline points="580,660 726,660" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="600" y="648" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">/webhooks/*</text>
+<rect x="728" y="198" width="64" height="64" rx="6" fill="#ED7100"/>
+<g transform="translate(760,230)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-18" y="-18" width="15" height="15" rx="2"/><rect x="3" y="-18" width="15" height="15" rx="2"/><rect x="-18" y="3" width="15" height="15" rx="2"/><rect x="3" y="3" width="15" height="15" rx="2"/></g>
+<circle cx="790" cy="200" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="760" y="284" font-size="15" fill="#ED7100" text-anchor="middle" font-weight="400">API service</text>
+<text x="760" y="303" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">ECS Fargate</text>
+<rect x="1008" y="58" width="64" height="64" rx="6" fill="#3B48CC"/>
+<g transform="translate(1040,90)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cy="-13" rx="16" ry="6"/><path d="M-16,-13 L-16,13 Q0,22 16,13 L16,-13"/><path d="M2,-5 L-5,4 L1,4 L-2,13 L6,2 L0,2 Z" fill="#fff"/></g>
+<circle cx="1070" cy="60" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="1040" y="144" font-size="15" fill="#3B48CC" text-anchor="middle" font-weight="400">ElastiCache Redis</text>
+<text x="1040" y="163" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">sessions · rate limits</text>
+<rect x="1008" y="198" width="64" height="64" rx="6" fill="#3B48CC"/>
+<g transform="translate(1040,230)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cy="-13" rx="16" ry="6"/><path d="M-16,-13 L-16,13 Q0,22 16,13 L16,-13 M-16,0 Q0,9 16,0"/></g>
+<circle cx="1070" cy="200" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="1040" y="284" font-size="15" fill="#3B48CC" text-anchor="middle" font-weight="400">RDS PostgreSQL</text>
+<text x="1040" y="303" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">ledger · outbox · RLS</text>
+<rect x="1008" y="368" width="64" height="64" rx="6" fill="#7AA116"/>
+<g transform="translate(1040,400)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cy="-11" rx="16" ry="5"/><path d="M-16,-11 L-12,15 Q0,20 12,15 L16,-11"/></g>
+<circle cx="1070" cy="370" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1040" y="454" font-size="15" fill="#7AA116" text-anchor="middle" font-weight="400">S3 Files</text>
+<text x="1040" y="473" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">KMS-encrypted</text>
+<polyline points="794,230 1006,230" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="794,214 900,214 900,90 1006,90" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="794,246 900,246 900,400 1006,400" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<rect x="728" y="628" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(760,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-11" y="-11" width="22" height="22" rx="4"/><path d="M-21,0 L-13,0 M-16,-3 L-13,0 L-16,3 M13,0 L21,0 M18,-3 L21,0 L18,3"/><path d="M-5,0 L5,0"/></g>
+<circle cx="790" cy="630" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="760" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">Webhooks Queue</text>
+<text x="760" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">SQS</text>
+<rect x="1008" y="628" width="64" height="64" rx="6" fill="#ED7100"/>
+<g transform="translate(1040,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-18" y="-18" width="15" height="15" rx="2"/><rect x="3" y="-18" width="15" height="15" rx="2"/><rect x="-18" y="3" width="15" height="15" rx="2"/><rect x="3" y="3" width="15" height="15" rx="2"/></g>
+<circle cx="1070" cy="630" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="1040" y="714" font-size="15" fill="#ED7100" text-anchor="middle" font-weight="400">Worker service</text>
+<text x="1040" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">ECS Fargate</text>
+<polyline points="794,660 1006,660" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="1040,626 1040,560 1160,560 1160,246 1074,246" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="1172" y="400" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">relay · jobs</text>
+<rect x="1268" y="628" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(1300,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-10" cy="0" r="6"/><path d="M-4,0 L14,-12 M-4,0 L16,0 M-4,0 L14,12"/><circle cx="16" cy="-13" r="3" fill="#fff"/><circle cx="18" cy="0" r="3" fill="#fff"/><circle cx="16" cy="13" r="3" fill="#fff"/></g>
+<circle cx="1330" cy="630" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1300" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SNS</text>
+<text x="1300" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">wallet-events</text>
+<rect x="1458" y="628" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(1490,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-11" y="-11" width="22" height="22" rx="4"/><path d="M-21,0 L-13,0 M-16,-3 L-13,0 L-16,3 M13,0 L21,0 M18,-3 L21,0 L18,3"/><path d="M-5,0 L5,0"/></g>
+<circle cx="1520" cy="630" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1490" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SQS</text>
+<text x="1490" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">notifications.*</text>
+<polyline points="1074,660 1266,660" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="1090" y="648" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">outbox relay</text>
+<polyline points="1334,660 1456,660" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="1490,735 1490,790 1100,790 1100,676 1076,676" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="1250" y="782" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">consumers</text>
+<polyline points="1524,660 1681,660" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="1534" y="648" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">4 failures</text>
+<rect x="1683" y="628" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(1715,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-11" y="-11" width="22" height="22" rx="4"/><path d="M-21,0 L-13,0 M-16,-3 L-13,0 L-16,3 M13,0 L21,0 M18,-3 L21,0 L18,3"/><path d="M-5,0 L5,0"/></g>
+<circle cx="1745" cy="630" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1715" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">Dead-letter</text>
+<text x="1715" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">queues</text>
+<rect x="1683" y="438" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(1715,470)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-15 L-11,-19 L-5,-15 L-5,-8 L-11,-4 L-17,-8 Z M5,8 L11,4 L17,8 L17,15 L11,19 L5,15 Z"/><path d="M-5,-11 C8,-11 -8,11 5,11"/></g>
+<circle cx="1745" cy="440" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="1715" y="524" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">EventBridge</text>
+<text x="1715" y="543" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Pipe</text>
+<rect x="1683" y="258" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(1715,290)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-10" cy="0" r="6"/><path d="M-4,0 L14,-12 M-4,0 L16,0 M-4,0 L14,12"/><circle cx="16" cy="-13" r="3" fill="#fff"/><circle cx="18" cy="0" r="3" fill="#fff"/><circle cx="16" cy="13" r="3" fill="#fff"/></g>
+<circle cx="1745" cy="260" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="1715" y="344" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SNS</text>
+<text x="1715" y="363" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">alerts</text>
+<g transform="translate(1715,115)"><rect x="-22" y="-15" width="44" height="30" rx="3" fill="#232F3E"/><path d="M-22,-13 L0,3 L22,-13" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></g>
+<text x="1715" y="153" font-size="15" fill="#232F3E" text-anchor="middle" font-weight="400">On-call e-mail</text>
+<polyline points="1715,626 1715,556" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="1715,436 1715,376" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<polyline points="1715,256 1715,166" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<rect x="1008" y="898" width="64" height="64" rx="6" fill="#8C4FFF"/>
+<g transform="translate(1040,930)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="0" cy="-13" r="5"/><circle cx="-13" cy="11" r="5"/><circle cx="13" cy="11" r="5"/><path d="M-2,-8 L-11,6 M2,-8 L11,6 M-8,11 L8,11"/></g>
+<circle cx="1070" cy="900" r="8" fill="#8B949E" stroke="#fff" stroke-width="2.5"/>
+<text x="1040" y="984" font-size="15" fill="#8C4FFF" text-anchor="middle" font-weight="400">Amazon MSK</text>
+<text x="1040" y="1003" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">email · audit · analytics</text>
+<polyline points="1040,745 1040,894" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-start="url(#head-start)" marker-end="url(#head)"/>
+<rect x="1268" y="898" width="64" height="64" rx="6" fill="#DD344C"/>
+<g transform="translate(1300,930)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-18" y="-12" width="36" height="24" rx="3"/><path d="M-18,-10 L0,3 L18,-10"/></g>
+<circle cx="1330" cy="900" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1300" y="984" font-size="15" fill="#DD344C" text-anchor="middle" font-weight="400">SES</text>
+<g transform="translate(1490,930)"><rect x="-22" y="-15" width="44" height="30" rx="3" fill="#232F3E"/><path d="M-22,-13 L0,3 L22,-13" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></g>
+<text x="1490" y="968" font-size="15" fill="#232F3E" text-anchor="middle" font-weight="400">User e-mail</text>
+<polyline points="1074,930 1266,930" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<text x="1100" y="918" font-size="15" fill="#232F3E" text-anchor="start" font-weight="400">e-mail consumer</text>
+<polyline points="1334,930 1462,930" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
+<rect x="78" y="858" width="64" height="64" rx="6" fill="#DD344C"/>
+<g transform="translate(110,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-13" y="-3" width="26" height="20" rx="3"/><path d="M-8,-3 L-8,-10 Q0,-21 8,-10 L8,-3"/><circle cx="0" cy="7" r="3" fill="#fff"/></g>
+<circle cx="140" cy="860" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="110" y="944" font-size="15" fill="#DD344C" text-anchor="middle" font-weight="400">Secrets</text>
+<text x="110" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Manager</text>
+<rect x="198" y="858" width="64" height="64" rx="6" fill="#DD344C"/>
+<g transform="translate(230,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-8" cy="0" r="9"/><path d="M1,0 L19,0 M13,0 L13,7 M18,0 L18,6"/></g>
+<circle cx="260" cy="860" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="230" y="944" font-size="15" fill="#DD344C" text-anchor="middle" font-weight="400">KMS</text>
+<rect x="318" y="858" width="64" height="64" rx="6" fill="#DD344C"/>
+<g transform="translate(350,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cy="-7" r="7"/><path d="M-15,17 Q-15,3 0,3 Q15,3 15,17"/></g>
+<circle cx="380" cy="860" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="350" y="944" font-size="15" fill="#DD344C" text-anchor="middle" font-weight="400">IAM roles</text>
+<rect x="438" y="858" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(470,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-3" cy="-3" r="12"/><path d="M6,6 L17,17"/><path d="M-11,-1 L-6,-6 L-1,-1 L5,-8"/></g>
+<circle cx="500" cy="860" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="470" y="944" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">CloudWatch</text>
+<text x="470" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">logs · alarms</text>
+<rect x="558" y="858" width="64" height="64" rx="6" fill="#E7157B"/>
+<g transform="translate(590,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-11 L17,-11 M-17,0 L17,0 M-17,11 L17,11"/><circle cx="-6" cy="-11" r="3.5" fill="#fff"/><circle cx="7" cy="0" r="3.5" fill="#fff"/><circle cx="-1" cy="11" r="3.5" fill="#fff"/></g>
+<circle cx="620" cy="860" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<text x="590" y="944" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SSM</text>
+<text x="590" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">parameters</text>
+<text x="1627" y="850" font-size="14" fill="#5F6B7A" text-anchor="start" font-weight="600">Status</text>
+<circle cx="1635" cy="873" r="8" fill="#2EA043"/>
+<text x="1651" y="878" font-size="13" fill="#232F3E" text-anchor="start" font-weight="400">Built and verified on LocalStack</text>
+<circle cx="1635" cy="901" r="8" fill="#D29922"/>
+<text x="1651" y="906" font-size="13" fill="#232F3E" text-anchor="start" font-weight="400">Planned on LocalStack</text>
+<circle cx="1635" cy="929" r="8" fill="#8B949E"/>
+<text x="1651" y="934" font-size="13" fill="#232F3E" text-anchor="start" font-weight="400">Real AWS only (local: Docker)</text>
+</svg>
