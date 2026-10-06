@@ -8,10 +8,10 @@ import { GetSharedDevicesUseCase } from './use-cases/queries/get-shared-devices.
 import { SharedModule } from '../../shared/shared.module';
 import { UserModule } from '../user/user.module';
 import { AuthModule } from '../auth/auth.module';
-import { WalletTransactionModule } from '../wallet-transactions/wallet-transaction.module';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
-  imports: [SharedModule, UserModule, AuthModule, WalletTransactionModule],
+  imports: [SharedModule, UserModule, AuthModule, WalletModule],
   controllers: [AdminController],
   providers: [AdminService, GetAdminDashboardUseCase, ListAdminUsersUseCase, GetSharedDevicesUseCase],
   exports: [AdminService]

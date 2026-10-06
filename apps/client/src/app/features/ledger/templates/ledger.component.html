@@ -27,7 +27,7 @@
   <app-data-table [config]="tableConfig()" [data]="entries()" [loading]="loading()" />
 
   @if (hasMore()) {
-    <div class="flex justify-center">
+    <div class="flex justify-center" appLoadOnScroll [paused]="loading()" (reached)="loadOlder()">
       <button
         type="button"
         class="rounded-lg border border-ink-200 dark:border-night-border px-4 py-2 text-sm font-medium text-ink-700 dark:text-night-text hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-60"

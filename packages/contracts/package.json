@@ -12,13 +12,16 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "lint": "eslint \"src/**/*.ts\"",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "lint": "eslint \"{src,test}/**/*.ts\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --passWithNoTests"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.19.1",
     "typescript": "~6.0.3"
   }
 }

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, DiscoveryModule } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { RateLimitHelper, REDIS_CACHE_PROVIDER, RedisCacheProvider, RedisThrottlerStorage } from '@common/libs';
+import { BackgroundRunner, RateLimitHelper, REDIS_CACHE_PROVIDER, RedisCacheProvider, RedisThrottlerStorage } from '@common/libs';
 
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AuditModule } from './audit/audit.module';
@@ -15,6 +15,7 @@ import { SupportModule } from './support/support.module';
 import { PaymentModule } from './payment/payment.module';
 import { PaymentMethodModule } from './payment-methods/payment-method.module';
 import { WalletModule } from './wallet/wallet.module';
+import { WalletTransactionModule } from './wallet-transactions/wallet-transaction.module';
 import { UserModule } from './user/user.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { HealthModule } from './health/health.module';
@@ -28,6 +29,7 @@ import { TASK_RUNTIME } from '../shared/constants/modules/task-runtime.constant'
 
 @Module({
   imports: [
+    DiscoveryModule,
     TasksModule.forRoot({ pollMs: TASK_RUNTIME.pollMs(), batchSize: TASK_RUNTIME.batchSize() }),
     ThrottlerModule.forRootAsync({
       imports: [SharedModule],
@@ -51,9 +53,10 @@ import { TASK_RUNTIME } from '../shared/constants/modules/task-runtime.constant'
     PaymentModule,
     PaymentMethodModule,
     WalletModule,
+    WalletTransactionModule,
     UserModule,
     WebhookModule
   ],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }]
+  providers: [BackgroundRunner, { provide: APP_GUARD, useClass: ThrottlerGuard }]
 })
 export class CoreModule {}

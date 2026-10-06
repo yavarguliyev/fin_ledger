@@ -6,6 +6,7 @@ import { BACKGROUND_WORKER } from '../constants/lifecycle/background-worker.cons
 import { ProcessRole } from '../enums/common/process-role.enum';
 import { BackgroundTask } from '../interfaces/background-task.interface';
 import { ProcessRoleFilterDto } from '../dtos/background/process-role-filter.dto';
+import { BaseHelper } from '../helpers/base.helper';
 
 @Injectable()
 export class BackgroundRunner implements OnApplicationBootstrap, BeforeApplicationShutdown {
@@ -28,9 +29,19 @@ export class BackgroundRunner implements OnApplicationBootstrap, BeforeApplicati
   }
 
   async beforeApplicationShutdown (): Promise<void> {
+    await this.stopAll();
+  }
+
+  async stopAll (): Promise<void> {
     const running = this.started.reverse();
     this.started = [];
-    for (const task of running) await task.stop();
+    for (const task of running) {
+      try {
+        await task.stop();
+      } catch (error) {
+        this.logger.error(`Background worker ${task.constructor.name} failed to stop: ${BaseHelper.errorResponse({ error }).message}`);
+      }
+    }
   }
 
   private tasksFor ({ roles }: ProcessRoleFilterDto): BackgroundTask[] {

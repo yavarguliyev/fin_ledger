@@ -1,6 +1,6 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, PaymentCapability, PaymentProviderRegistry, ProviderChargeStatus } from '@common/libs';
+import { BackgroundTask, BackgroundWorker, BaseHelper, PaymentCapability, PaymentProviderRegistry, ProcessRole, ProviderChargeStatus } from '@common/libs';
 import { TaskHandler, TaskQueueService, TaskRegistry, TaskSchedulerService } from '@common/tasks';
 
 import { PaymentRepository } from '../repositories/payment.repository';
@@ -14,7 +14,8 @@ import { PAYMENT_FAILURE_CODES } from '../constants/operations/payment-failure-c
 import { SettleReconciledPaymentDto } from '../dtos/helper/settle-reconciled-payment.dto';
 
 @Injectable()
-export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModuleDestroy, TaskHandler {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class PaymentReconciliationJob implements BackgroundTask, TaskHandler {
   private readonly logger = new Logger(PaymentReconciliationJob.name);
   private readonly intervalMs: number;
   private readonly staleAfterMs: number;
@@ -35,11 +36,11 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
     this.intervalMs = configService.get<number>('PAYMENT_RECONCILE_INTERVAL_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_INTERVAL_MS;
     this.staleAfterMs = configService.get<number>('PAYMENT_RECONCILE_STALE_AFTER_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_STALE_AFTER_MS;
     this.actionExpiryMs = configService.get<number>('PAYMENT_ACTION_EXPIRY_MS') ?? PAYMENT_RECONCILIATION.DEFAULT_ACTION_EXPIRY_MS;
+    this.registry.register({ name: PAYMENT_RECONCILIATION.TASK_NAME, handler: this });
   }
 
-  onApplicationBootstrap (): void {
-    this.registry.register({ name: PAYMENT_RECONCILIATION.TASK_NAME, handler: this });
-
+  start (): void {
+    this.stopped = false;
     this.scheduler.schedule({
       name: PAYMENT_RECONCILIATION.TASK_NAME,
       everyMs: this.intervalMs,
@@ -47,7 +48,7 @@ export class PaymentReconciliationJob implements OnApplicationBootstrap, OnModul
     });
   }
 
-  onModuleDestroy (): void {
+  stop (): void {
     this.stopped = true;
   }
 

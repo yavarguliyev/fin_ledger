@@ -1,0 +1,17 @@
+<label [for]="fieldId()" [class]="styles.LABEL">{{ label() }}</label>
+<input
+  [id]="fieldId()"
+  [type]="type()"
+  [class]="classes()"
+  [value]="value()"
+  [placeholder]="placeholder()"
+  [disabled]="isDisabled()"
+  [attr.autocomplete]="autocomplete()"
+  [attr.aria-invalid]="error() !== null"
+  [attr.aria-describedby]="error() ? errorId() : null"
+  (input)="update($event)"
+  (blur)="touch()"
+/>
+@if (error(); as message) {
+  <p [id]="errorId()" [class]="styles.ERROR">{{ message }}</p>
+}

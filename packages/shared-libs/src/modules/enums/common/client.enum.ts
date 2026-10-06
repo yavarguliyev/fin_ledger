@@ -8,5 +8,6 @@ export enum ClientIds {
   NOTIFICATION_SERVICE = 'Notification Service',
   PAYMENT_SERVICE = 'Payment Service',
   USER_SERVICE = 'User Service',
-  WALLET_SERVICE = 'Wallet Service'
+  WALLET_SERVICE = 'Wallet Service',
+  WORKER = 'Worker'
 }

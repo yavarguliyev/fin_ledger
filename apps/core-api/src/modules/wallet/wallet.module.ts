@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
 import { WalletController } from './wallet.controller';
 import { WalletService } from './wallet.service';
@@ -20,15 +20,16 @@ import { SettleWinningsUseCase } from './use-cases/commands/wallet/settle-winnin
 import { UpdateWalletStatusUseCase } from './use-cases/commands/wallet/update-wallet-status.use-case';
 import { SharedModule } from '../../shared/shared.module';
 import { LedgerModule } from '../ledger/ledger.module';
-import { WalletTransactionModule } from '../wallet-transactions/wallet-transaction.module';
+import { WalletTransactionRepository } from './repositories/wallet-transaction.repository';
 import { NotificationModule } from '../notification/notification.module';
 
 @Module({
-  imports: [SharedModule, LedgerModule, forwardRef(() => WalletTransactionModule), NotificationModule],
+  imports: [SharedModule, LedgerModule, NotificationModule],
   controllers: [WalletController],
   providers: [
     WalletService,
     WalletRepository,
+    WalletTransactionRepository,
     CurrencyRepository,
     CreateWalletUseCase,
     GetWalletUseCase,
@@ -45,6 +46,6 @@ import { NotificationModule } from '../notification/notification.module';
     SettleWinningsUseCase,
     UpdateWalletStatusUseCase
   ],
-  exports: [WalletService, WalletRepository]
+  exports: [WalletService, WalletRepository, WalletTransactionRepository]
 })
 export class WalletModule {}

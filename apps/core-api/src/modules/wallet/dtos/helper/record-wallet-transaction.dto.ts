@@ -3,7 +3,7 @@ import { EntryType, WalletTransactionType } from '@common/libs';
 
 import { WalletTransactionInputSchema } from './wallet-transaction-input.dto';
 import { LedgerService } from '../../../ledger';
-import { WalletTransactionRepository } from '../../../wallet-transactions';
+import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
 
 export const RecordWalletTransactionSchema = z.object({
   input: WalletTransactionInputSchema,

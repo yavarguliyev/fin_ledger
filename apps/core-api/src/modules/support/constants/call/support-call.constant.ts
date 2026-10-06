@@ -3,6 +3,7 @@ export const SUPPORT_CALL = {
   USER_KEY_PREFIX: 'support-call-user:',
   TTL_SECONDS: 4 * 60 * 60,
   ICE_SERVERS_KEY: 'SUPPORT_ICE_SERVERS',
+  DEFAULT_ICE_SERVERS: [{ urls: 'stun:stun.l.google.com:19302' }],
   SDP_MAX_LENGTH: 20000,
   SDP_TYPES: ['offer', 'answer'],
   CANDIDATE_MAX_LENGTH: 2000,

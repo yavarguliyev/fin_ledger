@@ -1,14 +1,28 @@
-import { Inject, OnModuleInit, Logger } from '@nestjs/common';
-import { RabbitmqService, RABBITMQ_SERVICE, UnknownRecord, DomainEventType, NotificationType } from '@common/libs';
+import { Inject, Logger } from '@nestjs/common';
+import {
+  BackgroundTask,
+  BackgroundWorker,
+  DomainEventType,
+  InboxRepository,
+  NotificationType,
+  ProcessRole,
+  RabbitmqService,
+  RABBITMQ_SERVICE,
+  UnknownRecord
+} from '@common/libs';
 
 import { NotificationService } from '../../notification.service';
 import { EventTitleDto } from '../../dtos/notification/event-title.dto';
 import { NotificationHelper } from '../../helpers/notification.helper';
 import { NOTIFICATION_QUEUE } from '../../constants/messaging/notification-queue.constant';
 
-export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements OnModuleInit {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements BackgroundTask {
   @Inject(RABBITMQ_SERVICE)
   protected readonly rabbitmqService!: RabbitmqService;
+
+  @Inject(InboxRepository)
+  protected readonly inboxRepository!: InboxRepository;
 
   @Inject(NotificationService)
   protected readonly notificationService!: NotificationService;
@@ -26,13 +40,22 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
   protected abstract getUserId(payload: TPayload): Promise<string | undefined> | string | undefined;
   protected abstract getContent(payload: TPayload): Promise<string> | string;
 
-  async onModuleInit (): Promise<void> {
+  async start (): Promise<void> {
     await this.subscribe();
+  }
+
+  async stop (): Promise<void> {
+    await this.rabbitmqService.unsubscribe({ queue: this.queue() });
+  }
+
+  private queue (): string {
+    return `${NOTIFICATION_QUEUE.PREFIX}.${this.eventType}`;
   }
 
   protected async subscribe (): Promise<void> {
     await this.rabbitmqService.subscribe({
-      queue: `${NOTIFICATION_QUEUE.PREFIX}.${this.eventType}`,
+      queue: this.queue(),
+      inbox: this.inboxRepository,
       routingKey: this.eventType,
       handler: async message => {
         const payload = message as TPayload;

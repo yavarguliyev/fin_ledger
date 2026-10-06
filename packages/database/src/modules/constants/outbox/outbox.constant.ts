@@ -2,6 +2,7 @@ export const OUTBOX_CONSTANTS = {
   BACKOFF_BASE_SECONDS: 5,
   BACKOFF_MAX_SECONDS: 300,
   LAST_ERROR_MAX_LENGTH: 500,
+  CONTRACT_VIOLATION_MESSAGE: 'Outbox event payload breaks its contract:',
   CLAIM_PENDING_BATCH_SQL: `
     UPDATE outbox_events
        SET locked_by = $1, locked_until = now() + make_interval(secs => $2)

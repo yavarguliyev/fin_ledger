@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { STAFF_ROLES } from '@common/libs';
 
-import { WalletTransactionSummaryDto } from '../../dtos/summary/wallet-transaction-summary.dto';
+import { WalletTransactionSummaryDto } from '../../../wallet';
 import { GetWalletSummaryDto } from '../../dtos/input/get-wallet-summary.dto';
 import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.use-case';
 

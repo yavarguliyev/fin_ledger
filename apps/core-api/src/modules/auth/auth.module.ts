@@ -1,4 +1,4 @@
-import { forwardRef, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { MfaModule } from '@common/libs';
 
 import { AuthController } from './auth.controller';
@@ -52,7 +52,7 @@ import { ForgotPasswordUseCase } from './use-cases/commands/forgot-password.use-
 import { ResetPasswordUseCase } from './use-cases/commands/reset-password.use-case';
 
 @Module({
-  imports: [SharedModule, LedgerModule, SupportModule, forwardRef(() => WalletModule), MfaModule.forRoot()],
+  imports: [SharedModule, LedgerModule, SupportModule, WalletModule, MfaModule.forRoot()],
   controllers: [AuthController, AuthMfaController, AuthPasskeyController, AuthKeysController],
   providers: [
     AuthService,

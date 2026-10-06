@@ -20,7 +20,7 @@ import { TopologyHelper } from '../helpers/topology.helper';
 export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
   private connection: ChannelModel | null = null;
   private channel: ConfirmChannel | null = null;
-  private consumerTags: string[] = [];
+  private readonly consumerTags = new Map<string, string>();
   private inFlight = 0;
   private stopped = false;
   private reconnectAttempt = 0;
@@ -47,13 +47,13 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     const channel = this.channel;
 
     if (channel) {
-      await ShutdownHelper.cancelConsumers({ channel, consumerTags: this.consumerTags, logger: this.logger });
+      await ShutdownHelper.cancelConsumers({ channel, consumerTags: [...this.consumerTags.values()], logger: this.logger });
       await ShutdownHelper.drain({ pending: () => this.inFlight, logger: this.logger });
     }
 
     await ShutdownHelper.close({ channel: this.channel, connection: this.connection, logger: this.logger });
 
-    this.consumerTags = [];
+    this.consumerTags.clear();
     this.channel = null;
     this.connection = null;
   }
@@ -69,9 +69,9 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async subscribe ({ queue, routingKey, handler }: RabbitmqSubscribeDto): Promise<void> {
-    this.subscriptions.push({ queue, routingKey, handler });
-    await this.consumeQueue({ queue, routingKey, handler });
+  async subscribe ({ queue, routingKey, handler, inbox }: RabbitmqSubscribeDto): Promise<void> {
+    this.subscriptions.push({ queue, routingKey, handler, ...(inbox && { inbox }) });
+    await this.consumeQueue({ queue, routingKey, handler, ...(inbox && { inbox }) });
   }
 
   async queueDepth ({ queue }: QueueNameDto): Promise<number> {
@@ -79,13 +79,16 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     return messageCount;
   }
 
+  async unsubscribe ({ queue }: QueueNameDto): Promise<void> {
+    const index = this.subscriptions.findIndex(subscription => subscription.queue === queue);
+    if (index >= 0) this.subscriptions.splice(index, 1);
+    const consumerTag = this.consumerTags.get(queue);
+    this.consumerTags.delete(queue);
+    if (consumerTag && this.channel) await ShutdownHelper.cancelConsumers({ channel: this.channel, consumerTags: [consumerTag], logger: this.logger });
+  }
+
   async replayDeadLetters ({ queue, limit }: ReplayDeadLettersDto): Promise<number> {
-    return ReplayHelper.replay({
-      channel: this.requireChannel(),
-      queue,
-      limit: limit ?? RABBITMQ_TOPOLOGY.REPLAY_DEFAULT_LIMIT,
-      logger: this.logger
-    });
+    return ReplayHelper.replay({ channel: this.requireChannel(), queue, limit: limit ?? RABBITMQ_TOPOLOGY.REPLAY_DEFAULT_LIMIT, logger: this.logger });
   }
 
   private async connect (): Promise<void> {
@@ -114,7 +117,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
     try {
       await this.connect();
-      this.consumerTags = [];
+      this.consumerTags.clear();
 
       for (const subscription of this.subscriptions) await this.consumeQueue(subscription);
 
@@ -125,19 +128,19 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async consumeQueue ({ queue, routingKey, handler }: RabbitmqSubscribeDto): Promise<void> {
+  private async consumeQueue ({ queue, routingKey, handler, inbox }: RabbitmqSubscribeDto): Promise<void> {
     const channel = this.requireChannel();
 
     await TopologyHelper.assertConsumerTopology({ channel, queue, routingKey });
 
     const { consumerTag } = await channel.consume(queue, (message: ConsumeMessage | null) => {
       this.inFlight += 1;
-      void ConsumeHelper.handle({ channel, queue, message, handler, logger: this.logger }).finally(() => {
+      void ConsumeHelper.handle({ channel, queue, message, handler, logger: this.logger, ...(inbox && { inbox }) }).finally(() => {
         this.inFlight -= 1;
       });
     });
 
-    this.consumerTags.push(consumerTag);
+    this.consumerTags.set(queue, consumerTag);
   }
 
   private requireChannel (): ConfirmChannel {

@@ -11,6 +11,7 @@ import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.con
 import { WALLET_CACHE } from '../constants/wallet/wallet-cache.constant';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { WalletTransactionsDto } from '../interfaces/wallet/wallet-transactions.interface';
+import { WalletOverview } from '../interfaces/wallet/wallet-overview.interface';
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
@@ -85,6 +86,15 @@ export class WalletService {
       })
       .pipe(
         tap(response => this.transactionsSignal.set(response.data)),
+        catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
+      );
+  }
+
+  getOverview ({ walletId, page, limit }: WalletTransactionsDto): Observable<WalletOverview> {
+    return this.http
+      .get<WalletOverview>(`${this.apiUrl}/wallet-transactions/${walletId}/overview`, { params: { page: page.toString(), limit: limit.toString() } })
+      .pipe(
+        tap(overview => this.transactionsSignal.set(overview.recent.data)),
         catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
       );
   }

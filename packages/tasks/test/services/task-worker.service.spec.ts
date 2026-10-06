@@ -16,35 +16,28 @@ describe('TaskWorkerService', () => {
   });
 
   afterEach(() => {
-    worker.onModuleDestroy();
+    worker.stop();
     jest.useRealTimers();
   });
 
-  it('does not poll when started before the application has bootstrapped', () => {
-    worker.start();
+  it('never polls until the runner starts it', () => {
     jest.advanceTimersByTime(TASK_TEST.POLL_MS * 3);
 
     expect(claim).not.toHaveBeenCalled();
   });
 
-  it('begins polling once the application bootstraps after an early start', () => {
+  it('polls once per interval after start, with the configured batch size', () => {
     worker.start();
-    worker.onApplicationBootstrap();
-    jest.advanceTimersByTime(TASK_TEST.POLL_MS);
-
-    expect(claim).toHaveBeenCalledWith({ size: TASK_TEST.BATCH_SIZE });
-  });
-
-  it('polls immediately on start when the application has already bootstrapped', () => {
-    worker.onApplicationBootstrap();
     worker.start();
     jest.advanceTimersByTime(TASK_TEST.POLL_MS);
 
     expect(claim).toHaveBeenCalledTimes(1);
+    expect(claim).toHaveBeenCalledWith({ size: TASK_TEST.BATCH_SIZE });
   });
 
-  it('never polls when bootstrapped but not started', () => {
-    worker.onApplicationBootstrap();
+  it('stops polling once stopped', () => {
+    worker.start();
+    worker.stop();
     jest.advanceTimersByTime(TASK_TEST.POLL_MS * 3);
 
     expect(claim).not.toHaveBeenCalled();

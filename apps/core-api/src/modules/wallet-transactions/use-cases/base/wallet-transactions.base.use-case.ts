@@ -1,6 +1,6 @@
 import { Inject } from '@nestjs/common';
 
-import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
+import { WalletTransactionRepository } from '../../../wallet';
 
 export abstract class WalletTransactionsBaseUseCase<TInput, TOutput> {
   @Inject(WalletTransactionRepository)

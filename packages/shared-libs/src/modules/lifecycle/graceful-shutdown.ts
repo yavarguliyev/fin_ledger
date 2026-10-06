@@ -8,6 +8,7 @@ import { ShutdownContextDto } from '../dtos/lifecycle/shutdown-context.dto';
 import { SHUTDOWN_DEFAULTS } from '../constants/app/shutdown-defaults.constant';
 import { ErrorResponseInputDto } from '../dtos/helper/error-response-input.dto';
 import { BaseHelper } from '../helpers/base.helper';
+import { BackgroundRunner } from './background-runner';
 
 export class GracefulShutdown {
   static register (params: GracefulShutdownDto): void {
@@ -52,6 +53,14 @@ export class GracefulShutdown {
     };
   }
 
+  private static runnerOf ({ app }: CloseAppDto): BackgroundRunner | null {
+    try {
+      return app.get(BackgroundRunner, { strict: false });
+    } catch {
+      return null;
+    }
+  }
+
   private static async closeApp (params: CloseAppDto): Promise<boolean> {
     const { app, timeoutMs, onShutdown } = params;
 
@@ -62,6 +71,7 @@ export class GracefulShutdown {
     });
 
     const closed = (async (): Promise<boolean> => {
+      await GracefulShutdown.runnerOf(params)?.stopAll();
       await app.close();
       await onShutdown?.();
 

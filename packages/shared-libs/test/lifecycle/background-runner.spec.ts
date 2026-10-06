@@ -67,6 +67,15 @@ describe('BackgroundRunner', () => {
     expect(calls).toEqual([T.RELAY_START, T.CONSUMER_START, T.CONSUMER_STOP, T.RELAY_STOP]);
   });
 
+  it('stops each worker once even when stopAll runs before the shutdown hook', async () => {
+    const runner = runnerFor([ProcessRole.WORKER]);
+
+    await runner.onApplicationBootstrap();
+    await runner.stopAll();
+    await runner.beforeApplicationShutdown();
+    expect(calls).toEqual([T.RELAY_START, T.CONSUMER_START, T.CONSUMER_STOP, T.RELAY_STOP]);
+  });
+
   it('starts nothing for a role no worker has', async () => {
     const runner = runnerFor([ProcessRole.REPORTS]);
 

@@ -1,6 +1,6 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper } from '@common/libs';
+import { BackgroundTask, BackgroundWorker, BaseHelper, ProcessRole } from '@common/libs';
 import { TaskHandler, TaskQueueService, TaskRegistry, TaskSchedulerService } from '@common/tasks';
 
 import { LedgerBalanceDriftRepository } from '../repositories/ledger-balance-drift.repository';
@@ -10,10 +10,12 @@ import { LedgerIntegrityReportDto } from '../dtos/integrity/ledger-integrity-rep
 import { LEDGER_INTEGRITY } from '../constants/jobs/ledger-integrity.constant';
 
 @Injectable()
-export class LedgerIntegrityJob implements OnApplicationBootstrap, TaskHandler {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class LedgerIntegrityJob implements BackgroundTask, TaskHandler {
   private readonly logger = new Logger(LedgerIntegrityJob.name);
   private readonly intervalMs: number;
   private running = false;
+  private stopped = false;
 
   constructor (
     configService: ConfigService,
@@ -25,16 +27,20 @@ export class LedgerIntegrityJob implements OnApplicationBootstrap, TaskHandler {
     private readonly taskQueue: TaskQueueService
   ) {
     this.intervalMs = configService.get<number>('LEDGER_INTEGRITY_INTERVAL_MS') ?? LEDGER_INTEGRITY.DEFAULT_INTERVAL_MS;
+    this.registry.register({ name: LEDGER_INTEGRITY.TASK_NAME, handler: this });
   }
 
-  onApplicationBootstrap (): void {
-    this.registry.register({ name: LEDGER_INTEGRITY.TASK_NAME, handler: this });
-
+  start (): void {
+    this.stopped = false;
     this.scheduler.schedule({
       name: LEDGER_INTEGRITY.TASK_NAME,
       everyMs: this.intervalMs,
       run: () => this.taskQueue.enqueue({ name: LEDGER_INTEGRITY.TASK_NAME, dedupeKey: LEDGER_INTEGRITY.TASK_NAME }).then(() => undefined)
     });
+  }
+
+  stop (): void {
+    this.stopped = true;
   }
 
   async handle (): Promise<void> {
@@ -58,7 +64,7 @@ export class LedgerIntegrityJob implements OnApplicationBootstrap, TaskHandler {
   }
 
   private async tick (): Promise<void> {
-    if (this.running) return;
+    if (this.stopped || this.running) return;
 
     this.running = true;
 

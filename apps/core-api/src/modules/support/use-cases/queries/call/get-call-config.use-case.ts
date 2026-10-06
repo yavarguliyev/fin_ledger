@@ -10,13 +10,14 @@ export class GetCallConfigUseCase {
 
   execute (): CallConfigResponseDto {
     const raw = this.configService.get<string>(SUPPORT_CALL.ICE_SERVERS_KEY);
-    if (!raw) return { iceServers: [] };
+    const fallback = { iceServers: [...SUPPORT_CALL.DEFAULT_ICE_SERVERS] };
+    if (!raw) return fallback;
 
     try {
       const parsed = CallConfigResponseSchema.safeParse({ iceServers: JSON.parse(raw) as unknown });
-      return parsed.success ? parsed.data : { iceServers: [] };
+      return parsed.success ? parsed.data : fallback;
     } catch {
-      return { iceServers: [] };
+      return fallback;
     }
   }
 }

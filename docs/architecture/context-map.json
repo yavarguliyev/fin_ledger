@@ -1,0 +1,23 @@
+{
+  "contexts": {
+    "identity": ["auth", "user"],
+    "wallet-ledger": ["wallet", "wallet-transactions", "ledger"],
+    "payments": ["payment", "payment-methods", "webhook"],
+    "betting": ["game-events", "bet"],
+    "engagement": ["notification", "email", "support"],
+    "compliance": ["audit"],
+    "reporting": ["analytics"],
+    "back-office": ["admin"],
+    "platform": ["health", "metrics", "retention", "monitoring"]
+  },
+  "allowed": {
+    "identity": ["wallet-ledger", "engagement"],
+    "wallet-ledger": ["identity", "engagement"],
+    "payments": ["identity", "wallet-ledger"],
+    "betting": ["identity", "wallet-ledger"],
+    "compliance": ["identity"],
+    "back-office": ["identity", "wallet-ledger"],
+    "platform": ["wallet-ledger", "engagement"]
+  },
+  "knownCycles": []
+}

@@ -55,3 +55,15 @@ export interface SupportSession {
   staff: string;
   conversationId: string;
 }
+
+export interface StarredMessage {
+  messageId: string;
+  body: string | null;
+}
+
+export interface SupportStarDto {
+  token: string;
+  conversationId: string;
+  messageId: string;
+  method: 'PUT' | 'DELETE';
+}

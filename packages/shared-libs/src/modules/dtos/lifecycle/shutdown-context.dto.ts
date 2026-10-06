@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { INestApplication, LoggerService } from '@nestjs/common';
+import { INestApplicationContext, LoggerService } from '@nestjs/common';
 
 import { ShutdownHook } from '../../types/base.type';
 
 export const ShutdownContextSchema = z.object({
-  app: z.custom<INestApplication>(),
+  app: z.custom<INestApplicationContext>(),
 
   logger: z.custom<LoggerService>(),
 

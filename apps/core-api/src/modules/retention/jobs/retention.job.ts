@@ -1,13 +1,14 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, PostgresService } from '@common/libs';
+import { BackgroundTask, BackgroundWorker, BaseHelper, PostgresService, ProcessRole } from '@common/libs';
 import { TaskHandler, TaskQueueService, TaskRegistry, TaskSchedulerService } from '@common/tasks';
 
 import { RETENTION } from '../constants/retention.constant';
 import { RetentionResultDto } from '../dtos/job/retention-result.dto';
 
 @Injectable()
-export class RetentionJob implements OnApplicationBootstrap, TaskHandler {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class RetentionJob implements BackgroundTask, TaskHandler {
   private readonly logger = new Logger(RetentionJob.name);
   private readonly intervalMs: number;
   private readonly outboxDays: number;
@@ -15,6 +16,7 @@ export class RetentionJob implements OnApplicationBootstrap, TaskHandler {
   private readonly notificationDays: number;
   private readonly loginEventDays: number;
   private running = false;
+  private stopped = false;
 
   constructor (
     configService: ConfigService,
@@ -28,16 +30,20 @@ export class RetentionJob implements OnApplicationBootstrap, TaskHandler {
     this.webhookDays = configService.get<number>(RETENTION.WEBHOOK_DAYS_KEY) ?? RETENTION.DEFAULT_WEBHOOK_DAYS;
     this.notificationDays = configService.get<number>(RETENTION.NOTIFICATION_DAYS_KEY) ?? RETENTION.DEFAULT_NOTIFICATION_DAYS;
     this.loginEventDays = configService.get<number>(RETENTION.LOGIN_EVENT_DAYS_KEY) ?? RETENTION.DEFAULT_LOGIN_EVENT_DAYS;
+    this.registry.register({ name: RETENTION.TASK_NAME, handler: this });
   }
 
-  onApplicationBootstrap (): void {
-    this.registry.register({ name: RETENTION.TASK_NAME, handler: this });
-
+  start (): void {
+    this.stopped = false;
     this.scheduler.schedule({
       name: RETENTION.TASK_NAME,
       everyMs: this.intervalMs,
       run: () => this.taskQueue.enqueue({ name: RETENTION.TASK_NAME, dedupeKey: RETENTION.TASK_NAME }).then(() => undefined)
     });
+  }
+
+  stop (): void {
+    this.stopped = true;
   }
 
   async handle (): Promise<void> {
@@ -54,7 +60,7 @@ export class RetentionJob implements OnApplicationBootstrap, TaskHandler {
   }
 
   private async tick (): Promise<void> {
-    if (this.running) return;
+    if (this.stopped || this.running) return;
 
     this.running = true;
 

@@ -10,6 +10,7 @@ import { requestTimeoutInterceptor } from './app/core/interceptors/request-timeo
 import { readRetryInterceptor } from './app/core/interceptors/read-retry.interceptor';
 import { AppConfigService } from './app/core/services/app-config.service';
 import { SessionRefreshService } from './app/core/services/session-refresh.service';
+import { responseCacheInterceptor } from './app/core/interceptors/response-cache.interceptor';
 import { requestSharingInterceptor } from './app/core/interceptors/request-sharing.interceptor';
 import { pageViewInterceptor } from './app/core/interceptors/page-view.interceptor';
 import { PageViewTrackerService } from './app/core/services/page-view-tracker.service';
@@ -19,7 +20,7 @@ bootstrapApplication(App, {
     provideRouter(routes, withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })),
     provideHttpClient(
       withXhr(),
-      withInterceptors([pageViewInterceptor, requestSharingInterceptor, authInterceptor, readRetryInterceptor, requestTimeoutInterceptor])
+      withInterceptors([responseCacheInterceptor, pageViewInterceptor, requestSharingInterceptor, authInterceptor, readRetryInterceptor, requestTimeoutInterceptor])
     ),
     provideAppInitializer(() => inject(PageViewTrackerService).listen()),
     provideAppInitializer(() => {

@@ -1,0 +1,13 @@
+export const APP_BOOTSTRAP = {
+  STARTED_MESSAGE: 'started without an HTTP server',
+  FAILURE_EXIT_CODE: 1,
+  JSON_PARSER: 'json',
+  URLENCODED_PARSER: 'urlencoded',
+  TEXT_PARSER: 'text',
+  TRUST_PROXY_SETTING: 'trust proxy',
+  NODE_ENV_KEY: 'NODE_ENV',
+  PORT_KEY: 'PORT',
+  HOST_KEY: 'HOST',
+  TRUST_PROXY_KEY: 'TRUST_PROXY',
+  ALLOWED_ORIGINS_KEY: 'ALLOWED_ORIGINS'
+} as const;

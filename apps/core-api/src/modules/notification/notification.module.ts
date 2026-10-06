@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { InboxRepository } from '@common/libs';
 
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
@@ -21,6 +22,7 @@ import { WalletDebitedConsumer } from './consumers/events/wallet-debited.consume
   imports: [SharedModule],
   controllers: [NotificationController],
   providers: [
+    InboxRepository,
     NotificationService,
     NotificationRepository,
     NotificationStreamProvider,

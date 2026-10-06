@@ -8,7 +8,7 @@ export const NOTIFICATION_KEYSET_TEST = {
   PAGE: 2,
   TITLE_PREFIX: 'Keyset probe ',
   SEED_SQL: `INSERT INTO notifications (user_id, type, title, content, created_at)
-             SELECT u.id, 'SYSTEM', 'Keyset probe ' || g, 'probe', now() - make_interval(secs => g)
+             SELECT u.id, 'SYSTEM', 'Keyset probe ' || g, 'probe', date_trunc('milliseconds', now()) + ($2::int - g) * interval '1 microsecond'
                FROM users u, generate_series(1, $2::int) g WHERE u.email = $1`,
   CLEAN_SQL: "DELETE FROM notifications WHERE title LIKE 'Keyset probe %'",
   QUERY_SEPARATOR: '?',

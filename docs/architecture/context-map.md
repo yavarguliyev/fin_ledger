@@ -20,6 +20,13 @@ same change.
 Not a business context: **Platform** — `health`, `metrics`, `retention` and the shared packages (`@common/database`,
 `@common/tasks`, `@common/kafka`, `@common/rabbitmq`, …). Platform owns only infrastructure tables.
 
+## Enforcement
+
+`context-map.json` is the machine-readable copy of the table above: which modules belong to each context, which
+contexts may import which, and the module cycles still waiting for a port (`knownCycles`). `npm run
+check:architecture` (a CI step) builds the module import graph and fails on a module without a context, an import
+the map does not allow, or a new cycle. Change the JSON in the same commit as the code.
+
 ## Table ownership
 
 Each table has exactly one owner. "Also written by" lists code outside the owner that changes the table today; every
@@ -94,7 +101,6 @@ Direct imports between modules in different contexts. Imports of another module 
 **Wallet and ledger →**
 - Customer engagement: `wallet` imports `NotificationModule`.
 - Reporting: `wallet` uses `AnalyticsEventPayloadDto` from `analytics`.
-- Identity: `wallet-transactions` imports `AuthModule`.
 
 **Payments →**
 - Wallet and ledger: `payment` calls `WalletService` and uses `WalletHelper`, `WalletSummaryDto`,

@@ -1,3 +1,4 @@
+import { EVENT_ENVELOPE } from '@common/contracts';
 import { UnknownRecord, BaseHelper, RequestScope } from '@common/shared-libs';
 
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
@@ -9,18 +10,41 @@ import { QueueHelper } from './queue.helper';
 import { SettleHelper } from './settle.helper';
 
 export class ConsumeHelper {
-  static async handle ({ channel, queue, message, handler, logger }: HandleMessageDto): Promise<void> {
+  static async handle ({ channel, queue, message, handler, logger, inbox }: HandleMessageDto): Promise<void> {
     if (!message) return;
 
     try {
-      const payload = JSON.parse(message.content.toString()) as UnknownRecord;
-      await RequestScope.runSystem(() => handler(payload));
+      await RequestScope.runSystem(() => ConsumeHelper.process({ channel, queue, message, handler, logger, ...(inbox && { inbox }) }));
       SettleHelper.settle({ channel, message, requeue: false, logger });
     } catch (error) {
       const lastError = BaseHelper.errorResponse({ error }).message;
       const attempt = Number(message.properties.headers?.[RABBITMQ_TOPOLOGY.ATTEMPTS_HEADER] ?? 0) + 1;
 
       await ConsumeHelper.park({ channel, queue, message, attempt, lastError, logger });
+    }
+  }
+
+  private static async process ({ queue, message, handler, logger, inbox }: HandleMessageDto): Promise<void> {
+    if (!message) return;
+
+    const payload = JSON.parse(message.content.toString()) as UnknownRecord;
+    const eventId = message.properties.headers?.[EVENT_ENVELOPE.HEADERS.ID] as string | undefined;
+
+    if (!inbox || !eventId) {
+      await handler(payload);
+      return;
+    }
+
+    if (!(await inbox.markProcessed({ consumer: queue, messageId: eventId, topic: queue }))) {
+      logger.log(`${queue} already handled ${eventId}, skipping the replay`);
+      return;
+    }
+
+    try {
+      await handler(payload);
+    } catch (error) {
+      await inbox.release({ consumer: queue, messageId: eventId });
+      throw error;
     }
   }
 

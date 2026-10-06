@@ -15,12 +15,13 @@ import { ErrorStateComponent } from '../../shared/components/error-state/error-s
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { LEDGER_PAGE } from '../../core/constants/ledger/ledger-page.constant';
 import { AccountEntriesDto } from '../../core/interfaces/ledger/account-entries.interface';
+import { LoadOnScrollDirective } from '../../shared/directives/load-on-scroll.directive';
 
 @Component({
   selector: 'app-ledger',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent],
+  imports: [CommonModule, CurrencyFormatPipe, DataTableComponent, PageHeaderComponent, ErrorStateComponent, LoadOnScrollDirective],
   templateUrl: './templates/ledger.component.html'
 })
 export class LedgerComponent implements OnInit {

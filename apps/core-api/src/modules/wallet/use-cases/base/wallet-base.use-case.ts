@@ -19,7 +19,7 @@ import { LedgerService } from '../../../ledger';
 import { WalletOperationDto } from '../../dtos/input/wallet-operation.dto';
 import { AnalyticsEventPayloadDto } from '../../../analytics';
 import { WalletOperationResultDto } from '../../dtos/transaction/wallet-operation-result.dto';
-import { WalletTransactionRepository } from '../../../wallet-transactions';
+import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
 import { WalletHelper } from '../../helpers/wallet.helper';
 
 export abstract class WalletBaseUseCase<TInput, TOutput> {

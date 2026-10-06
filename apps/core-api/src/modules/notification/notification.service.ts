@@ -6,6 +6,7 @@ import { GetNotificationsUseCase } from './use-cases/queries/get-notifications.u
 import { MarkNotificationReadUseCase } from './use-cases/commands/mark-notification-read.use-case';
 import { StreamNotificationsUseCase } from './use-cases/queries/stream-notifications.use-case';
 import { NotificationDto } from './dtos/notification/notification.dto';
+import { NotificationPageItemDto } from './dtos/response/notification-page-item.dto';
 import { CreateNotificationDto } from './dtos/input/create-notification.dto';
 import { ListNotificationsDto } from './dtos/input/list-notifications.dto';
 import { MarkNotificationReadDto } from './dtos/input/mark-notification-read.dto';
@@ -28,7 +29,7 @@ export class NotificationService {
     return this.createNotificationUseCase.execute(dto);
   }
 
-  async getNotifications (dto: ListNotificationsDto): Promise<NotificationDto[]> {
+  async getNotifications (dto: ListNotificationsDto): Promise<NotificationPageItemDto[]> {
     return this.getNotificationsUseCase.execute(dto);
   }
 

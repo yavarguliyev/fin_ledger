@@ -46,12 +46,18 @@ import { ListContactsUseCase } from './use-cases/queries/presence/list-contacts.
 import { SupportContactRepository } from './repositories/support-contact.repository';
 import { SupportLinkController } from './support-link.controller';
 import { SupportLinkService } from './support-link.service';
+import { SupportStarController } from './support-star.controller';
+import { SupportStarService } from './support-star.service';
+import { SupportStarRepository } from './repositories/support-star.repository';
+import { SupportAccessProvider } from './providers/support-access.provider';
+import { StarMessageUseCase } from './use-cases/commands/message/star-message.use-case';
+import { ListStarredMessagesUseCase } from './use-cases/queries/message/list-starred-messages.use-case';
 import { GetLinkPreviewUseCase } from './use-cases/queries/link/get-link-preview.use-case';
 import { LinkPreviewRepository } from './repositories/link-preview.repository';
 
 @Module({
   imports: [SharedModule, StorageModule.forRoot({ clientId: ClientIds.API_GATEWAY })],
-  controllers: [SupportController, SupportMessageController, SupportCallController, SupportReactionController, SupportLinkController],
+  controllers: [SupportController, SupportMessageController, SupportCallController, SupportReactionController, SupportLinkController, SupportStarController],
   providers: [
     SupportService,
     SupportConversationRepository,
@@ -92,6 +98,11 @@ import { LinkPreviewRepository } from './repositories/link-preview.repository';
     EndCallUseCase,
     GetCallConfigUseCase,
     SupportLinkService,
+    SupportStarService,
+    SupportStarRepository,
+    SupportAccessProvider,
+    StarMessageUseCase,
+    ListStarredMessagesUseCase,
     GetLinkPreviewUseCase,
     LinkPreviewRepository
   ],

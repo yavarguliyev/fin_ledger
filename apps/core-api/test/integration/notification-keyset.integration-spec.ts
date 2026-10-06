@@ -28,7 +28,7 @@ afterAll(async () => {
 });
 
 describe('Notifications paged by cursor', () => {
-  it('walks every notification newest first, a page at a time, without repeats or gaps', async () => {
+  it('walks every notification newest first, a page at a time, without gaps when rows share a millisecond', async () => {
     const seen: NotificationItem[] = [];
     let response = await page({ query: { limit: String(T.PAGE) } });
 

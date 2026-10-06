@@ -1,5 +1,6 @@
 const COLUMNS = `id, transaction_id AS "transactionId", account_id AS "accountId", entry_type AS "entryType", amount_minor AS "amountMinor",
-                 currency, description, reference, sequence, created_at AS "createdAt"`;
+                 currency, description, reference, sequence,
+                 to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "createdAt"`;
 
 export const LEDGER_ENTRY_LIST = {
   DEFAULT_LIMIT: 25,

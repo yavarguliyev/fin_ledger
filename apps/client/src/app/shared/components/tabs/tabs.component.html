@@ -1,0 +1,17 @@
+<div role="tablist" [attr.aria-label]="label()" [class]="styles.LIST">
+  @for (tab of tabs(); track tab.id; let index = $index) {
+    <button
+      type="button"
+      role="tab"
+      [id]="styles.TAB_ID_PREFIX + tab.id"
+      [class]="classes(tab.id)"
+      [attr.aria-selected]="tab.id === active()"
+      [attr.aria-controls]="styles.PANEL_ID_PREFIX + tab.id"
+      [attr.tabindex]="tab.id === active() ? 0 : -1"
+      (click)="select(tab.id)"
+      (keydown)="onKeydown($event, index)"
+    >
+      {{ tab.label }}
+    </button>
+  }
+</div>

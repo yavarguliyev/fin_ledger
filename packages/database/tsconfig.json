@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "references": [{ "path": "../shared-libs" }],
+  "references": [{ "path": "../shared-libs" }, { "path": "../contracts" }],
   "include": ["src/**/*.ts"],
   "exclude": ["dist", "node_modules"]
 }

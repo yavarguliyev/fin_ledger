@@ -1,5 +1,5 @@
-import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
-import { BaseHelper, RequestScope } from '@common/shared-libs';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { BackgroundTask, BackgroundWorker, BaseHelper, ProcessRole, RequestScope } from '@common/shared-libs';
 
 import { JobRepository } from '../repositories/job.repository';
 import { TaskRegistry } from './task-registry.service';
@@ -11,13 +11,12 @@ import { TasksOptions } from '../interfaces/tasks-options.interface';
 import { JOB } from '../constants/jobs/job.constant';
 
 @Injectable()
-export class TaskWorkerService implements OnApplicationBootstrap, OnModuleDestroy {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class TaskWorkerService implements BackgroundTask {
   private readonly logger = new Logger(TaskWorkerService.name);
 
   private timer: ReturnType<typeof setInterval> | null = null;
   private draining = false;
-  private requested = false;
-  private bootstrapped = false;
 
   constructor (
     @Inject(TASKS_OPTIONS) private readonly options: TasksOptions,
@@ -26,16 +25,12 @@ export class TaskWorkerService implements OnApplicationBootstrap, OnModuleDestro
   ) {}
 
   start (): void {
-    this.requested = true;
-    this.schedule();
+    if (this.timer) return;
+    this.timer = setInterval(() => void this.drain(), this.options.pollMs ?? JOB.DEFAULT_POLL_MS);
+    this.logger.log('Task worker started');
   }
 
-  onApplicationBootstrap (): void {
-    this.bootstrapped = true;
-    this.schedule();
-  }
-
-  onModuleDestroy (): void {
+  stop (): void {
     if (!this.timer) return;
     clearInterval(this.timer);
     this.timer = null;
@@ -62,11 +57,6 @@ export class TaskWorkerService implements OnApplicationBootstrap, OnModuleDestro
     }
   }
 
-  private schedule (): void {
-    if (this.timer || !this.requested || !this.bootstrapped) return;
-    this.timer = setInterval(() => void this.drain(), this.options.pollMs ?? JOB.DEFAULT_POLL_MS);
-    this.logger.log('Task worker started');
-  }
 
   private async runOne ({ job }: JobRef): Promise<void> {
     try {

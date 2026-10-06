@@ -5,5 +5,6 @@ export const INBOX_CONSTANTS = {
     ON CONFLICT (consumer, message_id) DO NOTHING
       RETURNING message_id
   `,
+  RELEASE_SQL: 'DELETE FROM inbox_messages WHERE consumer = $1 AND message_id = $2',
   WAS_PROCESSED_SQL: 'SELECT 1 FROM inbox_messages WHERE consumer = $1 AND message_id = $2'
 } as const;

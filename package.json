@@ -25,6 +25,7 @@
     "lint": "turbo run lint",
     "lint:fix": "eslint \"**/{src,test}/**/*.ts\" --fix",
     "typecheck": "turbo run typecheck",
+    "check:architecture": "node scripts/architecture/check-module-graph.mjs",
     "format": "prettier --write \"**/*.{json,mjs,js,html}\" && npm run lint:fix",
     "format:check": "prettier --check \"**/*.{json,mjs,js,html}\" && turbo run lint",
     "migrate:up": "node-pg-migrate up --migrations-dir apps/core-api/migrations",

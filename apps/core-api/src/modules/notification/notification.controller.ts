@@ -5,6 +5,7 @@ import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RequestContext, SessionGu
 
 import { NotificationService } from './notification.service';
 import { NotificationDto } from './dtos/notification/notification.dto';
+import { NotificationPageItemDto } from './dtos/response/notification-page-item.dto';
 import { ListNotificationsRequestDto, ListNotificationsRequestSchema } from './dtos/request/list-notifications-request.dto';
 import { MarkNotificationReadRequestDto, MarkNotificationReadRequestSchema } from './dtos/request/mark-notification-read-request.dto';
 import { StreamTicketResponseDto } from './dtos/response/stream-ticket-response.dto';
@@ -20,7 +21,7 @@ export class NotificationController {
   async getNotifications (
     @Req() req: RequestContext,
     @ParamsQueryAndHeaders({ schema: ListNotificationsRequestSchema }) dto: ListNotificationsRequestDto
-  ): Promise<NotificationDto[]> {
+  ): Promise<NotificationPageItemDto[]> {
     return this.notificationService.getNotifications({ ...dto, userId: req.user.userId });
   }
 

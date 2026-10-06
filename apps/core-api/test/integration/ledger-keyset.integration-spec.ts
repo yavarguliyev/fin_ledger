@@ -12,12 +12,13 @@ const page = ({ query }: LedgerPageQuery): ReturnType<typeof ApiHelper.request<L
 beforeAll(async () => {
   token = await ApiHelper.login({ email: T.EMAIL });
   accountId = (await DbHelper.query<{ id: string }>({ sql: T.ACCOUNT_SQL, params: [T.EMAIL] }))[0]?.id ?? T.EMPTY;
+  await DbHelper.query({ sql: T.TIE_SQL, params: [accountId, T.TIE_COUNT] });
 });
 
 afterAll(async () => DbHelper.close());
 
 describe('Ledger entries paged by cursor', () => {
-  it('walks every entry newest first, a page at a time, matching the database order', async () => {
+  it('walks every entry newest first, a page at a time, matching the database order even when rows share a millisecond', async () => {
     const seen: string[] = [];
     let response = await page({ query: { limit: String(T.PAGE) } });
 

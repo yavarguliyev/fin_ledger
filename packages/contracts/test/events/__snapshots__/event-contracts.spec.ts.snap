@@ -1,0 +1,632 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Published event contracts analytics.payment.completed keeps its published payload shape 1`] = `
+{
+  "eventType": "analytics.payment.completed",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "externalReference": {
+        "type": "string",
+      },
+      "failureReason": {
+        "type": "string",
+      },
+      "paymentId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "paymentType": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "providerTransactionId": {
+        "type": "string",
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentId",
+      "userId",
+      "walletId",
+      "amountMinor",
+      "currency",
+      "status",
+      "paymentType",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts analytics.payment.failed keeps its published payload shape 1`] = `
+{
+  "eventType": "analytics.payment.failed",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "paymentId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null",
+        ],
+      },
+      "providerChargeId": {
+        "type": [
+          "string",
+          "null",
+        ],
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentId",
+      "userId",
+      "amountMinor",
+      "currency",
+      "status",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts analytics.wallet.credited keeps its published payload shape 1`] = `
+{
+  "eventType": "analytics.wallet.credited",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "reference": {
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "transactionId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "type": {
+        "type": "string",
+      },
+      "userId": {
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "walletId",
+      "amountMinor",
+      "currency",
+      "transactionId",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts analytics.wallet.debited keeps its published payload shape 1`] = `
+{
+  "eventType": "analytics.wallet.debited",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "reference": {
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "transactionId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "type": {
+        "type": "string",
+      },
+      "userId": {
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "walletId",
+      "amountMinor",
+      "currency",
+      "transactionId",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts bet.settled keeps its published payload shape 1`] = `
+{
+  "eventType": "bet.settled",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "betId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "payoutMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "selection": {
+        "type": "string",
+      },
+      "status": {
+        "enum": [
+          "CASHED_OUT",
+          "LOST",
+          "PENDING",
+          "VOIDED",
+          "WON",
+        ],
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "betId",
+      "userId",
+      "walletId",
+      "status",
+      "selection",
+      "payoutMinor",
+      "currency",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts payment.completed keeps its published payload shape 1`] = `
+{
+  "eventType": "payment.completed",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "externalReference": {
+        "type": "string",
+      },
+      "failureReason": {
+        "type": "string",
+      },
+      "paymentId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "paymentType": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "providerTransactionId": {
+        "type": "string",
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentId",
+      "userId",
+      "walletId",
+      "amountMinor",
+      "currency",
+      "status",
+      "paymentType",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts payment.failed keeps its published payload shape 1`] = `
+{
+  "eventType": "payment.failed",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "paymentId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "provider": {
+        "type": [
+          "string",
+          "null",
+        ],
+      },
+      "providerChargeId": {
+        "type": [
+          "string",
+          "null",
+        ],
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentId",
+      "userId",
+      "amountMinor",
+      "currency",
+      "status",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts payment_method.rejected keeps its published payload shape 1`] = `
+{
+  "eventType": "payment_method.rejected",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "paymentMethodId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "provider": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "providerMethodId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentMethodId",
+      "userId",
+      "provider",
+      "providerMethodId",
+      "status",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts payment_method.verified keeps its published payload shape 1`] = `
+{
+  "eventType": "payment_method.verified",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "paymentMethodId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "provider": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "providerMethodId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "status": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "paymentMethodId",
+      "userId",
+      "provider",
+      "providerMethodId",
+      "status",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts user.registered keeps its published payload shape 1`] = `
+{
+  "eventType": "user.registered",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "displayName": {
+        "type": [
+          "string",
+          "null",
+        ],
+      },
+      "email": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "ledgerAccountId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "userId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "userId",
+      "email",
+      "walletId",
+      "ledgerAccountId",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts wallet.credited keeps its published payload shape 1`] = `
+{
+  "eventType": "wallet.credited",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "reference": {
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "transactionId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "type": {
+        "type": "string",
+      },
+      "userId": {
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "walletId",
+      "amountMinor",
+      "currency",
+      "transactionId",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;
+
+exports[`Published event contracts wallet.debited keeps its published payload shape 1`] = `
+{
+  "eventType": "wallet.debited",
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "amountMinor": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "type": "integer",
+      },
+      "currency": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "reference": {
+        "type": "string",
+      },
+      "timestamp": {
+        "format": "date-time",
+        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+        "type": "string",
+      },
+      "transactionId": {
+        "minLength": 1,
+        "type": "string",
+      },
+      "type": {
+        "type": "string",
+      },
+      "userId": {
+        "type": "string",
+      },
+      "walletId": {
+        "minLength": 1,
+        "type": "string",
+      },
+    },
+    "required": [
+      "walletId",
+      "amountMinor",
+      "currency",
+      "transactionId",
+      "timestamp",
+    ],
+    "type": "object",
+  },
+  "version": 1,
+}
+`;

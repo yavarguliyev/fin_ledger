@@ -1,11 +1,11 @@
-import { INestApplication, LoggerService } from '@nestjs/common';
+import { INestApplicationContext, LoggerService } from '@nestjs/common';
 import { z } from 'zod';
 
 import { ShutdownHook } from '../../types/base.type';
 import { ClientIds } from '../../enums/common/client.enum';
 
 export const GracefulShutdownSchema = z.object({
-  app: z.custom<INestApplication>(),
+  app: z.custom<INestApplicationContext>(),
 
   context: z.enum(ClientIds).optional(),
 

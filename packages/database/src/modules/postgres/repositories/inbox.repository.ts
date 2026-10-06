@@ -22,4 +22,9 @@ export class InboxRepository {
 
     return result.rows.length > 0;
   }
+
+  async release ({ consumer, messageId, adapter }: InboxLookupDto): Promise<void> {
+    const db = adapter ?? this.postgresService.getConnection();
+    await db.query({ sql: INBOX_CONSTANTS.RELEASE_SQL, params: [consumer, messageId] });
+  }
 }

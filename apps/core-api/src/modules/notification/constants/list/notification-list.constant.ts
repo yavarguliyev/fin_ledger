@@ -4,7 +4,8 @@ export const NOTIFICATION_LIST = {
   CURSOR_MESSAGE: 'Pass both before and beforeId, or neither',
   KEYSET_SQL: `
     SELECT id, user_id AS "userId", channel, type, title, content, data, status,
-           sent_at AS "sentAt", read_at AS "readAt", created_at AS "createdAt", updated_at AS "updatedAt"
+           sent_at AS "sentAt", read_at AS "readAt", to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "createdAt",
+           updated_at AS "updatedAt"
       FROM notifications
      WHERE user_id = $1
        AND ($2::timestamptz IS NULL OR (created_at, id) < ($2::timestamptz, $3::uuid))

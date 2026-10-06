@@ -1,6 +1,6 @@
-import { Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { BaseHelper, WebhookStatus } from '@common/libs';
+import { BackgroundTask, BackgroundWorker, BaseHelper, ProcessRole, WebhookStatus } from '@common/libs';
 import { TaskHandler, TaskQueueService, TaskRegistry, TaskSchedulerService } from '@common/tasks';
 
 import { WebhookService } from '../webhook.service';
@@ -9,7 +9,8 @@ import { ReplayWebhookEventDto } from '../dtos/step/replay-webhook-event.dto';
 import { WEBHOOK_REPLAY } from '../constants/jobs/webhook-replay.constant';
 
 @Injectable()
-export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy, TaskHandler {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class WebhookReplayJob implements BackgroundTask, TaskHandler {
   private readonly logger = new Logger(WebhookReplayJob.name);
   private readonly intervalMs: number;
   private readonly staleAfterMs: number;
@@ -26,11 +27,11 @@ export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy
   ) {
     this.intervalMs = configService.get<number>('WEBHOOK_REPLAY_INTERVAL_MS') ?? WEBHOOK_REPLAY.DEFAULT_INTERVAL_MS;
     this.staleAfterMs = configService.get<number>('WEBHOOK_REPLAY_STALE_AFTER_MS') ?? WEBHOOK_REPLAY.DEFAULT_STALE_AFTER_MS;
+    this.registry.register({ name: WEBHOOK_REPLAY.TASK_NAME, handler: this });
   }
 
-  onApplicationBootstrap (): void {
-    this.registry.register({ name: WEBHOOK_REPLAY.TASK_NAME, handler: this });
-
+  start (): void {
+    this.stopped = false;
     this.scheduler.schedule({
       name: WEBHOOK_REPLAY.TASK_NAME,
       everyMs: this.intervalMs,
@@ -38,7 +39,7 @@ export class WebhookReplayJob implements OnApplicationBootstrap, OnModuleDestroy
     });
   }
 
-  onModuleDestroy (): void {
+  stop (): void {
     this.stopped = true;
   }
 

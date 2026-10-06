@@ -16,7 +16,7 @@ const page = ({ query }: ConversationPageQuery): ReturnType<typeof ApiHelper.req
 
 const cursorAfter = ({ row }: ConversationPageCursor): Record<string, string> => ({
   limit: String(T.PAGE),
-  before: row ? new Date(row.lastMessageAt).toISOString() : T.EMPTY,
+  before: row?.lastMessageAt ?? T.EMPTY,
   beforeId: row?.id ?? T.EMPTY
 });
 
@@ -33,7 +33,7 @@ afterAll(async () => {
 });
 
 describe('Support conversations paged by cursor', () => {
-  it('walks every conversation newest first, including ties on the last message time', async () => {
+  it('walks every conversation newest first, including ties and rows within one millisecond', async () => {
     const ids: string[] = [];
     let response = await page({ query: { limit: String(T.PAGE) } });
 

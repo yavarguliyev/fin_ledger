@@ -19,7 +19,7 @@ export const SUPPORT_SQL = {
            staff.display_name AS "assignedStaffName",
            c.subject,
            c.status,
-           c.last_message_at AS "lastMessageAt",
+           to_char(c.last_message_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "lastMessageAt",
            c.created_at AS "createdAt",
            (
              SELECT count(*)::int FROM support_messages m
@@ -28,19 +28,14 @@ export const SUPPORT_SQL = {
                AND m.sender_user_id IS DISTINCT FROM $1
                AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
            ) AS "unreadCount",
-           (
-             SELECT CASE WHEN m.body IS NOT NULL THEN m.body ELSE m.file_name END
-               FROM support_messages m
-              WHERE m.conversation_id = c.id AND m.deleted_at IS NULL
-              ORDER BY m.created_at DESC LIMIT 1
-           ) AS "lastMessagePreview"
+           c.last_message_preview AS "lastMessagePreview"
       FROM support_conversations c
       LEFT JOIN users customer ON customer.id = c.customer_user_id
       LEFT JOIN users staff ON staff.id = c.assigned_staff_id
       LEFT JOIN support_read_receipts r ON r.conversation_id = c.id AND r.user_id = $1
      WHERE (c.customer_user_id = $1 OR c.assigned_staff_id = $1 OR (c.assigned_staff_id IS NULL AND $4::boolean))
-       AND ($3::timestamptz IS NULL OR (date_trunc('milliseconds', c.last_message_at), c.id) < ($3::timestamptz, $5::uuid))
-     ORDER BY date_trunc('milliseconds', c.last_message_at) DESC, c.id DESC
+       AND ($3::timestamptz IS NULL OR (c.last_message_at, c.id) < ($3::timestamptz, $5::uuid))
+     ORDER BY c.last_message_at DESC, c.id DESC
      LIMIT $2
   `,
   LIST_MESSAGES: `

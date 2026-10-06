@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PaginatedResponseDto, STAFF_ROLES } from '@common/libs';
 
-import { WalletTransactionRecordDto } from '../../dtos/transaction/wallet-transaction-record.dto';
+import { WalletTransactionRecordDto } from '../../../wallet';
 import { ListWalletTransactionsDto } from '../../dtos/input/list-wallet-transactions.dto';
 import { WalletTransactionsBaseUseCase } from '../base/wallet-transactions.base.use-case';
 

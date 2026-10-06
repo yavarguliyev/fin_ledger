@@ -6,6 +6,7 @@ export const SUPPORT_CALLS_TEST = {
   STRANGER_EMAIL: 'calls-stranger@support-tests.realtime-wallet-payments.com',
   CALLS_PATH: '/support/calls',
   CONFIG_PATH: '/support/calls/config',
+  DEFAULT_ICE_SERVERS: [{ urls: 'stun:stun.l.google.com:19302' }],
   SDP: 'v=0\r\no=- 1 2 IN IP4 127.0.0.1\r\ns=-\r\n',
   CANDIDATE: { candidate: 'candidate:1 1 udp 2122260223 127.0.0.1 50000 typ host', sdpMid: '0', sdpMLineIndex: 0 },
   AUDIO: 'AUDIO',

@@ -106,11 +106,10 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadActivity (scope: string): void {
-    this.walletService.getSummary(scope).subscribe({ next: summaries => this.summaries.set(summaries) });
-
-    this.walletService.getTransactions({ walletId: scope, page: ACTIVITY.PAGE, limit: ACTIVITY.LIMIT }).subscribe({
-      next: () => {
-        this.recentTx.set(this.walletService.transactions() ?? []);
+    this.walletService.getOverview({ walletId: scope, page: ACTIVITY.PAGE, limit: ACTIVITY.LIMIT }).subscribe({
+      next: ({ summary, recent }) => {
+        this.summaries.set(summary);
+        this.recentTx.set(recent.data);
         this.loading.set(false);
       },
       error: () => this.fail()

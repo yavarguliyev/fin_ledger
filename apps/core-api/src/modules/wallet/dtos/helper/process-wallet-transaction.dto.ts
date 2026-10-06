@@ -4,7 +4,7 @@ import { AGGREGATE_TYPES, BETTING_TYPES, DomainEventType, EntryType, OutboxRepos
 import { WalletOperationSchema } from '../input/wallet-operation.dto';
 import { WalletRepository } from '../../repositories/wallet.repository';
 import { LedgerService } from '../../../ledger';
-import { WalletTransactionRepository } from '../../../wallet-transactions';
+import { WalletTransactionRepository } from '../../repositories/wallet-transaction.repository';
 
 export const ProcessWalletTransactionSchema = WalletOperationSchema.extend({
   walletRepository: z.custom<WalletRepository>(),

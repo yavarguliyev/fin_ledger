@@ -1,0 +1,17 @@
+<label [for]="fieldId()" [class]="styles.LABEL">{{ label() }}</label>
+<select
+  [id]="fieldId()"
+  [class]="classes()"
+  [disabled]="isDisabled()"
+  [attr.aria-invalid]="error() !== null"
+  [attr.aria-describedby]="error() ? errorId() : null"
+  (change)="update($event)"
+  (blur)="touch()"
+>
+  @for (option of options(); track option.value) {
+    <option [value]="option.value" [selected]="option.value === value()">{{ option.label }}</option>
+  }
+</select>
+@if (error(); as message) {
+  <p [id]="errorId()" [class]="styles.ERROR">{{ message }}</p>
+}

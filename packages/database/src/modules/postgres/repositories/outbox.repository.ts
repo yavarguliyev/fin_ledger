@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { EventContractHelper } from '@common/contracts';
 import { OutboxDestination, OutboxStatus, RequestScope } from '@common/shared-libs';
 
 import { BaseRepository } from './base.repository';
@@ -55,6 +56,9 @@ export class OutboxRepository extends BaseRepository<OutboxBaseFields> {
   }
 
   async createEvent ({ aggregateType, aggregateId, eventType, payload, destination, adapter }: CreateEventDto): Promise<OutboxBaseFields | null> {
+    const violation = EventContractHelper.violation({ eventType, payload });
+    if (violation) throw new InternalServerErrorException(`${OUTBOX_CONSTANTS.CONTRACT_VIOLATION_MESSAGE} ${violation}`);
+
     const aggregateVersion = await this.nextAggregateVersion({ aggregateType, aggregateId, ...(adapter && { adapter }) });
 
     const traceId = RequestScope.correlationId();

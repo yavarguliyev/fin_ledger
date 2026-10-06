@@ -1,0 +1,6 @@
+<section [class]="styles.BASE">
+  @if (heading(); as text) {
+    <h2 [class]="styles.TITLE">{{ text }}</h2>
+  }
+  <ng-content />
+</section>

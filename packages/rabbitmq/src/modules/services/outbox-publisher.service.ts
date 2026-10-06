@@ -1,8 +1,18 @@
-import { Inject, Injectable, Logger, OnApplicationBootstrap, OnModuleDestroy, Optional } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OutboxRepository, PostgresService } from '@common/database';
 import { KafkaService } from '@common/kafka';
-import { BaseHelper, CryptoHelper, OutboxDestination, OutboxStatus, RABBITMQ_SERVICE, RequestScope } from '@common/shared-libs';
+import {
+  BackgroundTask,
+  BackgroundWorker,
+  BaseHelper,
+  CryptoHelper,
+  OutboxDestination,
+  OutboxStatus,
+  ProcessRole,
+  RABBITMQ_SERVICE,
+  RequestScope
+} from '@common/shared-libs';
 
 import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
@@ -13,7 +23,8 @@ import { OutboxSettingsDto } from '../dtos/outbox/outbox-settings.dto';
 import { OUTBOX_SETTINGS } from '../constants/outbox/outbox-settings.constant';
 
 @Injectable()
-export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleDestroy {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class OutboxPublisherService implements BackgroundTask {
   private intervalHandle: ReturnType<typeof setInterval> | null = null;
   private isPolling = false;
   private stopped = false;
@@ -33,7 +44,7 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     this.settings = OutboxSettingsHelper.from({ ...(configService && { configService }) });
   }
 
-  onApplicationBootstrap (): void {
+  start (): void {
     this.intervalHandle = setInterval(() => void RequestScope.runSystem(() => this.poll()), this.settings.pollIntervalMs);
     this.intervalHandle.unref();
     void this.postgres?.listen({ channel: OUTBOX_SETTINGS.NOTIFY_CHANNEL, onNotify: () => this.wake() });
@@ -48,7 +59,7 @@ export class OutboxPublisherService implements OnApplicationBootstrap, OnModuleD
     void RequestScope.runSystem(() => this.poll());
   }
 
-  onModuleDestroy (): void {
+  stop (): void {
     this.stopped = true;
     if (this.intervalHandle) clearInterval(this.intervalHandle);
     this.intervalHandle = null;

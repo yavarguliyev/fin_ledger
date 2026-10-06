@@ -4,6 +4,7 @@ export interface SupportConversation {
   assignedStaffId: string | null;
   status: string;
   unreadCount: number;
+  lastMessagePreview?: string | null;
 }
 
 export interface SupportMessage {

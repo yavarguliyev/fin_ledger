@@ -45,7 +45,7 @@ describe('Support calls', () => {
     const config = await ApiHelper.request<{ iceServers: unknown[] }>({ path: SUPPORT_CALLS_TEST.CONFIG_PATH, token: customer });
 
     expect(config.status).toBe(SUPPORT_CALLS_TEST.OK);
-    expect(Array.isArray(config.body.iceServers)).toBe(true);
+    expect(config.body.iceServers).toEqual(SUPPORT_CALLS_TEST.DEFAULT_ICE_SERVERS);
   });
 
   it('rings the other person, refuses a second call while one is live, and only lets the callee answer', async () => {

@@ -35,6 +35,9 @@ jobs:
     - name: Type Check
       run: npm run typecheck
 
+    - name: Module Boundaries
+      run: npm run check:architecture
+
     - name: Unit Tests
       run: npm test
 

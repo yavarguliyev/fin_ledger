@@ -1,8 +1,17 @@
-import { Inject, Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryService } from '@nestjs/core';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
-import { BaseHelper, ClientIds, KAFKA_CLIENT_ID, KAFKA_SUBSCRIBER_METADATA, MessageHandler } from '@common/shared-libs';
+import {
+  BackgroundTask,
+  BackgroundWorker,
+  BaseHelper,
+  ClientIds,
+  KAFKA_CLIENT_ID,
+  KAFKA_SUBSCRIBER_METADATA,
+  MessageHandler,
+  ProcessRole
+} from '@common/shared-libs';
 import { InboxRepository } from '@common/database';
 
 import { KafkaMessageRecord } from '../interfaces/kafka-message-record.interface';
@@ -18,7 +27,8 @@ import { SubscriberHelper } from '../helpers/subscriber.helper';
 import { KafkaService } from './kafka.service';
 
 @Injectable()
-export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
+@BackgroundWorker({ role: ProcessRole.WORKER })
+export class KafkaConsumerService implements BackgroundTask {
   private readonly subscribers: Map<string, MessageHandler<KafkaMessageRecord>[]> = new Map();
   private readonly logger: Logger;
 
@@ -36,7 +46,7 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     this.logger = new Logger(`${KafkaConsumerService.name}:${this.clientId}`);
   }
 
-  async onModuleInit (): Promise<void> {
+  async start (): Promise<void> {
     this.discoverSubscribers();
 
     if (this.subscribers.size === 0) {
@@ -47,8 +57,9 @@ export class KafkaConsumerService implements OnModuleInit, OnModuleDestroy {
     await this.initializeConsumer();
   }
 
-  async onModuleDestroy (): Promise<void> {
+  async stop (): Promise<void> {
     await this.consumer?.disconnect();
+    this.consumer = null;
   }
 
   private discoverSubscribers (): void {

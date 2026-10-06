@@ -12,12 +12,11 @@ import {
 } from '@common/libs';
 
 import { SHARED_CONSTANTS } from '../../shared/constants/modules/shared.constant';
-import { WalletTransactionRecordDto } from './dtos/transaction/wallet-transaction-record.dto';
-import { WalletTransactionSummaryDto } from './dtos/summary/wallet-transaction-summary.dto';
 import { WalletTransactionService } from './wallet-transaction.service';
 import { ListWalletTransactionsRequestDto, ListWalletTransactionsRequestSchema } from './dtos/request/list-wallet-transactions-request.dto';
 import { GetWalletSummaryRequestDto, GetWalletSummaryRequestSchema } from './dtos/request/get-wallet-summary-request.dto';
-import { WalletAccessGuard } from '../wallet';
+import { WalletOverviewResponseDto } from './dtos/response/wallet-overview-response.dto';
+import { WalletAccessGuard, WalletTransactionRecordDto, WalletTransactionSummaryDto } from '../wallet';
 
 @ApiTags(SHARED_CONSTANTS.WALLET_TRANSACTION.key)
 @UseGuards(SessionGuard, RolesGuard, WalletAccessGuard)
@@ -40,6 +39,14 @@ export class WalletTransactionController {
     @ParamsQueryAndHeaders({ schema: ListWalletTransactionsRequestSchema }) dto: ListWalletTransactionsRequestDto
   ): Promise<PaginatedResponseDto<WalletTransactionRecordDto>> {
     return this.walletTransactionService.getWalletBets({ ...dto, role: req.user.role });
+  }
+
+  @Get(':walletId/overview')
+  async findWalletOverview (
+    @Req() req: RequestContext,
+    @ParamsQueryAndHeaders({ schema: ListWalletTransactionsRequestSchema }) dto: ListWalletTransactionsRequestDto
+  ): Promise<WalletOverviewResponseDto> {
+    return this.walletTransactionService.getWalletOverview({ ...dto, role: req.user.role });
   }
 
   @Get(':walletId/summary')

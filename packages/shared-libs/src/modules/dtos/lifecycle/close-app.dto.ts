@@ -1,10 +1,10 @@
-import { INestApplication } from '@nestjs/common';
+import { INestApplicationContext } from '@nestjs/common';
 import { z } from 'zod';
 
 import { ShutdownHook } from '../../types/base.type';
 
 export const CloseAppSchema = z.object({
-  app: z.custom<INestApplication>(),
+  app: z.custom<INestApplicationContext>(),
 
   timeoutMs: z.number({ message: 'timeoutMs must be a number' }),
 
