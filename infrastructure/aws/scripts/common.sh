@@ -7,6 +7,10 @@ COMPOSE_FILE="${AWS_DIR}/docker-compose.yml"
 ROOT_ENV_FILE="${REPO_ROOT}/.env"
 TFVARS_FILE="environments/local.tfvars"
 STATE_DIR="${AWS_DIR}/terraform/.state"
+PROVIDER_CACHE_DIR="${AWS_DIR}/terraform/.terraform"
+COMPOSE_PROJECT="ddd-aws"
+LOCALSTACK_CONTAINER="ddd_localstack"
+TRIVY_IMAGE="aquasec/trivy:0.75.0"
 
 source "${REPO_ROOT}/infrastructure/dev/lib-docker.sh"
 

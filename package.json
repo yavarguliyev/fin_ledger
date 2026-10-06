@@ -39,6 +39,7 @@
     "aws:up": "bash infrastructure/aws/scripts/up.sh",
     "aws:plan": "bash infrastructure/aws/scripts/plan.sh",
     "aws:down": "bash infrastructure/aws/scripts/down.sh",
+    "aws:rm": "bash infrastructure/aws/scripts/remove.sh",
     "aws:scan": "bash infrastructure/aws/scripts/scan.sh",
     "aws:secrets": "bash infrastructure/aws/scripts/secrets.sh",
     "infra:verify": "node --env-file-if-exists=apps/core-api/.env.local --env-file-if-exists=apps/core-api/.env.aws --env-file-if-exists=infrastructure/dev/.env scripts/infra/verify-monitoring.mjs",

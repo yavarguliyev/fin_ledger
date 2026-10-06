@@ -1143,6 +1143,7 @@ npm run aws:plan      # show what would change
 npm run aws:secrets   # copy the secret values from apps/core-api/.env.local into Secrets Manager again
 npm run aws:scan      # security scan of the Terraform (Trivy)
 npm run aws:down      # stop LocalStack (the free plan keeps nothing; aws:up recreates it)
+npm run aws:rm        # remove containers, volume, Terraform state and cache, and the images (asks first)
 ```
 
 Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` switches all of them at once:

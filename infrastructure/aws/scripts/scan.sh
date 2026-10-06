@@ -2,8 +2,6 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
-TRIVY_IMAGE="aquasec/trivy:0.75.0"
-
 print_header "Scanning Terraform for security misconfigurations"
 validate_docker_available || exit 1
 

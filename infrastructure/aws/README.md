@@ -29,6 +29,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `npm run aws:plan` | Show what Terraform would change, without changing anything. |
 | `npm run aws:down` | Stop LocalStack. The free plan keeps nothing, so the next `aws:up` recreates everything. |
 | `npm run aws:secrets` | Copy the app's secrets from `apps/core-api/.env.local` (and `.env.aws`) into Secrets Manager. `aws:up` runs it too. |
+| `npm run aws:rm` | Remove everything the stack left on this machine: containers, volume, network, Terraform state and provider cache, and the LocalStack, Terraform and Trivy images. Asks for `yes` first; `-- --force` skips that. |
 | `npm run aws:scan` | Scan the Terraform for security misconfigurations (Trivy). `aws:up` runs it first and stops on findings. |
 
 ## What is created
