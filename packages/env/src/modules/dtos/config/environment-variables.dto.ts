@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { Environment, MailTransportKind, ProcessRolesSchema, SmsTransportKind } from '@common/shared-libs';
 
 import { ENVIRONMENT_CONSTANTS } from '../../constants/environment/env.constant';
+import { AwsVariablesSchema } from './aws-variables.dto';
 
 export const EnvironmentVariablesSchema = z.object({
   NODE_ENV: z.enum(Environment, { message: 'NODE_ENV must be a valid Environment enum' }),
@@ -66,10 +67,6 @@ export const EnvironmentVariablesSchema = z.object({
   DB_APPLICATION_NAME: z.string({ message: 'DB_APPLICATION_NAME must be a string' }).optional(),
   REFRESH_GRACE_MS: z.string({ message: 'REFRESH_GRACE_MS must be a string' }).optional(),
 
-  TELEGRAM_BOT_TOKEN: z.string({ message: 'TELEGRAM_BOT_TOKEN must be a string' }).optional(),
-  TELEGRAM_WEBHOOK_URL: z.string({ message: 'TELEGRAM_WEBHOOK_URL must be a string' }).optional(),
-  TELEGRAM_WEBHOOK_SECRET: z.string({ message: 'TELEGRAM_WEBHOOK_SECRET must be a string' }).optional(),
-
   DB_WORKER_USERNAME: z.string({ message: 'DB_WORKER_USERNAME must be a string' }).optional(),
   DB_WORKER_PASSWORD: z.string({ message: 'DB_WORKER_PASSWORD must be a string' }).optional(),
 
@@ -102,17 +99,11 @@ export const EnvironmentVariablesSchema = z.object({
   STORAGE_ENSURE_BUCKET: z.coerce.boolean({ message: 'STORAGE_ENSURE_BUCKET must be a boolean' }),
 
   REDIS_DB: z.coerce.number({ message: 'REDIS_DB must be a number' }).optional(),
-  REDIS_CLUSTER_NODES: z.string({ message: 'REDIS_CLUSTER_NODES must be a string' }).optional(),
-  REDIS_SENTINEL_HOST: z.string({ message: 'REDIS_SENTINEL_HOST must be a string' }).optional(),
-  REDIS_SENTINEL_PORT: z.coerce.number({ message: 'REDIS_SENTINEL_PORT must be a number' }).optional(),
-  REDIS_MASTER_NAME: z.string({ message: 'REDIS_MASTER_NAME must be a string' }).optional(),
 
   RABBITMQ_URL: z.string({ message: 'RABBITMQ_URL must be a string' }).optional(),
-  KAFKA_HOST: z.string({ message: 'KAFKA_HOST must be a string' }).default('localhost:9092'),
   KAFKA_BROKERS: z.string({ message: 'KAFKA_BROKERS must be a string' }).default('localhost:9092'),
 
   STRIPE_SECRET_KEY: z.string({ message: 'STRIPE_SECRET_KEY must be a string' }).optional(),
-  STRIPE_PUBLISHABLE_KEY: z.string({ message: 'STRIPE_PUBLISHABLE_KEY must be a string' }).optional(),
   STRIPE_WEBHOOK_SECRET: z.string({ message: 'STRIPE_WEBHOOK_SECRET must be a string' }).optional(),
 
   MFA_ENCRYPTION_KEY: z.string({ message: 'MFA_ENCRYPTION_KEY must be a string' }).min(1, { message: 'MFA_ENCRYPTION_KEY is required' }),
@@ -132,6 +123,6 @@ export const EnvironmentVariablesSchema = z.object({
   LEDGER_INTEGRITY_INTERVAL_MS: z.coerce.number({ message: 'LEDGER_INTEGRITY_INTERVAL_MS must be a number' }).int().positive().optional(),
 
   BETTING_MARGIN: z.coerce.number({ message: 'BETTING_MARGIN must be a number' }).nonnegative().optional()
-});
+}).extend(AwsVariablesSchema.shape);
 
 export type EnvironmentVariablesDto = z.infer<typeof EnvironmentVariablesSchema>;

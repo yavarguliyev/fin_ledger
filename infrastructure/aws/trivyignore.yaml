@@ -1,0 +1,5 @@
+misconfigurations:
+  - id: AWS-0132
+    paths:
+      - "modules/storage/logging.tf"
+    statement: "S3 server access logs can only be delivered to a bucket encrypted with SSE-S3 (AES256); SSE-KMS is not supported for the log target."

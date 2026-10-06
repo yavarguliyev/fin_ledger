@@ -4,12 +4,14 @@ import { ConfigService } from '@nestjs/config';
 import { DatabaseConfig, DatabaseModule, OutboxRepository } from '@common/database';
 import { KafkaModule } from '@common/kafka';
 import { PaymentProviderModule } from '@common/payment-provider';
-import { OutboxPublisherService, RabbitmqModule } from '@common/rabbitmq';
+import { MessageBroker } from '@common/messaging';
+import { OutboxPublisherService } from '@common/rabbitmq';
 import { RedisModule } from '@common/redis';
-import { UnifiedExceptionFilter, ClientIdDto } from '@common/shared-libs';
+import { UnifiedExceptionFilter, ClientIdDto, MESSAGE_BROKER } from '@common/shared-libs';
 import { SmsModule } from '@common/sms';
 
 import { DatabaseConfigHelper } from './helpers/database-config.helper';
+import { MessageBrokerHelper } from './helpers/message-broker.helper';
 
 @Module({
   providers: [{ provide: APP_FILTER, useClass: UnifiedExceptionFilter }]
@@ -25,18 +27,23 @@ export class InfrastructureModule {
       ...(clientId && { clientId })
     };
 
+    const messageBroker = {
+      provide: MESSAGE_BROKER,
+      useFactory: (configService: ConfigService): MessageBroker => MessageBrokerHelper.create({ configService, ...(clientId && { clientId }) }),
+      inject: [ConfigService]
+    };
+
     return {
       module: InfrastructureModule,
       imports: [
         DatabaseModule.forRootAsync(databaseOptions),
         RedisModule.forRoot({ ...(clientId && { clientId }) }),
-        RabbitmqModule.forRoot({ ...(clientId && { clientId }) }),
         KafkaModule.forRoot({ ...(clientId && { clientId }) }),
         PaymentProviderModule.forRoot(),
         SmsModule.forRoot({ ...(clientId && { clientId }) })
       ],
-      providers: [OutboxRepository, OutboxPublisherService],
-      exports: [DatabaseModule, RedisModule, RabbitmqModule, KafkaModule, PaymentProviderModule, SmsModule, OutboxRepository, OutboxPublisherService]
+      providers: [messageBroker, OutboxRepository, OutboxPublisherService],
+      exports: [DatabaseModule, RedisModule, MESSAGE_BROKER, KafkaModule, PaymentProviderModule, SmsModule, OutboxRepository, OutboxPublisherService]
     };
   }
 }

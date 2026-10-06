@@ -1,12 +1,10 @@
-import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, InternalServerErrorException, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ChannelModel, ConfirmChannel, ConsumeMessage } from 'amqplib';
-import { ClientIds, ServiceClientDto, BaseHelper } from '@common/shared-libs';
+import { ServiceClientDto, BaseHelper } from '@common/shared-libs';
+import { BaseMessageBroker, BrokerSubscribeDto, QueueNameDto, ReplayDeadLettersDto } from '@common/messaging';
 
 import { RabbitmqPublishDto } from '../dtos/service/rabbitmq-publish.dto';
-import { RabbitmqSubscribeDto } from '../dtos/service/rabbitmq-subscribe.dto';
-import { QueueNameDto } from '../dtos/topology/queue-name.dto';
-import { ReplayDeadLettersDto } from '../dtos/topology/replay-dead-letters.dto';
+import { ConsumedMessageDto } from '../dtos/step/consumed-message.dto';
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
 import { RABBITMQ_TOPOLOGY } from '../constants/messaging/topology.constant';
 import { ConnectionHelper } from '../helpers/connection.helper';
@@ -17,23 +15,14 @@ import { ShutdownHelper } from '../helpers/shutdown.helper';
 import { TopologyHelper } from '../helpers/topology.helper';
 
 @Injectable()
-export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
+export class RabbitmqService extends BaseMessageBroker implements OnModuleInit, OnModuleDestroy {
   private connection: ChannelModel | null = null;
   private channel: ConfirmChannel | null = null;
   private readonly consumerTags = new Map<string, string>();
-  private inFlight = 0;
-  private stopped = false;
   private reconnectAttempt = 0;
 
-  private readonly logger: Logger;
-  private readonly clientId: ClientIds;
-  private readonly subscriptions: RabbitmqSubscribeDto[] = [];
-  private readonly configService: ConfigService;
-
   constructor ({ configService, clientId }: ServiceClientDto) {
-    this.configService = configService;
-    this.clientId = clientId || ClientIds.DEFAULT;
-    this.logger = new Logger(`${RabbitmqService.name}:${this.clientId}`);
+    super({ configService, ...(clientId && { clientId }) });
   }
 
   async onModuleInit (): Promise<void> {
@@ -48,7 +37,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
 
     if (channel) {
       await ShutdownHelper.cancelConsumers({ channel, consumerTags: [...this.consumerTags.values()], logger: this.logger });
-      await ShutdownHelper.drain({ pending: () => this.inFlight, logger: this.logger });
+      await this.drain();
     }
 
     await ShutdownHelper.close({ channel: this.channel, connection: this.connection, logger: this.logger });
@@ -69,19 +58,12 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  async subscribe ({ queue, routingKey, handler, inbox }: RabbitmqSubscribeDto): Promise<void> {
-    this.subscriptions.push({ queue, routingKey, handler, ...(inbox && { inbox }) });
-    await this.consumeQueue({ queue, routingKey, handler, ...(inbox && { inbox }) });
-  }
-
   async queueDepth ({ queue }: QueueNameDto): Promise<number> {
     const { messageCount } = await this.requireChannel().checkQueue(queue);
     return messageCount;
   }
 
-  async unsubscribe ({ queue }: QueueNameDto): Promise<void> {
-    const index = this.subscriptions.findIndex(subscription => subscription.queue === queue);
-    if (index >= 0) this.subscriptions.splice(index, 1);
+  protected async cancel ({ queue }: QueueNameDto): Promise<void> {
     const consumerTag = this.consumerTags.get(queue);
     this.consumerTags.delete(queue);
     if (consumerTag && this.channel) await ShutdownHelper.cancelConsumers({ channel: this.channel, consumerTags: [consumerTag], logger: this.logger });
@@ -119,7 +101,7 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
       await this.connect();
       this.consumerTags.clear();
 
-      for (const subscription of this.subscriptions) await this.consumeQueue(subscription);
+      for (const subscription of this.subscriptions) await this.consume(subscription);
 
       this.logger.log(`RabbitMQ reconnected and ${this.subscriptions.length} subscription(s) restored`);
     } catch (error) {
@@ -128,16 +110,16 @@ export class RabbitmqService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async consumeQueue ({ queue, routingKey, handler, inbox }: RabbitmqSubscribeDto): Promise<void> {
+  protected async consume ({ queue, routingKey, handler, inbox }: BrokerSubscribeDto): Promise<void> {
     const channel = this.requireChannel();
 
     await TopologyHelper.assertConsumerTopology({ channel, queue, routingKey });
 
     const { consumerTag } = await channel.consume(queue, (message: ConsumeMessage | null) => {
-      this.inFlight += 1;
-      void ConsumeHelper.handle({ channel, queue, message, handler, logger: this.logger, ...(inbox && { inbox }) }).finally(() => {
-        this.inFlight -= 1;
-      });
+      const deliver = ({ payload, eventId }: ConsumedMessageDto): Promise<void> =>
+        this.deliver({ queue, payload, handler, ...(eventId && { eventId }), ...(inbox && { inbox }) });
+
+      void this.track(ConsumeHelper.handle({ channel, queue, message, deliver, logger: this.logger }));
     });
 
     this.consumerTags.set(queue, consumerTag);

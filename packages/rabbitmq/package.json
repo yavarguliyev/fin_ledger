@@ -20,6 +20,7 @@
     "@common/contracts": "1.0.0",
     "@common/database": "1.0.0",
     "@common/kafka": "1.0.0",
+    "@common/messaging": "1.0.0",
     "@common/shared-libs": "1.0.0",
     "@nestjs/common": "^12.1.2",
     "@nestjs/config": "^12.0.1",

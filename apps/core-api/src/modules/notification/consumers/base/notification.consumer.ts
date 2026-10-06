@@ -4,10 +4,10 @@ import {
   BackgroundWorker,
   DomainEventType,
   InboxRepository,
+  MESSAGE_BROKER,
+  MessageBroker,
   NotificationType,
   ProcessRole,
-  RabbitmqService,
-  RABBITMQ_SERVICE,
   UnknownRecord
 } from '@common/libs';
 
@@ -18,8 +18,8 @@ import { NOTIFICATION_QUEUE } from '../../constants/messaging/notification-queue
 
 @BackgroundWorker({ role: ProcessRole.WORKER })
 export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> implements BackgroundTask {
-  @Inject(RABBITMQ_SERVICE)
-  protected readonly rabbitmqService!: RabbitmqService;
+  @Inject(MESSAGE_BROKER)
+  protected readonly broker!: MessageBroker;
 
   @Inject(InboxRepository)
   protected readonly inboxRepository!: InboxRepository;
@@ -45,7 +45,7 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
   }
 
   async stop (): Promise<void> {
-    await this.rabbitmqService.unsubscribe({ queue: this.queue() });
+    await this.broker.unsubscribe({ queue: this.queue() });
   }
 
   private queue (): string {
@@ -53,7 +53,7 @@ export abstract class NotificationBaseConsumer<TPayload extends UnknownRecord> i
   }
 
   protected async subscribe (): Promise<void> {
-    await this.rabbitmqService.subscribe({
+    await this.broker.subscribe({
       queue: this.queue(),
       inbox: this.inboxRepository,
       routingKey: this.eventType,

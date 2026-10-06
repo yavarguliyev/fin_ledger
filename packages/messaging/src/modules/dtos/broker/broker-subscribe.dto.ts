@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { HandleRecord } from '@common/shared-libs';
 import type { InboxRepository } from '@common/database';
 
-export const RabbitmqSubscribeSchema = z.object({
+export const BrokerSubscribeSchema = z.object({
   queue: z.string({ message: 'Queue must be a string' }),
 
   routingKey: z.string({ message: 'Routing key must be a string' }),
@@ -12,4 +12,4 @@ export const RabbitmqSubscribeSchema = z.object({
   inbox: z.custom<InboxRepository>().optional()
 });
 
-export type RabbitmqSubscribeDto = z.infer<typeof RabbitmqSubscribeSchema>;
+export type BrokerSubscribeDto = z.infer<typeof BrokerSubscribeSchema>;

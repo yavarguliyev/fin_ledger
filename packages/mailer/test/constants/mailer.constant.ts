@@ -9,6 +9,9 @@ export const MAILER_TEST = {
   RESET_URL: 'https://wallet.test/reset?token=',
   SMTP_HOST: 'smtp.wallet.test',
   SMTP_ERROR: 'smtp refused',
+  SES_ENDPOINT: 'http://localhost:4566',
+  SES_REGION: 'eu-west-1',
+  SES_KEY: 'test',
   DEVELOPMENT: 'development',
   PRODUCTION: 'production'
 } as const;

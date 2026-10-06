@@ -14,5 +14,6 @@ export enum EmailTemplateType {
 
 export enum MailTransportKind {
   CONSOLE = 'console',
-  SMTP = 'smtp'
+  SMTP = 'smtp',
+  SES = 'ses'
 }

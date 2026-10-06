@@ -79,6 +79,7 @@ export * from './modules/constants/app/modules-keys.constant';
 export * from './modules/constants/database/operators.constant';
 export * from './modules/constants/database/order-directions.constant';
 export * from './modules/constants/messaging/rabbitmq-keys.constant';
+export * from './modules/constants/app/env-files.constant';
 export * from './modules/constants/app/shutdown-defaults.constant';
 export * from './modules/constants/auth/staff-roles.constant';
 export * from './modules/constants/storage/storage-strategies.constant';

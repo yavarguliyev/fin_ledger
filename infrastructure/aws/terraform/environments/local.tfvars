@@ -1,0 +1,10 @@
+project                     = "ddd"
+environment                 = "local"
+region                      = "us-east-1"
+storage_bucket_name         = "realtime-wallet-payments"
+storage_object_prefixes     = ["user-", "support/"]
+email_sender                = "noreply@realtime-wallet-payments.com"
+enforce_tls                 = false
+key_deletion_window_days    = 7
+secret_recovery_window_days = 7
+messaging_routing_keys      = ["bet.settled", "payment.completed", "payment.failed", "user.registered", "wallet.credited", "wallet.debited"]

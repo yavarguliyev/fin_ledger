@@ -12,9 +12,13 @@ coverage/
 *.log
 .env
 .env.local
+.env.aws
 .DS_Store
 keys/
 CLAUDE.md
 PROJECT-BACKLOG.md
 .mcp.json
 .playwright-mcp/
+infrastructure/aws/terraform/.terraform/
+infrastructure/aws/terraform/.state/
+infrastructure/aws/terraform/*.tfstate*

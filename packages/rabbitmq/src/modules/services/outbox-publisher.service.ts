@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OutboxRepository, PostgresService } from '@common/database';
 import { KafkaService } from '@common/kafka';
+import { MessageBroker } from '@common/messaging';
 import {
   BackgroundTask,
   BackgroundWorker,
@@ -9,12 +10,11 @@ import {
   CryptoHelper,
   OutboxDestination,
   OutboxStatus,
+  MESSAGE_BROKER,
   ProcessRole,
-  RABBITMQ_SERVICE,
   RequestScope
 } from '@common/shared-libs';
 
-import { RabbitmqService } from './rabbitmq.service';
 import { PublishOutboxEventDto } from '../dtos/outbox/publish-outbox-event.dto';
 import { EnvelopeHelper } from '../helpers/envelope.helper';
 import { RABBITMQ_CONSTANTS } from '../constants/messaging/rabbitmq.constant';
@@ -36,7 +36,7 @@ export class OutboxPublisherService implements BackgroundTask {
 
   constructor (
     private readonly outboxRepository: OutboxRepository,
-    @Inject(RABBITMQ_SERVICE) private readonly rabbitmqService: RabbitmqService,
+    @Inject(MESSAGE_BROKER) private readonly broker: MessageBroker,
     private readonly kafkaService: KafkaService,
     @Optional() configService?: ConfigService,
     @Optional() private readonly postgres?: PostgresService
@@ -91,7 +91,7 @@ export class OutboxPublisherService implements BackgroundTask {
     try {
       const headers = EnvelopeHelper.headers({ eventId, eventType, occurredAt, ...(correlationId && { correlationId }) });
       if (destination === OutboxDestination.KAFKA) await this.kafkaService.send({ topic: eventType, payload, headers });
-      else await this.rabbitmqService.publish({ payload, routingKey: eventType, persistent: true, headers });
+      else await this.broker.publish({ payload, routingKey: eventType, headers });
 
       await this.outboxRepository.markPublished({ id: eventId });
     } catch (error) {

@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { PostgresService, QueueHelper, RABBITMQ_SERVICE, RabbitmqService } from '@common/libs';
+import { MESSAGE_BROKER, MessageBroker, PostgresService, QueueHelper } from '@common/libs';
 
 import { MetricsRegistryHelper } from '../../helpers/metrics-registry.helper';
 import { METRICS } from '../../constants/metrics.constant';
@@ -12,7 +12,7 @@ export class ScrapeMetricsUseCase {
   constructor (
     private readonly metrics: MetricsRegistryHelper,
     @Inject(PostgresService) private readonly postgresService: PostgresService,
-    @Inject(RABBITMQ_SERVICE) private readonly rabbitmq: RabbitmqService,
+    @Inject(MESSAGE_BROKER) private readonly broker: MessageBroker,
     private readonly ledgerIntegrity: LedgerIntegrityJob
   ) {}
 
@@ -55,7 +55,7 @@ export class ScrapeMetricsUseCase {
     const queue = QueueHelper.deadLetterQueue({ queue: `${NOTIFICATION_QUEUE.PREFIX}.${METRICS.DLQ_PROBE_EVENT}` });
 
     try {
-      this.metrics.dlqDepth.labels(queue).set(await this.rabbitmq.queueDepth({ queue }));
+      this.metrics.dlqDepth.labels(queue).set(await this.broker.queueDepth({ queue }));
     } catch {
       this.metrics.dlqDepth.labels(queue).set(0);
     }

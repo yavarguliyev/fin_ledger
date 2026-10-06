@@ -10,7 +10,7 @@ route:
 
 receivers:
   # Firing and resolved alerts become admin notifications in the app and an e-mail to every admin
-  # (console transport until SMTP is configured). ALERT_WEBHOOK_TOKEN must match apps/core-api/.env.
+  # (console transport until SMTP is configured). ALERT_WEBHOOK_TOKEN must match apps/core-api/.env.local.
   # Telegram goes straight from Alertmanager, so "API down" still arrives when the API is the thing that is down.
   # start.sh fills in TELEGRAM_CHAT_ID, or drops the telegram block when TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are unset.
   - name: core-api

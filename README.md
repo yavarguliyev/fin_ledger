@@ -1,6 +1,6 @@
 # Real-Time Financial Ledger & Payments Core (Monorepo)
 
-##### A robust, scalable, and enterprise-grade financial ledger, multi-currency wallet, and real-time payments platform built with Domain-Driven Design (DDD) and NestJS architecture. Featuring immutable double-entry bookkeeping, transactional fund reservation, PostgreSQL row-level security, passkey and TOTP authentication, a transactional outbox over RabbitMQ and Kafka, a Postgres-backed job queue, flexible object storage (MinIO / AWS S3), real-time SSE notifications, interactive Swagger documentation, and comprehensive observability.
+##### A robust, scalable, and enterprise-grade financial ledger, multi-currency wallet, and real-time payments platform built with Domain-Driven Design (DDD) and NestJS architecture. Featuring immutable double-entry bookkeeping, transactional fund reservation, PostgreSQL row-level security, passkey and TOTP authentication, a transactional outbox over RabbitMQ (or AWS SNS/SQS) and Kafka, a Postgres-backed job queue, flexible object storage (MinIO / AWS S3), local AWS on LocalStack with Terraform, real-time SSE notifications, interactive Swagger documentation, and comprehensive observability.
 
 ---
 
@@ -26,11 +26,12 @@
 18. [Usage](#-usage)
 19. [Health Monitoring & Observability](#-health-monitoring--observability)
 20. [Flexible Storage: Local MinIO to AWS S3](#-flexible-storage-local-minio-to-aws-s3)
-21. [Testing & Validation](#-testing--validation)
-22. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
-23. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
-24. [Contributing](#-contributing)
-25. [License](#-license)
+21. [Local AWS (LocalStack) & Hybrid Services](#-local-aws-localstack--hybrid-services)
+22. [Testing & Validation](#-testing--validation)
+23. [Enterprise Orchestration (Kubernetes & Docker)](#-enterprise-orchestration-kubernetes--docker)
+24. [Observability (Prometheus & Grafana)](#-observability-prometheus--grafana)
+25. [Contributing](#-contributing)
+26. [License](#-license)
 
 ---
 
@@ -138,7 +139,7 @@ flowchart LR
 | **PostgreSQL** | Double-entry ledger, all state, `outbox_events` and the `jobs` queue. Row-level security decides which rows each login can see. |
 | **Redis** | Sessions, presence, rate-limit counters and short-lived challenges. |
 | **MinIO / S3** | Profile images, chat attachments, voice and video messages, behind signed links. |
-| **RabbitMQ / Kafka** | Fed only by the outbox relay: notifications on RabbitMQ; email, audit and analytics on Kafka. |
+| **RabbitMQ / Kafka** | Fed only by the outbox relay: notifications on RabbitMQ (or SNS/SQS with `QUEUE_TRANSPORT=sqs`); email, audit and analytics on Kafka. |
 | **Payment providers** | A provider-agnostic layer (`@common/payment-provider`); Stripe is the first adapter. |
 | **Prometheus / Grafana** | Metrics and dashboards. ClickHouse also runs in the dev stack but is not fed yet (`NEW-P2-8`). |
 
@@ -285,11 +286,11 @@ Migrations and database logins are the most security-sensitive commands in the p
 | Command | Reads | Connects as |
 | :--- | :--- | :--- |
 | `npm run migrate:up` / `migrate:down` | root `.env` → `DATABASE_URL`, `DEMO_USER_PASSWORD` | the **owner** (`postgres` locally) |
-| `npm run db:provision-roles` | `apps/core-api/.env` → `DATABASE_URL`, `DB_USERNAME`/`APP_API_DB_*`, `APP_WORKER_DB_*` | the **owner**, to create the two app logins |
-| `npm run dev` (the app) | `apps/core-api/.env` → `DB_USERNAME`/`DB_PASSWORD`, `DB_WORKER_USERNAME`/`DB_WORKER_PASSWORD` | `app_api` for requests, `app_worker` for background work |
+| `npm run db:provision-roles` | `apps/core-api/.env.local` (+ `.env.aws`) → `DATABASE_URL`, `DB_USERNAME`/`APP_API_DB_*`, `APP_WORKER_DB_*` | the **owner**, to create the two app logins |
+| `npm run dev` (the app) | `apps/core-api/.env.local` (+ `.env.aws`) → `DB_USERNAME`/`DB_PASSWORD`, `DB_WORKER_USERNAME`/`DB_WORKER_PASSWORD` | `app_api` for requests, `app_worker` for background work |
 
 > [!IMPORTANT]
-> `DB_USERNAME` in `apps/core-api/.env` must be the **API login** (`app_api`), never the owner. `db:provision-roles`
+> `DB_USERNAME` in `apps/core-api/.env.local` must be the **API login** (`app_api`), never the owner. `db:provision-roles`
 > refuses to run if it is the owner. `APP_WORKER_DB_*` (used to create the worker login) and `DB_WORKER_*` (used by
 > the app to connect) must hold the same username and password.
 
@@ -322,7 +323,7 @@ Rules every migration follows:
 - **Test up and down on a throwaway database** before applying it anywhere shared:
 
 ```bash
-PW=$(grep '^DB_PASSWORD=' apps/core-api/.env | cut -d= -f2-)
+PW=$(grep '^DB_PASSWORD=' apps/core-api/.env.local | cut -d= -f2-)
 docker exec ddd_postgres_db psql -U postgres -c "CREATE DATABASE scratch_test;"
 DATABASE_URL="postgres://postgres:${PW}@127.0.0.1:54320/scratch_test" DEMO_USER_PASSWORD='ScratchPass123!' \
   npx node-pg-migrate up --migrations-dir apps/core-api/migrations
@@ -437,7 +438,8 @@ RLS, row-level security is not protecting anything.
 - **Frontend**: Angular 21 (Standalone Components), RxJS, Tailwind CSS
 - **Primary Database**: PostgreSQL 16 (via `node-pg-migrate` & native client pool)
 - **In-Memory Cache**: Redis 7
-- **Message Broker**: RabbitMQ 3 (AMQP)
+- **Message Broker**: RabbitMQ 3 (AMQP) or AWS SNS/SQS, chosen by `QUEUE_TRANSPORT`
+- **Local AWS**: LocalStack with Terraform (S3, SES, SNS/SQS, Secrets Manager, KMS, IAM)
 - **Event Streaming**: Apache Kafka (`kafkajs`)
 - **OLAP Analytics**: ClickHouse
 - **Object Storage**: MinIO (Local) / AWS S3 (Production) via `@aws-sdk/client-s3`
@@ -481,8 +483,12 @@ Configure the environment files for migrations and the core API:
 # 1. Root .env (Required for node-pg-migrate SQL migrations)
 cp .env.example .env
 
-# 2. Core API .env (Required for NestJS API runtime & JWT keys)
-cp .env.example apps/core-api/.env
+# 2. Core API (Required for NestJS API runtime & JWT keys): the local stack
+cp apps/core-api/.env.local.example apps/core-api/.env.local
+
+# 3. Optional: AWS services on LocalStack (S3, SES, SQS, Secrets Manager) on top of the local file
+#    (npm run aws:up first; delete .env.aws to switch back)
+cp apps/core-api/.env.aws.example apps/core-api/.env.aws
 ```
 
 *(See [Environment Configuration & .env Locations](#-environment-configuration--env-locations) for the complete reference and Docker `.env`).*
@@ -533,9 +539,9 @@ This runs `scripts/generate-rsa-keys.sh`, which performs:
 2. Extracts the RSA public key: `keys/jwt-public.pem`.
 3. Outputs formatted, single-line strings with escaped `\n` ready for your `.env` file.
 
-### Adding RSA Keys to `.env`
+### Adding RSA Keys to `apps/core-api/.env.local`
 
-Add the generated keys to your root `.env` file:
+Add the generated keys to the core API's `apps/core-api/.env.local` (not the root `.env`, which is only for migrations):
 
 ```env
 JWT_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----"
@@ -555,60 +561,59 @@ JWT_AUDIENCE=distributed-system-users
 
 # ⚙️ Environment Configuration & .env Locations
 
-The monorepo uses **three distinct `.env` files**, each serving a dedicated purpose in the system lifecycle:
+The monorepo uses **four `.env` files**. Each has a committed `*.example` template; the real files are git-ignored.
 
 ```
 /
-├── .env                              # 1. Database Migrations (node-pg-migrate)
+├── .env                              # 1. Migrations + LocalStack token
 ├── apps/
 │   └── core-api/
-│       └── .env                      # 2. NestJS Core API Runtime Configuration
+│       ├── .env.local                # 2. NestJS Core API runtime (local stack)
+│       └── .env.aws                  # 3. Optional: AWS services on top of .env.local
 └── infrastructure/
     └── dev/
-        └── .env                      # 3. Docker Compose Infrastructure Services
+        └── .env                      # 4. Docker Compose infrastructure services
 ```
 
 ---
 
-### Summary of the 3 `.env` Locations
+### Summary of the `.env` Locations
 
-| Location | Exact File Path | Purpose | Loaded By |
+| Location | Template | Purpose | Loaded By |
 | :--- | :--- | :--- | :--- |
-| **1. Migrations** | `/.env` (Root) | Database credentials for executing SQL migrations | `node-pg-migrate` via `apps/core-api/database.json` (`npm run migrate:up`) |
-| **2. Core API** | `/apps/core-api/.env` | Backend runtime settings, RSA JWT keys, Redis, RabbitMQ, Kafka, S3/MinIO | NestJS `@nestjs/config` & `@common/env` when starting the API (`npm run dev:api`) |
-| **3. Docker / Infra** | `/infrastructure/dev/.env` | Service credentials, root passwords, and port bindings for Docker containers | Docker Compose (`infrastructure/dev/start.sh` / `docker-compose.yml`) |
+| **1. Root** | `/.env.example` | `DATABASE_URL` and `DEMO_USER_PASSWORD` for migrations; `LOCALSTACK_AUTH_TOKEN` for `npm run aws:*` | `node-pg-migrate` (`npm run migrate:up`), `infrastructure/aws/scripts` |
+| **2. Core API (local)** | `/apps/core-api/.env.local.example` | Runtime settings, RSA JWT keys, Postgres, Redis, RabbitMQ, Kafka, MinIO, payment providers | `@common/env` (`@nestjs/config`) when the API or worker starts, plus `db:provision-roles`, `mq:dlq`, `infra:verify` |
+| **3. Core API (AWS)** | `/apps/core-api/.env.aws.example` | Switches storage, e-mail, notifications and secrets to AWS (LocalStack locally). Its values win over `.env.local`; delete the file to switch back | Same loaders, after `.env.local` |
+| **4. Docker / Infra** | created by `infrastructure/dev/start.sh` | Service credentials, root passwords and port bindings for the containers (also the Alertmanager Telegram token) | Docker Compose (`infrastructure/dev/start.sh` / `docker-compose.yml`) |
+
+Precedence inside the core API: **real environment variables > `.env.aws` > `.env.local`**. With
+`SECRETS_SOURCE=aws`, the secrets read from Secrets Manager sit between real environment variables and the files.
 
 ---
 
-### 1. Database Migrations `.env` (`/.env`)
+### 1. Root `.env` (`/.env`)
 
-**Path**: `/Users/yavarguliyev/Desktop/practice/projects/ddd/.env`
-
-When you run `npm run migrate:up` or `npm run migrate:down`, `node-pg-migrate` reads from `apps/core-api/database.json`, which resolves environment variables from this root file:
+```bash
+cp .env.example .env
+```
 
 ```env
-# Database Connection for SQL Migrations
-DB_HOST=127.0.0.1
-DB_PORT=54320
-DB_USERNAME=postgres
-DB_PASSWORD=password
-DB_DATABASE=distributed_db
-DB_NAME=distributed_db
-DB_SSL=false
+# Migrations (npm run migrate:up / migrate:down) connect as the database owner.
 DATABASE_URL=postgresql://postgres:password@127.0.0.1:54320/distributed_db
-DB_CONNECTION_LIMIT=10
-DB_MIN_LIMIT=2
-DB_CONNECTION_TIMEOUT=5000
-DB_ACQUIRE_TIMEOUT=5000
-DB_PRIMARY_POOL_MAX=20
-DB_REPLICA_POOL_MAX=10
+# Password of the demo users seeded by migration 014; only for databases named *distributed_db*, *test* or *local*.
+DEMO_USER_PASSWORD=
+
+# LocalStack (local AWS) — personal auth token from https://app.localstack.cloud
+LOCALSTACK_AUTH_TOKEN=
 ```
 
 ---
 
-### 2. NestJS Core API `.env` (`/apps/core-api/.env`)
+### 2. NestJS Core API `.env.local` (`/apps/core-api/.env.local`)
 
-**Path**: `/Users/yavarguliyev/Desktop/practice/projects/ddd/apps/core-api/.env`
+**Path**: `/Users/yavarguliyev/Desktop/practice/projects/ddd/apps/core-api/.env.local` (template: `.env.local.example`).
+An optional `.env.aws` (template: `.env.aws.example`) is loaded on top and its values win; it switches storage, e-mail,
+notifications and secrets to AWS services.
 
 Used during runtime by the NestJS API application for business logic, caching, authentication, messaging, and storage:
 
@@ -680,8 +685,53 @@ PAYMENT_SIMULATION=true
 # Stripe adapter
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-STRIPE_PUBLISHABLE_KEY=
 ```
+
+> [!NOTE]
+> The Stripe **publishable** key belongs to the client, not the API: `apps/client/scripts/write-runtime-config.js`
+> reads `API_URL` and `STRIPE_PUBLISHABLE_KEY` from the deployment environment when it writes `config.json`.
+
+### 3. Core API `.env.aws` (`/apps/core-api/.env.aws`) — optional
+
+```bash
+npm run aws:up                                              # LocalStack + Terraform, see below
+cp apps/core-api/.env.aws.example apps/core-api/.env.aws    # delete it to switch back
+```
+
+```env
+# File storage: S3 instead of MinIO. Terraform owns the bucket and its encryption.
+STORAGE_ENDPOINT=http://localhost:4566
+STORAGE_PUBLIC_ENDPOINT=http://localhost:4566
+STORAGE_ACCESS_KEY=test
+STORAGE_SECRET_KEY=test
+STORAGE_ENSURE_BUCKET=false
+
+# E-mail: SES
+MAIL_TRANSPORT=ses
+SES_REGION=us-east-1
+SES_ENDPOINT=http://localhost:4566
+SES_ACCESS_KEY_ID=test
+SES_SECRET_ACCESS_KEY=test
+
+# Notifications: SNS topic and SQS queues instead of RabbitMQ
+QUEUE_TRANSPORT=sqs
+SQS_REGION=us-east-1
+SQS_ENDPOINT=http://localhost:4566
+SQS_ACCESS_KEY_ID=test
+SQS_SECRET_ACCESS_KEY=test
+SQS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:ddd-local-wallet-events
+SQS_QUEUE_PREFIX=ddd-local
+
+# Secrets: read from Secrets Manager at startup, before validation
+SECRETS_SOURCE=aws
+SECRETS_ID=ddd-local/core-api
+SECRETS_REGION=us-east-1
+SECRETS_ENDPOINT=http://localhost:4566
+SECRETS_ACCESS_KEY_ID=test
+SECRETS_SECRET_ACCESS_KEY=test
+```
+
+On real AWS, drop every `*_ENDPOINT`, access key and secret key line and run the API and worker with their IAM roles.
 
 > [!WARNING]
 > `PAYMENT_SIMULATION=true` is refused in production. If a provider's credentials **are** present they are used, so a
@@ -694,7 +744,7 @@ STRIPE_PUBLISHABLE_KEY=
 
 ---
 
-### 3. Docker Infrastructure `.env` (`/infrastructure/dev/.env`)
+### 4. Docker Infrastructure `.env` (`/infrastructure/dev/.env`)
 
 **Path**: `/Users/yavarguliyev/Desktop/practice/projects/ddd/infrastructure/dev/.env`
 
@@ -748,8 +798,9 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   │   │   ├── app.module.ts      # Root NestJS application module
 │   │   │   └── main.ts            # Application bootstrap & Swagger initialization
 │   │   ├── test/                  # Unit specs and the Testcontainers integration suite
-│   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 026)
-│   │   └── database.json          # Migration database connection configuration
+│   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 049)
+│   │   ├── .env.local.example     # Core API env template (local stack)
+│   │   └── .env.aws.example       # Optional AWS overlay template
 │   └── client/                    # Angular 21 Standalone Frontend Application
 │       ├── src/
 │       │   ├── app/
@@ -763,14 +814,17 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   ├── database/                  # PostgreSQL pool, transactions, RLS-aware connection routing
 │   ├── env/                       # Zod-validated environment schema
 │   ├── kafka/                     # Kafka producer and consumer adapters
-│   ├── mailer/                    # Transactional email adapter (NodeMailer / SMTP)
+│   ├── mailer/                    # Transactional email: console, SMTP (NodeMailer) or AWS SES
+│   ├── messaging/                 # MessageBroker contract and base broker (inbox dedupe, drain)
 │   ├── mfa/                       # TOTP enrolment, verification and recovery codes
 │   ├── payment-provider/          # Pluggable PSP adapters, routing, circuit breaker, bulkhead
-│   ├── rabbitmq/                  # RabbitMQ publisher, consumer, retry and DLQ topology
+│   ├── rabbitmq/                  # RabbitMQ broker, outbox relay, retry and DLQ topology
 │   ├── redis/                     # Redis caching and key-value client
+│   ├── secrets/                   # Loads runtime secrets from AWS Secrets Manager before startup
 │   ├── session/                   # RSA JWT authentication, SessionGuard, RolesGuard, RequestScope
 │   ├── shared-libs/               # Shared DTOs, decorators, error filters, lifecycle and types
 │   ├── sms/                       # Transactional SMS provider adapter
+│   ├── sqs/                       # SNS/SQS broker: publish, long polling, retries, DLQ replay
 │   ├── storage/                   # Flexible S3/MinIO object storage provider
 │   └── tasks/                     # Postgres-backed job queue, scheduler and CPU task runner
 ├── infrastructure/
@@ -780,6 +834,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   │   ├── stop.sh                # Graceful service shutdown
 │   │   ├── restart.sh             # Infrastructure restart
 │   │   └── remove.sh              # Full cleanup of containers and volumes
+│   ├── aws/                       # LocalStack + Terraform: S3, SES, SNS/SQS, Secrets Manager, KMS, IAM
 │   └── infra/                     # Cloud / Kubernetes deployment manifests
 ├── keys/                          # Generated RSA Public/Private key pairs (.gitignore)
 ├── scripts/                       # Developer lifecycle scripts (dev, clean, keygen)
@@ -898,6 +953,12 @@ npm run build:client
 Both brokers are fed by the **same outbox relay**, chosen per event by the `destination` column: **RabbitMQ** carries
 user-facing notifications, **Apache Kafka** carries email, audit and analytics streams.
 
+The notification broker is **hybrid**: `QUEUE_TRANSPORT=rabbitmq` (default) or `QUEUE_TRANSPORT=sqs` (an SNS topic
+fanning out to one SQS queue per event type). Both implement the same `MessageBroker` contract, so the relay, the
+consumers, the health check and the metrics do not know which one runs. Retries (5 s, 30 s, 5 min), the dead-letter
+queue after the fourth failure, dead-letter replay and the inbox that stops a redelivered event from being handled twice
+behave the same on both.
+
 ### Event Lifecycle:
 
 1. **State Mutation**: A financial action occurs (e.g. bet placement, deposit).
@@ -998,6 +1059,11 @@ STORAGE_FORCE_PATH_STYLE=true
 - **MinIO API**: `http://localhost:9000`
 - **MinIO Web Console**: `http://localhost:9001` (User: `minio_admin` / Pass: `minio_password`)
 
+### LocalStack S3
+
+`apps/core-api/.env.aws` points storage at the KMS-encrypted bucket that `npm run aws:up` creates; see
+[Local AWS (LocalStack) & Hybrid Services](#-local-aws-localstack--hybrid-services).
+
 ### Production (AWS S3 / Cloudflare R2)
 
 To migrate to AWS S3, omit `STORAGE_ENDPOINT` (or point to Cloudflare R2) and set `STORAGE_FORCE_PATH_STYLE=false`:
@@ -1010,6 +1076,38 @@ STORAGE_BUCKET_NAME=production-fin-ledger-bucket
 STORAGE_REGION=eu-central-1
 STORAGE_FORCE_PATH_STYLE=false
 ```
+
+---
+
+# ☁️ Local AWS (LocalStack) & Hybrid Services
+
+`infrastructure/aws` runs a local copy of the AWS services the app can use, created by Terraform in
+[LocalStack](https://www.localstack.cloud). Only Docker is needed; the details, security model and production checklist
+are in [`infrastructure/aws/README.md`](infrastructure/aws/README.md).
+
+```bash
+# once: personal auth token from https://app.localstack.cloud in the root .env
+LOCALSTACK_AUTH_TOKEN=ls-...
+
+npm run aws:up        # scan the Terraform, start LocalStack, create every resource, load the secrets
+npm run aws:plan      # show what would change
+npm run aws:secrets   # copy the secret values from apps/core-api/.env.local into Secrets Manager again
+npm run aws:scan      # security scan of the Terraform (Trivy)
+npm run aws:down      # stop LocalStack (the free plan keeps nothing; aws:up recreates it)
+```
+
+Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` switches all of them at once:
+
+| Concern | Without `.env.aws` | With `.env.aws` | Setting |
+| :--- | :--- | :--- | :--- |
+| File storage | MinIO | S3 (KMS-encrypted bucket) | `STORAGE_*` |
+| E-mail | console or SMTP | SES | `MAIL_TRANSPORT` |
+| Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
+| Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
+
+Each setting can also be switched on its own, for example only `QUEUE_TRANSPORT=sqs`. Locally, `.env.local` stays the
+source of the secret values: `aws:up` copies the keys listed in `infrastructure/aws/secrets/core-api.keys` into
+LocalStack, which forgets them on restart.
 
 ---
 

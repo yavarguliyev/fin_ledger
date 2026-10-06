@@ -14,6 +14,9 @@
       "path": "../database"
     },
     {
+      "path": "../messaging"
+    },
+    {
       "path": "../contracts"
     }
   ],

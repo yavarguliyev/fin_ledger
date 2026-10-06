@@ -25,7 +25,13 @@
       "@common/payment-provider/*": ["packages/payment-provider/src/*"],
       "@common/mfa": ["packages/mfa/src/index.ts"],
       "@common/mfa/*": ["packages/mfa/src/*"],
+      "@common/secrets": ["packages/secrets/src/index.ts"],
+      "@common/secrets/*": ["packages/secrets/src/*"],
+      "@common/messaging": ["packages/messaging/src/index.ts"],
+      "@common/messaging/*": ["packages/messaging/src/*"],
       "@common/sms": ["packages/sms/src/index.ts"],
+      "@common/sqs": ["packages/sqs/src/index.ts"],
+      "@common/sqs/*": ["packages/sqs/src/*"],
       "@common/sms/*": ["packages/sms/src/*"],
       "@common/common": ["packages/common/src/index.ts"],
       "@common/common/*": ["packages/common/src/*"]

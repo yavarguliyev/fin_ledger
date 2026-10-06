@@ -1,5 +1,5 @@
 import { RABBITMQ_TOPOLOGY } from '../constants/messaging/topology.constant';
-import { QueueNameDto } from '../dtos/topology/queue-name.dto';
+import { QueueNameDto } from '@common/messaging';
 import { RetryQueueDto } from '../dtos/topology/retry-queue.dto';
 import { AttemptDto } from '../dtos/topology/attempt.dto';
 

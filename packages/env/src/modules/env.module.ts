@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { UnknownRecord } from '@common/shared-libs';
+import { ENV_FILES, UnknownRecord } from '@common/shared-libs';
 
 import { ConfigValidator } from './helpers/env.helper';
 import { EnvironmentVariablesDto } from './dtos/config/environment-variables.dto';
@@ -9,6 +9,7 @@ import { EnvironmentVariablesDto } from './dtos/config/environment-variables.dto
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: [...ENV_FILES.PRECEDENCE],
       validate: (config: UnknownRecord): EnvironmentVariablesDto => ConfigValidator.validate({ config })
     })
   ],

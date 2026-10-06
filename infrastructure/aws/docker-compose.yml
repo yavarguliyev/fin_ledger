@@ -1,0 +1,43 @@
+name: ddd-aws
+
+services:
+  localstack:
+    image: localstack/localstack:2026.09.0
+    container_name: ddd_localstack
+    ports:
+      - "127.0.0.1:4566:4566"
+    environment:
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN in the repository root .env}
+      SERVICES: s3,kms,secretsmanager,ssm,ses,sns,sqs,apigateway,iam,sts
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks:
+      - aws
+
+  terraform:
+    image: hashicorp/terraform:1.16.5
+    profiles: ["tools"]
+    working_dir: /workspace
+    volumes:
+      - ./terraform:/workspace
+    environment:
+      TF_IN_AUTOMATION: "1"
+      TF_VAR_localstack_endpoint: http://localstack:4566
+    depends_on:
+      localstack:
+        condition: service_healthy
+    networks:
+      - aws
+
+networks:
+  aws:
+    name: ddd_aws
+
+volumes:
+  localstack_data:

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { HealthIndicatorService, HealthIndicatorResult } from '@nestjs/terminus';
-import { BaseHelper, RABBITMQ_SERVICE, RabbitmqService } from '@common/libs';
+import { BaseHelper, MESSAGE_BROKER, MessageBroker } from '@common/libs';
 
 import { HEALTH } from '../constants/health.constant';
 import { NOTIFICATION_QUEUE } from '../../notification';
@@ -8,7 +8,7 @@ import { NOTIFICATION_QUEUE } from '../../notification';
 @Injectable()
 export class BrokerHealthIndicator {
   constructor (
-    @Inject(RABBITMQ_SERVICE) private readonly rabbitmq: RabbitmqService,
+    @Inject(MESSAGE_BROKER) private readonly broker: MessageBroker,
     private readonly indicator: HealthIndicatorService
   ) {}
 
@@ -16,7 +16,7 @@ export class BrokerHealthIndicator {
     const check = this.indicator.check(HEALTH.BROKER_KEY);
 
     try {
-      const depth = await this.rabbitmq.queueDepth({ queue: `${NOTIFICATION_QUEUE.PREFIX}.${HEALTH.BROKER_PROBE_EVENT}` });
+      const depth = await this.broker.queueDepth({ queue: `${NOTIFICATION_QUEUE.PREFIX}.${HEALTH.BROKER_PROBE_EVENT}` });
       return check.up({ notificationsPending: depth });
     } catch (error) {
       return check.down({ message: BaseHelper.errorResponse({ error }).message });

@@ -1,0 +1,23 @@
+export const SQS_BROKER_TEST = {
+  TOPIC_ARN: 'arn:aws:sns:us-east-1:000000000000:ddd-test-wallet-events',
+  PREFIX: 'ddd-test',
+  ENDPOINT: 'http://localhost:4566',
+  KEY: 'test',
+  QUEUE: 'notifications.wallet.credited',
+  DLQ: 'notifications.wallet.credited.dlq',
+  PHYSICAL_QUEUE: 'ddd-test-notifications-wallet-credited',
+  PHYSICAL_DLQ: 'ddd-test-notifications-wallet-credited-dlq',
+  QUEUE_URL: 'http://localhost:4566/000000000000/ddd-test-notifications-wallet-credited',
+  ROUTING_KEY: 'wallet.credited',
+  EVENT_ID_HEADER: 'x-event-id',
+  EVENT_ID: '6b1d3c1e-2f9a-4c5e-9d70-0d3f5b8a1c22',
+  RECEIPT: 'receipt-1',
+  FAILURE: 'handler failed',
+  DEPTH: '3',
+  SECOND_ATTEMPT: '2',
+  LAST_ATTEMPT: '4',
+  SECOND_DELAY: 30,
+  NO_DELAY: 0,
+  PAYLOAD: { walletId: 'wallet-1' },
+  FLUSH_ROUNDS: 5
+} as const;
