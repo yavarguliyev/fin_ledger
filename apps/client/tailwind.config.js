@@ -5,10 +5,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#3B82F6', dark: '#2563EB', light: '#93C5FD' },
-        success: { DEFAULT: '#10B981', dark: '#059669', light: '#6EE7B7' },
-        warning: { DEFAULT: '#F59E0B', dark: '#D97706', light: '#FCD34D' },
-        danger: { DEFAULT: '#EF4444', dark: '#DC2626', light: '#FCA5A5' },
+        primary: { DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)', dark: 'rgb(var(--color-primary-dark) / <alpha-value>)', light: '#93C5FD' },
+        success: { DEFAULT: '#10B981', dark: '#059669', deep: '#047857', light: '#6EE7B7' },
+        warning: { DEFAULT: '#F59E0B', dark: '#D97706', deep: '#92400E', light: '#FCD34D' },
+        danger: { DEFAULT: '#EF4444', dark: '#DC2626', deep: '#991B1B', light: '#FCA5A5' },
         info: { DEFAULT: '#6366F1', dark: '#4F46E5', light: '#A5B4FC' },
         ink: {
           50: '#F9FAFB',
@@ -22,7 +22,16 @@ module.exports = {
           800: '#1F2937',
           900: '#111827'
         },
-        night: { bg: '#050A14', surface: '#0F192D', card: '#0F192D', sidebar: '#0A1423', hover: '#1A2540', border: '#273042', text: '#E2E8F0', muted: '#94A3B8' },
+        night: {
+          bg: '#050A14',
+          surface: '#0F192D',
+          card: '#0F192D',
+          sidebar: '#0A1423',
+          hover: '#1A2540',
+          border: '#273042',
+          text: '#E2E8F0',
+          muted: '#94A3B8'
+        },
         neon: { cyan: '#00D2FF', purple: '#9D50BB', blue: '#0B5CFF', pink: '#FF2D8B', violet: '#D63DFC', mint: '#4AE9D1', magenta: '#CE1BFB' },
         chat: { own: '#D9FDD3', 'own-dark': '#005C4B', seen: '#53BDEB', call: '#0B141A' },
         stripe: { DEFAULT: '#635BFF', dark: '#5349E4' },
@@ -75,5 +84,11 @@ module.exports = {
       }
     }
   },
-  plugins: []
+  plugins: [
+    ({ addBase }) =>
+      addBase({
+        ':root': { '--color-primary': '29 78 216', '--color-primary-dark': '30 64 175' },
+        'html.dark': { '--color-primary': '59 130 246', '--color-primary-dark': '37 99 235' }
+      })
+  ]
 };

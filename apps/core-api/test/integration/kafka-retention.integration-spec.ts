@@ -2,8 +2,9 @@ import { ConfigResourceTypes, Kafka, logLevel } from 'kafkajs';
 
 import { KAFKA_RETENTION_TEST as T } from '../constants/kafka-retention.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
+import { TopicRef } from '../interfaces/kafka-retention.interface';
 
-const retentionOf = async (topic: string): Promise<string | undefined> => {
+const retentionOf = async ({ topic }: TopicRef): Promise<string | undefined> => {
   const admin = new Kafka({ clientId: T.CLIENT_ID, brokers: [process.env[TEST_ENV_KEYS.KAFKA_BROKERS] as string], logLevel: logLevel.NOTHING }).admin();
   await admin.connect();
 
@@ -20,10 +21,10 @@ const retentionOf = async (topic: string): Promise<string | undefined> => {
 
 describe('Kafka topic retention', () => {
   it('keeps e-mail events for one day only', async () => {
-    await expect(retentionOf(T.EMAIL_TOPIC)).resolves.toBe(T.EMAIL_RETENTION_MS);
+    await expect(retentionOf({ topic: T.EMAIL_TOPIC })).resolves.toBe(T.EMAIL_RETENTION_MS);
   });
 
   it('leaves other topics on the broker default', async () => {
-    await expect(retentionOf(T.AUDIT_TOPIC)).resolves.not.toBe(T.EMAIL_RETENTION_MS);
+    await expect(retentionOf({ topic: T.AUDIT_TOPIC })).resolves.not.toBe(T.EMAIL_RETENTION_MS);
   });
 });

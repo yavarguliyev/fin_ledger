@@ -9,5 +9,7 @@ export const PRESENCE_SWEEP_TEST = {
   INDEX_KEY: 'presence-index',
   STAFF_INDEX_KEY: 'presence-index:staff',
   SWEEP_LOCK_KEY: 'presence-sweep-lock',
-  STALE_AGE_MS: 120_000
+  STALE_AGE_MS: 120_000,
+  POST: 'POST',
+  EMPTY: ''
 } as const;

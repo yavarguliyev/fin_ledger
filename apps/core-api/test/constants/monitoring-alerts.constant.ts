@@ -22,5 +22,7 @@ export const MONITORING_ALERTS_TEST = {
   EMAIL_EVENT: 'email.admin.monitoring-alert',
   NOTIFICATION_SQL: `SELECT n.content FROM notifications n JOIN users u ON u.id = n.user_id
                       WHERE u.email = $1 AND n.title = $2 AND n.type = 'SYSTEM'`,
-  EMAIL_SQL: `SELECT payload->>'to' AS "to" FROM outbox_events WHERE event_type = $1 AND payload->>'subject' = $2`
+  EMAIL_SQL: `SELECT payload->>'to' AS "to" FROM outbox_events WHERE event_type = $1 AND payload->>'subject' = $2`,
+  POST: 'POST',
+  JSON_HEADERS: { 'Content-Type': 'application/json' }
 } as const;

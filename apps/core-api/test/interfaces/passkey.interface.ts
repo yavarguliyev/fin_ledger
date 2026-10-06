@@ -11,3 +11,11 @@ export interface PasskeySummary {
   lastUsedAt: string | null;
   createdAt: string;
 }
+
+export interface StepUpWithdrawal {
+  suffix: string;
+}
+
+export interface StepUpError {
+  error?: { message: string };
+}

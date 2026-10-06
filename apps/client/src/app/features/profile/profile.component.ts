@@ -107,7 +107,7 @@ export class ProfileComponent implements OnInit {
   ngOnInit (): void {
     this.formService.setInitialValues(this.currentProfileFields());
 
-    this.userService.getCurrentUser().subscribe({
+    this.userService.ensureCurrentUser().subscribe({
       next: () => this.syncFormWithUser(),
       error: () => undefined
     });

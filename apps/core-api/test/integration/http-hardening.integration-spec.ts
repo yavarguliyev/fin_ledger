@@ -1,53 +1,46 @@
+import { HTTP_HARDENING_TEST as T } from '../constants/http-hardening.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
 import { TEST_ORIGINS } from '../constants/test-origins.constant';
 import { ApiHelper } from '../helpers/api.helper';
+import { PreflightOrigin } from '../interfaces/http-hardening.interface';
 
 describe('HTTP hardening', () => {
-  const preflight = (origin: string): Promise<Response> =>
-    fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/auth/login`, {
-      method: 'OPTIONS',
-      headers: { Origin: origin, 'Access-Control-Request-Method': 'POST', 'Access-Control-Request-Headers': 'content-type' }
-    });
+  const loginUrl = (): string => `${process.env[TEST_ENV_KEYS.API_URL]}${T.LOGIN_PATH}`;
+
+  const preflight = ({ origin }: PreflightOrigin): Promise<Response> =>
+    fetch(loginUrl(), { method: T.OPTIONS, headers: { [T.ORIGIN_HEADER]: origin, ...T.PREFLIGHT_HEADERS } });
 
   it('allows credentialed CORS only from the configured origins', async () => {
-    const allowed = await preflight(TEST_ORIGINS.FRONTEND);
-    expect(allowed.headers.get('access-control-allow-origin')).toBe(TEST_ORIGINS.FRONTEND);
-    expect(allowed.headers.get('access-control-allow-credentials')).toBe('true');
+    const allowed = await preflight({ origin: TEST_ORIGINS.FRONTEND });
+    expect(allowed.headers.get(T.ALLOW_ORIGIN)).toBe(TEST_ORIGINS.FRONTEND);
+    expect(allowed.headers.get(T.ALLOW_CREDENTIALS)).toBe(T.TRUE);
 
-    const foreign = await preflight(TEST_ORIGINS.FOREIGN);
-    expect(foreign.headers.get('access-control-allow-origin')).toBeNull();
+    const foreign = await preflight({ origin: TEST_ORIGINS.FOREIGN });
+    expect(foreign.headers.get(T.ALLOW_ORIGIN)).toBeNull();
   });
 
   it('sends the helmet security headers', async () => {
-    const { headers } = await ApiHelper.request({ method: 'POST', path: '/auth/login', body: {} });
+    const { headers } = await ApiHelper.request({ method: T.POST, path: T.LOGIN_PATH, body: {} });
 
-    expect(headers.get('x-content-type-options')).toBe('nosniff');
-    expect(headers.get('x-frame-options')).toBe('DENY');
-    expect(headers.get('strict-transport-security')).toBe('max-age=31536000; includeSubDomains');
-    expect(headers.get('content-security-policy')).toContain("default-src 'none'");
-    expect(headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
-    expect(headers.get('referrer-policy')).toBe('no-referrer');
-    expect(headers.get('x-powered-by')).toBeNull();
+    Object.entries(T.SECURITY_HEADERS).forEach(([name, value]) => expect(headers.get(name)).toBe(value));
+    T.CSP_DIRECTIVES.forEach(directive => expect(headers.get(T.CSP)).toContain(directive));
+    expect(headers.get(T.POWERED_BY)).toBeNull();
   });
 
   it('rejects a JSON body over the limit with 413', async () => {
-    const response = await fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'a@b.c', password: 'x'.repeat(200 * 1024) })
+    const response = await fetch(loginUrl(), {
+      method: T.POST,
+      headers: T.JSON_HEADERS,
+      body: JSON.stringify({ email: T.OVERSIZED_EMAIL, password: T.FILLER.repeat(T.OVERSIZED_BYTES) })
     });
 
-    expect(response.status).toBe(413);
-    await expect(response.json()).resolves.toMatchObject({ error: { code: 'HTTP_413', retryable: false } });
+    expect(response.status).toBe(T.PAYLOAD_TOO_LARGE);
+    await expect(response.json()).resolves.toMatchObject(T.TOO_LARGE_ERROR);
   });
 
   it('rejects malformed JSON with 400, not 500', async () => {
-    const response = await fetch(`${process.env[TEST_ENV_KEYS.API_URL]}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{"email":'
-    });
+    const response = await fetch(loginUrl(), { method: T.POST, headers: T.JSON_HEADERS, body: T.MALFORMED_JSON });
 
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(T.BAD_REQUEST);
   });
 });

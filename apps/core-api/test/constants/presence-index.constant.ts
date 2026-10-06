@@ -13,5 +13,9 @@ export const PRESENCE_INDEX_TEST = {
   COMMANDSTATS: 'commandstats',
   CALLS_PATTERN: (command: string): RegExp => new RegExp(`cmdstat_${command}:calls=(\\d+)`),
   COMMANDS: ['scan', 'get', 'mget', 'zrevrangebyscore'],
-  EXPECTED_CALLS: { scan: 0, mget: 1, zrevrangebyscore: 1 }
+  EXPECTED_CALLS: { scan: 0, mget: 1, zrevrangebyscore: 1 },
+  POST: 'POST',
+  EMPTY: '',
+  NONE: 0,
+  GET_COMMAND: 'get'
 } as const;

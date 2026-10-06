@@ -27,11 +27,11 @@
       <div class="sm:col-span-2 rounded-2xl bg-gradient-to-br from-success to-success-dark p-6 text-white shadow-card">
         <p class="text-white/80 text-sm">Available Balance</p>
         <p class="text-4xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
-        <p class="text-white/70 text-xs mt-3">Last updated {{ lastUpdated() }}</p>
+        <p class="text-white/90 text-xs mt-3">Last updated {{ lastUpdated() }}</p>
       </div>
       <div class="rounded-2xl bg-warning/10 border border-warning/30 p-6">
-        <p class="text-warning-dark dark:text-warning text-sm font-medium">Reserved</p>
-        <p class="text-3xl font-bold text-warning-dark dark:text-warning mt-1">
+        <p class="text-warning-deep dark:text-warning text-sm font-medium">Reserved</p>
+        <p class="text-3xl font-bold text-warning-deep dark:text-warning mt-1">
           {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}
         </p>
         <p class="text-xs text-ink-500 dark:text-night-muted mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
@@ -41,12 +41,12 @@
     <div class="flex flex-wrap gap-2">
       <a
         routerLink="/wallet/deposit"
-        class="px-4 py-2.5 rounded-lg bg-success text-white font-semibold text-sm hover:bg-success-dark active:scale-95 transition-all"
+        class="px-4 py-2.5 rounded-lg bg-success-deep text-white font-semibold text-sm hover:bg-success-deep/90 active:scale-95 transition-all"
         >Deposit</a
       >
       <a
         routerLink="/wallet/withdraw"
-        class="px-4 py-2.5 rounded-lg bg-danger text-white font-semibold text-sm hover:bg-danger-dark active:scale-95 transition-all"
+        class="px-4 py-2.5 rounded-lg bg-danger-dark text-white font-semibold text-sm hover:bg-danger-deep active:scale-95 transition-all"
         >Withdraw</a
       >
       <a

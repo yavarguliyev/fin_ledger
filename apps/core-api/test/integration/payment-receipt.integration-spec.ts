@@ -24,7 +24,7 @@ describe('Payment receipts', () => {
   it('streams a PDF receipt for a completed deposit with the amount and the masked card', async () => {
     const paymentId = await TestPaymentHelper.complete(request);
     const receipt = await ApiHelper.download({ path: T.RECEIPT_PATH(paymentId), token: owner });
-    const text = PdfTextHelper.extract(receipt.bytes);
+    const text = PdfTextHelper.extract({ bytes: receipt.bytes });
 
     expect(receipt.status).toBe(T.OK);
     expect(receipt.headers.get('content-type')).toContain(T.CONTENT_TYPE);

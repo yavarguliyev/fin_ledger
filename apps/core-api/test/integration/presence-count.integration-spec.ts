@@ -7,22 +7,23 @@ import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { PresenceSeedHelper } from '../helpers/presence-seed.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
+import { PresenceTotal, TokenRef } from '../interfaces/token-ref.interface';
 
 describe('Presence count beyond the list cap', () => {
   const redis = new Redis(process.env[TEST_ENV_KEYS.REDIS_URL] as string);
   const extraIds = Array.from({ length: T.EXTRA_USERS }, () => randomUUID());
-  let staff = '';
-  let customer = '';
+  let staff: string = T.EMPTY;
+  let customer: string = T.EMPTY;
 
-  const count = (token: string): Promise<number> =>
-    ApiHelper.request<{ total: number }>({ path: T.COUNT_PATH, token }).then(response => response.body.total);
+  const count = ({ token }: TokenRef): Promise<number> =>
+    ApiHelper.request<PresenceTotal>({ path: T.COUNT_PATH, token }).then(response => response.body.total);
 
   beforeAll(async () => {
     await TestUserHelper.ensure({ emails: [T.CUSTOMER_EMAIL] });
     staff = await ApiHelper.login({ email: T.STAFF_EMAIL });
     customer = await ApiHelper.login({ email: T.CUSTOMER_EMAIL });
     await PresenceSeedHelper.seed({ redis, userIds: extraIds, displayName: T.DISPLAY_NAME });
-    await ApiHelper.request({ method: 'POST', path: T.HEARTBEAT_PATH, token: staff, body: {} });
+    await ApiHelper.request({ method: T.POST, path: T.HEARTBEAT_PATH, token: staff, body: {} });
   });
 
   afterAll(async () => {
@@ -34,11 +35,11 @@ describe('Presence count beyond the list cap', () => {
     const listed = await ApiHelper.request<unknown[]>({ path: T.PRESENCE_PATH, token: staff });
 
     expect(listed.body.length).toBeLessThanOrEqual(T.PAGE_SIZE);
-    await expect(count(staff)).resolves.toBeGreaterThanOrEqual(T.EXTRA_USERS);
+    await expect(count({ token: staff })).resolves.toBeGreaterThanOrEqual(T.EXTRA_USERS);
   });
 
   it('counts only online staff for a customer, never the players', async () => {
-    const total = await count(customer);
+    const total = await count({ token: customer });
     const listed = await ApiHelper.request<unknown[]>({ path: T.PRESENCE_PATH, token: customer });
 
     expect(total).toBe(listed.body.length);

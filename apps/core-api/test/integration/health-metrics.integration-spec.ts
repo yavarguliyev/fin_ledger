@@ -1,46 +1,38 @@
-import { DbHelper } from '../helpers/db.helper';
-
-const rootUrl = (): string => (process.env[TEST_ENV_KEYS.API_URL] as string).replace(/\/api\/v\d+$/, '');
+import { HEALTH_METRICS_TEST as T } from '../constants/health-metrics.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
+import { DbHelper } from '../helpers/db.helper';
+import { ReadinessBody } from '../interfaces/health-metrics.interface';
+
+const rootUrl = (): string => (process.env[TEST_ENV_KEYS.API_URL] as string).replace(T.API_SUFFIX, T.EMPTY);
 
 describe('Health and metrics endpoints', () => {
   afterAll(async () => DbHelper.close());
 
   it('answers liveness without touching a dependency', async () => {
-    const response = await fetch(`${rootUrl()}/health/live`);
+    const response = await fetch(`${rootUrl()}${T.LIVE_PATH}`);
 
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({ status: 'ok' });
+    expect(response.status).toBe(T.OK);
+    await expect(response.json()).resolves.toMatchObject({ status: T.OK_STATUS });
   });
 
   it('reports the database as up on readiness, with its pool gauges', async () => {
-    const response = await fetch(`${rootUrl()}/health/ready`);
-    const body = (await response.json()) as { status: string; info: Record<string, { status: string; totalCount: number }> };
+    const response = await fetch(`${rootUrl()}${T.READY_PATH}`);
+    const body = (await response.json()) as ReadinessBody;
 
-    expect(response.status).toBe(200);
-    expect(body.status).toBe('ok');
-    expect(body.info?.['database']?.status).toBe('up');
-    expect(body.info?.['redis']?.status).toBe('up');
-    expect(body.info?.['broker']?.status).toBe('up');
-    expect(body.info?.['database']?.totalCount).toBeGreaterThan(0);
+    expect(response.status).toBe(T.OK);
+    expect(body.status).toBe(T.OK_STATUS);
+    T.DEPENDENCIES.forEach(dependency => expect(body.info?.[dependency]?.status).toBe(T.UP_STATUS));
+    expect(body.info?.[T.DATABASE]?.totalCount).toBeGreaterThan(T.NO_CONNECTIONS);
   });
 
   it('scrapes in Prometheus text format with the gauges this service adds', async () => {
-    const response = await fetch(`${rootUrl()}/metrics`);
+    const response = await fetch(`${rootUrl()}${T.METRICS_PATH}`);
 
-    expect(response.status).toBe(200);
-    expect(response.headers.get('content-type')).toContain('text/plain');
+    expect(response.status).toBe(T.OK);
+    expect(response.headers.get(T.CONTENT_TYPE)).toContain(T.TEXT_PLAIN);
 
     const body = await response.text();
 
-    [
-      'core_api_db_pool_connections_total',
-      'core_api_db_pool_connections_waiting',
-      'core_api_outbox_events_pending',
-      'core_api_outbox_events_dead',
-      'core_api_outbox_oldest_pending_seconds'
-    ].forEach(metric => expect(body).toContain(metric));
-
-    expect(body).toContain('core_api_process_cpu_user_seconds_total');
+    T.METRICS.forEach(metric => expect(body).toContain(metric));
   });
 });

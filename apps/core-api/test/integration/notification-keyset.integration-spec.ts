@@ -1,15 +1,19 @@
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { NOTIFICATION_KEYSET_TEST as T } from '../constants/notification-keyset.constant';
-import { NotificationItem } from '../interfaces/notification-page.interface';
+import { NotificationCursor, NotificationItem, NotificationQuery } from '../interfaces/notification-page.interface';
 import { TestUserHelper } from '../helpers/test-user.helper';
 
-let token = '';
+let token: string = T.EMPTY;
 
-const page = (query: string): ReturnType<typeof ApiHelper.request<NotificationItem[]>> => ApiHelper.request<NotificationItem[]>({ path: `${T.PATH}?${query}`, token });
+const page = ({ query }: NotificationQuery): ReturnType<typeof ApiHelper.request<NotificationItem[]>> =>
+  ApiHelper.request<NotificationItem[]>({ path: `${T.PATH}${T.QUERY_SEPARATOR}${new URLSearchParams(query).toString()}`, token });
 
-const cursorAfter = (item: NotificationItem | undefined): string =>
-  new URLSearchParams({ limit: String(T.PAGE), before: item?.createdAt ?? '', beforeId: item?.id ?? '' }).toString();
+const cursorAfter = ({ item }: NotificationCursor): Record<string, string> => ({
+  limit: String(T.PAGE),
+  before: item?.createdAt ?? T.EMPTY,
+  beforeId: item?.id ?? T.EMPTY
+});
 
 beforeAll(async () => {
   await TestUserHelper.ensure({ emails: [T.EMAIL] });
@@ -26,12 +30,12 @@ afterAll(async () => {
 describe('Notifications paged by cursor', () => {
   it('walks every notification newest first, a page at a time, without repeats or gaps', async () => {
     const seen: NotificationItem[] = [];
-    let response = await page(new URLSearchParams({ limit: String(T.PAGE) }).toString());
+    let response = await page({ query: { limit: String(T.PAGE) } });
 
     while (response.body.length > 0) {
       expect(response.status).toBe(T.OK);
       seen.push(...response.body);
-      response = await page(cursorAfter(response.body.at(-1)));
+      response = await page({ query: cursorAfter({ item: response.body.at(-1) }) });
     }
 
     const titles = seen.map(item => item.title).filter(title => title.startsWith(T.TITLE_PREFIX));
@@ -40,6 +44,6 @@ describe('Notifications paged by cursor', () => {
   });
 
   it('refuses half a cursor', async () => {
-    await expect(page(new URLSearchParams({ before: new Date().toISOString() }).toString())).resolves.toMatchObject({ status: T.BAD_REQUEST });
+    await expect(page({ query: { before: new Date().toISOString() } })).resolves.toMatchObject({ status: T.BAD_REQUEST });
   });
 });

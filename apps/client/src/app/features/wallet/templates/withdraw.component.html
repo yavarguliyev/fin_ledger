@@ -5,10 +5,12 @@
     @if (!success()) {
       <form [formGroup]="form" (ngSubmit)="confirm()" class="space-y-5">
         <div>
-          <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Amount ({{ currency() }})</label>
+          <label for="withdraw-amount" class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Amount ({{ currency() }})</label>
           <div class="relative">
             <span class="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400 font-medium">{{ currency() }}</span>
             <input
+              id="withdraw-amount"
+              aria-describedby="withdraw-amount-error"
               type="number"
               formControlName="amount"
               class="w-full pl-16 pr-4 py-3 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-lg font-semibold text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
@@ -26,7 +28,7 @@
               }
             </p>
           }
-          <app-field-error [control]="amountControl" />
+          <app-field-error [control]="amountControl" fieldId="withdraw-amount" />
         </div>
 
         <div>
@@ -134,7 +136,7 @@
         <button
           type="submit"
           [disabled]="!isValid() || loading() || methods.verified().length === 0 || connectivity.offline()"
-          class="w-full py-2.5 rounded-lg bg-danger text-white font-semibold hover:bg-danger-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          class="w-full py-2.5 rounded-lg bg-danger-dark text-white font-semibold hover:bg-danger-deep transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           @if (loading()) {
             <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

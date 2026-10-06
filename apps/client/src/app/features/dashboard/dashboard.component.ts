@@ -93,7 +93,7 @@ export class DashboardComponent implements OnInit {
 
     if (this.isStaff()) this.loadActivity(ALL_RECORDS_SCOPE);
     else {
-      this.walletService.loadWallets().subscribe({
+      this.walletService.ensureWallets().subscribe({
         next: () => {
           const walletId = this.walletService.wallet()?.id;
           if (walletId) this.loadActivity(walletId);

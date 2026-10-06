@@ -2,7 +2,7 @@ import { ApiHelper } from '../helpers/api.helper';
 import { BET_SETTLEMENT_TEST as B } from '../constants/bet-settlement.constant';
 import { BetTestHelper } from '../helpers/bet-test.helper';
 import { DbHelper } from '../helpers/db.helper';
-import { SettledBet } from '../interfaces/bet-settlement.interface';
+import { SettledBet, SettlePayout } from '../interfaces/bet-settlement.interface';
 
 const losingBet = async (): Promise<SettledBet> => {
   const seat = await BetTestHelper.seat();
@@ -23,7 +23,7 @@ describe('Admin bet settlement', () => {
       const target = await losingBet();
       await DbHelper.query({ sql: B.REOPEN_SQL, params: [target.id] });
       const admin = await ApiHelper.login({ email: B.ADMIN_EMAIL });
-      const settle = async (payoutMinor: number): Promise<number> =>
+      const settle = async ({ payoutMinor }: SettlePayout): Promise<number> =>
         (
           await ApiHelper.request({
             method: 'POST',
@@ -33,10 +33,10 @@ describe('Admin bet settlement', () => {
           })
         ).status;
 
-      await expect(settle(target.potentialPayoutMinor * B.OVERPAY_FACTOR)).resolves.toBe(B.BAD_REQUEST);
+      await expect(settle({ payoutMinor: target.potentialPayoutMinor * B.OVERPAY_FACTOR })).resolves.toBe(B.BAD_REQUEST);
       await expect(DbHelper.query({ sql: B.PAYOUT_SQL, params: [target.id] })).resolves.toEqual([{ status: B.PENDING, payout_minor: null }]);
 
-      await expect(settle(target.potentialPayoutMinor)).resolves.toBe(B.CREATED);
+      await expect(settle({ payoutMinor: target.potentialPayoutMinor })).resolves.toBe(B.CREATED);
       await expect(DbHelper.query({ sql: B.DRAW_SQL, params: [target.id] })).resolves.toEqual([{ draw_value: null, draw_threshold: null }]);
     },
     B.TIMEOUT_MS

@@ -3,16 +3,17 @@ import { SupportTestHelper } from '../helpers/support.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { SUPPORT_CHAT_TEST as T } from '../constants/support-chat.constant';
+import { TokenRef } from '../interfaces/token-ref.interface';
 
 describe('Support typing indicator', () => {
-  let customer = '';
-  let staff = '';
-  let outsider = '';
-  let customerId = '';
-  let conversationId = '';
+  let customer: string = T.EMPTY;
+  let staff: string = T.EMPTY;
+  let outsider: string = T.EMPTY;
+  let customerId: string = T.EMPTY;
+  let conversationId: string = T.EMPTY;
 
-  const typing = (token: string): ReturnType<typeof ApiHelper.request> =>
-    ApiHelper.request({ method: 'POST', path: `${T.CONVERSATIONS_PATH}/${conversationId}/typing`, token, body: {} });
+  const typing = ({ token }: TokenRef): ReturnType<typeof ApiHelper.request> =>
+    ApiHelper.request({ method: T.POST, path: `${T.CONVERSATIONS_PATH}${T.SEGMENT}${conversationId}${T.TYPING_SUFFIX}`, token, body: {} });
 
   beforeAll(async () => {
     await TestUserHelper.ensure({ emails: [T.CUSTOMER_EMAIL, T.OTHER_EMAIL] });
@@ -38,7 +39,7 @@ describe('Support typing indicator', () => {
     const stream = await SupportTestHelper.openStream({ token: staff });
 
     try {
-      const sent = await typing(customer);
+      const sent = await typing({ token: customer });
       const event = await stream.waitFor({ type: T.TYPING_EVENT, timeoutMs: T.STREAM_WAIT_MS });
 
       expect(sent.status).toBe(T.CREATED);
@@ -49,6 +50,6 @@ describe('Support typing indicator', () => {
   });
 
   it('refuses typing in a conversation the caller is not part of', async () => {
-    await expect(typing(outsider)).resolves.toMatchObject({ status: T.NOT_FOUND });
+    await expect(typing({ token: outsider })).resolves.toMatchObject({ status: T.NOT_FOUND });
   });
 });

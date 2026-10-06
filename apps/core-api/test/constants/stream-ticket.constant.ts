@@ -6,5 +6,8 @@ export const STREAM_TICKET = {
   TICKET_PATH: '/notifications/stream-ticket',
   STREAM_PATH: '/notifications/stream',
   TICKET_PARAM: 'ticket',
-  TOKEN_PARAM: 'token'
+  TOKEN_PARAM: 'token',
+  POST: 'POST',
+  QUERY_SEPARATOR: '?',
+  PARAM_SEPARATOR: '='
 } as const;

@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Observable, tap, catchError } from 'rxjs';
+import { Observable, tap, catchError, of } from 'rxjs';
 
 import { Transaction } from '../types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../interfaces/wallet/wallet-transaction-summary.interface';
@@ -8,6 +8,7 @@ import { Wallet } from '../types/wallet/wallet.type';
 import { PaginatedResponse } from '../interfaces/http/paginated-response.interface';
 import { AppConfigService } from './app-config.service';
 import { SELECTED_WALLET_KEY } from '../constants/wallet/selected-wallet-key.constant';
+import { WALLET_CACHE } from '../constants/wallet/wallet-cache.constant';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { WalletTransactionsDto } from '../interfaces/wallet/wallet-transactions.interface';
 
@@ -19,6 +20,7 @@ export class WalletService {
   private readonly walletsSignal = signal<Wallet[]>([]);
   private readonly selectedIdSignal = signal<string | null>(localStorage.getItem(SELECTED_WALLET_KEY));
   private readonly transactionsSignal = signal<Transaction[]>([]);
+  private loadedAt: number = WALLET_CACHE.NEVER;
 
   readonly wallets = computed(() => this.walletsSignal());
   readonly wallet = computed(() => this.walletsSignal().find(w => w.id === this.selectedIdSignal()) ?? this.walletsSignal()[0] ?? null);
@@ -30,9 +32,16 @@ export class WalletService {
 
   loadWallets (): Observable<Wallet[]> {
     return this.http.get<Wallet[]>(`${this.apiUrl}/wallets`).pipe(
-      tap(wallets => this.walletsSignal.set(wallets)),
+      tap(wallets => {
+        this.walletsSignal.set(wallets);
+        this.loadedAt = Date.now();
+      }),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
+  }
+
+  ensureWallets (): Observable<Wallet[]> {
+    return Date.now() - this.loadedAt < WALLET_CACHE.FRESH_MS ? of(this.walletsSignal()) : this.loadWallets();
   }
 
   selectWallet (walletId: string): void {
@@ -84,6 +93,7 @@ export class WalletService {
     this.walletsSignal.set([]);
     this.selectedIdSignal.set(null);
     this.transactionsSignal.set([]);
+    this.loadedAt = WALLET_CACHE.NEVER;
     localStorage.removeItem(SELECTED_WALLET_KEY);
   }
 }

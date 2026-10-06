@@ -9,5 +9,9 @@ export const PROFILE_IMAGES_KEY_TEST = {
   DISPLAY_NAME: 'Key Probe',
   KEY_PREFIX: 'user-',
   SELECT_SQL: 'SELECT profile_images_key AS key FROM users WHERE email = $1',
-  RESET_SQL: 'UPDATE users SET display_name = $2 WHERE email = $1'
+  RESET_SQL: 'UPDATE users SET display_name = $2 WHERE email = $1',
+  PATCH: 'PATCH',
+  EMPTY: '',
+  ADD_ACTION: 'add',
+  PROBE_IMAGE: 'probe.webp'
 } as const;

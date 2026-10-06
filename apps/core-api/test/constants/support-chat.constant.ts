@@ -23,5 +23,9 @@ export const SUPPORT_CHAT_TEST = {
   STREAM_TICKET_PATH: '/support/stream-ticket',
   STREAM_PATH: '/support/stream?ticket=',
   TYPING_EVENT: 'support.conversation.typing',
-  STREAM_WAIT_MS: 5000
+  STREAM_WAIT_MS: 5000,
+  POST: 'POST',
+  EMPTY: '',
+  SEGMENT: '/',
+  TYPING_SUFFIX: '/typing'
 } as const;

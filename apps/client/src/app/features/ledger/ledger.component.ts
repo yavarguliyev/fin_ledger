@@ -64,7 +64,7 @@ export class LedgerComponent implements OnInit {
       return;
     }
 
-    this.walletService.loadWallets().subscribe({
+    this.walletService.ensureWallets().subscribe({
       next: () => this.loadAccountEntries(this.walletService.wallet()?.ledgerAccountId),
       error: () => this.fail()
     });

@@ -14,5 +14,11 @@ export const SUPPORT_CALLS_TEST = {
   MISSED: 'MISSED',
   SYSTEM_KIND: 'SYSTEM',
   VOICE_LOG_PREFIX: 'Voice call · ',
-  MISSED_VIDEO_LOG: 'Missed video call'
+  MISSED_VIDEO_LOG: 'Missed video call',
+  POST: 'POST',
+  EMPTY: '',
+  SEGMENT: '/',
+  ANSWER: '/answer',
+  CANDIDATES: '/candidates',
+  END: '/end'
 } as const;

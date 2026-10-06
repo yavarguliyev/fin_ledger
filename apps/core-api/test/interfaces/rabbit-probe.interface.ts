@@ -16,3 +16,7 @@ export interface DeliveryWait {
 export interface ServiceRef {
   target: RabbitmqService;
 }
+
+export interface CliArgs {
+  args: string[];
+}

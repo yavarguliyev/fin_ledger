@@ -26,6 +26,7 @@
 
       @if (config().showFilters && config().filterOptions) {
         <select
+          [attr.aria-label]="config().filterLabel ?? config().title"
           [value]="selectedFilter()"
           (change)="onFilterChange($event)"
           class="appearance-none pl-3 pr-9 py-1.5 rounded-lg text-sm border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-700 dark:text-night-text bg-no-repeat cursor-pointer transition-colors hover:border-ink-400 dark:hover:border-ink-500 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"

@@ -9,5 +9,7 @@ export const STREAM_METRICS_TEST = {
   STREAM_SERIES: 'route="/api/v1/support/stream",',
   TICKET_SERIES: 'route="/api/v1/support/stream-ticket"',
   DATA_PREFIX: 'data:',
-  TIMEOUT_MS: 10_000
+  TIMEOUT_MS: 10_000,
+  POST: 'POST',
+  EMPTY: ''
 } as const;

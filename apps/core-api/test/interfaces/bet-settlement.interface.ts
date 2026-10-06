@@ -36,3 +36,7 @@ export interface DrawAuditRow {
   draw_threshold: string;
   odds_at_placement: string;
 }
+
+export interface SettlePayout {
+  payoutMinor: number;
+}

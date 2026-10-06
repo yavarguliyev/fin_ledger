@@ -20,5 +20,15 @@ export const SELF_EXCLUSION_TEST = {
   AMOUNT_MINOR: 2500,
   CURRENCY: 'USD',
   SELECTION: 'Home',
-  BLOCKED_MESSAGE: 'You have self-excluded from gambling. This cannot be lifted before it expires.'
+  BLOCKED_MESSAGE: 'You have self-excluded from gambling. This cannot be lifted before it expires.',
+  POST: 'POST',
+  PATCH: 'PATCH',
+  EMPTY: '',
+  TOKEN_PARAM: 'token',
+  BET_KEY: 'self-exclusion-bet',
+  PAY_KEY: 'self-exclusion-pay',
+  WITHDRAW_KEY: 'self-exclusion-withdraw',
+  UNTIL_SQL: 'SELECT self_exclusion_until::text AS until FROM users WHERE email = $1',
+  WALLET_SQL: 'SELECT w.id, w.currency FROM wallets w JOIN users u ON u.id = w.user_id WHERE u.email = $1',
+  OPEN_EVENT_SQL: "SELECT id FROM game_events WHERE status = 'SCHEDULED' AND betting_closes_at > now() ORDER BY starts_at LIMIT 1"
 } as const;

@@ -21,5 +21,12 @@ export const PASSKEY_STEP_UP_TEST = {
     INSERT INTO user_credentials (user_id, credential_id, public_key, sign_count, transports, device_label, backed_up)
     SELECT id, $2, $3, 0, ARRAY['internal'], $4, true FROM users WHERE email = $1
   `,
-  CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1'
+  CLEAN_SQL: 'DELETE FROM user_credentials WHERE credential_id = $1',
+  POST: 'POST',
+  EMPTY: '',
+  KEY_SEPARATOR: '-',
+  PUBLIC_KEY_TYPE: 'public-key',
+  NO_PASSKEY: 'no-passkey',
+  UNCONFIRMED: 'unconfirmed',
+  AFTER_FORGERY: 'after-forgery'
 } as const;

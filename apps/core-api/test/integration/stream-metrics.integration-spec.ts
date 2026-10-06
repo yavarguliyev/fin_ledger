@@ -4,12 +4,13 @@ import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
 import { TestUserHelper } from '../helpers/test-user.helper';
 import { chunksOf } from '../fakes/stream.fake';
+import { ResponseRef } from '../interfaces/fakes.interface';
 
-const firstEvent = async (stream: Response): Promise<void> => {
+const firstEvent = async ({ response }: ResponseRef): Promise<void> => {
   const decoder = new TextDecoder();
-  let text = '';
+  let text: string = T.EMPTY;
 
-  for await (const chunk of chunksOf({ response: stream })) {
+  for await (const chunk of chunksOf({ response })) {
     text += decoder.decode(chunk);
     if (text.includes(T.DATA_PREFIX)) return;
   }
@@ -22,21 +23,21 @@ describe('Request metrics and live streams', () => {
     await TestUserHelper.ensure({ emails: [T.ARRIVING_EMAIL] });
     const staff = await ApiHelper.login({ email: T.STAFF_EMAIL });
     const arriving = await ApiHelper.login({ email: T.ARRIVING_EMAIL });
-    const { body } = await ApiHelper.request<{ ticket: string }>({ method: 'POST', path: T.TICKET_PATH, token: staff, body: {} });
+    const { body } = await ApiHelper.request<{ ticket: string }>({ method: T.POST, path: T.TICKET_PATH, token: staff, body: {} });
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), T.TIMEOUT_MS);
 
     try {
       const stream = await fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${T.STREAM_PATH}${body.ticket}`, { signal: controller.signal });
-      const pushed = firstEvent(stream);
-      await ApiHelper.request({ method: 'POST', path: T.HEARTBEAT_PATH, token: arriving, body: {} });
+      const pushed = firstEvent({ response: stream });
+      await ApiHelper.request({ method: T.POST, path: T.HEARTBEAT_PATH, token: arriving, body: {} });
       await pushed;
     } finally {
       clearTimeout(timer);
       controller.abort();
     }
 
-    const root = (process.env[TEST_ENV_KEYS.API_URL] as string).replace(T.API_SUFFIX, '');
+    const root = (process.env[TEST_ENV_KEYS.API_URL] as string).replace(T.API_SUFFIX, T.EMPTY);
     const metrics = await (await fetch(`${root}${T.METRICS_PATH}`)).text();
 
     expect(metrics).toContain(T.TICKET_SERIES);

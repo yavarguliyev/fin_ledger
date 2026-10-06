@@ -58,7 +58,7 @@ describe('RabbitMQ dead letters', () => {
     await expect(probe().waitForDepth({ target: queue, expected: 1 })).resolves.toBe(1);
 
     const rows = probe()
-      .runCli([R.DEPTH_COMMAND, queue])
+      .runCli({ args: [R.DEPTH_COMMAND, queue] })
       .trim()
       .split(R.ROW_SEPARATOR)
       .map(row => row.split(R.COLUMN_SEPARATOR));

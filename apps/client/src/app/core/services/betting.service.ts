@@ -34,7 +34,7 @@ export class BettingService {
   }
 
   loadWallets (): Observable<Wallet[]> {
-    return this.walletService.loadWallets();
+    return this.walletService.ensureWallets();
   }
 
   loadBets ({ page, limit }: PageRequestDto): Observable<PaginatedResponse<Bet>> {

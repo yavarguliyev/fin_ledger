@@ -119,7 +119,7 @@
     @if (error()) {
       <p class="text-sm text-danger" role="alert">{{ error() }}</p>
     }
-    <button type="submit" [disabled]="loading()" class="w-full py-2.5 rounded-lg bg-danger text-white font-semibold disabled:opacity-60">
+    <button type="submit" [disabled]="loading()" class="w-full py-2.5 rounded-lg bg-danger-dark text-white font-semibold disabled:opacity-60">
       {{ loading() ? 'Turning off…' : 'Turn off' }}
     </button>
   </form>

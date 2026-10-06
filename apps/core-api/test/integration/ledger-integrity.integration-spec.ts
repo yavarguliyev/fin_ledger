@@ -1,53 +1,41 @@
+import { LEDGER_INTEGRITY_TEST as T } from '../constants/ledger-integrity.constant';
 import { ApiHelper } from '../helpers/api.helper';
 import { DbHelper } from '../helpers/db.helper';
-
-interface IntegrityReport {
-  driftedAccounts: number;
-  driftedWallets: number;
-  unbalancedCurrencies: string[];
-  healthy: boolean;
-}
+import { BalanceShift, IntegrityReport } from '../interfaces/ledger-integrity.interface';
 
 describe('Ledger integrity check', () => {
-  const email = 'player19@realtime-wallet-payments.com';
   let admin: string;
 
   const report = (): ReturnType<typeof ApiHelper.request<IntegrityReport>> =>
-    ApiHelper.request<IntegrityReport>({ method: 'GET', path: '/ledgers/integrity', token: admin });
+    ApiHelper.request<IntegrityReport>({ method: T.GET, path: T.PATH, token: admin });
 
-  const shiftBalance = (delta: number): ReturnType<typeof DbHelper.query> =>
-    DbHelper.query({
-      sql: 'UPDATE wallets SET available_balance_minor = available_balance_minor + $2 WHERE user_id = (SELECT id FROM users WHERE email = $1)',
-      params: [email, delta]
-    });
+  const shiftBalance = ({ delta }: BalanceShift): ReturnType<typeof DbHelper.query> =>
+    DbHelper.query({ sql: T.SHIFT_SQL, params: [T.PLAYER_EMAIL, delta] });
 
   beforeAll(async () => {
-    admin = await ApiHelper.login({ email: 'admin@realtime-wallet-payments.com' });
+    admin = await ApiHelper.login({ email: T.ADMIN_EMAIL });
   });
 
   afterAll(async () => DbHelper.close());
 
   it('reports a clean ledger as healthy', async () => {
-    await expect(report()).resolves.toMatchObject({
-      status: 200,
-      body: { driftedAccounts: 0, driftedWallets: 0, unbalancedCurrencies: [], healthy: true }
-    });
+    await expect(report()).resolves.toMatchObject({ status: T.OK, body: T.HEALTHY_REPORT });
   });
 
   it('detects a wallet balance that no longer matches its ledger account', async () => {
-    await shiftBalance(1);
+    await shiftBalance({ delta: T.DRIFT });
 
     try {
-      await expect(report()).resolves.toMatchObject({ status: 200, body: { driftedWallets: 1, healthy: false } });
+      await expect(report()).resolves.toMatchObject({ status: T.OK, body: T.DRIFTED_REPORT });
     } finally {
-      await shiftBalance(-1);
+      await shiftBalance({ delta: -T.DRIFT });
     }
 
-    await expect(report()).resolves.toMatchObject({ body: { healthy: true } });
+    await expect(report()).resolves.toMatchObject({ body: T.HEALTHY });
   });
 
   it('is only available to admins', async () => {
-    const player = await ApiHelper.login({ email });
-    await expect(ApiHelper.request({ method: 'GET', path: '/ledgers/integrity', token: player })).resolves.toMatchObject({ status: 403 });
+    const player = await ApiHelper.login({ email: T.PLAYER_EMAIL });
+    await expect(ApiHelper.request({ method: T.GET, path: T.PATH, token: player })).resolves.toMatchObject({ status: T.FORBIDDEN });
   });
 });

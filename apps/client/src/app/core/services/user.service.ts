@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse, HttpEvent } from '@angular/common/http';
-import { Observable, catchError, tap } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 
 import { DeleteResponse } from '../interfaces/auth/delete-response.interface';
 import { GetImageUrl } from '../interfaces/auth/get-image-url.interface';
@@ -13,12 +13,14 @@ import { AppConfigService } from './app-config.service';
 import { HttpErrorHelper } from '../helpers/http/http-error.helper';
 import { UpdateWalletStatusDto } from '../interfaces/wallet/update-wallet-status.interface';
 import { UpdateEmailVerificationDto } from '../interfaces/user/update-email-verification.interface';
+import { CURRENT_USER_CACHE } from '../constants/auth/current-user-cache.constant';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly config = inject(AppConfigService);
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private fetchedAt: number = CURRENT_USER_CACHE.NEVER;
 
   private get apiUrl (): string {
     return this.config.apiUrl;
@@ -26,9 +28,17 @@ export class UserService {
 
   getCurrentUser (): Observable<UpdateProfileResponse> {
     return this.http.get<UpdateProfileResponse>(`${this.apiUrl}/users/me`).pipe(
-      tap(response => this.auth.updateCurrentUser({ user: response.user })),
+      tap(response => {
+        this.auth.updateCurrentUser({ user: response.user });
+        this.fetchedAt = Date.now();
+      }),
       catchError((error: HttpErrorResponse) => HttpErrorHelper.handleHttpError(error))
     );
+  }
+
+  ensureCurrentUser (): Observable<UpdateProfileResponse> {
+    const user = this.auth.currentUser();
+    return user && Date.now() - this.fetchedAt < CURRENT_USER_CACHE.FRESH_MS ? of({ user }) : this.getCurrentUser();
   }
 
   updateProfile (request: UpdateProfileRequest): Observable<UpdateProfileResponse> {

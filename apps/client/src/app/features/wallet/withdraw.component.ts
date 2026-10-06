@@ -123,7 +123,7 @@ export class WithdrawComponent implements OnInit {
   }
 
   private loadWallet (): void {
-    this.walletService.loadWallets().subscribe(() => {
+    this.walletService.ensureWallets().subscribe(() => {
       const wallet = this.walletService.wallet();
       if (!wallet) return;
       const maxAmount = CurrencyHelper.fromMinor({ amountMinor: wallet.availableBalanceMinor, currency: wallet.currency });

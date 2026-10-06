@@ -205,7 +205,7 @@
             <button
               (click)="confirm()"
               [disabled]="loading() || connectivity.offline()"
-              class="flex-1 py-2.5 rounded-lg bg-success text-white font-semibold hover:bg-success-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              class="flex-1 py-2.5 rounded-lg bg-success-deep text-white font-semibold hover:bg-success-deep/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               @if (loading()) {
                 <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

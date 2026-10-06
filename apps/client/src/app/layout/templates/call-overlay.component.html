@@ -124,7 +124,7 @@
           <button
             type="button"
             class="hidden md:grid place-items-center w-14 h-14 rounded-full shadow-lg"
-            [class]="call.controls.sharing() ? 'bg-success text-white' : 'bg-white/15'"
+            [class]="call.controls.sharing() ? 'bg-success-deep text-white' : 'bg-white/15'"
             [attr.aria-label]="call.controls.sharing() ? labels.STOP_SHARING : labels.SHARE_SCREEN"
             [title]="call.controls.sharing() ? labels.STOP_SHARING : labels.SHARE_SCREEN"
             (click)="call.controls.toggleScreenShare()"

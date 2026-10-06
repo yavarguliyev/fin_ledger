@@ -6,5 +6,7 @@ export const PRESENCE_COUNT_TEST = {
   COUNT_PATH: '/support/presence/count',
   EXTRA_USERS: 120,
   PAGE_SIZE: 100,
-  DISPLAY_NAME: 'Count probe'
+  DISPLAY_NAME: 'Count probe',
+  POST: 'POST',
+  EMPTY: ''
 } as const;

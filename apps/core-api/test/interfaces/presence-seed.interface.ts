@@ -10,3 +10,7 @@ export interface PresenceClearDto {
   redis: Redis;
   userIds: string[];
 }
+
+export interface RedisRef {
+  redis: Redis;
+}

@@ -6,7 +6,7 @@ import { ClientIds, CryptoHelper } from '@common/shared-libs';
 
 import { RABBIT_PROBE as R } from '../constants/rabbit-probe.constant';
 import { TEST_ENV_KEYS } from '../constants/test-env-keys.constant';
-import { DeliveryWait, DepthWait, SeedAttempts, ServiceRef } from '../interfaces/rabbit-probe.interface';
+import { CliArgs, DeliveryWait, DepthWait, SeedAttempts, ServiceRef } from '../interfaces/rabbit-probe.interface';
 import { aConfigService } from '../fakes/config.fake';
 import { connectionOf } from '../fakes/rabbit.fake';
 
@@ -91,7 +91,7 @@ export class RabbitProbe {
     return false;
   }
 
-  runCli (args: string[]): string {
+  runCli ({ args }: CliArgs): string {
     return execFileSync(process.execPath, [R.DLQ_CLI, ...args], { env: { ...process.env, RABBITMQ_URL: RabbitProbe.url() }, encoding: R.ENCODING });
   }
 

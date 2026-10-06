@@ -5,8 +5,8 @@ import { AlertPostDto } from '../interfaces/alert-post.interface';
 
 const post = async ({ authorization, status, summary, times }: AlertPostDto): Promise<number> => {
   const response = await fetch(`${process.env[TEST_ENV_KEYS.API_URL]}${T.PATH}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: authorization },
+    method: T.POST,
+    headers: { ...T.JSON_HEADERS, Authorization: authorization },
     body: JSON.stringify({
       status,
       alerts: [{ status, labels: { alertname: T.ALERT_NAME, severity: T.SEVERITY }, annotations: { summary, description: T.DESCRIPTION }, ...times }]

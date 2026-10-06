@@ -34,5 +34,10 @@ export const JOBS_TEST = {
   FAILURE: 'export failed',
   PENDING: 'PENDING',
   RUNNING: 'RUNNING',
-  DEAD: 'DEAD'
+  DEAD: 'DEAD',
+  PAYLOAD: { scope: 'all' },
+  BEGIN_SQL: 'BEGIN',
+  ROLLBACK_SQL: 'ROLLBACK',
+  NONE: 0,
+  ONE: 1
 } as const;

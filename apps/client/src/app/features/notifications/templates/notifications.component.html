@@ -43,17 +43,14 @@
       <app-error-state (retry)="load()" />
     } @else {
       @for (n of paginatedNotifications(); track n.id) {
-        <div
-          class="flex items-start gap-3 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors"
-          [class.opacity-60]="n.status === 'READ'"
-        >
+        <div class="flex items-start gap-3 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm" [class]="typeClass(n.type)">
             {{ typeIcon(n.type) }}
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium text-ink-900 dark:text-white">{{ n.title }}</p>
+            <p class="text-sm text-ink-900 dark:text-white" [class.font-semibold]="n.status !== 'READ'">{{ n.title }}</p>
             <p class="text-sm text-ink-500 dark:text-night-muted">{{ n.content }}</p>
-            <p class="text-xs text-ink-400 dark:text-ink-500 mt-1">{{ n.createdAt | relativeTime }}</p>
+            <p class="text-xs text-ink-500 dark:text-night-muted mt-1">{{ n.createdAt | relativeTime }}</p>
           </div>
           @if (n.status !== 'READ') {
             <button (click)="markOne(n)" class="text-xs text-primary hover:text-primary-dark font-medium">Mark read</button>

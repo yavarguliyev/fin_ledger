@@ -65,7 +65,7 @@ export class DepositComponent implements OnInit {
   }
 
   ngOnInit (): void {
-    this.walletService.loadWallets().subscribe();
+    this.walletService.ensureWallets().subscribe();
     this.formService.loadPaymentMethods();
   }
 
