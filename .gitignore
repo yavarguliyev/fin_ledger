@@ -22,3 +22,4 @@ PROJECT-BACKLOG.md
 infrastructure/aws/terraform/.terraform/
 infrastructure/aws/terraform/.state/
 infrastructure/aws/terraform/*.tfstate*
+/claude-recommendation-plans/
