@@ -1,5 +1,5 @@
 export const HEALTH = {
-  TAG: 'health',
+  TAG: 'Health',
   LIVE_PATH: 'live',
   READY_PATH: 'ready',
   OK: 'ok',
