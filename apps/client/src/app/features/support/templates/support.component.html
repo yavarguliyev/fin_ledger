@@ -269,7 +269,9 @@
     </div>
 
     @if (selection.active()) {
-      <app-selection-bar />
+      @defer (on immediate) {
+        <app-selection-bar />
+      }
     }
     <app-message-composer
       #composer
@@ -297,11 +299,11 @@
     <app-presence-panel [entries]="presenceStore.entries()" [total]="presenceStore.total()" />
   }
 
-  <app-media-viewer [userId]="chat.myUserId()" />
-
-  <app-pin-duration-dialog />
-
-  <app-profile-photo-viewer />
+  @defer (on idle) {
+    <app-media-viewer [userId]="chat.myUserId()" />
+    <app-pin-duration-dialog />
+    <app-profile-photo-viewer />
+  }
 
   <app-delete-dialog
     [message]="compose.deleting()"
