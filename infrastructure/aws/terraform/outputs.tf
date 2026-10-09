@@ -52,3 +52,13 @@ output "sms_monthly_spend_limit" {
   description = "Monthly SMS spend limit in USD."
   value       = module.sms.monthly_spend_limit
 }
+
+output "webhooks_rest_api_id" {
+  description = "Public REST API that queues webhooks."
+  value       = module.webhooks.rest_api_id
+}
+
+output "webhooks_queue" {
+  description = "SQS queue the webhooks land in."
+  value       = module.webhooks.queue_name
+}

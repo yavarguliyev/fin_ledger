@@ -12,6 +12,10 @@ export class SqsAttributesHelper {
     return Object.fromEntries(entries.map(([name, value]) => [name, { DataType: C.STRING_TYPE, StringValue: value }]));
   }
 
+  static toRecord ({ attributes }: MessageAttributesDto): Record<string, string> {
+    return Object.fromEntries(Object.entries(attributes ?? {}).flatMap(([name, value]) => (value.StringValue ? [[name, value.StringValue]] : [])));
+  }
+
   static eventId ({ attributes }: MessageAttributesDto): string | undefined {
     return attributes?.[EVENT_ENVELOPE.HEADERS.ID]?.StringValue;
   }

@@ -13,7 +13,7 @@ export class ProcessWebhookUseCase {
     private readonly applyWebhookEvent: ApplyWebhookEventUseCase
   ) {}
 
-  async execute ({ req, provider: providerParam }: HandleWebhookDto): Promise<ProcessWebhookResponseDto> {
+  async execute ({ provider: providerParam, rawPayload, headers }: HandleWebhookDto): Promise<ProcessWebhookResponseDto> {
     const providerName = providerParam as PaymentProvider;
 
     if (!this.providerRegistry.has({ providerName })) {
@@ -22,8 +22,7 @@ export class ProcessWebhookUseCase {
     }
 
     const paymentProvider = this.providerRegistry.require({ providerName, capability: PaymentCapability.WEBHOOKS });
-    const rawPayload = req.rawBody ?? JSON.stringify(req.body);
-    const signature = paymentProvider.extractSignature({ headers: req.headers });
+    const signature = paymentProvider.extractSignature({ headers });
     const { eventId, provider, eventType, payload, signatureVerified } = await paymentProvider.constructWebhookEvent({ payload: rawPayload, signature });
 
     await this.applyWebhookEvent.execute({ eventId, provider, eventType, payload, signatureVerified });

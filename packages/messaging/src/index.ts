@@ -6,6 +6,9 @@ export * from './modules/dtos/broker/broker-subscribe.dto';
 export * from './modules/dtos/broker/inbox-release.dto';
 export * from './modules/dtos/broker/queue-name.dto';
 export * from './modules/dtos/broker/replay-dead-letters.dto';
+export * from './modules/dtos/drain/drain.dto';
+
+export * from './modules/helpers/drain.helper';
 
 export * from './modules/interfaces/message-broker.interface';
 

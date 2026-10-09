@@ -98,3 +98,15 @@ variable "sms_sender_id" {
   type        = string
   default     = "WALLET"
 }
+
+variable "webhook_providers" {
+  description = "Payment providers that get a webhook route."
+  type        = list(string)
+  default     = ["stripe"]
+}
+
+variable "webhook_signature_headers" {
+  description = "Signature headers forwarded with each webhook (lower case)."
+  type        = list(string)
+  default     = ["stripe-signature"]
+}

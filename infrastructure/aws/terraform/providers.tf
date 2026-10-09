@@ -20,6 +20,7 @@ provider "aws" {
       apigateway     = endpoints.value
       iam            = endpoints.value
       kms            = endpoints.value
+      logs           = endpoints.value
       s3             = endpoints.value
       secretsmanager = endpoints.value
       ses            = endpoints.value

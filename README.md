@@ -171,7 +171,7 @@ AWS (locally it is the Docker service from `infrastructure/dev`). The markers ch
 | :--- | :--- |
 | **Web** | CloudFront serves the Angular build from an S3 website; the browser calls API Gateway. |
 | **`/api/*`** | API Gateway forwards to the API service (ECS Fargate), which uses RDS PostgreSQL, ElastiCache Redis and the KMS-encrypted file bucket. |
-| **`/webhooks/*`** | Payment-provider webhooks land in an SQS queue first, so none is lost while the API is down; the worker processes them. |
+| **`/webhooks/*`** | Payment-provider webhooks land in an SQS queue first, so none is lost while the API is down; the worker verifies the signature and applies them. Built: the queue body is the provider's body byte for byte, the signature header travels as a message attribute, and unknown providers are refused at the gateway. |
 | **Notifications** | The outbox relay publishes to the SNS topic, which fans out to one SQS queue per event type; consumers retry after 5 s, 30 s and 5 min. |
 | **Failures** | After the fourth failure a message moves to its dead-letter queue; an EventBridge Pipe turns that into an SNS alert e-mail. |
 | **E-mail, audit, analytics** | The relay publishes to Kafka (Amazon MSK); the e-mail consumer sends through SES. |
@@ -777,6 +777,8 @@ SQS_ACCESS_KEY_ID=test
 SQS_SECRET_ACCESS_KEY=test
 SQS_TOPIC_ARN=arn:aws:sns:us-east-1:000000000000:ddd-local-wallet-events
 SQS_QUEUE_PREFIX=ddd-local
+# Webhooks queued by API Gateway; the worker consumes them
+SQS_WEBHOOK_QUEUE=ddd-local-webhooks
 
 # Secrets: read from Secrets Manager at startup, before validation
 SECRETS_SOURCE=aws
@@ -1161,6 +1163,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | E-mail | console or SMTP | SES | `MAIL_TRANSPORT` |
 | SMS | console or Twilio | SNS (transactional, monthly spend limit) | `SMS_TRANSPORT` |
 | Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
+| Payment-provider webhooks | `POST /api/v1/webhooks/{provider}` on the API | API Gateway `POST /webhooks/{provider}` → SQS → worker | `SQS_WEBHOOK_QUEUE` |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
 
 Each setting can also be switched on its own, for example only `QUEUE_TRANSPORT=sqs`. Locally, `.env.local` stays the

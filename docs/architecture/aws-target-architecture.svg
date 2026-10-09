@@ -55,7 +55,7 @@
 <polyline points="794,246 900,246 900,400 1006,400" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
 <rect x="728" y="628" width="64" height="64" rx="6" fill="#E7157B"/>
 <g transform="translate(760,660)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="-11" y="-11" width="22" height="22" rx="4"/><path d="M-21,0 L-13,0 M-16,-3 L-13,0 L-16,3 M13,0 L21,0 M18,-3 L21,0 L18,3"/><path d="M-5,0 L5,0"/></g>
-<circle cx="790" cy="630" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="790" cy="630" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="760" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">Webhooks Queue</text>
 <text x="760" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">SQS</text>
 <rect x="1008" y="628" width="64" height="64" rx="6" fill="#ED7100"/>

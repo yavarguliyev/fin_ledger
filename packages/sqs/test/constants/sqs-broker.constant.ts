@@ -19,5 +19,9 @@ export const SQS_BROKER_TEST = {
   SECOND_DELAY: 30,
   NO_DELAY: 0,
   PAYLOAD: { walletId: 'wallet-1' },
-  FLUSH_ROUNDS: 5
+  FLUSH_ROUNDS: 5,
+  WEBHOOK_QUEUE: 'ddd-test-webhooks',
+  PROVIDER_ATTRIBUTE: 'provider',
+  PROVIDER: 'stripe',
+  RAW_BODY: '{"id": "evt_1",  "note": "a & b"}'
 } as const;

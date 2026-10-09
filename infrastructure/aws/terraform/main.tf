@@ -58,3 +58,14 @@ module "sms" {
   default_sender_id   = var.sms_sender_id
   sender_role_names   = [module.identity.worker_role.name]
 }
+
+module "webhooks" {
+  source = "./modules/webhooks"
+
+  name_prefix              = local.name_prefix
+  payment_providers        = var.webhook_providers
+  signature_headers        = var.webhook_signature_headers
+  key_deletion_window_days = var.key_deletion_window_days
+  consumer_role_names      = [module.identity.worker_role.name]
+  consumer_role_arns       = [module.identity.worker_role.arn]
+}

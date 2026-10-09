@@ -22,6 +22,7 @@ export const AwsVariablesSchema = z.object({
   SQS_ACCESS_KEY_ID: z.string({ message: 'SQS_ACCESS_KEY_ID must be a string' }).optional(),
   SQS_SECRET_ACCESS_KEY: z.string({ message: 'SQS_SECRET_ACCESS_KEY must be a string' }).optional(),
   SQS_TOPIC_ARN: z.string({ message: 'SQS_TOPIC_ARN must be a string' }).optional(),
+  SQS_WEBHOOK_QUEUE: z.string({ message: 'SQS_WEBHOOK_QUEUE must be a string' }).optional(),
   SQS_QUEUE_PREFIX: z.string({ message: 'SQS_QUEUE_PREFIX must be a string' }).optional()
 });
 

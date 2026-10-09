@@ -1,15 +1,14 @@
-import { setTimeout as sleep } from 'node:timers/promises';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BaseHelper, ClientIds, RequestScope, ServiceClientDto } from '@common/shared-libs';
 
-import { BROKER_CONSTANTS } from '../../constants/messaging/broker.constant';
 import { BrokerDeliveryDto } from '../../dtos/broker/broker-delivery.dto';
 import { BrokerPublishDto } from '../../dtos/broker/broker-publish.dto';
 import { BrokerSubscribeDto } from '../../dtos/broker/broker-subscribe.dto';
 import { InboxReleaseDto } from '../../dtos/broker/inbox-release.dto';
 import { QueueNameDto } from '../../dtos/broker/queue-name.dto';
 import { ReplayDeadLettersDto } from '../../dtos/broker/replay-dead-letters.dto';
+import { DrainHelper } from '../../helpers/drain.helper';
 import { MessageBroker } from '../../interfaces/message-broker.interface';
 
 export abstract class BaseMessageBroker implements MessageBroker {
@@ -57,10 +56,8 @@ export abstract class BaseMessageBroker implements MessageBroker {
     }
   }
 
-  protected async drain (): Promise<void> {
-    const deadline = Date.now() + BROKER_CONSTANTS.DRAIN_TIMEOUT_MS;
-    while (this.inFlight > 0 && Date.now() < deadline) await sleep(BROKER_CONSTANTS.DRAIN_POLL_MS);
-    if (this.inFlight > 0) this.logger.warn(`Closing with ${this.inFlight} message(s) still in flight; they will be redelivered`);
+  protected drain (): Promise<void> {
+    return DrainHelper.drain({ pending: () => this.inFlight, logger: this.logger });
   }
 
   protected deliver ({ queue, payload, eventId, handler, inbox }: BrokerDeliveryDto): Promise<void> {

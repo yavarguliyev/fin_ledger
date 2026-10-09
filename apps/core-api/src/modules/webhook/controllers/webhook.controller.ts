@@ -6,6 +6,7 @@ import { ENVIRONMENT_CONSTANTS, ParamsQueryAndHeaders, RawBodyRequest, RequestSc
 import { WebhookService } from '../services/webhook.service';
 import { HandleWebhookRequestDto, HandleWebhookRequestSchema } from '../dtos/request/handle-webhook-request.dto';
 import { ProcessWebhookResponseDto } from '../dtos/response/process-webhook-response.dto';
+import { WebhookRequestHelper } from '../helpers/webhook-request.helper';
 import { SHARED_CONSTANTS } from '../../../shared/constants/modules/shared.constant';
 
 @ApiTags(SHARED_CONSTANTS.WEBHOOK.key)
@@ -20,6 +21,6 @@ export class WebhookController {
     @Req() req: RawBodyRequest,
     @ParamsQueryAndHeaders({ schema: HandleWebhookRequestSchema }) dto: HandleWebhookRequestDto
   ): Promise<ProcessWebhookResponseDto> {
-    return RequestScope.runSystem(() => this.webhookService.processWebhook({ ...dto, req }));
+    return RequestScope.runSystem(() => this.webhookService.processWebhook(WebhookRequestHelper.fromHttp({ ...dto, req })));
   }
 }
