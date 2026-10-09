@@ -110,3 +110,9 @@ variable "webhook_signature_headers" {
   type        = list(string)
   default     = ["stripe-signature"]
 }
+
+variable "api_upstream_url" {
+  description = "Base URL the gateway forwards /api/* to; null leaves the proxy out. On AWS this is the load balancer behind a VPC link."
+  type        = string
+  default     = null
+}

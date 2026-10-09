@@ -41,7 +41,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `email` | SES sender identity and a send-only policy for the worker role | Outgoing e-mail |
 | `messaging` | SNS topic `ddd-local-wallet-events`, one SQS queue and dead-letter queue per event type, filtered subscriptions, its own KMS key; publish, consume and monitor policies | Alternative to RabbitMQ for notifications (`QUEUE_TRANSPORT=sqs`) |
 | `sms` | Account SMS preferences (transactional, sender ID, monthly spend limit) and a send-only policy for the worker role | Text messages through SNS (`SMS_TRANSPORT=sns`) |
-| `webhooks` | Public REST API (`POST /webhooks/{provider}` per known provider) integrated straight with an SQS queue and DLQ, its own KMS key, throttling, access logs (90 days), a send-only role for the gateway and a consume policy for the worker | Payment-provider webhooks survive the API being down |
+| `edge` | Public REST API: `/api/*` proxied to the API (`api_upstream_url`), and `POST /webhooks/{provider}` per known provider integrated straight with an SQS queue and DLQ, its own KMS key, throttling, access logs (90 days), a send-only role for the gateway and a consume policy for the worker | Payment-provider webhooks survive the API being down |
 | `secrets` | Secrets Manager secret `ddd-local/core-api`, its own KMS key, a read-only policy for the API and worker roles | Passwords, signing and encryption keys, Stripe and Telegram tokens |
 
 ## Security model
@@ -68,10 +68,14 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 - **SMS.** SNS has no resource ARN for phone numbers, so the send policy allows `sns:Publish` on `*` and denies it on
   every topic ARN: the worker can text phone numbers and nothing else. The account spend limit (USD 1 locally) stops
   runaway sending. This is the second accepted scanner finding, recorded in `trivyignore.yaml`.
+- **API proxy.** `/api/{proxy+}` forwards every method to `api_upstream_url` (locally `http://host.docker.internal:3000`,
+  on AWS the load balancer behind a VPC link), so login, cookies and authenticated calls work through the gateway.
+  A REST API Gateway buffers responses and ends a request after 29 seconds, so the Server-Sent Events stream
+  (`/api/v1/notifications/stream`) must reach the API through the load balancer directly, not through this gateway.
 - **Webhooks.** The gateway only accepts the providers listed in `webhook_providers`; the request body is queued unchanged
   and the headers in `webhook_signature_headers` become message attributes, because the worker verifies the provider's
   signature over the exact bytes. Locally the routes live at
-  `http://localhost:4566/_aws/execute-api/<rest api id>/v1/webhooks/<provider>` (`terraform output webhooks_rest_api_id`).
+  `http://localhost:4566/_aws/execute-api/<rest api id>/v1/webhooks/<provider>` (`terraform output public_rest_api_id`).
   LocalStack does not write the access log lines; real AWS does.
 - **Scanning.** `aws:scan` fails on any medium, high or critical misconfiguration, and `aws:up` will not apply without it.
 

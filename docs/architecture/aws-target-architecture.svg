@@ -19,7 +19,7 @@
 <text x="350" y="503" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Angular client</text>
 <rect x="458" y="398" width="64" height="64" rx="6" fill="#E7157B"/>
 <g transform="translate(490,430)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-17 L-21,-17 L-21,17 L-17,17 M17,-17 L21,-17 L21,17 L17,17"/><path d="M-6,-8 L-13,0 L-6,8 M6,-8 L13,0 L6,8 M3,-11 L-3,11"/></g>
-<circle cx="520" cy="400" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="520" cy="400" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="490" y="484" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">API Gateway</text>
 <polyline points="100,430 176,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>
 <polyline points="244,430 316,430" fill="none" stroke="#232F3E" stroke-width="2.2" stroke-linejoin="round" marker-end="url(#head)"/>

@@ -8,3 +8,4 @@ enforce_tls                 = false
 key_deletion_window_days    = 7
 secret_recovery_window_days = 7
 messaging_routing_keys      = ["bet.settled", "payment.completed", "payment.failed", "user.registered", "wallet.credited", "wallet.debited"]
+api_upstream_url            = "http://host.docker.internal:3000"

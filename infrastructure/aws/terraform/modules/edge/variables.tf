@@ -114,3 +114,21 @@ variable "log_retention_days" {
   type        = number
   default     = 90
 }
+
+variable "api_upstream_url" {
+  description = "Base URL the gateway forwards /api/* to; null leaves the proxy out."
+  type        = string
+  default     = null
+}
+
+variable "api_route_prefix" {
+  description = "Path segment proxied to the API."
+  type        = string
+  default     = "api"
+}
+
+variable "api_timeout_milliseconds" {
+  description = "Upstream timeout for proxied API calls (API Gateway caps it at 29 seconds)."
+  type        = number
+  default     = 29000
+}

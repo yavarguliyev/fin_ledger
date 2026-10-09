@@ -12,7 +12,7 @@ locals {
 
 resource "aws_api_gateway_rest_api" "public" {
   name        = "${var.name_prefix}-public"
-  description = "Public entry point; webhooks are queued before the application sees them."
+  description = "Public entry point: /api/* is proxied to the API, webhooks are queued before the application sees them."
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -91,14 +91,14 @@ resource "aws_api_gateway_deployment" "public" {
   rest_api_id = aws_api_gateway_rest_api.public.id
 
   triggers = {
-    redeployment = sha1(jsonencode([local.send_message, var.payment_providers]))
+    redeployment = sha1(jsonencode([local.send_message, var.payment_providers, var.api_upstream_url, var.api_route_prefix]))
   }
 
   lifecycle {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration_response.accepted]
+  depends_on = [aws_api_gateway_integration_response.accepted, aws_api_gateway_integration.api_proxy]
 }
 
 resource "aws_api_gateway_stage" "public" {

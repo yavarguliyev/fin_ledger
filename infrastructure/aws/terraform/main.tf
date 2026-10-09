@@ -59,10 +59,16 @@ module "sms" {
   sender_role_names   = [module.identity.worker_role.name]
 }
 
-module "webhooks" {
-  source = "./modules/webhooks"
+moved {
+  from = module.webhooks
+  to   = module.edge
+}
+
+module "edge" {
+  source = "./modules/edge"
 
   name_prefix              = local.name_prefix
+  api_upstream_url         = var.api_upstream_url
   payment_providers        = var.webhook_providers
   signature_headers        = var.webhook_signature_headers
   key_deletion_window_days = var.key_deletion_window_days
