@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-export const SecretsSettingsSchema = z.object({
-  secretId: z.string({ message: 'Secret ID must be a string' }),
-
+export const AwsConnectionSchema = z.object({
   region: z.string({ message: 'Region must be a string' }),
 
   endpoint: z.string({ message: 'Endpoint must be a string' }).optional(),
@@ -12,4 +10,4 @@ export const SecretsSettingsSchema = z.object({
   secretAccessKey: z.string({ message: 'Secret access key must be a string' }).optional()
 });
 
-export type SecretsSettingsDto = z.infer<typeof SecretsSettingsSchema>;
+export type AwsConnectionDto = z.infer<typeof AwsConnectionSchema>;

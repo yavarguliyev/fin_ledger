@@ -1,4 +1,4 @@
-export enum SecretsSource {
+export enum ConfigSource {
   ENV = 'env',
   AWS = 'aws'
 }

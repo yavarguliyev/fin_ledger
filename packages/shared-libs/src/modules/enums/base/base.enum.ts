@@ -13,7 +13,7 @@ export * from '../common/payment.enum';
 export * from '../common/process-role.enum';
 export * from '../common/resource.enum';
 export * from '../common/queue.enum';
-export * from '../common/secrets.enum';
+export * from '../common/config-source.enum';
 export * from '../common/responsible-gaming.enum';
 export * from '../common/support.enum';
 export * from '../common/sms.enum';

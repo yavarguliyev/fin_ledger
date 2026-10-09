@@ -454,10 +454,10 @@ RLS, row-level security is not protecting anything.
 - Ownership is enforced by PostgreSQL policies, not only by application filters, so a missing predicate fails closed.
 
 ## 13. Template Method (Abstract Base Classes)
-- Shared behaviour lives once in an abstract base and each implementation fills in only its own step: `BaseMailTransport` composes the message and SMTP/SES implement `deliver`; `BaseSmsTransport` does the same for Twilio and SNS; `BaseMessageBroker` owns inbox deduplication, the subscription registry and draining, and RabbitMQ/SQS implement `publish`, `consume` and `cancel`.
+- Shared behaviour lives once in an abstract base and each implementation fills in only its own step: `BaseMailTransport` composes the message and SMTP/SES implement `deliver`; `BaseSmsTransport` does the same for Twilio and SNS; `BaseConfigLoader` reads the loader settings and applies values without overriding the environment, and the Secrets Manager and Parameter Store loaders only fetch; `BaseMessageBroker` owns inbox deduplication, the subscription registry and draining, and RabbitMQ/SQS implement `publish`, `consume` and `cancel`.
 
 ## 14. Adapter Pattern (Cloud Services)
-- AWS services sit behind the application's own interfaces — S3 behind storage, SES behind the mailer, SNS/SQS behind the broker, Secrets Manager behind the secrets loader — so the domain code never imports an AWS SDK.
+- AWS services sit behind the application's own interfaces — S3 behind storage, SES behind the mailer, SNS/SQS behind the broker, Secrets Manager and SSM Parameter Store behind the config loaders — so the domain code never imports an AWS SDK.
 
 ---
 
@@ -635,8 +635,9 @@ The monorepo uses **four `.env` files**. Each has a committed `*.example` templa
 | **3. Core API (AWS)** | `/apps/core-api/.env.aws.example` | Switches storage, e-mail, notifications and secrets to AWS (LocalStack locally). Its values win over `.env.local`; delete the file to switch back | Same loaders, after `.env.local` |
 | **4. Docker / Infra** | created by `infrastructure/dev/start.sh` | Service credentials, root passwords and port bindings for the containers (also the Alertmanager Telegram token) | Docker Compose (`infrastructure/dev/start.sh` / `docker-compose.yml`) |
 
-Precedence inside the core API: **real environment variables > `.env.aws` > `.env.local`**. With
-`SECRETS_SOURCE=aws`, the secrets read from Secrets Manager sit between real environment variables and the files.
+Precedence inside the core API: **real environment variables > Secrets Manager > SSM Parameter Store > `.env.aws` >
+`.env.local`**. The two AWS sources only apply when `SECRETS_SOURCE=aws` / `PARAMETERS_SOURCE=aws`; both are read at
+startup, before the environment is validated.
 
 ---
 
@@ -787,6 +788,14 @@ SECRETS_REGION=us-east-1
 SECRETS_ENDPOINT=http://localhost:4566
 SECRETS_ACCESS_KEY_ID=test
 SECRETS_SECRET_ACCESS_KEY=test
+
+# Non-secret settings: read from SSM Parameter Store at startup (values defined in Terraform's app_parameters)
+PARAMETERS_SOURCE=aws
+PARAMETERS_PATH=/ddd-local/core-api
+PARAMETERS_REGION=us-east-1
+PARAMETERS_ENDPOINT=http://localhost:4566
+PARAMETERS_ACCESS_KEY_ID=test
+PARAMETERS_SECRET_ACCESS_KEY=test
 ```
 
 On real AWS, drop every `*_ENDPOINT`, access key and secret key line and run the API and worker with their IAM roles.
@@ -878,7 +887,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   ├── payment-provider/          # Pluggable PSP adapters, routing, circuit breaker, bulkhead
 │   ├── rabbitmq/                  # RabbitMQ broker, outbox relay, retry and DLQ topology
 │   ├── redis/                     # Redis caching and key-value client
-│   ├── secrets/                   # Loads runtime secrets from AWS Secrets Manager before startup
+│   ├── secrets/                   # Loads Secrets Manager secrets and SSM parameters before startup
 │   ├── session/                   # RSA JWT authentication, SessionGuard, RolesGuard, RequestScope
 │   ├── shared-libs/               # Shared DTOs, decorators, error filters, lifecycle and types
 │   ├── sms/                       # Transactional SMS: console, Twilio or AWS SNS
@@ -1167,6 +1176,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | Dead-letter alerts | metrics and Grafana | CloudWatch alarm per dead-letter queue → SNS alerts topic → e-mail | `alert_emails` (Terraform) |
 | Public entry point | the API on `localhost:3000` | API Gateway proxying `/api/*` to the API (`terraform output public_rest_api_id`) | `api_upstream_url` (Terraform) |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
+| Non-secret settings | `.env.local` | SSM Parameter Store (`app_parameters` in Terraform), loaded before validation | `PARAMETERS_SOURCE` |
 
 Each setting can also be switched on its own, for example only `QUEUE_TRANSPORT=sqs`. Locally, `.env.local` stays the
 source of the secret values: `aws:up` copies the keys listed in `infrastructure/aws/secrets/core-api.keys` into

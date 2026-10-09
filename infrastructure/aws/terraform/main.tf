@@ -84,3 +84,12 @@ module "alerting" {
   alert_emails             = var.alert_emails
   key_deletion_window_days = var.key_deletion_window_days
 }
+
+module "parameters" {
+  source = "./modules/parameters"
+
+  name_prefix       = local.name_prefix
+  application       = var.secrets_application
+  values            = var.app_parameters
+  reader_role_names = [module.identity.api_role.name, module.identity.worker_role.name]
+}

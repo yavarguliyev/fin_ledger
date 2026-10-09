@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 
-import { SecretsLoader } from '../../src/modules/helpers/secrets-loader.helper';
+import { SecretsLoader } from '../../src/modules/loaders/secrets.loader';
 import { SECRETS_CONSTANTS as C } from '../../src/modules/constants/secrets/secrets.constant';
 import { SECRETS_TEST as T } from '../constants/secrets.constant';
 
@@ -18,7 +18,7 @@ const SECRET = { DB_PASSWORD: T.DB_PASSWORD, JWT_PRIVATE_KEY: T.JWT_KEY };
 
 const awsEnv = (): NodeJS.ProcessEnv => ({
   [C.KEYS.SOURCE]: T.AWS,
-  [C.KEYS.ID]: T.SECRET_ID,
+  [C.ID_KEY]: T.SECRET_ID,
   [C.KEYS.ENDPOINT]: T.ENDPOINT,
   [C.KEYS.REGION]: T.REGION,
   [C.KEYS.ACCESS_KEY_ID]: T.KEY,
@@ -33,14 +33,14 @@ describe('SecretsLoader', () => {
   it('does nothing unless the source is aws', async () => {
     const env: NodeJS.ProcessEnv = { [C.KEYS.SOURCE]: T.ENV };
 
-    await expect(SecretsLoader.load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(0);
+    await expect(new SecretsLoader().load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(0);
     expect(send).not.toHaveBeenCalled();
   });
 
   it('copies every secret into the environment, keeping multi-line values intact', async () => {
     const env = awsEnv();
 
-    await expect(SecretsLoader.load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(2);
+    await expect(new SecretsLoader().load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(2);
 
     const [command] = send.mock.calls[0] as [GetSecretValueCommand];
     expect(command.input.SecretId).toBe(T.SECRET_ID);
@@ -50,7 +50,7 @@ describe('SecretsLoader', () => {
   it('never overrides a variable the environment already sets', async () => {
     const env = { ...awsEnv(), DB_PASSWORD: T.EXPLICIT_PASSWORD };
 
-    await expect(SecretsLoader.load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(1);
+    await expect(new SecretsLoader().load({ env, envFiles: [T.MISSING_FILE] })).resolves.toBe(1);
     expect(env.DB_PASSWORD).toBe(T.EXPLICIT_PASSWORD);
   });
 
@@ -65,22 +65,22 @@ describe('SecretsLoader settings', () => {
     const dir = mkdtempSync(join(tmpdir(), T.TEMP_PREFIX));
     const [aws, local] = [join(dir, T.AWS_FILE_NAME), join(dir, T.LOCAL_FILE_NAME)];
     writeFileSync(aws, Object.entries(awsEnv()).map(([key, value]) => `${key}=${value}`).join('\n'));
-    writeFileSync(local, `${C.KEYS.SOURCE}=${T.ENV}\n${C.KEYS.ID}=${T.OTHER_SECRET_ID}`);
+    writeFileSync(local, `${C.KEYS.SOURCE}=${T.ENV}\n${C.ID_KEY}=${T.OTHER_SECRET_ID}`);
     const env: NodeJS.ProcessEnv = {};
 
-    await SecretsLoader.load({ env, envFiles: [aws, local] });
+    await new SecretsLoader().load({ env, envFiles: [aws, local] });
 
     expect(send).toHaveBeenCalledTimes(1);
     expect((send.mock.calls[0] as [GetSecretValueCommand])[0].input.SecretId).toBe(T.SECRET_ID);
-    expect(env[C.KEYS.ID]).toBeUndefined();
+    expect(env[C.ID_KEY]).toBeUndefined();
     expect(env[T.DB_KEY]).toBe(T.DB_PASSWORD);
   });
 
   it('refuses to start without a secret ID or with an unreadable secret', async () => {
     const withoutId: NodeJS.ProcessEnv = { [C.KEYS.SOURCE]: T.AWS };
-    await expect(SecretsLoader.load({ env: withoutId, envFiles: [T.MISSING_FILE] })).rejects.toThrow(C.ERRORS.MISSING_ID);
+    await expect(new SecretsLoader().load({ env: withoutId, envFiles: [T.MISSING_FILE] })).rejects.toThrow(C.ERRORS.MISSING_ID);
 
     send.mockResolvedValue({});
-    await expect(SecretsLoader.load({ env: awsEnv(), envFiles: [T.MISSING_FILE] })).rejects.toThrow(C.ERRORS.EMPTY_SECRET);
+    await expect(new SecretsLoader().load({ env: awsEnv(), envFiles: [T.MISSING_FILE] })).rejects.toThrow(C.ERRORS.EMPTY_SECRET);
   });
 });

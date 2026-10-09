@@ -138,7 +138,7 @@
 <text x="470" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">logs · alarms</text>
 <rect x="558" y="858" width="64" height="64" rx="6" fill="#E7157B"/>
 <g transform="translate(590,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-11 L17,-11 M-17,0 L17,0 M-17,11 L17,11"/><circle cx="-6" cy="-11" r="3.5" fill="#fff"/><circle cx="7" cy="0" r="3.5" fill="#fff"/><circle cx="-1" cy="11" r="3.5" fill="#fff"/></g>
-<circle cx="620" cy="860" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="620" cy="860" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="590" y="944" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SSM</text>
 <text x="590" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">parameters</text>
 <text x="1627" y="850" font-size="14" fill="#5F6B7A" text-anchor="start" font-weight="600">Status</text>

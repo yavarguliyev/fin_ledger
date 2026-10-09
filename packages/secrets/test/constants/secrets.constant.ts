@@ -13,5 +13,11 @@ export const SECRETS_TEST = {
   DB_KEY: 'DB_PASSWORD',
   DB_PASSWORD: 'db-password-from-secret',
   JWT_KEY: '-----BEGIN KEY-----\nline\n-----END KEY-----',
-  EXPLICIT_PASSWORD: 'explicit-from-environment'
+  EXPLICIT_PASSWORD: 'explicit-from-environment',
+  PARAMETERS_PATH: '/ddd-test/core-api',
+  FRONTEND_URL_KEY: 'FRONTEND_URL',
+  FRONTEND_URL: 'https://wallet.example.com',
+  ORIGINS_KEY: 'ALLOWED_ORIGINS',
+  ORIGINS: 'https://wallet.example.com',
+  NEXT_TOKEN: 'page-2'
 } as const;

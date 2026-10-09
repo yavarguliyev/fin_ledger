@@ -122,3 +122,9 @@ variable "alert_emails" {
   type        = list(string)
   default     = []
 }
+
+variable "app_parameters" {
+  description = "Non-secret runtime settings stored in SSM Parameter Store, by environment variable name."
+  type        = map(string)
+  default     = {}
+}

@@ -67,3 +67,8 @@ output "alerts_topic_arn" {
   description = "SNS topic the dead-letter alarms notify."
   value       = module.alerting.topic_arn
 }
+
+output "parameters_path" {
+  description = "SSM path the application reads its non-secret settings from."
+  value       = module.parameters.path
+}

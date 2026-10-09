@@ -43,6 +43,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `sms` | Account SMS preferences (transactional, sender ID, monthly spend limit) and a send-only policy for the worker role | Text messages through SNS (`SMS_TRANSPORT=sns`) |
 | `edge` | Public REST API: `/api/*` proxied to the API (`api_upstream_url`), and `POST /webhooks/{provider}` per known provider integrated straight with an SQS queue and DLQ, its own KMS key, throttling, access logs (90 days), a send-only role for the gateway and a consume policy for the worker | Payment-provider webhooks survive the API being down |
 | `alerting` | KMS-encrypted SNS alerts topic that only CloudWatch may publish to, e-mail subscriptions from `alert_emails`, and one alarm per dead-letter queue (fires on the first message) | On-call hears about failed messages and webhooks |
+| `parameters` | Non-secret settings from `app_parameters` as SSM `String` parameters under `/<prefix>/core-api/`, and a read-only policy for the API and worker roles | Per-environment settings (allowed origins, front-end URL, sender address) without env files |
 | `secrets` | Secrets Manager secret `ddd-local/core-api`, its own KMS key, a read-only policy for the API and worker roles | Passwords, signing and encryption keys, Stripe and Telegram tokens |
 
 ## Security model
@@ -82,6 +83,9 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
   topic when it fires and when it clears. Alarms only read the count, so the messages stay put for inspection and replay;
   an EventBridge Pipe would have consumed them. Add on-call addresses with `alert_emails`; every address must confirm
   the subscription e-mail before it receives alerts.
+- **Parameters.** Non-secret settings live in Terraform (`app_parameters`), so they are visible in the state and in code
+  review; anything secret belongs in Secrets Manager instead. The app reads the whole path at startup when
+  `PARAMETERS_SOURCE=aws`; Secrets Manager values and real environment variables still win.
 - **Scanning.** `aws:scan` fails on any medium, high or critical misconfiguration, and `aws:up` will not apply without it.
 
 **What LocalStack's free plan does not do:** it does not enforce IAM or bucket policies (even with `ENFORCE_IAM=1`),
