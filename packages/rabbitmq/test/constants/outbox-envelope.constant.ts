@@ -4,7 +4,7 @@ export const OUTBOX_ENVELOPE_TEST = {
   CORRELATION_ID: 'req-123',
   OCCURRED_AT: '2026-10-06T10:00:00.123Z',
   KAFKA: 'KAFKA',
-  RABBITMQ: 'RABBITMQ',
+  BROKER: 'BROKER',
   TYPE_HEADER: 'x-event-type',
   VERSION_HEADER: 'x-event-version',
   ID_HEADER: 'x-event-id',

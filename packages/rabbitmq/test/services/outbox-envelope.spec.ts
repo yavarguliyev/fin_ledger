@@ -49,7 +49,7 @@ describe('Outbox relay event envelope', () => {
 
   it('sends the same envelope as RabbitMQ headers, leaving the payload untouched', async () => {
     const { service, rabbit } = relay();
-    await service.publishEvent({ ...event, destination: OutboxDestination.RABBITMQ });
+    await service.publishEvent({ ...event, destination: OutboxDestination.BROKER });
 
     const sent = rabbit.publish.mock.calls[0]?.[0];
     expect(sent?.payload).toEqual({});

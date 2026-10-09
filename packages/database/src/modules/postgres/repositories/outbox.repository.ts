@@ -71,7 +71,7 @@ export class OutboxRepository extends BaseRepository<OutboxBaseFields> {
         aggregateVersion,
         payload,
         status: OutboxStatus.PENDING,
-        destination: destination ?? OutboxDestination.RABBITMQ,
+        destination: destination ?? OutboxDestination.BROKER,
         ...(traceId && { traceId })
       },
       ...(adapter && { adapter })

@@ -69,7 +69,7 @@
 
 ## Event-Driven & Async Architecture
 
-- **Transactional Outbox**: Every domain event is written to `outbox_events` **inside the transaction that owns the state change**, then published by a relay. Each row carries a `destination` (`KAFKA` or `RABBITMQ`), so one relay feeds both brokers with no dual-write window.
+- **Transactional Outbox**: Every domain event is written to `outbox_events` **inside the transaction that owns the state change**, then published by a relay. Each row carries a `destination` (`KAFKA` or `BROKER`, which is RabbitMQ or SNS/SQS per `QUEUE_TRANSPORT`), so one relay feeds both brokers with no dual-write window.
 - **Postgres-Backed Job Queue**: `@common/tasks` claims work with `FOR UPDATE SKIP LOCKED`, retries with exponential backoff, and serialises recurring schedules across instances with `pg_try_advisory_xact_lock`.
 - **Real-Time Analytics Streaming**: Kafka event pipelines stream financial operations and game events for downstream analytics in ClickHouse.
 - **Live Notifications (SSE)**: Server-Sent Events stream instant balance updates, security alerts, and transaction statuses directly to connected clients.
@@ -865,7 +865,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   │   │   ├── app.module.ts      # Root NestJS application module
 │   │   │   └── main.ts            # Application bootstrap & Swagger initialization
 │   │   ├── test/                  # Unit specs and the Testcontainers integration suite
-│   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 049)
+│   │   ├── migrations/            # node-pg-migrate SQL migrations (currently 050)
 │   │   ├── .env.local.example     # Core API env template (local stack)
 │   │   └── .env.aws.example       # Optional AWS overlay template
 │   └── client/                    # Angular 22 Standalone Frontend Application

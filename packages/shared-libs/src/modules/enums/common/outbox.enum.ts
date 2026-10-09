@@ -6,5 +6,5 @@ export enum OutboxStatus {
 
 export enum OutboxDestination {
   KAFKA = 'KAFKA',
-  RABBITMQ = 'RABBITMQ'
+  BROKER = 'BROKER'
 }
