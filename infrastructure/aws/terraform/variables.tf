@@ -86,3 +86,15 @@ variable "messaging_routing_keys" {
   description = "Event types with a consumer; keep in sync with the notification consumers."
   type        = list(string)
 }
+
+variable "sms_monthly_spend_limit" {
+  description = "Account-wide monthly SMS spend limit in USD."
+  type        = number
+  default     = 1
+}
+
+variable "sms_sender_id" {
+  description = "Alphanumeric SMS sender ID (1 to 11 characters)."
+  type        = string
+  default     = "WALLET"
+}

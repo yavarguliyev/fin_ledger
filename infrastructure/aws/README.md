@@ -40,6 +40,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `storage` | S3 bucket, KMS key, bucket policy, lifecycle, access-log bucket, least-privilege access policy for the API role | Profile images and chat files |
 | `email` | SES sender identity and a send-only policy for the worker role | Outgoing e-mail |
 | `messaging` | SNS topic `ddd-local-wallet-events`, one SQS queue and dead-letter queue per event type, filtered subscriptions, its own KMS key; publish, consume and monitor policies | Alternative to RabbitMQ for notifications (`QUEUE_TRANSPORT=sqs`) |
+| `sms` | Account SMS preferences (transactional, sender ID, monthly spend limit) and a send-only policy for the worker role | Text messages through SNS (`SMS_TRANSPORT=sns`) |
 | `secrets` | Secrets Manager secret `ddd-local/core-api`, its own KMS key, a read-only policy for the API and worker roles | Passwords, signing and encryption keys, Stripe and Telegram tokens |
 
 ## Security model
@@ -63,6 +64,9 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
   queue depth. SQS names cannot contain dots, so `notifications.wallet.credited` becomes
   `ddd-local-notifications-wallet-credited`. When a notification consumer is added, add its event type to
   `messaging_routing_keys`.
+- **SMS.** SNS has no resource ARN for phone numbers, so the send policy allows `sns:Publish` on `*` and denies it on
+  every topic ARN: the worker can text phone numbers and nothing else. The account spend limit (USD 1 locally) stops
+  runaway sending. This is the second accepted scanner finding, recorded in `trivyignore.yaml`.
 - **Scanning.** `aws:scan` fails on any medium, high or critical misconfiguration, and `aws:up` will not apply without it.
 
 **What LocalStack's free plan does not do:** it does not enforce IAM or bucket policies (even with `ENFORCE_IAM=1`),
@@ -117,6 +121,8 @@ Production checklist (not emulated locally):
 - [ ] Account-level S3 Block Public Access, CloudTrail, GuardDuty and Security Hub enabled.
 - [ ] Private subnets and VPC endpoints for S3, KMS and Secrets Manager; a WAF in front of the public entry point.
 - [ ] SES on the real domain with DKIM, SPF and DMARC, and bounce and complaint handling.
+- [ ] SMS out of the SNS sandbox, an origination identity registered where the country requires it (10DLC or toll-free in
+      the US, sender ID registration elsewhere), and a monthly spend limit sized to real traffic.
 - [ ] Log retention set on every log group.
 - [ ] Secret values set by an administrator or CI, not from a developer's `.env`; rotation enabled for the database
       passwords.

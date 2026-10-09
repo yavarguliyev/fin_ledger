@@ -3,3 +3,7 @@ misconfigurations:
     paths:
       - "modules/storage/logging.tf"
     statement: "S3 server access logs can only be delivered to a bucket encrypted with SSE-S3 (AES256); SSE-KMS is not supported for the log target."
+  - id: AWS-0057
+    paths:
+      - "modules/sms/main.tf"
+    statement: "SNS SMS publishing to phone numbers has no resource ARN, so sns:Publish needs Resource \"*\"; a Deny on every topic ARN in the same policy limits the role to SMS."

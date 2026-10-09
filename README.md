@@ -80,7 +80,7 @@
 
 ## Hybrid Local / AWS Infrastructure
 
-- **One Switch per Concern**: Storage (MinIO or S3), e-mail (console, SMTP or SES), notifications (RabbitMQ or SNS/SQS) and secrets (`.env.local` or Secrets Manager) each change by configuration alone; `apps/core-api/.env.aws` switches them all at once.
+- **One Switch per Concern**: Storage (MinIO or S3), e-mail (console, SMTP or SES), SMS (console, Twilio or SNS), notifications (RabbitMQ or SNS/SQS) and secrets (`.env.local` or Secrets Manager) each change by configuration alone; `apps/core-api/.env.aws` switches them all at once.
 - **Local AWS as Code**: Terraform creates the AWS resources in LocalStack with least-privilege IAM roles, a KMS key per concern and a security scan that gates every apply.
 
 ## Flexible Storage & Observability
@@ -427,7 +427,7 @@ RLS, row-level security is not protecting anything.
 
 ## 6. Strategy Pattern (Storage, Mail & Messaging)
 - Pluggable storage provider interface supporting **MinIO** (local S3 emulator) and **AWS S3 / Cloudflare R2** via `S3StorageStrategy`.
-- Mail transports (console, SMTP, SES) behind one `MailTransport` interface; message brokers (RabbitMQ, SNS/SQS) behind one `MessageBroker` contract. Callers depend on the interface and never know which one runs.
+- Mail transports (console, SMTP, SES) and SMS transports (console, Twilio, SNS) behind one interface each; message brokers (RabbitMQ, SNS/SQS) behind one `MessageBroker` contract. Callers depend on the interface and never know which one runs.
 
 ## 7. Factory Pattern
 - Dynamic instantiation of NestJS modules, database clients, and messaging connections across environments.
@@ -454,7 +454,7 @@ RLS, row-level security is not protecting anything.
 - Ownership is enforced by PostgreSQL policies, not only by application filters, so a missing predicate fails closed.
 
 ## 13. Template Method (Abstract Base Classes)
-- Shared behaviour lives once in an abstract base and each implementation fills in only its own step: `BaseMailTransport` composes the message and SMTP/SES implement `deliver`; `BaseMessageBroker` owns inbox deduplication, the subscription registry and draining, and RabbitMQ/SQS implement `publish`, `consume` and `cancel`.
+- Shared behaviour lives once in an abstract base and each implementation fills in only its own step: `BaseMailTransport` composes the message and SMTP/SES implement `deliver`; `BaseSmsTransport` does the same for Twilio and SNS; `BaseMessageBroker` owns inbox deduplication, the subscription registry and draining, and RabbitMQ/SQS implement `publish`, `consume` and `cancel`.
 
 ## 14. Adapter Pattern (Cloud Services)
 - AWS services sit behind the application's own interfaces — S3 behind storage, SES behind the mailer, SNS/SQS behind the broker, Secrets Manager behind the secrets loader — so the domain code never imports an AWS SDK.
@@ -762,6 +762,13 @@ SES_ENDPOINT=http://localhost:4566
 SES_ACCESS_KEY_ID=test
 SES_SECRET_ACCESS_KEY=test
 
+# SMS: SNS publish to phone numbers (OTP codes, alerts)
+SMS_TRANSPORT=sns
+SNS_SMS_REGION=us-east-1
+SNS_SMS_ENDPOINT=http://localhost:4566
+SNS_SMS_ACCESS_KEY_ID=test
+SNS_SMS_SECRET_ACCESS_KEY=test
+
 # Notifications: SNS topic and SQS queues instead of RabbitMQ
 QUEUE_TRANSPORT=sqs
 SQS_REGION=us-east-1
@@ -872,7 +879,7 @@ GRAFANA_ADMIN_PASSWORD=admin
 │   ├── secrets/                   # Loads runtime secrets from AWS Secrets Manager before startup
 │   ├── session/                   # RSA JWT authentication, SessionGuard, RolesGuard, RequestScope
 │   ├── shared-libs/               # Shared DTOs, decorators, error filters, lifecycle and types
-│   ├── sms/                       # Transactional SMS provider adapter
+│   ├── sms/                       # Transactional SMS: console, Twilio or AWS SNS
 │   ├── sqs/                       # SNS/SQS broker: publish, long polling, retries, DLQ replay
 │   ├── storage/                   # Flexible S3/MinIO object storage provider
 │   └── tasks/                     # Postgres-backed job queue, scheduler and CPU task runner
@@ -1152,6 +1159,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | :--- | :--- | :--- | :--- |
 | File storage | MinIO | S3 (KMS-encrypted bucket) | `STORAGE_*` |
 | E-mail | console or SMTP | SES | `MAIL_TRANSPORT` |
+| SMS | console or Twilio | SNS (transactional, monthly spend limit) | `SMS_TRANSPORT` |
 | Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
 

@@ -47,3 +47,8 @@ output "messaging_queues" {
   description = "SQS queue per event type."
   value       = module.messaging.queue_names
 }
+
+output "sms_monthly_spend_limit" {
+  description = "Monthly SMS spend limit in USD."
+  value       = module.sms.monthly_spend_limit
+}

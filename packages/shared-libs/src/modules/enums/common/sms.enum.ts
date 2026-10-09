@@ -1,4 +1,5 @@
 export enum SmsTransportKind {
   CONSOLE = 'console',
-  TWILIO = 'twilio'
+  TWILIO = 'twilio',
+  SNS = 'sns'
 }

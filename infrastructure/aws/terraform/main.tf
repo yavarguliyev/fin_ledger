@@ -49,3 +49,12 @@ module "messaging" {
   consumer_role_names      = [module.identity.worker_role.name]
   monitor_role_names       = [module.identity.api_role.name]
 }
+
+module "sms" {
+  source = "./modules/sms"
+
+  name_prefix         = local.name_prefix
+  monthly_spend_limit = var.sms_monthly_spend_limit
+  default_sender_id   = var.sms_sender_id
+  sender_role_names   = [module.identity.worker_role.name]
+}
