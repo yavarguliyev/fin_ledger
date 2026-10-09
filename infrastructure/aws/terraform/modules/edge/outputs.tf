@@ -12,3 +12,8 @@ output "queue_name" {
   description = "Queue the webhooks land in."
   value       = aws_sqs_queue.webhooks.name
 }
+
+output "dead_letter_queue_name" {
+  description = "Dead-letter queue of the webhooks queue."
+  value       = aws_sqs_queue.dead_letter.name
+}

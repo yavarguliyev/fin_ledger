@@ -173,7 +173,7 @@ AWS (locally it is the Docker service from `infrastructure/dev`). The markers ch
 | **`/api/*`** | API Gateway forwards to the API service (ECS Fargate), which uses RDS PostgreSQL, ElastiCache Redis and the KMS-encrypted file bucket. Built and verified on LocalStack. The live SSE stream bypasses the gateway (it buffers and cuts requests at 29 s) and goes through the load balancer. |
 | **`/webhooks/*`** | Payment-provider webhooks land in an SQS queue first, so none is lost while the API is down; the worker verifies the signature and applies them. Built: the queue body is the provider's body byte for byte, the signature header travels as a message attribute, and unknown providers are refused at the gateway. |
 | **Notifications** | The outbox relay publishes to the SNS topic, which fans out to one SQS queue per event type; consumers retry after 5 s, 30 s and 5 min. |
-| **Failures** | After the fourth failure a message moves to its dead-letter queue; an EventBridge Pipe turns that into an SNS alert e-mail. |
+| **Failures** | After the fourth failure a message moves to its dead-letter queue; a CloudWatch alarm on that queue notifies the SNS alerts topic, which e-mails on-call. The message stays in the queue for replay (an EventBridge Pipe would consume it). Built and verified on LocalStack. |
 | **E-mail, audit, analytics** | The relay publishes to Kafka (Amazon MSK); the e-mail consumer sends through SES. |
 | **Platform** | Secrets Manager (read at startup), KMS keys per concern, IAM roles per process, CloudWatch logs and alarms, SSM parameters. |
 
@@ -1164,6 +1164,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | SMS | console or Twilio | SNS (transactional, monthly spend limit) | `SMS_TRANSPORT` |
 | Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
 | Payment-provider webhooks | `POST /api/v1/webhooks/{provider}` on the API | API Gateway `POST /webhooks/{provider}` → SQS → worker | `SQS_WEBHOOK_QUEUE` |
+| Dead-letter alerts | metrics and Grafana | CloudWatch alarm per dead-letter queue → SNS alerts topic → e-mail | `alert_emails` (Terraform) |
 | Public entry point | the API on `localhost:3000` | API Gateway proxying `/api/*` to the API (`terraform output public_rest_api_id`) | `api_upstream_url` (Terraform) |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
 

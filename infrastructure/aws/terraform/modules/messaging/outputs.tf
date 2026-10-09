@@ -12,3 +12,8 @@ output "kms_key_arn" {
   description = "KMS key that encrypts the topic and the queues."
   value       = aws_kms_key.messaging.arn
 }
+
+output "dead_letter_queue_names" {
+  description = "Dead-letter queue per event type."
+  value       = [for queue in aws_sqs_queue.dead_letter : queue.name]
+}

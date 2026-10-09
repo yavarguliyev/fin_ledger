@@ -18,6 +18,7 @@ provider "aws" {
 
     content {
       apigateway     = endpoints.value
+      cloudwatch     = endpoints.value
       iam            = endpoints.value
       kms            = endpoints.value
       logs           = endpoints.value

@@ -116,3 +116,9 @@ variable "api_upstream_url" {
   type        = string
   default     = null
 }
+
+variable "alert_emails" {
+  description = "On-call addresses subscribed to the alerts topic."
+  type        = list(string)
+  default     = []
+}

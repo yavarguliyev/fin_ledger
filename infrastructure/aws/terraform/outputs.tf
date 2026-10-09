@@ -62,3 +62,8 @@ output "webhooks_queue" {
   description = "SQS queue the webhooks land in."
   value       = module.edge.queue_name
 }
+
+output "alerts_topic_arn" {
+  description = "SNS topic the dead-letter alarms notify."
+  value       = module.alerting.topic_arn
+}

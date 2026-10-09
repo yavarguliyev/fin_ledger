@@ -75,3 +75,12 @@ module "edge" {
   consumer_role_names      = [module.identity.worker_role.name]
   consumer_role_arns       = [module.identity.worker_role.arn]
 }
+
+module "alerting" {
+  source = "./modules/alerting"
+
+  name_prefix              = local.name_prefix
+  dead_letter_queue_names  = concat(module.messaging.dead_letter_queue_names, [module.edge.dead_letter_queue_name])
+  alert_emails             = var.alert_emails
+  key_deletion_window_days = var.key_deletion_window_days
+}

@@ -89,13 +89,13 @@
 <text x="1715" y="714" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">Dead-letter</text>
 <text x="1715" y="733" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">queues</text>
 <rect x="1683" y="438" width="64" height="64" rx="6" fill="#E7157B"/>
-<g transform="translate(1715,470)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M-17,-15 L-11,-19 L-5,-15 L-5,-8 L-11,-4 L-17,-8 Z M5,8 L11,4 L17,8 L17,15 L11,19 L5,15 Z"/><path d="M-5,-11 C8,-11 -8,11 5,11"/></g>
-<circle cx="1745" cy="440" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
-<text x="1715" y="524" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">EventBridge</text>
-<text x="1715" y="543" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Pipe</text>
+<g transform="translate(1715,470)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-3" cy="-3" r="12"/><path d="M6,6 L17,17"/><path d="M-11,-1 L-6,-6 L-1,-1 L5,-8"/></g>
+<circle cx="1745" cy="440" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
+<text x="1715" y="524" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">CloudWatch</text>
+<text x="1715" y="543" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">alarm per DLQ</text>
 <rect x="1683" y="258" width="64" height="64" rx="6" fill="#E7157B"/>
 <g transform="translate(1715,290)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-10" cy="0" r="6"/><path d="M-4,0 L14,-12 M-4,0 L16,0 M-4,0 L14,12"/><circle cx="16" cy="-13" r="3" fill="#fff"/><circle cx="18" cy="0" r="3" fill="#fff"/><circle cx="16" cy="13" r="3" fill="#fff"/></g>
-<circle cx="1745" cy="260" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="1745" cy="260" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="1715" y="344" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">SNS</text>
 <text x="1715" y="363" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">alerts</text>
 <g transform="translate(1715,115)"><rect x="-22" y="-15" width="44" height="30" rx="3" fill="#232F3E"/><path d="M-22,-13 L0,3 L22,-13" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></g>
@@ -133,7 +133,7 @@
 <text x="350" y="944" font-size="15" fill="#DD344C" text-anchor="middle" font-weight="400">IAM roles</text>
 <rect x="438" y="858" width="64" height="64" rx="6" fill="#E7157B"/>
 <g transform="translate(470,890)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="-3" cy="-3" r="12"/><path d="M6,6 L17,17"/><path d="M-11,-1 L-6,-6 L-1,-1 L5,-8"/></g>
-<circle cx="500" cy="860" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="500" cy="860" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="470" y="944" font-size="15" fill="#E7157B" text-anchor="middle" font-weight="400">CloudWatch</text>
 <text x="470" y="963" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">logs · alarms</text>
 <rect x="558" y="858" width="64" height="64" rx="6" fill="#E7157B"/>

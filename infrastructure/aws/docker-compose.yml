@@ -8,7 +8,7 @@ services:
       - "127.0.0.1:4566:4566"
     environment:
       LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:?Set LOCALSTACK_AUTH_TOKEN in the repository root .env}
-      SERVICES: s3,kms,secretsmanager,ssm,ses,sns,sqs,apigateway,logs,iam,sts
+      SERVICES: s3,kms,secretsmanager,ssm,ses,sns,sqs,apigateway,logs,cloudwatch,iam,sts
       AWS_DEFAULT_REGION: us-east-1
     volumes:
       - localstack_data:/var/lib/localstack
