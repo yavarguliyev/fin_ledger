@@ -46,6 +46,6 @@ export class SupportPrivacyStore {
   }
 
   applyEvent ({ event }: StreamEventRefDto): void {
-    if (event.type === SUPPORT_PANEL.CONVERSATION_UPDATED_EVENT && event.privacyEnabled !== undefined) this.chat.loadConversations();
+    if (event.type === SUPPORT_PANEL.CONVERSATION_UPDATED_EVENT && (event.privacyEnabled !== undefined || event.themeChanged)) this.chat.loadConversations();
   }
 }

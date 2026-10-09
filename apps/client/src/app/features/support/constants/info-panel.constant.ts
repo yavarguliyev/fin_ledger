@@ -2,7 +2,7 @@ export const INFO_PANEL = {
   TITLE: 'Contact info',
   TITLE_ID: 'info-panel-title',
   STORAGE_ID_PREFIX: 'storage-file-',
-  DELETE_NOTE: 'Deleted files disappear for everyone in this chat.',
+  DELETE_NOTE: 'Files you sent are deleted for everyone. Files you received are removed only for you.',
   OPEN_LABEL: 'Open contact info',
   CLOSE_LABEL: 'Close contact info',
   STORAGE_TITLE: 'Manage storage',
@@ -27,7 +27,7 @@ export const INFO_PANEL = {
   STORAGE_USED: 'used in this chat',
   CUSTOMER_TOTAL: 'Across all of this customer’s chats',
   YOURS_LABEL: 'Yours',
-  THEIRS_LABEL: 'Not yours — only the sender can delete it',
+  THEIRS_LABEL: 'Received — removed only for you',
   SELECT_LABEL: 'Select',
   DELETE_SELECTED: 'Delete selected',
   NO_FILES: 'No files in this chat yet.',
@@ -39,5 +39,8 @@ export const INFO_PANEL = {
   UNSTAR_LABEL: 'Remove star',
   ATTACHMENT_LABEL: 'Attachment',
   DATE_FORMAT: 'mediumDate',
-  THUMB_SIZE: 112
+  THUMB_SIZE: 112,
+  MEDIA_KINDS: ['IMAGE', 'VIDEO'] as readonly string[],
+  IMAGE_KIND: 'IMAGE',
+  SELECTED_LABEL: 'Selected'
 } as const;

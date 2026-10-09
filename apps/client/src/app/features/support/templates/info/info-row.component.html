@@ -1,0 +1,29 @@
+<button
+  type="button"
+  class="group flex min-h-11 w-full items-center gap-3.5 pl-4 text-left transition-colors hover:bg-black/[0.03] focus-visible:bg-black/[0.05] focus-visible:outline-none dark:hover:bg-white/[0.04]"
+  (click)="pressed.emit()"
+>
+  <span class="grid h-5 w-5 shrink-0 place-items-center text-ink-800 dark:text-night-text" aria-hidden="true">
+    <ng-content />
+  </span>
+  <span class="row-line flex min-h-11 flex-1 items-center gap-2 border-chat-line pr-4 dark:border-chat-line-dark">
+    <span
+      class="flex-1 text-[14px]"
+      [class.text-ink-900]="tone() === 'default'"
+      [class.dark:text-white]="tone() === 'default'"
+      [class.text-chat-accent]="tone() === 'accent'"
+      [class.dark:text-chat-accent-dark]="tone() === 'accent'"
+      [class.text-chat-danger]="tone() === 'danger'"
+    >
+      {{ label() }}
+    </span>
+    @if (value() !== null) {
+      <span class="text-[14px] text-ink-500 dark:text-night-muted">{{ value() }}</span>
+    }
+    @if (chevron()) {
+      <svg class="h-4 w-4 shrink-0 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"></path>
+      </svg>
+    }
+  </span>
+</button>

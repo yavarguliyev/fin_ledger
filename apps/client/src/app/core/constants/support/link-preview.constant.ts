@@ -4,5 +4,7 @@ export const LINK_PREVIEW = {
   TRAILING_PUNCTUATION: /[).,!?;:]+$/,
   EMPTY: '',
   TARGET: '_blank',
-  REL: 'noopener noreferrer nofollow'
+  REL: 'noopener noreferrer nofollow',
+  DEBOUNCE_MS: 600,
+  DISMISS_LABEL: 'Remove link preview'
 } as const;

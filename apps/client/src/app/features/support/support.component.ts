@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, effect, inject, untracked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnDestroy, OnInit, computed, effect, inject, untracked } from '@angular/core';
 
 import { ChatPeerService } from './services/chat-peer.service';
 import { NewMessagesService } from './services/new-messages.service';
@@ -6,7 +6,7 @@ import { ChatActionsService } from './services/chat-actions.service';
 import { MessageRevealService } from './services/message-reveal.service';
 import { SupportReactionStore } from '../../core/services/support-reaction.store';
 import { SupportUploadStore } from '../../core/services/support-upload.store';
-import { UploadProgressComponent } from '../../shared/components/upload-progress/upload-progress.component';
+import { PendingUploadComponent } from './components/pending-upload.component';
 import { StalenessHelper } from './helpers/staleness.helper';
 import { ContactListComponent } from './components/contact-list.component';
 import { ConversationListComponent } from './components/conversation-list.component';
@@ -33,16 +33,31 @@ import { SupportPanelStore } from '../../core/services/support-panel.store';
 import { SupportStarStore } from '../../core/services/support-star.store';
 import { SupportPrivacyStore } from '../../core/services/support-privacy.store';
 import { SupportLockStore } from '../../core/services/support-lock.store';
+import { ChatSearchService } from './services/chat-search.service';
 import { ChatNavigationService } from './services/chat-navigation.service';
 import { INFO_PANEL } from './constants/info-panel.constant';
 import { STARRED_LIST } from './constants/starred-list.constant';
+
+import { CHAT_THEME } from './constants/chat-theme.constant';
+import { ChatFilterService } from './services/chat-filter.service';
+import { ChatFilterChipsComponent } from './components/chat-filter-chips.component';
+import { ChatListHelper } from '../../core/helpers/support/chat-list.helper';
+import { MessageSelectionService } from './services/message-selection.service';
+import { SelectionBarComponent } from './components/selection-bar.component';
+import { PinnedBannerComponent } from './components/pinned-banner.component';
+import { PinDurationDialogComponent } from './components/pin-duration-dialog.component';
+import { ProfilePhotoService } from './services/profile-photo.service';
+import { ProfilePhotoViewerComponent } from './components/profile-photo-viewer.component';
+import { PROFILE_PHOTO } from './constants/profile-photo.constant';
+import { SupportAvatarComponent } from './components/support-avatar.component';
+import { MediaViewerComponent } from './components/media-viewer.component';
 
 @Component({
   selector: 'app-support',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent, UploadProgressComponent, InfoPanelComponent, StarredListComponent],
-  providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService, ChatNavigationService],
+  imports: [ContactListComponent, DeleteDialogComponent, ConversationListComponent, MessageComposerComponent, MessageThreadComponent, PresencePanelComponent, ChatScrollDirective, FileDropDirective, ChatSearchComponent, PendingUploadComponent, InfoPanelComponent, StarredListComponent, MediaViewerComponent, ChatFilterChipsComponent, SelectionBarComponent, PinnedBannerComponent, PinDurationDialogComponent, ProfilePhotoViewerComponent, SupportAvatarComponent],
+  providers: [ChatPeerService, NewMessagesService, ChatActionsService, MessageRevealService, ChatNavigationService, ChatSearchService],
   templateUrl: './templates/support.component.html'
 })
 export class SupportComponent implements OnInit, OnDestroy {
@@ -73,6 +88,12 @@ export class SupportComponent implements OnInit, OnDestroy {
   readonly nav = inject(ChatNavigationService);
   readonly panelLabels = INFO_PANEL;
   readonly starredLabels = STARRED_LIST;
+  readonly themes = CHAT_THEME;
+  readonly filters = inject(ChatFilterService);
+  readonly selection = inject(MessageSelectionService);
+  readonly photos = inject(ProfilePhotoService);
+  readonly photoLabels = PROFILE_PHOTO;
+  readonly listed = computed(() => ChatListHelper.arrange({ conversations: this.locks.visible(), filter: this.filters.filter() }));
 
   constructor () {
     effect(() => {

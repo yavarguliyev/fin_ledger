@@ -4,6 +4,8 @@ import { ConversationRowRefDto } from '../dtos/conversation/conversation-row-ref
 import { MessageRowRefDto } from '../dtos/message/message-row-ref.dto';
 import { SupportAccessHelper } from './support-access.helper';
 import { SupportReplyHelper } from './support-reply.helper';
+import { LastMessageFieldsDto } from '../dtos/conversation/last-message-fields.dto';
+import { PreferenceFieldsDto } from '../dtos/conversation/preference-fields.dto';
 
 export class SupportMapperHelper {
   static toMessage ({ row }: MessageRowRefDto): SupportMessageContract {
@@ -38,11 +40,32 @@ export class SupportMapperHelper {
       subject: row.subject,
       status: row.status,
       unreadCount: row.unreadCount ?? 0,
-      lastMessagePreview: row.lastMessagePreview ?? null,
+      ...SupportMapperHelper.lastMessage({ row }),
       privacyEnabled: row.privacyEnabled ?? false,
       locked: row.locked ?? false,
+      ...SupportMapperHelper.preferences({ row }),
       lastMessageAt: row.lastMessageAt,
       createdAt: row.createdAt
+    };
+  }
+
+  private static lastMessage ({ row }: ConversationRowRefDto): LastMessageFieldsDto {
+    return {
+      lastMessagePreview: row.lastMessagePreview ?? null,
+      lastMessageSenderId: row.lastMessageSenderId ?? null,
+      lastMessageKind: row.lastMessageKind ?? null,
+      lastMessageSeen: row.lastMessageSeen ?? false,
+      lastMessageDeleted: row.lastMessageDeleted ?? false
+    };
+  }
+
+  private static preferences ({ row }: ConversationRowRefDto): PreferenceFieldsDto {
+    return {
+      muted: row.muted ?? false,
+      mutedUntil: row.mutedUntil ?? null,
+      pinnedAt: row.pinnedAt ?? null,
+      favourite: row.favourite ?? false,
+      theme: row.theme ?? null
     };
   }
 }

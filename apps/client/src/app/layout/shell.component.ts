@@ -18,6 +18,8 @@ import { SupportTypingStore } from '../core/services/support-typing.store';
 import { SupportOfflineQueueStore } from '../core/services/support-offline-queue.store';
 import { SupportReactionStore } from '../core/services/support-reaction.store';
 import { SupportPrivacyStore } from '../core/services/support-privacy.store';
+import { SupportPinsStore } from '../core/services/support-pins.store';
+import { SidebarStateService } from '../core/services/sidebar-state.service';
 import { CallOverlayComponent } from './call-overlay.component';
 import { CallStateService } from '../core/services/call-state.service';
 import { ConnectivityService } from '../core/services/connectivity.service';
@@ -48,6 +50,8 @@ export class ShellComponent implements OnInit {
   private readonly offlineQueue = inject(SupportOfflineQueueStore);
   private readonly reactions = inject(SupportReactionStore);
   private readonly privacy = inject(SupportPrivacyStore);
+  private readonly pins = inject(SupportPinsStore);
+  readonly sidebar = inject(SidebarStateService);
 
   readonly isDark = computed(() => this.theme.isDark());
   readonly unread = computed(() => this.notif.unreadCount());
@@ -92,6 +96,7 @@ export class ShellComponent implements OnInit {
         this.typing.applyEvent({ event });
         this.reactions.applyEvent({ event });
         this.privacy.applyEvent({ event });
+        this.pins.applyEvent({ event });
       },
       onReconnect: () => {
         this.chat.loadConversations();

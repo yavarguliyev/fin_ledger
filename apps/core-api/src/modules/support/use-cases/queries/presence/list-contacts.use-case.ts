@@ -5,12 +5,14 @@ import { PresenceEntryDto } from '../../../dtos/presence/presence-entry.dto';
 import { PresenceHelper } from '../../../helpers/presence.helper';
 import { PresenceStatusProvider } from '../../../providers/presence-status.provider';
 import { SupportContactRepository } from '../../../repositories/support-contact.repository';
+import { SupportAttachmentProvider } from '../../../providers/support-attachment.provider';
 
 @Injectable()
 export class ListContactsUseCase {
   constructor (
     private readonly contactRepository: SupportContactRepository,
-    private readonly statuses: PresenceStatusProvider
+    private readonly statuses: PresenceStatusProvider,
+    private readonly attachments: SupportAttachmentProvider
   ) {}
 
   async execute ({ actorId }: ListPresenceDto): Promise<PresenceEntryDto[]> {
@@ -18,8 +20,11 @@ export class ListContactsUseCase {
 
     const statuses = await this.statuses.statuses({ userIds: contacts.map(contact => contact.userId) });
 
-    return contacts.map((contact, index) =>
-      PresenceHelper.forContact({ contact, online: statuses[index]?.online ?? false, lastSeenAt: statuses[index]?.lastSeenAt ?? null })
+    return Promise.all(
+      contacts.map(async ({ avatarKey, ...contact }, index) => ({
+        ...PresenceHelper.forContact({ contact, online: statuses[index]?.online ?? false, lastSeenAt: statuses[index]?.lastSeenAt ?? null }),
+        avatarUrl: await this.attachments.avatarUrl({ storageKey: avatarKey ?? null })
+      }))
     );
   }
 }

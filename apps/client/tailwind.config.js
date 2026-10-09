@@ -33,7 +33,15 @@ module.exports = {
           muted: '#94A3B8'
         },
         neon: { cyan: '#00D2FF', purple: '#9D50BB', blue: '#0B5CFF', pink: '#FF2D8B', violet: '#D63DFC', mint: '#4AE9D1', magenta: '#CE1BFB' },
-        chat: { own: '#D9FDD3', 'own-dark': '#005C4B', seen: '#53BDEB', call: '#0B141A' },
+        chat: { own: '#D9FDD3', 'own-dark': '#005C4B', seen: '#53BDEB', call: '#0B141A', sheet: '#F2F2F7', 'sheet-dark': '#0B141A', card: '#FFFFFF', 'card-dark': '#1F2C34', line: '#E4E4E7', 'line-dark': '#2A3942', accent: '#008069', 'accent-dark': '#00A884', danger: '#E5484D' },
+        chattheme: {
+          'default-own': '#D9FDD3', 'default-own-dark': '#005C4B', 'default-wall': '#EFEAE2', 'default-wall-dark': '#0B141A',
+          'ocean-own': '#CFE9FF', 'ocean-own-dark': '#1E4E79', 'ocean-wall': '#E3F0FA', 'ocean-wall-dark': '#0A1A26',
+          'forest-own': '#D4F0D0', 'forest-own-dark': '#2E5E3A', 'forest-wall': '#E6EFE1', 'forest-wall-dark': '#0E1A12',
+          'sunset-own': '#FFE1C7', 'sunset-own-dark': '#7A3E1D', 'sunset-wall': '#FBEDE2', 'sunset-wall-dark': '#1F120B',
+          'lavender-own': '#E6DCFF', 'lavender-own-dark': '#4B3A7A', 'lavender-wall': '#F0EBFA', 'lavender-wall-dark': '#150F22',
+          'rose-own': '#FFD9E2', 'rose-own-dark': '#7A2E45', 'rose-wall': '#FAE8EC', 'rose-wall-dark': '#210D13'
+        },
         stripe: { DEFAULT: '#635BFF', dark: '#5349E4' },
         google: { blue: '#4285F4', green: '#34A853', yellow: '#FBBC05', red: '#EA4335' },
         signal: { on: '#13D162', 'on-light': '#22E36E', 'on-dark': '#0FA94F', off: '#D13613', 'off-light': '#E64A25', 'off-dark': '#A92A0F' },

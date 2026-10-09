@@ -13,6 +13,8 @@ import { MessagesRefDto } from '../../interfaces/support/messages-ref.interface'
 import { SupportConversation } from '../../types/support/support-conversation.type';
 import { SupportMessage } from '../../types/support/support-message.type';
 import { UpsertConversationDto } from '../../interfaces/support/upsert-conversation.interface';
+import { CHAT_ROW_PREVIEW } from '../../constants/support/chat-row-preview.constant';
+import { ConversationSeenDto } from '../../interfaces/support/conversation-seen.interface';
 
 export class SupportChatHelper {
   static failureMessage ({ error, fallback }: FailureMessageDto): string {
@@ -41,8 +43,22 @@ export class SupportChatHelper {
     if (!target) return null;
 
     const unread = message.senderUserId !== myUserId && message.conversationId !== activeId ? target.unreadCount + 1 : target.unreadCount;
-    const bumped = { ...target, unreadCount: unread, lastMessageAt: message.createdAt, lastMessagePreview: message.body ?? message.attachment?.fileName ?? target.lastMessagePreview };
+    const caption = CHAT_ROW_PREVIEW.MEDIA_KINDS.includes(message.kind) ? message.body : (message.body ?? message.attachment?.fileName ?? null);
+    const bumped = {
+      ...target,
+      unreadCount: unread,
+      lastMessageAt: message.createdAt,
+      lastMessagePreview: caption,
+      lastMessageSenderId: message.senderUserId,
+      lastMessageKind: message.kind,
+      lastMessageSeen: false,
+      lastMessageDeleted: false
+    };
     return [bumped, ...current.filter(item => item.id !== target.id)];
+  }
+
+  static markConversationSeen ({ current, conversationId, myUserId }: ConversationSeenDto): SupportConversation[] {
+    return current.map(item => (item.id === conversationId && item.lastMessageSenderId === myUserId ? { ...item, lastMessageSeen: true } : item));
   }
 
   static combine ({ current, page }: CombineMessagesDto): SupportMessage[] {

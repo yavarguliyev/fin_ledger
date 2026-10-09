@@ -6,4 +6,5 @@ export interface StorageFile {
   sizeBytes: number;
   createdAt: string;
   mine: boolean;
+  url: string;
 }

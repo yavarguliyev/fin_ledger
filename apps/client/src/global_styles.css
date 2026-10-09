@@ -344,3 +344,63 @@ html.dark .delete-icon:hover {
   color: theme('colors.white');
   box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
+
+[data-chat-theme] {
+  --chat-own: theme('colors.chattheme.default-own');
+  --chat-wall: theme('colors.chattheme.default-wall');
+}
+
+.dark [data-chat-theme] {
+  --chat-own: theme('colors.chattheme.default-own-dark');
+  --chat-wall: theme('colors.chattheme.default-wall-dark');
+}
+
+[data-chat-theme='OCEAN'] {
+  --chat-own: theme('colors.chattheme.ocean-own');
+  --chat-wall: theme('colors.chattheme.ocean-wall');
+}
+
+.dark [data-chat-theme='OCEAN'] {
+  --chat-own: theme('colors.chattheme.ocean-own-dark');
+  --chat-wall: theme('colors.chattheme.ocean-wall-dark');
+}
+
+[data-chat-theme='FOREST'] {
+  --chat-own: theme('colors.chattheme.forest-own');
+  --chat-wall: theme('colors.chattheme.forest-wall');
+}
+
+.dark [data-chat-theme='FOREST'] {
+  --chat-own: theme('colors.chattheme.forest-own-dark');
+  --chat-wall: theme('colors.chattheme.forest-wall-dark');
+}
+
+[data-chat-theme='SUNSET'] {
+  --chat-own: theme('colors.chattheme.sunset-own');
+  --chat-wall: theme('colors.chattheme.sunset-wall');
+}
+
+.dark [data-chat-theme='SUNSET'] {
+  --chat-own: theme('colors.chattheme.sunset-own-dark');
+  --chat-wall: theme('colors.chattheme.sunset-wall-dark');
+}
+
+[data-chat-theme='LAVENDER'] {
+  --chat-own: theme('colors.chattheme.lavender-own');
+  --chat-wall: theme('colors.chattheme.lavender-wall');
+}
+
+.dark [data-chat-theme='LAVENDER'] {
+  --chat-own: theme('colors.chattheme.lavender-own-dark');
+  --chat-wall: theme('colors.chattheme.lavender-wall-dark');
+}
+
+[data-chat-theme='ROSE'] {
+  --chat-own: theme('colors.chattheme.rose-own');
+  --chat-wall: theme('colors.chattheme.rose-wall');
+}
+
+.dark [data-chat-theme='ROSE'] {
+  --chat-own: theme('colors.chattheme.rose-own-dark');
+  --chat-wall: theme('colors.chattheme.rose-wall-dark');
+}

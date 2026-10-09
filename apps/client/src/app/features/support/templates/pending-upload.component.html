@@ -1,0 +1,76 @@
+<div class="max-w-[340px] p-1" [class]="bubble" [attr.aria-busy]="true">
+  @if (media().length > 0) {
+    <div class="relative overflow-hidden rounded-xl" [class.grid]="shown().length > 1" [class.grid-cols-2]="shown().length > 1" [class.gap-0.5]="shown().length > 1">
+      @for (file of shown(); track file.objectUrl; let last = $last) {
+        <div class="relative overflow-hidden bg-black/20" [class.aspect-square]="shown().length > 1">
+          @if (file.kind === labels.KINDS.VIDEO) {
+            <video class="block h-full max-h-[330px] w-full object-cover" [src]="file.objectUrl" muted playsinline preload="metadata"></video>
+          } @else {
+            <img class="block h-full max-h-[330px] w-full object-cover" [src]="file.objectUrl" [alt]="file.name" />
+          }
+          @if (last && hidden() > 0) {
+            <span class="absolute inset-0 grid place-items-center bg-black/50 text-2xl font-semibold text-white">{{ labels.MORE_PREFIX }}{{ hidden() }}</span>
+          }
+        </div>
+      }
+      <div class="absolute inset-0 grid place-items-center bg-black/35">
+        <button
+          type="button"
+          class="relative grid place-items-center rounded-full bg-black/40 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          [style.width.px]="labels.RING_SIZE"
+          [style.height.px]="labels.RING_SIZE"
+          [attr.aria-label]="labels.CANCEL_LABEL"
+          (click)="cancelled.emit()"
+        >
+          <svg class="absolute inset-0 -rotate-90" [attr.viewBox]="'0 0 ' + labels.RING_SIZE + ' ' + labels.RING_SIZE" aria-hidden="true">
+            <circle [attr.cx]="labels.RING_SIZE / 2" [attr.cy]="labels.RING_SIZE / 2" [attr.r]="labels.RING_RADIUS" fill="none" stroke="currentColor" stroke-opacity="0.3" [attr.stroke-width]="labels.RING_STROKE"></circle>
+            <circle
+              [attr.cx]="labels.RING_SIZE / 2"
+              [attr.cy]="labels.RING_SIZE / 2"
+              [attr.r]="labels.RING_RADIUS"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              [attr.stroke-width]="labels.RING_STROKE"
+              [attr.stroke-dasharray]="circumference"
+              [attr.stroke-dashoffset]="dashOffset()"
+            ></circle>
+          </svg>
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+
+  @for (file of documents(); track file.name) {
+    <div class="mt-0.5 flex items-center gap-3 rounded-xl bg-black/5 px-3 py-2 dark:bg-white/10">
+      <svg class="h-8 w-8 shrink-0 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.41a1 1 0 00-.29-.7l-5.42-5.42A1 1 0 0012.59 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+      </svg>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-sm font-medium">{{ file.name }}</span>
+        <span class="block text-[11px] text-ink-500 dark:text-white/60">{{ size(file.sizeBytes) }} · {{ progress() }}%</span>
+      </span>
+      @if (media().length === 0) {
+        <button type="button" class="grid h-9 w-9 place-items-center rounded-full text-ink-500 hover:bg-black/10" [attr.aria-label]="labels.CANCEL_LABEL" (click)="cancelled.emit()">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      }
+    </div>
+  }
+
+  @if (upload().body) {
+    <p class="whitespace-pre-wrap break-words px-2 pt-1 text-sm">{{ upload().body }}</p>
+  }
+  <p class="flex items-center justify-end gap-1 px-2 pb-0.5 pt-0.5 text-[10px] text-ink-500 dark:text-white/60">
+    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke-width="2"></circle>
+      <path stroke-linecap="round" stroke-width="2" d="M12 7v5l3 2"></path>
+    </svg>
+    {{ labels.SENDING_LABEL }}
+  </p>
+</div>

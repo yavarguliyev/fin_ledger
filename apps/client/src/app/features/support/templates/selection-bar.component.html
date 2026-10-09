@@ -1,0 +1,45 @@
+<div class="flex min-h-16 items-center gap-3 border-t border-ink-200 bg-white px-4 py-2 dark:border-ink-800 dark:bg-night-card">
+  <button
+    type="button"
+    class="grid h-10 w-10 place-items-center rounded-full text-ink-600 hover:bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent dark:text-night-text dark:hover:bg-night-bg"
+    [attr.aria-label]="labels.CANCEL"
+    [title]="labels.CANCEL"
+    (click)="selection.exit()"
+  >
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+  </button>
+  <p class="flex-1 text-[15px] font-medium text-ink-900 dark:text-white" aria-live="polite">{{ selection.count() }} {{ labels.SELECTED }}</p>
+  <button
+    type="button"
+    class="grid h-10 w-10 place-items-center rounded-full text-chat-danger hover:bg-chat-danger/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-danger disabled:cursor-not-allowed disabled:text-ink-300 disabled:hover:bg-transparent"
+    [disabled]="selection.count() === 0"
+    [attr.aria-label]="labels.DELETE"
+    [title]="labels.DELETE"
+    (click)="selection.ask()"
+  >
+    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"></path>
+    </svg>
+  </button>
+</div>
+
+@if (selection.asking()) {
+  <div class="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4" role="dialog" aria-modal="true" [attr.aria-label]="title()" (click)="selection.dismiss()">
+    <div class="w-full max-w-xs rounded-2xl bg-white p-5 shadow-xl dark:bg-night-card" appFocusTrap (click)="$event.stopPropagation()">
+      <h3 class="mb-4 text-sm font-semibold text-ink-900 dark:text-white">{{ title() }}</h3>
+      <div class="flex flex-col items-end gap-1">
+        @if (forEveryone()) {
+          <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-danger-deep hover:bg-danger/10 dark:text-danger-light" (click)="choose(rules.SCOPE_EVERYONE)">
+            {{ rules.DELETE_FOR_EVERYONE }}
+          </button>
+        }
+        <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-danger-deep hover:bg-danger/10 dark:text-danger-light" (click)="choose(rules.SCOPE_ME)">
+          {{ rules.DELETE_FOR_ME }}
+        </button>
+        <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-night-bg" (click)="selection.dismiss()">
+          {{ rules.CANCEL }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

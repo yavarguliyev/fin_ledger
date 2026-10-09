@@ -1,0 +1,39 @@
+@if (current(); as message) {
+  <div class="flex items-center gap-2 border-b border-ink-200 bg-white/95 px-3 py-1.5 backdrop-blur dark:border-ink-800 dark:bg-night-card/95">
+    @if (pins.pins().length > 1) {
+      <span class="flex h-8 flex-col justify-center gap-0.5" aria-hidden="true">
+        @for (pin of pins.pins(); track pin.id; let i = $index) {
+          <span class="w-0.5 flex-1 rounded-full" [class]="i === index() ? 'bg-chat-accent dark:bg-chat-accent-dark' : 'bg-ink-300 dark:bg-ink-600'"></span>
+        }
+      </span>
+    }
+    <button
+      type="button"
+      class="flex min-h-10 min-w-0 flex-1 items-center gap-2 rounded-md px-1 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent dark:hover:bg-night-bg"
+      [attr.aria-label]="labels.BANNER_LABEL + ': ' + text(message)"
+      (click)="open(message)"
+    >
+      <svg class="h-4 w-4 shrink-0 rotate-45 text-ink-400" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 4h6l-1 5 3 3v2h-4v6l-1 1-1-1v-6H7v-2l3-3-1-5z"></path>
+      </svg>
+      <span class="min-w-0 flex-1">
+        <span class="block text-[12px] font-medium text-chat-accent dark:text-chat-accent-dark">
+          {{ labels.BANNER_LABEL }}
+          @if (pins.pins().length > 1) {
+            <span class="text-ink-400">{{ index() + 1 }}{{ labels.COUNTER_SEPARATOR }}{{ pins.pins().length }}</span>
+          }
+        </span>
+        <span class="block truncate text-[13px] text-ink-700 dark:text-night-text">{{ text(message) }}</span>
+      </span>
+    </button>
+    <button
+      type="button"
+      class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-400 hover:bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent dark:hover:bg-night-bg"
+      [attr.aria-label]="labels.UNPIN_ACTION"
+      [title]="labels.UNPIN_ACTION"
+      (click)="pins.unpin({ messageId: message.id })"
+    >
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+    </button>
+  </div>
+}

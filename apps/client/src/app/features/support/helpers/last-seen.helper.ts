@@ -1,21 +1,24 @@
 import { LastSeenRefDto } from '../interfaces/last-seen-ref.interface';
-import { SUPPORT_VIEW } from '../constants/support-view.constant';
+import { LAST_SEEN } from '../constants/last-seen.constant';
 
 export class LastSeenHelper {
   static label ({ iso }: LastSeenRefDto): string {
-    if (!iso) return SUPPORT_VIEW.OFFLINE_LABEL;
+    if (!iso) return LAST_SEEN.OFFLINE;
 
     const seen = new Date(iso);
-    const minutes = Math.floor((Date.now() - seen.getTime()) / SUPPORT_VIEW.MINUTE_MS);
+    const time = seen.toLocaleTimeString(undefined, LAST_SEEN.TIME_FORMAT);
+    return [LAST_SEEN.PREFIX, LastSeenHelper.day({ iso }), LAST_SEEN.AT, time].join(LAST_SEEN.SEPARATOR);
+  }
 
-    if (minutes < SUPPORT_VIEW.JUST_NOW_MINUTES) return SUPPORT_VIEW.JUST_NOW;
-    if (minutes < SUPPORT_VIEW.MINUTES_PER_HOUR) return `${SUPPORT_VIEW.LAST_SEEN_PREFIX} ${minutes}m ago`;
+  private static day ({ iso }: LastSeenRefDto): string {
+    const seen = new Date(iso ?? Date.now());
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
 
-    const isToday = seen.toDateString() === new Date().toDateString();
-    const when = isToday
-      ? seen.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-      : seen.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
-
-    return `${SUPPORT_VIEW.LAST_SEEN_PREFIX} ${isToday ? SUPPORT_VIEW.TODAY_AT : ''}${when}`.replace(/\s+/g, ' ');
+    if (seen.toDateString() === today.toDateString()) return LAST_SEEN.TODAY;
+    if (seen.toDateString() === yesterday.toDateString()) return LAST_SEEN.YESTERDAY;
+    const format = seen.getFullYear() === today.getFullYear() ? LAST_SEEN.DATE_FORMAT : LAST_SEEN.DATE_WITH_YEAR_FORMAT;
+    return seen.toLocaleDateString(undefined, format);
   }
 }

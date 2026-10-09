@@ -64,6 +64,7 @@ describe('Support conversation info panel', () => {
   it('deletes only the caller’s own files and updates the totals', async () => {
     const before = await panel<PanelStorage>({ token: session.customer, tab: T.STORAGE });
     expect(before.body.customerTotalBytes).toBeUndefined();
+    expect(before.body.files.every(file => T.SIGNED_URL.test(file.url) && file.storageKey === undefined)).toBe(true);
     expect((await panel<PanelStorage>({ token: session.staff, tab: T.STORAGE })).body.customerTotalBytes).toBeGreaterThan(0);
 
     const all = before.body.files.map(file => file.messageId);

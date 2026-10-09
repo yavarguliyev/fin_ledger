@@ -7,4 +7,5 @@ export interface ContactCard {
   memberSince?: string;
   accountStatus?: string;
   kycStatus?: string;
+  avatarUrl?: string | null;
 }

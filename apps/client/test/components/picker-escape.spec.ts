@@ -3,9 +3,12 @@ import { ElementRef, Injector, runInInjectionContext } from '@angular/core';
 import { CountrySelectComponent } from '../../src/app/shared/components/country-select/country-select.component';
 import { DatePickerComponent } from '../../src/app/shared/components/date-picker/date-picker.component';
 import { MessageThreadComponent } from '../../src/app/features/support/components/message-thread.component';
+import { MediaViewerService } from '../../src/app/features/support/services/media-viewer.service';
+import { MessageSelectionService } from '../../src/app/features/support/services/message-selection.service';
+import { SupportPinsStore } from '../../src/app/core/services/support-pins.store';
 import { PICKER_ESCAPE_TEST as T } from '../constants/picker-escape.constant';
 
-const injector = (): Injector => Injector.create({ providers: [{ provide: ElementRef, useValue: { nativeElement: { contains: (): boolean => false } } }] });
+const injector = (): Injector => Injector.create({ providers: [{ provide: ElementRef, useValue: { nativeElement: { contains: (): boolean => false } } }, { provide: MediaViewerService, useValue: {} }, { provide: MessageSelectionService, useValue: {} }, { provide: SupportPinsStore, useValue: {} }] });
 
 const create = (): DatePickerComponent => runInInjectionContext(injector(), () => new DatePickerComponent());
 

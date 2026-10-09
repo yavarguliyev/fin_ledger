@@ -36,11 +36,13 @@ describe('Support message edit window and deletion', () => {
     expect((await SupportTestHelper.thread({ token: staff, conversationId })).body.some(({ id }) => id === messageId)).toBe(true);
   });
 
-  it('refuses to let anyone, staff included, delete a message they did not send', async () => {
+  it('refuses to delete for everyone a message someone else sent, but lets them hide it for themselves', async () => {
     const messageId = (await SupportTestHelper.send({ token: customer, conversationId, body: SUPPORT_DELETE_TEST.KEEP_TEXT })).body.id;
 
     expect((await A.remove({ token: staff, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.EVERYONE })).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
-    expect((await A.remove({ token: staff, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.ME })).status).toBe(SUPPORT_DELETE_TEST.FORBIDDEN);
+    expect((await A.remove({ token: staff, conversationId, messageId: messageId, scope: SUPPORT_DELETE_TEST.ME })).status).toBe(SUPPORT_DELETE_TEST.OK);
+    expect((await SupportTestHelper.thread({ token: staff, conversationId })).body.some(({ id }) => id === messageId)).toBe(false);
+    expect((await SupportTestHelper.thread({ token: customer, conversationId })).body.some(({ id }) => id === messageId)).toBe(true);
   });
 
   it('replaces a message deleted for everyone with an empty tombstone both sides see', async () => {

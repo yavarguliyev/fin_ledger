@@ -1,4 +1,8 @@
 export const SUPPORT_PANEL = {
+  LINK_PATTERN: /https?:\/\//i,
+  SIGNATURE_JOIN: ':',
+  SIGNATURE_SEPARATOR: '|',
+  REFRESH_DEBOUNCE_MS: 400,
   CONTACT_PATH: '/contact',
   STORAGE_PATH: '/storage',
   STARRED_PATH: '/starred',

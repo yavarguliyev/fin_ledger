@@ -1,0 +1,24 @@
+@if (stars.starred().length === 0) {
+  <p class="py-16 text-center text-[15px] text-ink-500 dark:text-night-muted">{{ labels.EMPTY.starred }}</p>
+} @else {
+  <div class="mt-2" [class]="card">
+    @for (item of stars.starred(); track item.messageId; let first = $first) {
+      <div class="flex items-center gap-1 pl-4" [class.border-t]="!first" [class.border-chat-line]="!first" [class.dark:border-chat-line-dark]="!first">
+        <button type="button" class="min-w-0 flex-1 py-3 text-left" (click)="jump.emit(item.messageId)">
+          <span class="block truncate text-[15px] text-ink-900 dark:text-white">{{ item.body ?? item.fileName ?? labels.ATTACHMENT_LABEL }}</span>
+          <span class="block text-[13px] text-ink-500 dark:text-night-muted">{{ item.createdAt | date: labels.DATE_FORMAT }}</span>
+        </button>
+        <button
+          type="button"
+          class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-warning-dark hover:bg-black/[0.04]"
+          [attr.aria-label]="labels.UNSTAR_LABEL"
+          (click)="stars.toggle({ messageId: item.messageId })"
+        >
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"></path>
+          </svg>
+        </button>
+      </div>
+    }
+  </div>
+}

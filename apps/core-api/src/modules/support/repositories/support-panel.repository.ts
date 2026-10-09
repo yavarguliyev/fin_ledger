@@ -8,7 +8,7 @@ import { OwnFilesRefDto } from '../dtos/input/own-files-ref.dto';
 import { PanelFilesFilterDto } from '../dtos/input/panel-files-filter.dto';
 import { PanelPageFilterDto } from '../dtos/input/panel-page-filter.dto';
 import { StarredFilterDto } from '../dtos/input/starred-filter.dto';
-import { StorageFileDto } from '../dtos/message/storage-file.dto';
+import { StorageFileRowDto } from '../dtos/message/storage-file-row.dto';
 import { StorageTotalsDto } from '../dtos/message/storage-totals.dto';
 import { SUPPORT_MESSAGE_COLUMNS } from '../constants/chat/support-message-columns.constant';
 import { SUPPORT_PANEL } from '../constants/chat/support-panel.constant';
@@ -49,8 +49,8 @@ export class SupportPanelRepository extends BaseExtendedRepository<SupportMessag
     return result.rows[0] ?? null;
   }
 
-  async storageFiles ({ conversationId, userId }: StarredFilterDto): Promise<StorageFileDto[]> {
-    const result = await this.service.getWriteConnection().query<StorageFileDto>({
+  async storageFiles ({ conversationId, userId }: StarredFilterDto): Promise<StorageFileRowDto[]> {
+    const result = await this.service.getWriteConnection().query<StorageFileRowDto>({
       sql: SUPPORT_PANEL_SQL.STORAGE_FILES,
       params: [conversationId, userId, SUPPORT_PANEL.STORAGE_LIST_LIMIT]
     });

@@ -12,6 +12,9 @@ import { GameEventsModule } from './game-events/game-events.module';
 import { LedgerModule } from './ledger/ledger.module';
 import { NotificationModule } from './notification/notification.module';
 import { SupportModule } from './support/support.module';
+import { SupportPreferencesModule } from './support-preferences/support-preferences.module';
+import { SupportHistoryModule } from './support-history/support-history.module';
+import { SupportPinsModule } from './support-pins/support-pins.module';
 import { PaymentModule } from './payment/payment.module';
 import { PaymentMethodModule } from './payment-methods/payment-method.module';
 import { WalletModule } from './wallet/wallet.module';
@@ -50,6 +53,9 @@ import { TASK_RUNTIME } from '../shared/constants/modules/task-runtime.constant'
     LedgerModule,
     NotificationModule,
     SupportModule,
+    SupportPreferencesModule,
+    SupportHistoryModule,
+    SupportPinsModule,
     PaymentModule,
     PaymentMethodModule,
     WalletModule,

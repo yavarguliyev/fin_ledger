@@ -5,7 +5,9 @@ export const SupportContactSchema = z.object({
 
   displayName: z.string({ message: 'Display name must be a string' }),
 
-  role: z.string({ message: 'Role must be a string' })
+  role: z.string({ message: 'Role must be a string' }),
+
+  avatarKey: z.string({ message: 'Avatar key must be a string' }).nullable().optional()
 });
 
 export type SupportContactDto = z.infer<typeof SupportContactSchema>;

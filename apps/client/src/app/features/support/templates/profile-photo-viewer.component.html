@@ -1,0 +1,28 @@
+@if (photos.photo(); as photo) {
+  <div
+    class="fixed inset-0 z-[60] flex flex-col bg-chat-sheet-dark text-white"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="labels.TITLE_ID"
+    appFocusTrap
+    (click)="photos.close()"
+  >
+    <header class="flex h-16 shrink-0 items-center gap-3 px-4">
+      <p [id]="labels.TITLE_ID" class="min-w-0 flex-1 truncate text-[15px] font-medium">{{ photo.name }}</p>
+      <button
+        type="button"
+        class="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        [attr.aria-label]="labels.CLOSE_LABEL"
+        [title]="labels.CLOSE_LABEL"
+        (click)="photos.close()"
+      >
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </header>
+    <div class="flex min-h-0 flex-1 items-center justify-center p-6">
+      <div class="relative aspect-square w-full max-w-[min(80vh,640px)]" (click)="$event.stopPropagation()">
+        <img class="object-contain" [ngSrc]="photo.url" fill priority [alt]="photo.name" />
+      </div>
+    </div>
+  </div>
+}

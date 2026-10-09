@@ -31,7 +31,11 @@ export const SupportStreamEventSchema = z.object({
 
   reactions: z.array(ReactionSchema).optional(),
 
-  privacyEnabled: z.boolean({ message: 'Privacy enabled must be a boolean' }).optional()
+  privacyEnabled: z.boolean({ message: 'Privacy enabled must be a boolean' }).optional(),
+
+  pinsChanged: z.boolean({ message: 'Pins changed must be a boolean' }).optional(),
+
+  themeChanged: z.boolean({ message: 'Theme changed must be a boolean' }).optional()
 });
 
 export type SupportStreamEventDto = z.infer<typeof SupportStreamEventSchema>;

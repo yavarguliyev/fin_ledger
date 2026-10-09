@@ -5,6 +5,9 @@ import { AttachmentSignatureHelper } from '../helpers/attachment-signature.helpe
 import { MessageRowRefDto } from '../dtos/message/message-row-ref.dto';
 import { MessageRowsRefDto } from '../dtos/attachment/message-rows-ref.dto';
 import { StorageKeyRefDto } from '../dtos/attachment/storage-key-ref.dto';
+import { AvatarKeyRefDto } from '../dtos/attachment/avatar-key-ref.dto';
+import { ConversationAvatarsDto } from '../dtos/conversation/conversation-avatars.dto';
+import { ConversationRowRefDto } from '../dtos/conversation/conversation-row-ref.dto';
 import { StoreAttachmentDto } from '../dtos/attachment/store-attachment.dto';
 import { StoredAttachmentDto } from '../dtos/attachment/stored-attachment.dto';
 import { SUPPORT_ATTACHMENT } from '../constants/attachment/support-attachment.constant';
@@ -42,11 +45,7 @@ export class SupportAttachmentProvider {
     const message = SupportMapperHelper.toMessage({ row });
     if (!row.storageKey || row.deletedAt) return message;
 
-    const url = await this.storage.getDownloadUrl({
-      key: row.storageKey,
-      expiresIn: SUPPORT_ATTACHMENT.URL_TTL_SECONDS,
-      contentDisposition: { disposition: CONTENT_DISPOSITION.INLINE }
-    });
+    const url = await this.inlineUrl({ storageKey: row.storageKey });
     const attachment = {
       url,
       fileName: row.fileName,
@@ -68,6 +67,26 @@ export class SupportAttachmentProvider {
       expiresIn: SUPPORT_PRIVACY.DOWNLOAD_TTL_SECONDS,
       contentDisposition: { disposition: CONTENT_DISPOSITION.ATTACHMENT, fileName }
     });
+  }
+
+  async inlineUrl ({ storageKey }: StorageKeyRefDto): Promise<string> {
+    return this.storage.getDownloadUrl({
+      key: storageKey,
+      expiresIn: SUPPORT_ATTACHMENT.URL_TTL_SECONDS,
+      contentDisposition: { disposition: CONTENT_DISPOSITION.INLINE }
+    });
+  }
+
+  async avatarUrl ({ storageKey }: AvatarKeyRefDto): Promise<string | null> {
+    return storageKey ? this.inlineUrl({ storageKey }) : null;
+  }
+
+  async conversationAvatars ({ row }: ConversationRowRefDto): Promise<ConversationAvatarsDto> {
+    const [customerAvatarUrl, assignedStaffAvatarUrl] = await Promise.all([
+      this.avatarUrl({ storageKey: row.customerAvatarKey }),
+      this.avatarUrl({ storageKey: row.assignedStaffAvatarKey })
+    ]);
+    return { customerAvatarUrl, assignedStaffAvatarUrl };
   }
 
   async remove ({ storageKey }: StorageKeyRefDto): Promise<void> {

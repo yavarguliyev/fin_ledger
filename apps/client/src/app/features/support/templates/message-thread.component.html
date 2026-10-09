@@ -11,6 +11,7 @@
     </div>
 
     @for (message of group.messages; track message.id) {
+      @if (!albums().members.has(message.id)) {
       @if (message.id === markerId()) {
         <div class="my-3 flex items-center gap-3" role="separator">
           <span class="h-px flex-1 bg-primary/30"></span>
@@ -31,7 +32,22 @@
           </span>
         </div>
       } @else {
-        <div class="group flex items-end gap-2" [id]="view.MESSAGE_ID_PREFIX + message.id" [class.flex-row-reverse]="isOwn(message)">
+        <div class="relative flex items-center gap-2 rounded-lg transition-colors" [class.bg-chat-accent/10]="selection.has(message.id)">
+          @if (selection.active() && selection.selectable(message)) {
+            <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border-2" [class]="selection.has(message.id) ? 'border-chat-accent bg-chat-accent text-white' : 'border-ink-300 dark:border-ink-600'" aria-hidden="true">
+              @if (selection.has(message.id)) {
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              }
+            </span>
+            <button
+              type="button"
+              class="absolute inset-0 z-10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent"
+              [attr.aria-label]="selection.labels.TOGGLE"
+              [attr.aria-pressed]="selection.has(message.id)"
+              (click)="selection.toggle({ messageIds: selection.idsOf(message) })"
+            ></button>
+          }
+        <div class="group flex min-w-0 flex-1 items-end gap-2" [id]="view.MESSAGE_ID_PREFIX + message.id" [class.flex-row-reverse]="isOwn(message)">
           <div class="max-w-[75%]" [class]="bubbleClass(message)">
             @if (message.deletedAt) {
               <p class="flex items-center gap-1.5 text-sm italic text-ink-400 dark:text-white/50">
@@ -56,7 +72,9 @@
               </button>
             }
 
-            @if (message.attachment; as file) {
+            @if (albums().firsts.get(message.id); as album) {
+              <app-media-album [messages]="album" (opened)="openMedia({ messageId: $event })" />
+            } @else if (message.attachment; as file) {
               @if (kindOf(message) === attachment.VOICE_KIND) {
                 <app-voice-note [url]="file.url" [durationSeconds]="file.durationSeconds" />
               } @else if (kindOf(message) === attachment.VIDEO_KIND && file.durationSeconds) {
@@ -70,9 +88,14 @@
                   [src]="file.url"
                 ></video>
               } @else if (isImage(message)) {
-                <a [href]="file.url" target="_blank" rel="noopener" class="relative block h-64 -mx-1.5 -mt-0.5 mb-1">
-                  <img [ngSrc]="file.url" fill [alt]="file.fileName ?? ''" class="rounded-xl object-cover" />
-                </a>
+                <button
+                  type="button"
+                  class="relative -mx-1.5 -mt-0.5 mb-1 block aspect-[4/3] max-h-[440px] w-[min(330px,70vw)] cursor-zoom-in overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                  [attr.aria-label]="file.fileName ?? ''"
+                  (click)="openMedia({ messageId: message.id })"
+                >
+                  <img [ngSrc]="file.url" fill appNaturalAspect [alt]="file.fileName ?? ''" class="object-cover" />
+                </button>
               } @else {
                 <a
                   [href]="file.url"
@@ -224,6 +247,31 @@
               <button
                 type="button"
                 class="grid place-items-center w-7 h-7 rounded-full hover:bg-ink-100 dark:hover:bg-night-card"
+                [class]="pins.pinnedIds().has(message.id) ? 'text-chat-accent' : 'text-ink-400'"
+                [title]="pins.pinnedIds().has(message.id) ? pins.labels.UNPIN_ACTION : pins.labels.PIN_ACTION"
+                [attr.aria-label]="pins.pinnedIds().has(message.id) ? pins.labels.UNPIN_ACTION : pins.labels.PIN_ACTION"
+                [attr.aria-pressed]="pins.pinnedIds().has(message.id)"
+                (click)="pins.pinnedIds().has(message.id) ? pins.unpin({ messageId: message.id }) : pins.choose({ messageId: message.id })"
+              >
+                <svg class="w-4 h-4 rotate-45" [attr.fill]="pins.pinnedIds().has(message.id) ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linejoin="round" stroke-width="2" d="M9 4h6l-1 5 3 3v2h-4v6l-1 1-1-1v-6H7v-2l3-3-1-5z"></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 dark:hover:bg-night-card"
+                [title]="selection.labels.SELECT_ACTION"
+                [attr.aria-label]="selection.labels.SELECT_ACTION"
+                (click)="selection.start({ messageIds: selection.idsOf(message) })"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="4" y="4" width="16" height="16" rx="4" stroke-width="2"></rect>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 12l2.5 2.5 4.5-5"></path>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="grid place-items-center w-7 h-7 rounded-full hover:bg-ink-100 dark:hover:bg-night-card"
                 [class]="starredIds().has(message.id) ? 'text-warning-dark' : 'text-ink-400'"
                 [title]="starredIds().has(message.id) ? starLabels.UNSTAR_ACTION : starLabels.STAR_ACTION"
                 [attr.aria-label]="starredIds().has(message.id) ? starLabels.UNSTAR_ACTION : starLabels.STAR_ACTION"
@@ -266,13 +314,13 @@
                 </svg>
               </button>
             }
-            @if (isOwn(message)) {
+            @if (selection.selectable(message)) {
               <button
                 type="button"
                 class="grid place-items-center w-7 h-7 rounded-full text-ink-400 hover:bg-ink-100 hover:text-danger dark:hover:bg-night-card"
                 [title]="rules.DELETE_ACTION"
                 [attr.aria-label]="rules.DELETE_ACTION"
-                (click)="deleteRequested.emit(message)"
+                (click)="selection.isAlbum(message) ? selection.remove({ messageIds: selection.idsOf(message) }) : deleteRequested.emit(message)"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -286,6 +334,8 @@
             }
           </div>
         </div>
+        </div>
+      }
       }
     }
   }

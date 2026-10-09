@@ -17,9 +17,10 @@ export class SupportLockStore {
   private readonly openSignal = signal<ReadonlySet<string>>(new Set());
   private readonly showLockedSignal = signal(false);
 
-  readonly showLocked = this.showLockedSignal.asReadonly();
   readonly locked = computed(() => this.chat.conversations().filter(item => item.locked));
   readonly unlocked = computed(() => this.chat.conversations().filter(item => !item.locked));
+  readonly showLocked = computed(() => this.showLockedSignal() && this.locked().length > 0);
+  readonly visible = computed(() => (this.showLocked() ? this.locked() : this.unlocked()));
   readonly activeLocked = computed(() => this.chat.activeConversation()?.locked ?? false);
 
   isBlocked ({ conversationId }: ConversationRefDto): boolean {

@@ -9,7 +9,6 @@ import { ChatSearchService } from '../services/chat-search.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [DatePipe],
-  providers: [ChatSearchService],
   templateUrl: '../templates/chat-search.component.html',
   host: { class: 'relative', '(document:keydown)': 'onKey($event)', '(document:click)': 'onDocumentClick($event)' }
 })

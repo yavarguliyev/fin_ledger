@@ -15,7 +15,7 @@ export class SupportStreamHelper {
   }
 
   static toPayload ({ event }: SupportStreamEventRefDto): SupportStreamPayloadDto {
-    const { type, conversationId, message, readerUserId, typingUserId, messageId, reactions, presence, call, privacyEnabled } = event;
+    const { type, conversationId, message, readerUserId, typingUserId, messageId, reactions, presence, call, privacyEnabled, pinsChanged, themeChanged } = event;
 
     return {
       type,
@@ -27,7 +27,9 @@ export class SupportStreamHelper {
       ...(reactions && { reactions }),
       ...(presence && { presence }),
       ...(call && { call }),
-      ...(privacyEnabled !== undefined && { privacyEnabled })
+      ...(privacyEnabled !== undefined && { privacyEnabled }),
+      ...(pinsChanged && { pinsChanged }),
+      ...(themeChanged && { themeChanged })
     };
   }
 }

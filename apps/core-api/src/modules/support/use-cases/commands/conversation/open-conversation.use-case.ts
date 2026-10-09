@@ -5,6 +5,7 @@ import { OpenConversationDto } from '../../../dtos/input/open-conversation.dto';
 import { SUPPORT } from '../../../constants/chat/support.constant';
 import { SupportAccessHelper } from '../../../helpers/support-access.helper';
 import { SupportMapperHelper } from '../../../helpers/support-mapper.helper';
+import { SupportAttachmentProvider } from '../../../providers/support-attachment.provider';
 import { SupportContactRepository } from '../../../repositories/support-contact.repository';
 import { SupportConversationRepository } from '../../../repositories/support-conversation.repository';
 
@@ -12,7 +13,8 @@ import { SupportConversationRepository } from '../../../repositories/support-con
 export class OpenConversationUseCase {
   constructor (
     private readonly conversationRepository: SupportConversationRepository,
-    private readonly contactRepository: SupportContactRepository
+    private readonly contactRepository: SupportContactRepository,
+    private readonly attachments: SupportAttachmentProvider
   ) {}
 
   async execute (dto: OpenConversationDto): Promise<SupportConversationContract> {
@@ -27,6 +29,6 @@ export class OpenConversationUseCase {
     const conversation = await this.conversationRepository.findById({ id: opened.id });
     if (!conversation) throw new NotFoundException(SUPPORT.NOT_FOUND_MESSAGE);
 
-    return SupportMapperHelper.toConversation({ row: conversation });
+    return { ...SupportMapperHelper.toConversation({ row: conversation }), assignedStaffAvatarUrl: await this.attachments.avatarUrl({ storageKey: staff.avatarKey ?? null }) };
   }
 }

@@ -1,0 +1,42 @@
+@if (conversation(); as current) {
+  <div class="mt-5" [class]="card">
+    <app-info-row [label]="labels.ROW" [value]="muteValue()" (pressed)="nav.go({ page: pages.MUTE })">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 00-4-5.7V5a2 2 0 10-4 0v.3C7.7 6.1 6 8.4 6 11v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9"></path>
+      </svg>
+    </app-info-row>
+    <app-info-row [label]="labels.THEME_ROW" [value]="themeValue()" (pressed)="nav.go({ page: pages.THEME })">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M12 21a9 9 0 110-18c4.97 0 9 3.58 9 8 0 2.5-2 4-4.5 4H15a2 2 0 00-1.5 3.3A1.6 1.6 0 0112 21z"></path>
+        <circle cx="7.5" cy="11" r="1.2" fill="currentColor"></circle>
+        <circle cx="10.5" cy="7.5" r="1.2" fill="currentColor"></circle>
+        <circle cx="15" cy="7.5" r="1.2" fill="currentColor"></circle>
+      </svg>
+    </app-info-row>
+  </div>
+
+  <div class="mt-5" [class]="card">
+    <app-info-row
+      [label]="current.favourite ? labels.REMOVE_FAVOURITE : labels.ADD_FAVOURITE"
+      [chevron]="false"
+      (pressed)="preferences.favourite({ favourite: !current.favourite })"
+    >
+      <svg class="h-5 w-5" [attr.fill]="current.favourite ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linejoin="round" stroke-width="1.7" d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"></path>
+      </svg>
+    </app-info-row>
+    <app-info-row [label]="current.pinnedAt ? labels.UNPIN : labels.PIN" [chevron]="false" (pressed)="preferences.pin({ pinned: !current.pinnedAt })">
+      <svg class="h-5 w-5" [attr.fill]="current.pinnedAt ? 'currentColor' : 'none'" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M9 4h6l-1 5 3 3v2H7v-2l3-3-1-5zM12 14v6"></path>
+      </svg>
+    </app-info-row>
+  </div>
+
+  <div class="mt-5" [class]="card">
+    <app-info-row [label]="clearLabels.ROW" tone="danger" [chevron]="false" (pressed)="nav.go({ page: pages.CLEAR })">
+      <svg class="h-5 w-5 text-chat-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"></path>
+      </svg>
+    </app-info-row>
+  </div>
+}

@@ -1,0 +1,84 @@
+@switch (panel.tab()) {
+  @case (tabs.MEDIA) {
+    @for (group of mediaGroups(); track group.label) {
+      <h4 class="px-1 pb-2 pt-4 text-[13px] font-semibold text-ink-700 dark:text-night-text">{{ group.label }}</h4>
+      <div class="grid grid-cols-[repeat(auto-fill,60px)] gap-1.5">
+        @for (item of group.items; track item.id) {
+          <button
+            type="button"
+            class="relative aspect-square overflow-hidden rounded-md bg-ink-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent dark:bg-chat-card-dark"
+            [attr.aria-label]="item.attachment?.fileName ?? labels.VIDEOS"
+            (click)="openMedia({ messageId: item.id })"
+          >
+            @if (isImage(item)) {
+              <img class="object-cover" [ngSrc]="item.attachment?.url ?? ''" fill [alt]="item.attachment?.fileName ?? ''" />
+            } @else {
+              <video class="h-full w-full object-cover" [src]="item.attachment?.url" muted playsinline preload="metadata"></video>
+              <span class="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/60 to-transparent px-1.5 pb-1 pt-3 text-[11px] font-medium text-white">
+                <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 6h11a2 2 0 012 2v1.5l4-2.5v10l-4-2.5V16a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2z"></path>
+                </svg>
+                {{ duration(item.attachment?.durationSeconds) }}
+              </span>
+            }
+          </button>
+        }
+      </div>
+    }
+    @if (complete() && mediaSummary()) {
+      <p class="py-6 text-center text-[13px] text-ink-500 dark:text-night-muted">{{ mediaSummary() }}</p>
+    }
+  }
+  @case (tabs.LINKS) {
+    @for (group of linkGroups(); track group.label) {
+      <h4 class="px-1 pb-2 pt-4 text-[13px] font-semibold text-ink-700 dark:text-night-text">{{ group.label }}</h4>
+      <div [class]="card">
+        @for (link of group.items; track link.id; let first = $first) {
+          <div class="flex items-center gap-3 pl-3" [class.border-t]="!first" [class.border-chat-line]="!first" [class.dark:border-chat-line-dark]="!first">
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-ink-100 text-ink-500 dark:bg-night-bg" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 14a4 4 0 005.66 0l3-3a4 4 0 00-5.66-5.66l-1 1M14 10a4 4 0 00-5.66 0l-3 3a4 4 0 005.66 5.66l1-1"></path>
+              </svg>
+            </span>
+            <button type="button" class="min-w-0 flex-1 py-2.5 pr-3 text-left" (click)="jump.emit(link.messageId)">
+              <span class="block truncate text-[15px] text-chat-accent dark:text-chat-accent-dark">{{ link.url }}</span>
+              <span class="block truncate text-[13px] text-ink-500 dark:text-night-muted">{{ host(link.url) }} · {{ link.createdAt | date: dateFormat }}</span>
+            </button>
+          </div>
+        }
+      </div>
+    }
+  }
+  @case (tabs.DOCS) {
+    @for (group of docGroups(); track group.label) {
+      <h4 class="px-1 pb-2 pt-4 text-[13px] font-semibold text-ink-700 dark:text-night-text">{{ group.label }}</h4>
+      <div [class]="card">
+        @for (item of group.items; track item.id; let first = $first) {
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 pl-3 text-left hover:bg-black/[0.03]"
+            (click)="jump.emit(item.id)"
+          >
+            <span class="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-chat-accent/10 text-chat-accent dark:text-chat-accent-dark" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h7l5 5v13H7zM14 3v5h5"></path>
+              </svg>
+            </span>
+            <span class="min-w-0 flex-1 py-2.5 pr-3" [class.border-t]="!first" [class.border-chat-line]="!first" [class.dark:border-chat-line-dark]="!first">
+              <span class="block truncate text-[15px] text-ink-900 dark:text-white">{{ fileLabel(item) }}</span>
+              <span class="block text-[13px] text-ink-500 dark:text-night-muted">{{ size(item.attachment?.sizeBytes ?? 0) }} · {{ item.createdAt | date: dateFormat }}</span>
+            </span>
+          </button>
+        }
+      </div>
+    }
+  }
+}
+
+@if (complete() && emptyText() && (panel.tab() === tabs.MEDIA ? panel.media().length : panel.tab() === tabs.LINKS ? panel.links().length : panel.docs().length) === 0) {
+  <p class="py-16 text-center text-[15px] text-ink-500 dark:text-night-muted">{{ emptyText() }}</p>
+}
+
+@if (panel.hasMore()[panel.tab()]) {
+  <div class="h-10" appLoadOnScroll [paused]="panel.loading()" (reached)="panel.loadMore()"></div>
+}

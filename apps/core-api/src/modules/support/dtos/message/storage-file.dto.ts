@@ -15,7 +15,9 @@ export const StorageFileSchema = z.object({
 
   createdAt: z.date({ message: 'Created at must be a date' }),
 
-  mine: z.boolean({ message: 'Mine must be a boolean' })
+  mine: z.boolean({ message: 'Mine must be a boolean' }),
+
+  url: z.string({ message: 'URL must be a string' })
 });
 
 export type StorageFileDto = z.infer<typeof StorageFileSchema>;

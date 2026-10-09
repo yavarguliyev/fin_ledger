@@ -1,0 +1,22 @@
+<p class="px-1 pb-3 pt-4 text-[13px] text-ink-500 dark:text-night-muted">{{ labels.HINT }}</p>
+<div class="grid grid-cols-3 gap-3" role="radiogroup" [attr.aria-label]="labels.TITLE">
+  @for (item of labels.LIST; track item.theme) {
+    <button
+      type="button"
+      role="radio"
+      class="group flex flex-col items-center gap-1.5 rounded-xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent"
+      [attr.aria-checked]="current() === item.theme"
+      [attr.data-chat-theme]="item.theme"
+      (click)="preferences.theme({ theme: item.theme })"
+    >
+      <span
+        class="flex h-28 w-full flex-col justify-end gap-1 overflow-hidden rounded-lg bg-[var(--chat-wall)] p-2 ring-2 transition"
+        [class]="current() === item.theme ? 'ring-chat-accent dark:ring-chat-accent-dark' : 'ring-transparent group-hover:ring-black/10'"
+      >
+        <span class="self-start rounded-md bg-chat-card px-1.5 py-0.5 text-[9px] text-ink-700 shadow-sm dark:bg-chat-card-dark dark:text-night-text">{{ labels.PREVIEW_IN }}</span>
+        <span class="self-end rounded-md bg-[var(--chat-own)] px-1.5 py-0.5 text-[9px] text-ink-900 shadow-sm dark:text-white">{{ labels.PREVIEW_OUT }}</span>
+      </span>
+      <span class="text-[13px]" [class]="current() === item.theme ? 'font-semibold text-chat-accent dark:text-chat-accent-dark' : 'text-ink-700 dark:text-night-text'">{{ item.label }}</span>
+    </button>
+  }
+</div>

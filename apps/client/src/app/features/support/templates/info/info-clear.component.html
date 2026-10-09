@@ -1,0 +1,16 @@
+<p class="px-1 pb-3 pt-4 text-[13px] text-ink-500 dark:text-night-muted">{{ labels.HINT }}</p>
+<div [class]="card">
+  <label class="flex min-h-11 cursor-pointer items-center gap-3 px-4 text-[14px] text-ink-900 dark:text-white" [attr.for]="labels.KEEP_ID">
+    <input
+      type="checkbox"
+      class="h-5 w-5 rounded border-ink-300 text-chat-accent focus-visible:ring-2 focus-visible:ring-chat-accent"
+      [id]="labels.KEEP_ID"
+      [checked]="keepStarred()"
+      (change)="keepStarred.set(!keepStarred())"
+    />
+    {{ labels.KEEP_STARRED }}
+  </label>
+</div>
+<div class="mt-5">
+  <app-button variant="danger" [fullWidth]="true" [busy]="history.busy()" (pressed)="confirm()">{{ labels.CONFIRM }}</app-button>
+</div>

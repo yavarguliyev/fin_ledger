@@ -7,14 +7,17 @@ import { ScrollAnchor } from '../interfaces/scroll-anchor.interface';
   selector: '[appChatScroll]',
   exportAs: 'chatScroll',
   standalone: true,
-  host: { '(scroll)': 'onScroll()' }
+  host: { '(scroll)': 'onScroll()', '[style.overflowAnchor]': 'anchoring' }
 })
 export class ChatScrollDirective implements OnInit, OnDestroy {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly resize = new ResizeObserver(() => this.follow());
   private readonly children = new MutationObserver(() => this.watchContent());
   private stickToBottom = true;
+  private lastTop = 0;
   private anchor: ScrollAnchor | null = null;
+
+  readonly anchoring = CHAT_SCROLL.OVERFLOW_ANCHOR;
 
   readonly conversationId = input<string | null>(null, { alias: 'appChatScroll' });
   readonly canLoadMore = input(false);
@@ -32,7 +35,7 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
 
     effect(() => {
       if (!this.followTo()) return;
-      untracked(() => requestAnimationFrame(() => this.jumpToLatest()));
+      untracked(() => requestAnimationFrame(() => this.pinToLatest()));
     });
 
     effect(() => {
@@ -53,7 +56,10 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
 
   onScroll (): void {
     const element = this.host.nativeElement;
-    this.stick(element.scrollHeight - element.scrollTop - element.clientHeight < CHAT_SCROLL.BOTTOM_THRESHOLD_PX);
+    const movedUp = element.scrollTop < this.lastTop;
+    const atBottom = element.scrollHeight - element.scrollTop - element.clientHeight < CHAT_SCROLL.BOTTOM_THRESHOLD_PX;
+    this.lastTop = element.scrollTop;
+    if (atBottom || movedUp) this.stick(atBottom);
 
     if (element.scrollTop > CHAT_SCROLL.TOP_THRESHOLD_PX || !this.canLoadMore() || this.loadingOlder() || this.anchor) return;
     this.anchor = { height: element.scrollHeight, top: element.scrollTop };
@@ -64,6 +70,12 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
     const element = this.host.nativeElement;
     this.stick(true);
     element.scrollTo({ top: element.scrollHeight, behavior: CHAT_SCROLL.JUMP_BEHAVIOR });
+  }
+
+  private pinToLatest (): void {
+    const element = this.host.nativeElement;
+    this.stick(true);
+    element.scrollTop = element.scrollHeight;
   }
 
   private stick (atBottom: boolean): void {
@@ -83,5 +95,6 @@ export class ChatScrollDirective implements OnInit, OnDestroy {
     const element = this.host.nativeElement;
     if (this.anchor) element.scrollTop = element.scrollHeight - this.anchor.height + this.anchor.top;
     else if (this.stickToBottom) element.scrollTop = element.scrollHeight;
+    this.lastTop = element.scrollTop;
   }
 }

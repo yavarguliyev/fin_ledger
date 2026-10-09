@@ -11,7 +11,9 @@ export const PresenceContractSchema = z.object({
 
   state: z.enum(PRESENCE_STATES, { message: 'State must be a valid presence state' }),
 
-  lastSeenAt: z.string({ message: 'Last seen at must be a string' }).nullable()
+  lastSeenAt: z.string({ message: 'Last seen at must be a string' }).nullable(),
+
+  avatarUrl: z.string({ message: 'Avatar URL must be a string' }).nullable().optional()
 });
 
 export type PresenceContract = z.infer<typeof PresenceContractSchema>;

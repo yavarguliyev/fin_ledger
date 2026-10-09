@@ -1,0 +1,24 @@
+<div class="mt-2" [class]="card">
+  <div class="flex min-h-[52px] items-center gap-3 px-4">
+    <span class="flex-1 text-[15px] text-ink-900 dark:text-white">{{ title() }}</span>
+    <button
+      type="button"
+      role="switch"
+      class="relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent focus-visible:ring-offset-2 disabled:opacity-50"
+      [class.bg-chat-accent]="checked()"
+      [class.dark:bg-chat-accent-dark]="checked()"
+      [class.bg-ink-300]="!checked()"
+      [class.dark:bg-ink-600]="!checked()"
+      [attr.aria-checked]="checked()"
+      [attr.aria-label]="title()"
+      [disabled]="isPrivacy() && privacy.saving()"
+      (click)="change(!checked())"
+    >
+      <span
+        class="absolute left-0.5 top-0.5 h-[27px] w-[27px] rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform duration-200"
+        [class.translate-x-5]="checked()"
+      ></span>
+    </button>
+  </div>
+</div>
+<p class="px-4 pt-2 text-[13px] leading-snug text-ink-500 dark:text-night-muted">{{ hint() }}</p>

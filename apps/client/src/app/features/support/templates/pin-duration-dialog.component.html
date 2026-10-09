@@ -1,0 +1,31 @@
+@if (pins.choosing()) {
+  <div
+    class="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="labels.TITLE"
+    (click)="pins.cancel()"
+    (keydown.escape)="pins.cancel()"
+  >
+    <div class="w-full max-w-xs rounded-2xl bg-white p-5 shadow-xl dark:bg-night-card" appFocusTrap (click)="$event.stopPropagation()">
+      <h3 class="text-sm font-semibold text-ink-900 dark:text-white">{{ labels.TITLE }}</h3>
+      <p class="mb-3 mt-1 text-xs text-ink-500 dark:text-night-muted">{{ labels.HINT }}</p>
+      <div class="flex flex-col gap-1">
+        @for (option of labels.DURATIONS; track option.id) {
+          <button
+            type="button"
+            class="min-h-10 rounded-lg px-3 text-left text-sm text-ink-900 hover:bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent dark:text-white dark:hover:bg-night-bg"
+            (click)="pins.pin({ duration: option.id })"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+      <div class="mt-3 flex justify-end">
+        <button type="button" class="rounded-full px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-night-bg" (click)="pins.cancel()">
+          {{ labels.CANCEL }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

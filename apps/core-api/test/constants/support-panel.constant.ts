@@ -10,6 +10,7 @@ export const SUPPORT_PANEL_TEST = {
   DOCS: '/docs',
   LINKS: '/links',
   STORAGE: '/storage',
+  SIGNED_URL: /^https?:\/\/\S+/,
   ATTACHMENTS: '/attachments',
   FIELD_NAME: 'files',
   POST: 'POST',
@@ -23,7 +24,7 @@ export const SUPPORT_PANEL_TEST = {
   PDF_NAME: 'statement.pdf',
   LINK_TEXT: 'The guide is at https://help.example.com/deposits, thanks',
   LINK_URL: 'https://help.example.com/deposits',
-  CUSTOMER_KEYS: ['isStaff', 'name', 'team'],
+  CUSTOMER_KEYS: ['isStaff', 'name', 'team', 'avatarUrl'],
   STAFF_FIELDS: ['userId', 'role', 'memberSince', 'accountStatus', 'kycStatus'],
   PAGE_ONE: 1
 } as const;

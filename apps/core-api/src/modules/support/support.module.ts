@@ -143,6 +143,6 @@ import { GetLockStateUseCase } from './use-cases/queries/conversation/get-lock-s
     RemoveLockUseCase,
     GetLockStateUseCase
   ],
-  exports: [SupportService, SupportLockService, SupportConversationRepository, SupportMessageRepository, PresenceService, LeavePresenceUseCase]
+  exports: [SupportService, SupportLockService, SupportAccessProvider, DeleteMessageUseCase, SupportThreadProvider, SupportStreamProvider, SupportAttachmentProvider, SupportConversationRepository, SupportMessageRepository, PresenceService, LeavePresenceUseCase]
 })
 export class SupportModule {}

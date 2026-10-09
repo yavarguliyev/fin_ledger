@@ -1,9 +1,9 @@
 <div class="flex h-full flex-col">
-  @if (contacts().length === 0) {
-    <p class="px-4 py-8 text-center text-sm text-ink-400">{{ labels.NO_CONTACTS }}</p>
+  @if (shown().length === 0) {
+    <p class="px-4 py-8 text-center text-sm text-ink-400">{{ contacts().length === 0 ? labels.NO_CONTACTS : filterLabels.EMPTY[filter()] }}</p>
   } @else {
     <ul class="flex-1 overflow-y-auto divide-y divide-ink-100 dark:divide-ink-800">
-      @for (contact of contacts(); track contact.userId) {
+      @for (contact of shown(); track contact.userId) {
         <li>
           <button
             type="button"
@@ -12,23 +12,25 @@
             [class.bg-primary/5]="contact.userId === selectedStaffId()"
             [attr.aria-current]="contact.userId === selectedStaffId() ? 'true' : null"
           >
-            <app-support-avatar [name]="contact.displayName" [showDot]="true" [online]="isOnline(contact)" />
+            <app-support-avatar [name]="contact.displayName" [url]="contact.avatarUrl ?? null" [showDot]="true" [online]="isOnline(contact)" />
 
             <span class="min-w-0 flex-1">
               <span class="flex items-baseline justify-between gap-2">
                 <span class="truncate text-sm font-medium text-ink-900 dark:text-white">{{ contact.displayName }}</span>
-                <span class="shrink-0 text-[11px] capitalize text-ink-400">{{ roleLabel(contact) }}</span>
+                @if (conversationOf(contact); as conversation) {
+                  <span class="shrink-0 text-[11px] text-ink-400">{{ time(conversation) }}</span>
+                } @else {
+                  <span class="shrink-0 text-[11px] capitalize text-ink-400">{{ roleLabel(contact) }}</span>
+                }
               </span>
 
               <span class="mt-0.5 flex items-center justify-between gap-2">
-                <span class="truncate text-xs" [class]="isOnline(contact) ? 'text-success-deep dark:text-success-light' : 'text-ink-500 dark:text-night-muted'">
-                  {{ status(contact) }}
-                </span>
-                @if (unread(contact) > 0) {
-                  <span class="shrink-0 min-w-5 px-1.5 py-0.5 rounded-full bg-primary text-[11px] font-semibold text-white text-center">
-                    {{ unread(contact) }}
-                  </span>
+                @if (conversationOf(contact); as conversation) {
+                  <app-chat-row-preview [conversation]="conversation" />
+                } @else {
+                  <span class="truncate text-xs text-ink-500 dark:text-night-muted">{{ roleLabel(contact) }}</span>
                 }
+                <app-chat-row-badges [conversation]="conversationOf(contact)" />
               </span>
             </span>
           </button>

@@ -1,0 +1,21 @@
+@if (preview()?.title; as title) {
+  <div class="mx-3 mt-2 flex items-start gap-3 rounded-lg border-l-4 border-primary bg-black/5 px-3 py-2 dark:bg-white/10">
+    <span class="min-w-0 flex-1">
+      <span class="block truncate text-xs text-ink-500 dark:text-night-muted">{{ host() }}</span>
+      <span class="block truncate text-sm font-semibold text-ink-900 dark:text-white">{{ title }}</span>
+      @if (preview()?.description; as description) {
+        <span class="mt-0.5 line-clamp-2 block text-xs text-ink-600 dark:text-night-text">{{ description }}</span>
+      }
+    </span>
+    <button
+      type="button"
+      class="grid h-8 w-8 shrink-0 place-items-center rounded-full text-ink-500 hover:bg-black/10 dark:hover:bg-white/10"
+      [attr.aria-label]="labels.DISMISS_LABEL"
+      (click)="dismiss()"
+    >
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+}

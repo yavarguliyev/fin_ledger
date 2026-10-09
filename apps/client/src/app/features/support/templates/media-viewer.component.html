@@ -1,0 +1,88 @@
+@if (viewer.current(); as current) {
+  <div
+    class="fixed inset-0 z-[60] flex flex-col bg-chat-sheet-dark text-white"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="labels.TITLE_ID"
+    appFocusTrap
+  >
+    <header class="flex h-16 shrink-0 items-center gap-3 px-4">
+      <div class="min-w-0 flex-1">
+        <p [id]="labels.TITLE_ID" class="truncate text-[15px] font-medium">{{ sender(current) }}</p>
+        <p class="truncate text-xs text-white/60">{{ current.createdAt | date: labels.DATE_FORMAT }}</p>
+      </div>
+      <span class="text-sm text-white/70" aria-live="polite">{{ viewer.index() + 1 }}{{ labels.COUNTER_SEPARATOR }}{{ viewer.items().length }}</span>
+      <a
+        class="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        [href]="current.attachment?.url"
+        [attr.download]="current.attachment?.fileName ?? ''"
+        [attr.aria-label]="labels.DOWNLOAD_LABEL"
+        [title]="labels.DOWNLOAD_LABEL"
+      >
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"></path></svg>
+      </a>
+      <button
+        type="button"
+        class="grid h-10 w-10 place-items-center rounded-full hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+        [attr.aria-label]="labels.CLOSE_LABEL"
+        [title]="labels.CLOSE_LABEL"
+        (click)="viewer.close()"
+      >
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </header>
+
+    <div class="relative flex min-h-0 flex-1 items-center justify-center px-16 py-4" (click)="viewer.close()">
+      @if (viewer.hasPrevious()) {
+        <button
+          type="button"
+          class="absolute left-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          [attr.aria-label]="labels.PREVIOUS_LABEL"
+          (click)="$event.stopPropagation(); viewer.previous()"
+        >
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+      }
+      <div class="relative h-full w-full" (click)="$event.stopPropagation()">
+        @if (isImage(current)) {
+          <img class="object-contain" [ngSrc]="current.attachment?.url ?? ''" fill priority [alt]="current.attachment?.fileName ?? ''" />
+        } @else {
+          <video class="h-full w-full object-contain" [src]="current.attachment?.url" controls autoplay playsinline></video>
+        }
+      </div>
+      @if (viewer.hasNext()) {
+        <button
+          type="button"
+          class="absolute right-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          [attr.aria-label]="labels.NEXT_LABEL"
+          (click)="$event.stopPropagation(); viewer.next()"
+        >
+          <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6l6 6-6 6"></path></svg>
+        </button>
+      }
+    </div>
+
+    @if (viewer.items().length > 1) {
+      <ul class="flex h-20 shrink-0 items-center justify-center gap-1.5 overflow-x-auto border-t border-white/10 px-4">
+        @for (item of viewer.items(); track item.id; let i = $index) {
+          <li>
+            <button
+              type="button"
+              class="relative block h-14 w-14 overflow-hidden rounded-md transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              [class]="i === viewer.index() ? 'opacity-100 ring-2 ring-chat-accent-dark' : 'opacity-50 hover:opacity-80'"
+              [attr.aria-label]="item.attachment?.fileName ?? ''"
+              [attr.aria-current]="i === viewer.index() ? 'true' : null"
+              (click)="viewer.show({ messageId: item.id })"
+            >
+              @if (isImage(item)) {
+                <img class="object-cover" [ngSrc]="item.attachment?.url ?? ''" fill [alt]="''" />
+              } @else {
+                <video class="h-full w-full object-cover" [src]="item.attachment?.url" muted playsinline preload="metadata"></video>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+}

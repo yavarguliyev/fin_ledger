@@ -12,23 +12,19 @@
             [class.bg-primary/5]="conversation.id === selectedId()"
             [attr.aria-current]="conversation.id === selectedId() ? 'true' : null"
           >
-            <app-support-avatar [name]="conversation.customerName" />
+            <app-support-avatar [name]="conversation.customerName" [url]="conversation.customerAvatarUrl ?? null" />
 
             <span class="min-w-0 flex-1">
               <span class="flex items-baseline justify-between gap-2">
                 <span class="truncate text-sm font-medium text-ink-900 dark:text-white">
                   {{ conversation.customerName || labels.TEAM }}
                 </span>
-                <span class="shrink-0 text-[11px] text-ink-400">{{ conversation.lastMessageAt | date: 'shortTime' }}</span>
+                <span class="shrink-0 text-[11px] text-ink-400">{{ time(conversation) }}</span>
               </span>
 
               <span class="mt-0.5 flex items-center justify-between gap-2">
-                <span class="truncate text-xs text-ink-500 dark:text-night-muted">{{ preview(conversation) }}</span>
-                @if (conversation.unreadCount > 0) {
-                  <span class="shrink-0 min-w-5 px-1.5 py-0.5 rounded-full bg-primary text-[11px] font-semibold text-white text-center">
-                    {{ conversation.unreadCount }}
-                  </span>
-                }
+                <app-chat-row-preview [conversation]="conversation" />
+                <app-chat-row-badges [conversation]="conversation" />
               </span>
             </span>
           </button>

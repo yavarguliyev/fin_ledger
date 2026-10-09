@@ -6,24 +6,52 @@
   {{ layout.SKIP_LINK }}
 </a>
 <div class="flex min-h-screen">
-  <aside class="hidden md:flex w-64 flex-col bg-white dark:bg-night-sidebar border-r border-ink-200 dark:border-night-border">
-    <a routerLink="/dashboard" class="px-6 py-5 flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-      <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold">W</div>
-      <span class="font-semibold text-ink-900 dark:text-white">WalletPay</span>
-    </a>
+  <aside
+    class="hidden md:flex shrink-0 flex-col bg-white dark:bg-night-sidebar border-r border-ink-200 dark:border-night-border transition-[width] duration-200"
+    [class]="sidebar.collapsed() ? sidebar.labels.COLLAPSED_WIDTH : sidebar.labels.EXPANDED_WIDTH"
+  >
+    <div class="flex items-center gap-2 py-5" [class]="sidebar.collapsed() ? 'flex-col px-3' : 'px-6'">
+      <a routerLink="/dashboard" class="flex min-w-0 flex-1 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" aria-label="WalletPay">
+        <div class="w-9 h-9 shrink-0 rounded-xl bg-primary flex items-center justify-center text-white font-bold">W</div>
+        @if (!sidebar.collapsed()) {
+          <span class="font-semibold text-ink-900 dark:text-white">WalletPay</span>
+        }
+      </a>
+      <button
+        type="button"
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-500 hover:bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-ink-300 dark:hover:bg-night-border"
+        [attr.aria-label]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
+        [attr.aria-expanded]="!sidebar.collapsed()"
+        [title]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
+        (click)="sidebar.toggle()"
+      >
+        <svg class="h-4 w-4 transition-transform" [class.rotate-180]="sidebar.collapsed()" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
+        </svg>
+      </button>
+    </div>
     <nav class="flex-1 px-3 py-2 space-y-1">
       @for (item of navItems(); track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="bg-primary/10 text-primary dark:text-primary-light nav-active"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+          class="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+          [class.justify-center]="sidebar.collapsed()"
+          [attr.aria-label]="sidebar.collapsed() ? item.label : null"
+          [title]="sidebar.collapsed() ? item.label : ''"
         >
           <span class="text-base" [innerHTML]="item.icon"></span>
-          <span class="flex-1">{{ item.label }}</span>
+          @if (!sidebar.collapsed()) {
+            <span class="flex-1">{{ item.label }}</span>
+          }
           @if (item.path === supportPath && chatUnread() > 0) {
-            <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-danger-dark text-white text-[10px] font-bold flex items-center justify-center">
-              {{ chatUnread() }}
-            </span>
+            @if (sidebar.collapsed()) {
+              <span class="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-danger-dark" aria-hidden="true"></span>
+            } @else {
+              <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-danger-dark text-white text-[10px] font-bold flex items-center justify-center">
+                {{ chatUnread() }}
+              </span>
+            }
           }
         </a>
       }
@@ -32,9 +60,14 @@
       <button
         (click)="toggleTheme()"
         class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+        [class.justify-center]="sidebar.collapsed()"
+        [attr.aria-label]="isDark() ? 'Light mode' : 'Dark mode'"
+        [title]="sidebar.collapsed() ? (isDark() ? 'Light mode' : 'Dark mode') : ''"
       >
-        <span class="text-base">{{ isDark() ? '☀️' : '🌙' }}</span>
-        {{ isDark() ? 'Light mode' : 'Dark mode' }}
+        <span class="text-base" aria-hidden="true">{{ isDark() ? '☀️' : '🌙' }}</span>
+        @if (!sidebar.collapsed()) {
+          {{ isDark() ? 'Light mode' : 'Dark mode' }}
+        }
       </button>
     </div>
   </aside>

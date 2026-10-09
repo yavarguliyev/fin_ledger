@@ -10,7 +10,7 @@
     <ul class="flex-1 overflow-y-auto py-2">
       @for (entry of entries(); track entry.userId) {
         <li class="flex items-center gap-3 px-4 py-2">
-          <app-support-avatar [name]="entry.displayName" size="sm" [showDot]="true" [online]="isOnline(entry)" />
+          <app-support-avatar [name]="entry.displayName" [url]="entry.avatarUrl ?? null" size="sm" [showDot]="true" [online]="isOnline(entry)" />
           <span class="min-w-0">
             <span class="block truncate text-sm text-ink-900 dark:text-white">{{ entry.displayName }}</span>
             <span class="block truncate text-xs capitalize text-ink-500 dark:text-night-muted">{{ roleLabel(entry) }}</span>

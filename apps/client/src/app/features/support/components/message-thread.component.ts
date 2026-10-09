@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, input, output, signal, computed } from '@angular/core';
 import { DatePipe, NgOptimizedImage } from '@angular/common';
 
 import { THREAD_BUBBLE } from '../constants/thread-bubble.constant';
@@ -9,6 +9,14 @@ import { SupportMessage } from '../../../core/types/support/support-message.type
 import { SUPPORT_MESSAGES } from '../../../core/constants/support/support-messages.constant';
 import { SUPPORT_VIEW } from '../constants/support-view.constant';
 import { MessageGroupDto } from '../../../core/interfaces/support/message-group.interface';
+import { AlbumHelper } from '../../../core/helpers/support/album.helper';
+import { MediaAlbumComponent } from './media-album.component';
+import { NaturalAspectDirective } from '../directives/natural-aspect.directive';
+import { MediaGalleryHelper } from '../../../core/helpers/support/media-gallery.helper';
+import { MediaViewerService } from '../services/media-viewer.service';
+import { MessageSelectionService } from '../services/message-selection.service';
+import { SupportPinsStore } from '../../../core/services/support-pins.store';
+import { MessageIdRefDto } from '../../../core/interfaces/support/message-id-ref.interface';
 import { SupportChatHelper } from '../../../core/helpers/support/support-chat.helper';
 import { SUPPORT_ATTACHMENT } from '../../../core/constants/support/support-attachment.constant';
 import { SupportAttachmentHelper } from '../../../core/helpers/support/support-attachment.helper';
@@ -28,7 +36,7 @@ import { STARRED_LIST } from '../constants/starred-list.constant';
   selector: 'app-message-thread',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, NgOptimizedImage, LinkPreviewComponent],
+  imports: [DatePipe, VideoNoteComponent, VoiceNoteComponent, EmojiPanelComponent, LinkPreviewComponent, MediaAlbumComponent, NgOptimizedImage, NaturalAspectDirective],
   templateUrl: '../templates/message-thread.component.html',
   host: { '(document:keydown.escape)': 'closePicker()' }
 })
@@ -57,6 +65,15 @@ export class MessageThreadComponent {
   readonly labels = SUPPORT_MESSAGES;
   readonly view = SUPPORT_VIEW;
   readonly linkOf = (text: string): string | null => LinkPreviewHelper.firstUrl({ text });
+
+  readonly albums = computed(() => AlbumHelper.layout({ messages: this.messages() }));
+  private readonly viewer = inject(MediaViewerService);
+  readonly selection = inject(MessageSelectionService);
+  readonly pins = inject(SupportPinsStore);
+
+  openMedia ({ messageId }: MessageIdRefDto): void {
+    this.viewer.open({ items: MediaGalleryHelper.items({ messages: this.messages() }), messageId });
+  }
 
   get groups (): MessageGroupDto[] {
     return SupportChatHelper.groupByDay({ messages: this.messages() });

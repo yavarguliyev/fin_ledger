@@ -16,6 +16,7 @@ import { SupportStreamEvent } from '../interfaces/support/support-stream-event.i
 import { ToastService } from './toast.service';
 import { StaffRefDto } from '../interfaces/support/staff-ref.interface';
 import { PrependMessagesDto } from '../interfaces/support/prepend-messages.interface';
+import { ConversationItemDto } from '../interfaces/support/conversation-item.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SupportChatStore {
@@ -34,7 +35,7 @@ export class SupportChatStore {
   readonly loading = this.loadingSignal.asReadonly();
   readonly isStaff = computed(() => RoleHelper.isStaff({ role: this.session.user()?.role }));
   readonly myUserId = computed(() => this.session.user()?.id ?? '');
-  readonly totalUnread = computed(() => this.conversationsSignal().reduce((sum, item) => sum + item.unreadCount, 0));
+  readonly totalUnread = computed(() => this.conversationsSignal().reduce((sum, item) => sum + (item.muted ? 0 : item.unreadCount), 0));
   readonly activeConversation = computed(() => this.conversationsSignal().find(item => item.id === this.activeIdSignal()) ?? null);
 
   markRead ({ conversationId }: ConversationRefDto): void {
@@ -50,11 +51,15 @@ export class SupportChatStore {
 
     this.api.openConversation({ staffUserId }).subscribe({
       next: conversation => {
-        this.conversationsSignal.set(SupportChatHelper.upsertConversation({ current: this.conversationsSignal(), incoming: conversation }));
+        this.upsertConversation({ conversation });
         this.select({ conversationId: conversation.id });
       },
       error: (err: unknown) => this.report({ error: err, message: SUPPORT_MESSAGES.LOAD_FAILED })
     });
+  }
+
+  upsertConversation ({ conversation }: ConversationItemDto): void {
+    this.conversationsSignal.set(SupportChatHelper.upsertConversation({ current: this.conversationsSignal(), incoming: conversation }));
   }
 
   reset (): void {
@@ -73,7 +78,6 @@ export class SupportChatStore {
   resync (): void {
     const conversationId = this.activeIdSignal();
     if (!conversationId) return;
-
     this.api.listMessages({ conversationId }).subscribe({
       next: messages => this.messagesSignal.set(SupportChatHelper.combine({ current: this.messagesSignal(), page: messages })),
       error: () => undefined
@@ -82,9 +86,9 @@ export class SupportChatStore {
 
   applyStreamEvent (event: SupportStreamEvent): void {
     if (!event.conversationId) return;
-
     if (!event.message) {
       const reader = event.readerUserId;
+      if (reader && reader !== this.myUserId()) this.conversationsSignal.set(SupportChatHelper.markConversationSeen({ current: this.conversationsSignal(), conversationId: event.conversationId, myUserId: this.myUserId() }));
       if (reader && reader !== this.myUserId() && event.conversationId === this.activeIdSignal()) {
         this.messagesSignal.set(SupportChatHelper.markSeen({ current: this.messagesSignal(), readerUserId: reader }));
       }
@@ -108,7 +112,6 @@ export class SupportChatStore {
 
   select ({ conversationId }: ConversationRefDto): void {
     if (!conversationId) return;
-
     this.activeIdSignal.set(conversationId);
     this.loadingSignal.set(true);
     this.messagesSignal.set([]);

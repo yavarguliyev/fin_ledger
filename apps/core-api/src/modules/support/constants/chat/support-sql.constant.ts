@@ -15,8 +15,10 @@ export const SUPPORT_SQL = {
     SELECT c.id,
            c.customer_user_id AS "customerUserId",
            customer.display_name AS "customerName",
+           customer.profile_images ->> customer.profile_image_index AS "customerAvatarKey",
            c.assigned_staff_id AS "assignedStaffId",
            staff.display_name AS "assignedStaffName",
+           staff.profile_images ->> staff.profile_image_index AS "assignedStaffAvatarKey",
            c.subject,
            c.status,
            to_char(c.last_message_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "lastMessageAt",
@@ -28,14 +30,39 @@ export const SUPPORT_SQL = {
                AND m.sender_user_id IS DISTINCT FROM $1
                AND (r.last_read_at IS NULL OR m.created_at > r.last_read_at)
            ) AS "unreadCount",
-           CASE WHEN c.privacy_enabled OR chat_lock.user_id IS NOT NULL THEN NULL ELSE c.last_message_preview END AS "lastMessagePreview",
+           CASE WHEN c.privacy_enabled OR chat_lock.user_id IS NOT NULL OR last_message.deleted_at IS NOT NULL THEN NULL
+                WHEN last_message.kind IN ('IMAGE', 'VIDEO', 'VOICE') THEN nullif(last_message.body, '')
+                ELSE coalesce(nullif(last_message.body, ''), last_message.file_name) END AS "lastMessagePreview",
+           last_message.sender_user_id AS "lastMessageSenderId",
+           last_message.kind AS "lastMessageKind",
+           coalesce(last_message.seen, false) AS "lastMessageSeen",
+           coalesce(last_message.deleted_at IS NOT NULL, false) AS "lastMessageDeleted",
            c.privacy_enabled AS "privacyEnabled",
-           chat_lock.user_id IS NOT NULL AS "locked"
+           chat_lock.user_id IS NOT NULL AS "locked",
+           coalesce(pref.muted_until > now(), false) AS "muted",
+           CASE WHEN pref.muted_until > now() AND isfinite(pref.muted_until)
+                THEN to_char(pref.muted_until AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') END AS "mutedUntil",
+           to_char(pref.pinned_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS "pinnedAt",
+           coalesce(pref.favourite, false) AS "favourite",
+           c.theme AS "theme"
       FROM support_conversations c
       LEFT JOIN users customer ON customer.id = c.customer_user_id
       LEFT JOIN users staff ON staff.id = c.assigned_staff_id
       LEFT JOIN support_read_receipts r ON r.conversation_id = c.id AND r.user_id = $1
       LEFT JOIN support_conversation_locks chat_lock ON chat_lock.conversation_id = c.id AND chat_lock.user_id = $1
+      LEFT JOIN support_conversation_preferences pref ON pref.conversation_id = c.id AND pref.user_id = $1
+      LEFT JOIN LATERAL (
+        SELECT lm.sender_user_id, lm.kind, lm.body, lm.file_name, lm.deleted_at,
+               EXISTS (
+                 SELECT 1 FROM support_read_receipts rr
+                  WHERE rr.conversation_id = c.id AND rr.user_id IS DISTINCT FROM lm.sender_user_id AND rr.last_read_at >= lm.created_at
+               ) AS seen
+          FROM support_messages lm
+         WHERE lm.conversation_id = c.id
+           AND NOT EXISTS (SELECT 1 FROM support_hidden_messages h WHERE h.message_id = lm.id AND h.user_id = $1)
+         ORDER BY lm.created_at DESC
+         LIMIT 1
+      ) last_message ON true
      WHERE (c.customer_user_id = $1 OR c.assigned_staff_id = $1 OR (c.assigned_staff_id IS NULL AND $4::boolean))
        AND ($3::timestamptz IS NULL OR (c.last_message_at, c.id) < ($3::timestamptz, $5::uuid))
      ORDER BY c.last_message_at DESC, c.id DESC

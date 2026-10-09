@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 
 import { ContactCard } from '../interfaces/support/contact-card.interface';
 import { CursorItem } from '../interfaces/support/cursor-item.interface';
@@ -6,6 +6,7 @@ import { PanelAppendDto } from '../interfaces/support/panel-append.interface';
 import { PanelItem } from '../types/support/panel-item.type';
 import { MessageLink } from '../interfaces/support/message-link.interface';
 import { PanelPagingHelper } from '../helpers/support/panel-paging.helper';
+import { PanelSignatureDto } from '../interfaces/support/panel-signature.interface';
 import { PanelTabRefDto } from '../interfaces/support/panel-tab-ref.interface';
 import { SUPPORT_PANEL } from '../constants/support/support-panel.constant';
 import { SupportChatStore } from './support-chat.store';
@@ -43,6 +44,17 @@ export class SupportPanelStore {
   readonly hasMore = this.hasMoreSignal.asReadonly();
   readonly loading = this.loadingSignal.asReadonly();
 
+  private readonly sharedSignature = computed(() => PanelPagingHelper.sharedSignature({ messages: this.chat.messages() }));
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private seenSignature = '';
+
+  constructor () {
+    effect(() => {
+      const signature = this.sharedSignature();
+      untracked(() => this.scheduleRefresh({ signature }));
+    });
+  }
+
   show (): void {
     const conversationId = this.chat.activeId();
     if (!conversationId) return;
@@ -73,6 +85,27 @@ export class SupportPanelStore {
   loadMore (): void {
     const tab = this.tabSignal();
     if (this.hasMoreSignal()[tab] && !this.loadingSignal()) this.loadPage({ tab });
+  }
+
+  private scheduleRefresh ({ signature }: PanelSignatureDto): void {
+    const changed = signature !== this.seenSignature;
+    this.seenSignature = signature;
+    if (!changed || !this.openSignal()) return;
+
+    if (this.refreshTimer) clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => this.refresh(), SUPPORT_PANEL.REFRESH_DEBOUNCE_MS);
+  }
+
+  private refresh (): void {
+    this.refreshTimer = null;
+    if (!this.openSignal()) return;
+
+    this.mediaSignal.set([]);
+    this.docsSignal.set([]);
+    this.linksSignal.set([]);
+    this.hasMoreSignal.set({});
+    this.storage.load();
+    this.loadPage({ tab: this.tabSignal() });
   }
 
   private loadPage ({ tab }: PanelTabRefDto): void {

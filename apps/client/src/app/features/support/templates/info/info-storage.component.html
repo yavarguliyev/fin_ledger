@@ -1,0 +1,85 @@
+@if (storage.summary(); as summary) {
+  <section class="flex flex-col items-center pb-5 pt-2 text-center">
+    <p class="text-[34px] font-semibold leading-none text-ink-900 dark:text-white">{{ size(summary.totalBytes) }}</p>
+    <p class="mt-2 text-[13px] text-ink-500 dark:text-night-muted">{{ summary.fileCount }} · {{ labels.STORAGE_USED }}</p>
+    @if (summary.customerTotalBytes !== undefined) {
+      <p class="mt-1 text-[13px] text-ink-500 dark:text-night-muted">{{ labels.CUSTOMER_TOTAL }}: {{ size(summary.customerTotalBytes) }}</p>
+    }
+  </section>
+
+  @if (summary.files.length === 0) {
+    <p class="py-10 text-center text-[15px] text-ink-500 dark:text-night-muted">{{ labels.NO_FILES }}</p>
+  } @else {
+    @if (media().length > 0) {
+      <div class="mb-4 grid grid-cols-3 gap-0.5 overflow-hidden rounded-[10px]">
+        @for (file of media(); track file.messageId) {
+          <button
+            type="button"
+            class="relative aspect-square overflow-hidden bg-ink-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-chat-accent disabled:cursor-default dark:bg-chat-card-dark"
+            [title]="file.mine ? labels.YOURS_LABEL : labels.THEIRS_LABEL"
+            [attr.aria-label]="(file.fileName ?? labels.ATTACHMENT_LABEL) + ', ' + size(file.sizeBytes)"
+            [attr.aria-pressed]="storage.selected().has(file.messageId)"
+            (click)="storage.toggle({ messageId: file.messageId })"
+          >
+            @if (file.kind === labels.IMAGE_KIND) {
+              <img class="object-cover" [ngSrc]="file.url" fill [alt]="''" />
+            } @else {
+              <video class="h-full w-full object-cover" [src]="file.url" muted playsinline preload="metadata"></video>
+              <svg class="absolute left-1.5 top-1.5 h-4 w-4 text-white drop-shadow" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"></path></svg>
+            }
+            @if (storage.selected().has(file.messageId)) {
+              <span class="absolute inset-0 bg-white/30 dark:bg-black/30" aria-hidden="true"></span>
+            }
+            <span class="absolute bottom-1 left-1 rounded bg-black/55 px-1 text-[11px] font-medium text-white">{{ size(file.sizeBytes) }}</span>
+            <span
+              class="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full border-2 border-white shadow"
+              [class]="storage.selected().has(file.messageId) ? 'bg-chat-accent dark:bg-chat-accent-dark' : 'bg-black/20'"
+              aria-hidden="true"
+            >
+              @if (storage.selected().has(file.messageId)) {
+                <svg class="h-3 w-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+              }
+            </span>
+          </button>
+        }
+      </div>
+    }
+
+    @if (documents().length > 0) {
+      <div [class]="card">
+        @for (file of documents(); track file.messageId; let first = $first) {
+          <div class="flex items-center gap-3 pl-4">
+            <input
+              type="checkbox"
+              class="h-5 w-5 shrink-0 rounded-full border-ink-300 text-chat-accent focus-visible:ring-2 focus-visible:ring-chat-accent"
+              [id]="labels.STORAGE_ID_PREFIX + file.messageId"
+              [checked]="storage.selected().has(file.messageId)"
+              (change)="storage.toggle({ messageId: file.messageId })"
+            />
+            <label
+              class="min-w-0 flex-1 py-3 pr-4"
+              [class.border-t]="!first"
+              [class.border-chat-line]="!first"
+              [class.dark:border-chat-line-dark]="!first"
+              [attr.for]="labels.STORAGE_ID_PREFIX + file.messageId"
+            >
+              <span class="block truncate text-[15px] text-ink-900 dark:text-white">{{ file.fileName ?? labels.ATTACHMENT_LABEL }}</span>
+              <span class="block text-[13px] text-ink-500 dark:text-night-muted">
+                {{ size(file.sizeBytes) }} · {{ file.createdAt | date: labels.DATE_FORMAT }} · {{ file.mine ? labels.YOURS_LABEL : labels.THEIRS_LABEL }}
+              </span>
+            </label>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  @if (storage.selectedCount() > 0) {
+    <div class="sticky bottom-0 -mx-4 mt-4 border-t border-chat-line bg-chat-sheet/95 px-4 py-3 backdrop-blur dark:border-chat-line-dark dark:bg-chat-sheet-dark/95">
+      <p class="mb-2 text-[13px] text-ink-500 dark:text-night-muted">{{ labels.DELETE_NOTE }}</p>
+      <app-button variant="danger" [fullWidth]="true" [busy]="storage.deleting()" (pressed)="storage.deleteSelected()">
+        {{ labels.DELETE_SELECTED }} ({{ storage.selectedCount() }})
+      </app-button>
+    </div>
+  }
+}

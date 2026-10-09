@@ -1,0 +1,20 @@
+@if (conversation(); as current) {
+  @if (current.muted) {
+    <svg class="h-3.5 w-3.5 text-ink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" role="img" [attr.aria-label]="labels.MUTED_LABEL">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5L6 9H3v6h3l5 4V5zM16 9l5 6M21 9l-5 6"></path>
+    </svg>
+  }
+  @if (current.pinnedAt) {
+    <svg class="h-3.5 w-3.5 rotate-45 text-ink-400" fill="currentColor" viewBox="0 0 24 24" role="img" [attr.aria-label]="labels.PINNED_LABEL">
+      <path d="M9 4h6l-1 5 3 3v2h-4v6l-1 1-1-1v-6H7v-2l3-3-1-5z"></path>
+    </svg>
+  }
+  @if (current.unreadCount > 0) {
+    <span
+      class="min-w-5 rounded-full px-1.5 py-0.5 text-center text-[11px] font-semibold text-white"
+      [class]="current.muted ? 'bg-ink-400 dark:bg-ink-600' : 'bg-primary'"
+    >
+      {{ current.unreadCount }}
+    </span>
+  }
+}

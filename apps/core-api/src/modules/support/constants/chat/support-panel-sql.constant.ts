@@ -39,7 +39,7 @@ export const SUPPORT_PANEL_SQL = {
   `,
   STORAGE_FILES: `
     SELECT m.id AS "messageId", m.kind, m.file_name AS "fileName", m.mime_type AS "mimeType", m.size_bytes::float8 AS "sizeBytes",
-           m.created_at AS "createdAt", m.sender_user_id = $2 AS mine
+           m.created_at AS "createdAt", m.sender_user_id = $2 AS mine, m.storage_key AS "storageKey"
       FROM support_messages m
      WHERE m.conversation_id = $1
        AND m.storage_key IS NOT NULL

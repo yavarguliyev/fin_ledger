@@ -14,4 +14,6 @@ export interface SupportStreamEvent {
   presence?: PresenceEntry;
   call?: CallSignal;
   privacyEnabled?: boolean;
+  pinsChanged?: boolean;
+  themeChanged?: boolean;
 }

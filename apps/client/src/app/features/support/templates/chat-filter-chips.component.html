@@ -1,0 +1,13 @@
+<div class="flex gap-2 px-4 py-2" role="group" [attr.aria-label]="labels.LABEL">
+  @for (option of labels.OPTIONS; track option.id) {
+    <button
+      type="button"
+      class="min-h-8 rounded-full px-3 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-chat-accent"
+      [class]="filters.filter() === option.id ? 'bg-chat-accent/10 text-chat-accent dark:bg-chat-accent-dark/20 dark:text-chat-accent-dark' : 'bg-ink-100 text-ink-600 hover:bg-ink-200 dark:bg-night-bg dark:text-night-muted'"
+      [attr.aria-pressed]="filters.filter() === option.id"
+      (click)="filters.set(option.id)"
+    >
+      {{ option.label }}
+    </button>
+  }
+</div>

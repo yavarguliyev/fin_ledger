@@ -1,0 +1,23 @@
+<p class="px-1 pb-3 pt-4 text-[13px] text-ink-500 dark:text-night-muted">{{ labels.HINT }}</p>
+<div [class]="card">
+  @for (option of labels.OPTIONS; track option.duration; let first = $first) {
+    <button
+      type="button"
+      class="flex min-h-11 w-full items-center gap-3 pl-4 text-left hover:bg-black/[0.03] focus-visible:bg-black/[0.05] focus-visible:outline-none dark:hover:bg-white/[0.04]"
+      (click)="choose({ duration: option.duration })"
+    >
+      <span class="flex min-h-11 flex-1 items-center pr-4 text-[14px] text-ink-900 dark:text-white" [class.border-t]="!first" [class.border-chat-line]="!first" [class.dark:border-chat-line-dark]="!first">
+        {{ option.label }}
+      </span>
+    </button>
+  }
+</div>
+@if (conversation()?.muted) {
+  <button
+    type="button"
+    class="mt-5 flex min-h-11 w-full items-center rounded-[10px] bg-chat-card px-4 text-[14px] text-chat-accent hover:bg-black/[0.03] dark:bg-chat-card-dark dark:text-chat-accent-dark"
+    (click)="choose({ duration: labels.OFF })"
+  >
+    {{ labels.UNMUTE }}
+  </button>
+}

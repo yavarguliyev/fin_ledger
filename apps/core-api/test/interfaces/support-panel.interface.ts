@@ -45,6 +45,8 @@ export interface PanelDeleted {
 export interface PanelStoredFile {
   messageId: string;
   mine: boolean;
+  url: string;
+  storageKey?: string;
 }
 
 export interface PanelAttachment {

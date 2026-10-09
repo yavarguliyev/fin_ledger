@@ -1,0 +1,15 @@
+@if (panel.contact(); as contact) {
+  <dl class="mt-2" [class]="card">
+    @for (row of [
+      { label: labels.ROLE_LABEL, value: contact.role },
+      { label: labels.MEMBER_SINCE_LABEL, value: contact.memberSince ? (contact.memberSince | date: labels.DATE_FORMAT) : null },
+      { label: labels.ACCOUNT_LABEL, value: contact.accountStatus },
+      { label: labels.KYC_LABEL, value: contact.kycStatus }
+    ]; track row.label; let first = $first) {
+      <div class="mx-4 flex min-h-[52px] items-center justify-between gap-3" [class.border-t]="!first" [class.border-chat-line]="!first" [class.dark:border-chat-line-dark]="!first">
+        <dt class="text-[15px] text-ink-900 dark:text-white">{{ row.label }}</dt>
+        <dd class="text-[15px] text-ink-500 dark:text-night-muted">{{ row.value ?? emptyValue }}</dd>
+      </div>
+    }
+  </dl>
+}

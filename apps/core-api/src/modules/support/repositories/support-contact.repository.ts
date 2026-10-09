@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { BaseExtendedRepository, PostgresService, STAFF_ROLES } from '@common/libs';
 
-import { ContactCardResponseDto } from '../dtos/response/contact-card-response.dto';
+import { CustomerCardRowDto } from '../dtos/contact/customer-card-row.dto';
 import { ContactNameDto } from '../dtos/contact/contact-name.dto';
 import { StaffRefDto } from '../dtos/input/staff-ref.dto';
 import { SUPPORT_CONTACT_SQL } from '../constants/chat/support-contact-sql.constant';
@@ -28,8 +28,8 @@ export class SupportContactRepository extends BaseExtendedRepository<SupportCont
     return result.rows[0] ?? null;
   }
 
-  async customerCard ({ userId }: UserRefDto): Promise<ContactCardResponseDto | null> {
-    const result = await this.service.getWriteConnection().query<ContactCardResponseDto>({ sql: SUPPORT_CONTACT_SQL.CUSTOMER_CARD, params: [userId] });
+  async customerCard ({ userId }: UserRefDto): Promise<CustomerCardRowDto | null> {
+    const result = await this.service.getWriteConnection().query<CustomerCardRowDto>({ sql: SUPPORT_CONTACT_SQL.CUSTOMER_CARD, params: [userId] });
     return result.rows[0] ?? null;
   }
 

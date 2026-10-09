@@ -12,7 +12,7 @@ const templates = ({ dir }: SourceDirDto): string[] =>
 const unsizedImages = ({ file }: SourceFileDto): string[] => {
   const source = readFileSync(file, T.ENCODING);
   return [...source.matchAll(T.IMAGE)]
-    .filter(([tag]) => !T.DATA_URL_SOURCE.test(tag) && !(T.OPTIMIZED.test(tag) && T.SIZED.test(tag)))
+    .filter(([tag]) => !T.LOCAL_SOURCE.test(tag) && !(T.OPTIMIZED.test(tag) && T.SIZED.test(tag)))
     .map(match => `${file}${T.SEPARATOR}${source.slice(0, match.index).split(T.NEWLINE).length}`);
 };
 

@@ -32,6 +32,11 @@ export class ChatPeerService {
     return named ?? this.presence()?.displayName ?? SUPPORT_VIEW.FALLBACK_NAME;
   });
 
+  readonly avatarUrl = computed(() => {
+    const conversation = this.chat.activeConversation();
+    const photo = this.chat.isStaff() ? conversation?.customerAvatarUrl : conversation?.assignedStaffAvatarUrl;
+    return photo ?? this.presence()?.avatarUrl ?? null;
+  });
   readonly status = computed(() => (this.online() ? SUPPORT_VIEW.ONLINE_LABEL : LastSeenHelper.label({ iso: this.presence()?.lastSeenAt ?? null })));
 
   readonly typing = computed(() => {

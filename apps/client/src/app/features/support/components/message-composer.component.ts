@@ -5,7 +5,7 @@ import { RecorderBarComponent } from './recorder-bar.component';
 import { RecordingKind } from '../../../core/types/support/recording-kind.type';
 import { SUPPORT_RECORDING } from '../../../core/constants/support/support-recording.constant';
 import { ToastService } from '../../../core/services/toast.service';
-
+import { DraftLinkPreviewComponent } from './draft-link-preview.component';
 import { ComposeSubmitDto } from '../../../core/interfaces/support/compose-submit.interface';
 import { EditSaveDto } from '../../../core/interfaces/support/edit-save.interface';
 import { SUPPORT } from '../../../core/constants/support/support.constant';
@@ -21,7 +21,7 @@ import { FileTransferHelper } from '../helpers/file-transfer.helper';
   selector: 'app-message-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RecorderBarComponent],
+  imports: [RecorderBarComponent, DraftLinkPreviewComponent],
   templateUrl: '../templates/message-composer.component.html'
 })
 export class MessageComposerComponent {

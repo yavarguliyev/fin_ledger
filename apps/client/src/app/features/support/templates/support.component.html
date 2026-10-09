@@ -27,6 +27,10 @@
       </button>
     </header>
 
+    @if (!stars.everywhereOpen()) {
+      <app-chat-filter-chips />
+    }
+
     @if (stars.everywhereOpen()) {
       <app-starred-list [items]="stars.everywhere()" (picked)="nav.pickStarred($event)" />
     } @else if (chat.isStaff()) {
@@ -46,7 +50,7 @@
         </button>
       }
       <app-conversation-list
-        [conversations]="locks.showLocked() ? locks.locked() : locks.unlocked()"
+        [conversations]="listed()"
         [selectedId]="chat.activeId()"
         (picked)="nav.pick($event)"
       />
@@ -55,6 +59,7 @@
         [contacts]="presenceStore.contacts()"
         [conversations]="chat.conversations()"
         [selectedStaffId]="peer.activeStaffId()"
+        [filter]="filters.filter()"
         (picked)="nav.pickContact($event)"
       />
     }
@@ -87,6 +92,14 @@
           </svg>
         </button>
         @if (chat.activeId()) {
+          <button
+            type="button"
+            class="shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            [attr.aria-label]="photoLabels.OPEN_LABEL + ': ' + peer.name()"
+            (click)="peer.avatarUrl() ? photos.open({ url: peer.avatarUrl(), name: peer.name() }) : panel.show()"
+          >
+            <app-support-avatar size="header" [name]="peer.name()" [url]="peer.avatarUrl()" />
+          </button>
           <button
             type="button"
             class="min-w-0 rounded-lg px-1 text-left hover:bg-ink-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-night-bg"
@@ -165,7 +178,9 @@
       </div>
     </header>
 
-    <div class="relative flex-1 min-h-0 flex flex-col">
+    <app-pinned-banner />
+
+    <div class="relative flex-1 min-h-0 flex flex-col bg-[var(--chat-wall)]" [attr.data-chat-theme]="chat.activeConversation()?.theme ?? themes.DEFAULT">
       <div
         #scroller="chatScroll"
         class="flex-1 overflow-y-auto"
@@ -222,6 +237,11 @@
                 </div>
               </div>
             }
+            @if (uploads.pendingHere(); as upload) {
+              <div class="flex justify-end px-4 pb-1">
+                <app-pending-upload [upload]="upload" [progress]="uploads.progress() ?? 0" (cancelled)="uploads.cancel()" />
+              </div>
+            }
           </div>
         }
       </div>
@@ -248,11 +268,12 @@
       }
     </div>
 
-    @if (uploads.uploading()) {
-      <app-upload-progress [progress]="uploads.progress() ?? 0" (cancelled)="uploads.cancel()" />
+    @if (selection.active()) {
+      <app-selection-bar />
     }
     <app-message-composer
       #composer
+      [class.hidden]="selection.active()"
       [sending]="compose.sending() || uploads.uploading()"
       [disabled]="!chat.activeId()"
       [editing]="compose.editing()"
@@ -275,6 +296,12 @@
   @if (chat.isStaff() && !panel.open()) {
     <app-presence-panel [entries]="presenceStore.entries()" [total]="presenceStore.total()" />
   }
+
+  <app-media-viewer [userId]="chat.myUserId()" />
+
+  <app-pin-duration-dialog />
+
+  <app-profile-photo-viewer />
 
   <app-delete-dialog
     [message]="compose.deleting()"

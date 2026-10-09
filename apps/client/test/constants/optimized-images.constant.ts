@@ -7,7 +7,7 @@ export const OPTIMIZED_IMAGES_TEST = {
   IMAGE: /<img\b[^>]*>/g,
   OPTIMIZED: /\[ngSrc\]=/,
   SIZED: /\bfill\b|\bwidth="\d+"[^>]*\bheight="\d+"/,
-  DATA_URL_SOURCE: /DataUrl/,
+  LOCAL_SOURCE: /DataUrl|objectUrl/,
   NEWLINE: '\n',
   SEPARATOR: ':'
 } as const;

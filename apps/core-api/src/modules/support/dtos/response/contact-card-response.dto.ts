@@ -15,7 +15,9 @@ export const ContactCardResponseSchema = z.object({
 
   accountStatus: z.string({ message: 'Account status must be a string' }).optional(),
 
-  kycStatus: z.string({ message: 'KYC status must be a string' }).optional()
+  kycStatus: z.string({ message: 'KYC status must be a string' }).optional(),
+
+  avatarUrl: z.string({ message: 'Avatar URL must be a string' }).nullable().optional()
 });
 
 export type ContactCardResponseDto = z.infer<typeof ContactCardResponseSchema>;
