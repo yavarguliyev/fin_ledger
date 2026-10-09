@@ -14,7 +14,7 @@
 <text x="210" y="503" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Distribution</text>
 <rect x="318" y="398" width="64" height="64" rx="6" fill="#7AA116"/>
 <g transform="translate(350,430)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><ellipse cy="-11" rx="16" ry="5"/><path d="M-16,-11 L-12,15 Q0,20 12,15 L16,-11"/></g>
-<circle cx="380" cy="400" r="8" fill="#D29922" stroke="#fff" stroke-width="2.5"/>
+<circle cx="380" cy="400" r="8" fill="#2EA043" stroke="#fff" stroke-width="2.5"/>
 <text x="350" y="484" font-size="15" fill="#7AA116" text-anchor="middle" font-weight="400">S3 Website</text>
 <text x="350" y="503" font-size="13" fill="#5F6B7A" text-anchor="middle" font-weight="400">Angular client</text>
 <rect x="458" y="398" width="64" height="64" rx="6" fill="#E7157B"/>

@@ -169,7 +169,7 @@ AWS (locally it is the Docker service from `infrastructure/dev`). The markers ch
 
 | Path | What happens |
 | :--- | :--- |
-| **Web** | CloudFront serves the Angular build from an S3 website; the browser calls API Gateway. |
+| **Web** | CloudFront serves the Angular build from a private, KMS-encrypted S3 bucket; the browser calls API Gateway. Built on LocalStack without CloudFront: `npm run aws:web` builds the client, points its `config.json` at the gateway and uploads it, and sign-in plus the dashboard work through S3 website → API Gateway → API. |
 | **`/api/*`** | API Gateway forwards to the API service (ECS Fargate), which uses RDS PostgreSQL, ElastiCache Redis and the KMS-encrypted file bucket. Built and verified on LocalStack. The live SSE stream bypasses the gateway (it buffers and cuts requests at 29 s) and goes through the load balancer. |
 | **`/webhooks/*`** | Payment-provider webhooks land in an SQS queue first, so none is lost while the API is down; the worker verifies the signature and applies them. Built: the queue body is the provider's body byte for byte, the signature header travels as a message attribute, and unknown providers are refused at the gateway. |
 | **Notifications** | The outbox relay publishes to the SNS topic, which fans out to one SQS queue per event type; consumers retry after 5 s, 30 s and 5 min. |
@@ -1162,6 +1162,7 @@ npm run aws:secrets   # copy the secret values from apps/core-api/.env.local int
 npm run aws:scan      # security scan of the Terraform (Trivy)
 npm run aws:down      # stop LocalStack (the free plan keeps nothing; aws:up recreates it)
 npm run aws:rm        # remove containers, volume, Terraform state and cache, and the images (asks first)
+npm run aws:web       # build the Angular client and publish it to the S3 website, wired to API Gateway
 ```
 
 Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` switches all of them at once:
@@ -1174,6 +1175,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
 | Payment-provider webhooks | `POST /api/v1/webhooks/{provider}` on the API | API Gateway `POST /webhooks/{provider}` → SQS → worker | `SQS_WEBHOOK_QUEUE` |
 | Dead-letter alerts | metrics and Grafana | CloudWatch alarm per dead-letter queue → SNS alerts topic → e-mail | `alert_emails` (Terraform) |
+| Client hosting | `ng serve` on `localhost:4200` | S3 website bucket (`npm run aws:web`), CloudFront on AWS | Terraform `web` module |
 | Public entry point | the API on `localhost:3000` | API Gateway proxying `/api/*` to the API (`terraform output public_rest_api_id`) | `api_upstream_url` (Terraform) |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
 | Non-secret settings | `.env.local` | SSM Parameter Store (`app_parameters` in Terraform), loaded before validation | `PARAMETERS_SOURCE` |

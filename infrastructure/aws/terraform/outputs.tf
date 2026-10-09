@@ -72,3 +72,8 @@ output "parameters_path" {
   description = "SSM path the application reads its non-secret settings from."
   value       = module.parameters.path
 }
+
+output "web_bucket" {
+  description = "Bucket that holds the Angular client build."
+  value       = module.web.bucket_name
+}

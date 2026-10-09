@@ -30,6 +30,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `npm run aws:down` | Stop LocalStack. The free plan keeps nothing, so the next `aws:up` recreates everything. |
 | `npm run aws:secrets` | Copy the app's secrets from `apps/core-api/.env.local` (and `.env.aws`) into Secrets Manager. `aws:up` runs it too. |
 | `npm run aws:rm` | Remove everything the stack left on this machine: containers, volume, network, Terraform state and provider cache, and the LocalStack, Terraform and Trivy images. Asks for `yes` first; `-- --force` skips that. |
+| `npm run aws:web` | Build the Angular client, point its `config.json` at the API Gateway and publish it to the S3 website. Prints the URL. |
 | `npm run aws:scan` | Scan the Terraform for security misconfigurations (Trivy). `aws:up` runs it first and stops on findings. |
 
 ## What is created
@@ -44,6 +45,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `edge` | Public REST API: `/api/*` proxied to the API (`api_upstream_url`), and `POST /webhooks/{provider}` per known provider integrated straight with an SQS queue and DLQ, its own KMS key, throttling, access logs (90 days), a send-only role for the gateway and a consume policy for the worker | Payment-provider webhooks survive the API being down |
 | `alerting` | KMS-encrypted SNS alerts topic that only CloudWatch may publish to, e-mail subscriptions from `alert_emails`, and one alarm per dead-letter queue (fires on the first message) | On-call hears about failed messages and webhooks |
 | `parameters` | Non-secret settings from `app_parameters` as SSM `String` parameters under `/<prefix>/core-api/`, and a read-only policy for the API and worker roles | Per-environment settings (allowed origins, front-end URL, sender address) without env files |
+| `web` | Private bucket for the client build: ownership enforced, public access blocked, versioning, its own KMS key, website hosting with `index.html` as the fallback, and (once `cloudfront_distribution_arn` is set) read access for CloudFront only | Hosting the Angular client |
 | `secrets` | Secrets Manager secret `ddd-local/core-api`, its own KMS key, a read-only policy for the API and worker roles | Passwords, signing and encryption keys, Stripe and Telegram tokens |
 
 ## Security model
@@ -86,6 +88,13 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 - **Parameters.** Non-secret settings live in Terraform (`app_parameters`), so they are visible in the state and in code
   review; anything secret belongs in Secrets Manager instead. The app reads the whole path at startup when
   `PARAMETERS_SOURCE=aws`; Secrets Manager values and real environment variables still win.
+- **Web client.** `npm run aws:web` uploads `index.html` and `config.json` with `Cache-Control: no-cache` and the hashed
+  bundles with a one-year `immutable` cache, and deletes files a newer build no longer has. Locally the bucket is served
+  at `http://ddd-local-web.s3-website.localhost.localstack.cloud:4566/`; LocalStack does not enforce the bucket policy,
+  so the private bucket is still reachable. On AWS, CloudFront reads it through Origin Access Control and should also
+  route `/api/*` to the gateway, so the client and the API share one domain (the refresh cookie needs that), return
+  `index.html` with 200 for client-side routes (the S3 website answers them with 404), and send the SSE streams to the
+  load balancer instead of the gateway.
 - **Scanning.** `aws:scan` fails on any medium, high or critical misconfiguration, and `aws:up` will not apply without it.
 
 **What LocalStack's free plan does not do:** it does not enforce IAM or bucket policies (even with `ENFORCE_IAM=1`),

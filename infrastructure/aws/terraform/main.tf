@@ -93,3 +93,12 @@ module "parameters" {
   values            = var.app_parameters
   reader_role_names = [module.identity.api_role.name, module.identity.worker_role.name]
 }
+
+module "web" {
+  source = "./modules/web"
+
+  name_prefix              = local.name_prefix
+  bucket_name              = "${local.name_prefix}-web"
+  enforce_tls              = var.enforce_tls
+  key_deletion_window_days = var.key_deletion_window_days
+}
