@@ -4,7 +4,7 @@
     "wallet-ledger": ["wallet", "wallet-transactions", "ledger"],
     "payments": ["payment", "payment-methods", "webhook"],
     "betting": ["game-events", "bet"],
-    "engagement": ["notification", "email", "support"],
+    "engagement": ["notification", "email", "support", "support-history", "support-pins", "support-preferences"],
     "compliance": ["audit"],
     "reporting": ["analytics"],
     "back-office": ["admin"],
