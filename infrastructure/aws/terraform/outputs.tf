@@ -77,3 +77,8 @@ output "web_bucket" {
   description = "Bucket that holds the Angular client build."
   value       = module.web.bucket_name
 }
+
+output "vpc_id" {
+  description = "VPC the API, worker and databases would run in."
+  value       = module.network.vpc_id
+}

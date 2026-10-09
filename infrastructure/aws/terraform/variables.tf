@@ -128,3 +128,15 @@ variable "app_parameters" {
   type        = map(string)
   default     = {}
 }
+
+variable "vpc_cidr_block" {
+  description = "Address range of the VPC."
+  type        = string
+  default     = "10.20.0.0/16"
+}
+
+variable "availability_zones" {
+  description = "Availability zones the subnets are spread across."
+  type        = list(string)
+  default     = ["us-east-1a", "us-east-1b"]
+}

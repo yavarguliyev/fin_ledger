@@ -102,3 +102,11 @@ module "web" {
   enforce_tls              = var.enforce_tls
   key_deletion_window_days = var.key_deletion_window_days
 }
+
+module "network" {
+  source = "./modules/network"
+
+  name_prefix        = local.name_prefix
+  cidr_block         = var.vpc_cidr_block
+  availability_zones = var.availability_zones
+}

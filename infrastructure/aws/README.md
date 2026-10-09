@@ -46,6 +46,7 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
 | `alerting` | KMS-encrypted SNS alerts topic that only CloudWatch may publish to, e-mail subscriptions from `alert_emails`, and one alarm per dead-letter queue (fires on the first message) | On-call hears about failed messages and webhooks |
 | `parameters` | Non-secret settings from `app_parameters` as SSM `String` parameters under `/<prefix>/core-api/`, and a read-only policy for the API and worker roles | Per-environment settings (allowed origins, front-end URL, sender address) without env files |
 | `web` | Private bucket for the client build: ownership enforced, public access blocked, versioning, its own KMS key, website hosting with `index.html` as the fallback, and (once `cloudfront_distribution_arn` is set) read access for CloudFront only | Hosting the Angular client |
+| `network` | VPC with public, private app and private data subnets in two zones, internet and NAT gateways, an S3 gateway endpoint and interface endpoints (SQS, SNS, Secrets Manager, SSM, KMS, CloudWatch Logs, STS), one security group per tier, a locked default group, and flow logs (90 days) | The network the API, worker and databases run in on AWS |
 | `secrets` | Secrets Manager secret `ddd-local/core-api`, its own KMS key, a read-only policy for the API and worker roles | Passwords, signing and encryption keys, Stripe and Telegram tokens |
 
 ## Security model
@@ -95,6 +96,15 @@ Nothing needs to be installed except Docker. LocalStack and Terraform both run a
   route `/api/*` to the gateway, so the client and the API share one domain (the refresh cookie needs that), return
   `index.html` with 200 for client-side routes (the S3 website answers them with 404), and send the SSE streams to the
   load balancer instead of the gateway.
+- **Network.** Only the load balancer accepts traffic from the internet (443). The app tier accepts the API port from
+  the load balancer only, reaches the databases and the VPC endpoints, and has **no outbound internet by default**:
+  payment-provider ranges are opened explicitly with `provider_egress_cidrs`, or, more robustly, AWS Network Firewall
+  with a domain allowlist (`api.stripe.com`) sits in front of the NAT gateway. The data tier has no route out at all.
+  LocalStack creates every object through the EC2 API but runs nothing in it; the app still runs on your machine.
+  Group-to-group rules use `aws_security_group_rule`, because LocalStack reports referenced groups of the newer
+  per-rule resources with an account prefix and Terraform would show them as changed on every plan.
+- **After `aws:down`.** LocalStack keeps nothing, so `aws:up` creates a new API Gateway ID; run `npm run aws:web` again
+  so the client's `config.json` points at it.
 - **Scanning.** `aws:scan` fails on any medium, high or critical misconfiguration, and `aws:up` will not apply without it.
 
 **What LocalStack's free plan does not do:** it does not enforce IAM or bucket policies (even with `ENFORCE_IAM=1`),
@@ -147,7 +157,9 @@ Production checklist (not emulated locally):
 - [ ] Run the API and worker with their IAM roles (ECS task roles or instance profiles); no access keys.
 - [ ] Terraform state in an encrypted, versioned S3 bucket with locking, one state per environment, admins only.
 - [ ] Account-level S3 Block Public Access, CloudTrail, GuardDuty and Security Hub enabled.
-- [ ] Private subnets and VPC endpoints for S3, KMS and Secrets Manager; a WAF in front of the public entry point.
+- [ ] Private subnets and VPC endpoints are modelled in the `network` module; size the NAT gateways (one per zone for
+      high availability), decide the provider egress (`provider_egress_cidrs` or Network Firewall), and put a WAF in
+      front of the public entry point.
 - [ ] SES on the real domain with DKIM, SPF and DMARC, and bounce and complaint handling.
 - [ ] SMS out of the SNS sandbox, an origination identity registered where the country requires it (10DLC or toll-free in
       the US, sender ID registration elsewhere), and a monthly spend limit sized to real traffic.

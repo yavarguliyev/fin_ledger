@@ -1175,6 +1175,7 @@ Every AWS-backed concern has a local counterpart, and `apps/core-api/.env.aws` s
 | Notifications | RabbitMQ | SNS topic → SQS queues | `QUEUE_TRANSPORT` |
 | Payment-provider webhooks | `POST /api/v1/webhooks/{provider}` on the API | API Gateway `POST /webhooks/{provider}` → SQS → worker | `SQS_WEBHOOK_QUEUE` |
 | Dead-letter alerts | metrics and Grafana | CloudWatch alarm per dead-letter queue → SNS alerts topic → e-mail | `alert_emails` (Terraform) |
+| Network | your machine | VPC with public, app and data subnets, NAT, VPC endpoints, a security group per tier and flow logs (modelled in LocalStack, used on AWS) | Terraform `network` module |
 | Client hosting | `ng serve` on `localhost:4200` | S3 website bucket (`npm run aws:web`), CloudFront on AWS | Terraform `web` module |
 | Public entry point | the API on `localhost:3000` | API Gateway proxying `/api/*` to the API (`terraform output public_rest_api_id`) | `api_upstream_url` (Terraform) |
 | Secrets | `.env.local` | Secrets Manager, loaded before validation | `SECRETS_SOURCE` |
