@@ -3,6 +3,8 @@ const TOKENS = {
   'surface-1': { dark: '21 20 43', light: '255 255 255' },
   'surface-2': { dark: '30 28 58', light: '247 246 255' },
   line: { dark: '44 42 77', light: '228 226 243' },
+  rail: { dark: '16 15 34', light: '255 255 255' },
+  'rail-line': { dark: '31 29 59', light: '228 226 243' },
   text: { dark: '244 243 255', light: '20 19 43' },
   'text-muted': { dark: '166 163 201', light: '92 89 128' },
   action: { dark: '106 72 245', light: '106 72 245' },
@@ -43,6 +45,10 @@ const plugin = ({ addBase, addComponents }) => {
       color: 'rgb(255 255 255)',
       backgroundImage: `linear-gradient(135deg, rgb(var(${variable('raised')})), rgb(var(${variable('raised-dark')})))`,
       boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.18), 0 18px 40px -16px rgb(106 72 245 / 0.65)'
+    },
+    '.nav-glow': {
+      backgroundColor: `rgb(var(${variable('action')}) / 0.22)`,
+      boxShadow: `inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 24px -6px rgb(var(${variable('action')}) / 0.6)`
     },
     '.light-sweep': {
       position: 'absolute',

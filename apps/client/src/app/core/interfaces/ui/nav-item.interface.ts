@@ -6,4 +6,5 @@ export interface NavItem {
   label: string;
   icon: IconName;
   roles?: readonly UserRole[];
+  live?: boolean;
 }

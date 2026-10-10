@@ -68,8 +68,8 @@ export class ShellComponent implements OnInit {
     { path: '/admin', label: 'Admin', icon: 'shield', roles: ROLE_SETS.ADMIN },
     { path: '/dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
     { path: '/wallet', label: 'Wallet', icon: 'wallet' },
-    { path: '/betting', label: 'Betting', icon: 'target', roles: ROLE_SETS.PLAYER },
-    { path: '/ledger', label: 'Ledger', icon: 'book-open' },
+    { path: '/betting', label: 'Games', icon: 'gamepad', roles: ROLE_SETS.PLAYER, live: true },
+    { path: '/ledger', label: 'Ledger', icon: 'ledger' },
     { path: '/support', label: 'Support', icon: 'message-circle' },
     { path: '/profile', label: 'Profile', icon: 'user' }
   ];
@@ -78,7 +78,7 @@ export class ShellComponent implements OnInit {
     { path: '/admin', label: 'Admin', icon: 'shield', roles: ROLE_SETS.ADMIN },
     { path: '/dashboard', label: 'Home', icon: 'layout-dashboard' },
     { path: '/wallet', label: 'Wallet', icon: 'wallet' },
-    { path: '/betting', label: 'Bet', icon: 'target', roles: ROLE_SETS.PLAYER },
+    { path: '/betting', label: 'Games', icon: 'gamepad', roles: ROLE_SETS.PLAYER },
     { path: '/support', label: 'Chat', icon: 'message-circle' },
     { path: '/notifications', label: 'Alerts', icon: 'bell' },
     { path: '/profile', label: 'Profile', icon: 'user' }
