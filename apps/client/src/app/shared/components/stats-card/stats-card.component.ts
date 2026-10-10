@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 
 import { StatCard } from '../../../core/interfaces/ui/stat-card.interface';
 import { IconComponent } from '../icon/icon.component';
+import { SparklineComponent } from '../sparkline/sparkline.component';
 
 @Component({
   selector: 'app-stats-card',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, IconComponent],
+  imports: [CommonModule, IconComponent, SparklineComponent],
   templateUrl: './stats-card.component.html'
 })
 export class StatsCardComponent {

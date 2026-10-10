@@ -1,9 +1,9 @@
-<div class="px-3 sm:px-5 py-4 border-t border-ink-200 dark:border-night-border flex flex-wrap items-center justify-between gap-3">
+<div class="px-3 sm:px-5 py-4 border-t border-line flex flex-wrap items-center justify-between gap-3">
   <div class="flex flex-wrap items-center gap-1">
     <button
       (click)="goToPage(1)"
       [disabled]="config().currentPage === 1 || totalPages() === 0"
-      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text hover:border-action disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       « First
     </button>
@@ -11,21 +11,21 @@
     <button
       (click)="goToPage(config().currentPage - 1)"
       [disabled]="config().currentPage === 1 || totalPages() === 0"
-      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text hover:border-action disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       ‹ Back
     </button>
 
     @for (page of pageNumbers(); track $index) {
       @if (page === -1) {
-        <span class="px-3 py-1.5 text-ink-400 dark:text-ink-500">...</span>
+        <span class="px-3 py-1.5 text-text-muted">...</span>
       } @else {
         <button
           (click)="goToPage(page)"
           [class]="
             page === config().currentPage
-              ? 'inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg bg-primary text-white font-medium'
-              : 'inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors'
+              ? 'glossy inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-bold rounded-xl'
+              : 'inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text hover:border-action transition-colors'
           "
         >
           {{ page }}
@@ -36,7 +36,7 @@
     <button
       (click)="goToPage(config().currentPage + 1)"
       [disabled]="config().currentPage === totalPages() || totalPages() === 0"
-      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text hover:border-action disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       Next ›
     </button>
@@ -44,7 +44,7 @@
     <button
       (click)="goToPage(totalPages())"
       [disabled]="config().currentPage === totalPages() || totalPages() === 0"
-      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-night-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center px-3.5 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text hover:border-action disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
       Last »
     </button>
@@ -52,11 +52,11 @@
 
   @if (config().availablePageSizes.length > 0) {
     <div class="flex items-center gap-2">
-      <label class="flex items-center gap-2 text-sm text-ink-500 dark:text-night-muted">
+      <label class="flex items-center gap-2 text-sm text-text-muted">
         Rows per page:
         <select
           (change)="onPageSizeChange($event)"
-          class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm rounded-lg border border-ink-200 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center px-3 text-sm font-semibold rounded-xl border border-line bg-surface-2 text-text focus:outline-none focus:ring-2 focus:ring-action/40"
         >
           @for (size of config().availablePageSizes; track size) {
             <option [value]="size" [selected]="size === config().pageSize">{{ size }}</option>

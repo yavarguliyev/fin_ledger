@@ -1,20 +1,20 @@
 <div class="fixed top-[4.5rem] right-2 z-[60] space-y-2 w-96 max-w-[calc(100vw-1rem)]" role="status" aria-live="polite">
   @if (confirmToast()) {
-    <div class="toast-warning-solid flex flex-col gap-3 p-4 rounded-xl shadow-lift animate-slideIn border-l-4">
+    <div class="toast-warning-solid flex flex-col gap-3 p-4 rounded-2xl animate-slideIn border-l-4">
       <div class="flex items-center gap-3">
-        <app-icon class="h-5 w-5 shrink-0 text-warning-deep dark:text-warning-light" name="triangle-alert" />
+        <app-icon class="toast-icon h-5 w-5 shrink-0" name="triangle-alert" />
         <p class="flex-1 text-sm font-medium">{{ confirmToast()!.message }}</p>
       </div>
-      <div class="flex gap-2 justify-end border-t border-white/30 pt-3">
+      <div class="flex gap-2 justify-end border-t border-line pt-3">
         <button
           (click)="handleCancel()"
-          class="px-4 py-2 rounded-lg text-sm font-semibold bg-white/20 text-white hover:bg-white/30 transition-colors"
+          class="min-h-11 px-4 rounded-xl text-sm font-semibold border border-line bg-surface-1 text-text hover:border-action transition-colors"
         >
           Cancel
         </button>
         <button
           (click)="handleConfirm()"
-          class="px-4 py-2 rounded-lg text-sm font-semibold bg-danger-dark text-white hover:bg-danger-deep transition-colors"
+          class="min-h-11 px-4 rounded-xl text-sm font-semibold border border-loss/40 bg-loss/15 text-loss hover:bg-loss/25 transition-colors"
         >
           Delete
         </button>
@@ -24,13 +24,13 @@
 
   @for (t of toasts(); track t.id) {
     <div
-      class="flex items-center gap-3 p-4 rounded-xl shadow-lift animate-slideIn border-l-4 font-medium"
+      class="flex items-center gap-3 p-4 rounded-2xl animate-slideIn border-l-4 font-medium"
       [class.toast-success-solid]="t.type === 'success'"
       [class.toast-error-solid]="t.type === 'error'"
       [class.toast-warning-solid]="t.type === 'warning'"
       [class.toast-info-solid]="t.type === 'info'"
     >
-      <app-icon class="h-5 w-5 shrink-0 text-white" [name]="icon(t.type)" />
+      <app-icon class="toast-icon h-5 w-5 shrink-0" [name]="icon(t.type)" />
       <p class="flex-1 text-sm">{{ t.message }}</p>
       <button
         (click)="dismiss(t.id)"

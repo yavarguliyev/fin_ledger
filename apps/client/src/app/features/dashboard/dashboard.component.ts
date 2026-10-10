@@ -6,28 +6,28 @@ import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { Transaction } from '../../core/types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../../core/interfaces/wallet/wallet-transaction-summary.interface';
-import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
-import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { StatCard } from '../../core/interfaces/ui/stat-card.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
-import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { DashboardHelper } from './helpers/dashboard.helper';
-import { ACTIVITY } from '../../core/constants/wallet/activity.constant';
+import { GameEventsService } from '../../core/services/game-events.service';
+import { GameEvent } from '../../core/interfaces/betting/game-event.interface';
+import { SparkSeriesHelper } from './helpers/spark-series.helper';
+import { TransactionRowComponent } from '../../shared/components/transaction-row/transaction-row.component';
+import { DASHBOARD_LIVE_NOW } from './constants/dashboard-live-now.constant';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { TabsComponent } from '../../shared/components/tabs/tabs.component';
 import { TabItemDto } from '../../core/interfaces/ui/tab-item.interface';
 import { DASHBOARD_VIEW } from './constants/dashboard-view.constant';
-import { IconComponent } from '../../shared/components/icon/icon.component';
-import { IconName } from '../../core/types/ui/icon-name.type';
+import { BalanceHeroComponent } from '../../shared/components/balance-hero/balance-hero.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent, IconComponent],
+  imports: [CommonModule, RouterLink, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent, BalanceHeroComponent, TransactionRowComponent],
   templateUrl: './templates/dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -37,11 +37,10 @@ export class DashboardComponent implements OnInit {
   private readonly requestedCurrency = signal<string | null>(null);
   private readonly isStaff = this.auth.isStaff;
 
-  readonly typeIcon = (value: string): IconName => TransactionHelper.typeIcon(value);
-  readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
-  readonly formatType = (value: string): string => TransactionHelper.formatType(value);
-  readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
-  readonly amountClass = (amountMinor: number): string => (amountMinor < 0 ? DASHBOARD_VIEW.AMOUNT_CLASS.NEGATIVE : DASHBOARD_VIEW.AMOUNT_CLASS.POSITIVE);
+  private readonly gameEvents = inject(GameEventsService);
+
+  readonly liveBadgeTone = (index: number): string => DASHBOARD_LIVE_NOW.BADGE_TONES[index % DASHBOARD_LIVE_NOW.BADGE_TONES.length] ?? '';
+  readonly liveNowView = DASHBOARD_LIVE_NOW;
 
   readonly loading = signal(true);
   readonly failed = signal(false);
@@ -50,7 +49,9 @@ export class DashboardComponent implements OnInit {
   readonly wallet = computed(() => this.walletService.wallet());
   readonly summaries = signal<WalletTransactionSummary[]>([]);
   readonly recentTx = signal<Transaction[]>([]);
-  readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
+  readonly title = computed(() => DashboardHelper.greeting({ hour: new Date().getHours(), name: this.auth.currentUser()?.displayName }));
+  readonly activityRows = computed(() => this.recentTx().slice(0, DASHBOARD_VIEW.ACTIVITY_ROWS));
+  readonly liveNow = signal<GameEvent[]>([]);
   readonly isUser = this.auth.isPlayer;
 
   readonly currencies = computed(() => this.summaries().map(summary => summary.currency));
@@ -71,9 +72,14 @@ export class DashboardComponent implements OnInit {
     return available[0] ?? null;
   });
 
+  readonly activeSummary = computed(() => this.summaries().find(entry => entry.currency === this.selectedCurrency()));
+
+  readonly subtitle = computed(() => DashboardHelper.subtitle({ summary: this.activeSummary() }));
+
   readonly activeStats = computed<StatCard[]>(() => {
-    const summary = this.summaries().find(entry => entry.currency === this.selectedCurrency());
-    return summary ? DashboardHelper.buildStatCards({ summary }) : [];
+    const summary = this.activeSummary();
+    const series = SparkSeriesHelper.build({ transactions: this.recentTx(), now: new Date() });
+    return summary ? DashboardHelper.buildStatCards({ summary, series }) : [];
   });
 
   onSelectCurrency (currency: string): void {
@@ -82,6 +88,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit (): void {
     this.load();
+    this.loadLiveNow();
   }
 
   load (): void {
@@ -103,13 +110,20 @@ export class DashboardComponent implements OnInit {
   }
 
   private loadActivity (scope: string): void {
-    this.walletService.getOverview({ walletId: scope, page: ACTIVITY.PAGE, limit: ACTIVITY.LIMIT }).subscribe({
+    this.walletService.getOverview({ walletId: scope, page: DASHBOARD_VIEW.HISTORY_PAGE, limit: DASHBOARD_VIEW.HISTORY_LIMIT }).subscribe({
       next: ({ summary, recent }) => {
         this.summaries.set(summary);
         this.recentTx.set(recent.data);
         this.loading.set(false);
       },
       error: () => this.fail()
+    });
+  }
+
+  private loadLiveNow (): void {
+    this.gameEvents.getEvents().subscribe({
+      next: events => this.liveNow.set(DashboardHelper.liveNow({ events })),
+      error: () => this.liveNow.set([])
     });
   }
 

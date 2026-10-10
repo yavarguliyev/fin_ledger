@@ -1,7 +1,18 @@
 <div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 md:pb-0 md:pt-7">
   <div class="flex min-w-0 flex-col gap-1">
     @if (page(); as page) {
-      <h1 class="truncate font-display font-medium text-xl text-text md:text-[28px]">{{ page.title }}</h1>
+      <div class="flex min-w-0 items-center gap-3.5">
+        @if (page.backRoute) {
+          <a
+            [routerLink]="page.backRoute"
+            [attr.aria-label]="page.backLabel"
+            class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface-1 rim text-text transition-colors hover:bg-surface-2"
+          >
+            <app-icon class="h-5 w-5" name="chevron-left" />
+          </a>
+        }
+        <h1 class="truncate font-display text-xl text-text md:text-[28px]" [class]="page.backRoute ? 'font-bold' : 'font-medium'">{{ page.title }}</h1>
+      </div>
       @if (page.subtitle) {
         <p class="truncate text-sm text-text-muted md:text-[15px]">{{ page.subtitle }}</p>
       }

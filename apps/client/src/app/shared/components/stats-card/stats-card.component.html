@@ -9,10 +9,12 @@
   @for (stat of stats(); track stat.label) {
     <div class="flex flex-col gap-3.5 rounded-[22px] bg-surface-1 depth-1 p-5 overflow-hidden">
       <div class="flex items-center justify-between">
-        <span class="flex h-10 w-10 items-center justify-center rounded-xl" [ngClass]="stat.toneClass ?? 'bg-action/15 text-action'">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl rim" [ngClass]="stat.toneClass ?? 'bg-action/15 text-action'">
           <app-icon class="h-5 w-5" [name]="stat.icon" />
         </span>
-        @if (stat.trend) {
+        @if (stat.spark) {
+          <app-sparkline [class]="stat.sparkClass ?? 'text-action'" [values]="stat.spark" />
+        } @else if (stat.trend) {
           <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="stat.toneClass ?? ''">
             {{ stat.trend }}
           </span>

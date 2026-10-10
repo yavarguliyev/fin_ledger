@@ -1,0 +1,60 @@
+<div class="flex flex-col gap-5">
+  <app-page-header [title]="view.TITLE" [backRoute]="view.BACK_ROUTE" [backLabel]="view.BACK_LABEL" />
+
+  <div class="flex flex-wrap gap-5">
+    <section aria-label="Game stage" class="stage-crash-game h-[460px] min-w-0 flex-[999_1_560px] rounded-[28px]">
+      <app-rocket class="absolute bottom-3 left-5 h-16 w-16" [tilt]="50" idPrefix="crash-stage" />
+      <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2">
+        <p class="glow-live-text-lg font-display font-bold text-[clamp(56px,8vw,96px)] leading-none text-white tabular-nums" aria-live="polite">
+          {{ view.IDLE_MULTIPLIER }}
+        </p>
+        <p class="text-[15px] font-semibold text-raised-ice">{{ view.STAGE_CAPTION }}</p>
+      </div>
+    </section>
+
+    <aside aria-label="Bet controls" class="flex flex-[1_1_320px] flex-col gap-[18px] rounded-[28px] bg-surface-1 depth-1 p-6">
+      <label for="crash-stake" class="flex flex-col gap-2 text-[13px] font-semibold text-text-muted"
+        >{{ view.STAKE_LABEL }} ({{ currency() }})
+        <input
+          id="crash-stake"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          [value]="stakeText()"
+          (change)="onStakeInput($event)"
+          class="h-[52px] rounded-2xl border border-line bg-surface-2 px-4 text-xl font-bold text-text tabular-nums shadow-[inset_0_2px_6px_rgb(0_0_0/0.35)] focus:outline-none focus:ring-2 focus:ring-action/40"
+        />
+      </label>
+      <div class="grid grid-cols-4 gap-2">
+        @for (option of view.QUICK; track option.id) {
+          <button
+            type="button"
+            (click)="quick(option.id)"
+            class="min-h-11 rounded-xl border border-line bg-surface-2 text-sm font-bold text-text transition-colors hover:border-action"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+      <div class="flex justify-between text-sm text-text-muted">
+        <span>{{ view.POTENTIAL_LABEL }}</span>
+        <strong class="text-win tabular-nums">{{ potentialMinor() | currencyFormat: currency() }}</strong>
+      </div>
+      <button type="button" disabled class="glossy min-h-[60px] rounded-[18px] font-display text-lg font-bold">{{ view.PLAY_LABEL }}</button>
+      <p class="text-center text-[13px] text-text-muted">{{ view.PLAY_NOTE }}</p>
+      <div class="mt-auto flex flex-col gap-1.5 border-t border-line pt-3.5 text-xs text-text-muted">
+        <span>{{ view.FAIR_TITLE }}</span>
+        <span class="break-all font-mono text-text">{{ view.FAIR_HASH }}</span>
+        <span class="font-semibold text-live/60" aria-disabled="true">{{ view.FAIR_VERIFY }}</span>
+      </div>
+    </aside>
+  </div>
+
+  <section aria-label="Live bets" class="flex flex-col gap-1 rounded-3xl bg-surface-1 rim px-6 py-5">
+    <div class="flex items-center gap-2.5 pb-2">
+      <span class="live-pulse h-2 w-2" aria-hidden="true"></span>
+      <h2 class="font-display font-medium text-base text-text">{{ view.LIVE_BETS }}</h2>
+    </div>
+    <p class="border-t border-line py-2.5 text-sm text-text-muted">{{ view.LIVE_BETS_EMPTY }}</p>
+  </section>
+</div>

@@ -10,7 +10,7 @@
     class="hidden md:flex shrink-0 flex-col bg-rail border-r border-rail-line transition-[width] duration-200"
     [class]="sidebar.collapsed() ? sidebar.labels.COLLAPSED_WIDTH : sidebar.labels.EXPANDED_WIDTH"
   >
-    <div class="flex items-center gap-2.5 pt-6 pb-5" [class]="sidebar.collapsed() ? 'flex-col px-3' : 'px-6'">
+    <div class="flex items-center gap-1.5 pt-6 pb-5" [class]="sidebar.collapsed() ? 'flex-col px-3' : 'pl-6 pr-2'">
       <a
         routerLink="/dashboard"
         class="flex min-w-0 flex-1 items-center gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
@@ -23,7 +23,7 @@
       </a>
       <button
         type="button"
-        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+        class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
         [attr.aria-label]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
         [attr.aria-expanded]="!sidebar.collapsed()"
         [title]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"

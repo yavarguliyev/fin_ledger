@@ -1,113 +1,61 @@
-<div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-ink-900 dark:text-white">{{ isUser() ? 'My Wallet' : 'Transaction History' }}</h1>
-    <button
-      (click)="refresh()"
-      class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
-      [disabled]="loading()"
-    >
-      <app-icon class="h-4 w-4" name="refresh-cw" [class.animate-spin]="loading()" /> Refresh
-    </button>
-  </div>
+<div class="space-y-7">
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
 
   @if (isUser()) {
     <app-wallet-switcher (walletChange)="onWalletChange($event)" />
   }
 
   @if (failed() && !loading()) {
-    <div class="rounded-2xl border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface">
+    <div class="rounded-3xl bg-surface-1 depth-1">
       <app-error-state [message]="states.WALLET_ERROR" (retry)="refresh()" />
     </div>
   }
 
   @if (loading() && !wallet()) {
-    <div class="h-48 rounded-2xl skeleton"></div>
+    <div class="h-56 rounded-[28px] skeleton"></div>
   } @else if (wallet() && isUser()) {
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <div class="sm:col-span-2 rounded-2xl bg-gradient-to-br from-success to-success-dark p-6 text-white shadow-card">
-        <p class="text-white/80 text-sm">Available Balance</p>
-        <p class="text-4xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
-        <p class="text-white/90 text-xs mt-3">Last updated {{ lastUpdated() }}</p>
-      </div>
-      <div class="rounded-2xl bg-warning/10 border border-warning/30 p-6">
-        <p class="text-warning-deep dark:text-warning text-sm font-medium">Reserved</p>
-        <p class="text-3xl font-bold text-warning-deep dark:text-warning mt-1">
-          {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}
-        </p>
-        <p class="text-xs text-ink-500 dark:text-night-muted mt-3">Total: {{ total() | currencyFormat: wallet()!.currency }}</p>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap gap-2">
-      <a
-        routerLink="/wallet/deposit"
-        class="px-4 py-2.5 rounded-lg bg-success-deep text-white font-semibold text-sm hover:bg-success-deep/90 active:scale-95 transition-all"
-        >Deposit</a
-      >
-      <a
-        routerLink="/wallet/withdraw"
-        class="px-4 py-2.5 rounded-lg bg-danger-dark text-white font-semibold text-sm hover:bg-danger-deep active:scale-95 transition-all"
-        >Withdraw</a
-      >
-      <a
-        routerLink="/betting"
-        class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary-dark active:scale-95 transition-all"
-        >Place Bet</a
-      >
-    </div>
+    <app-balance-hero [wallet]="wallet()!" />
   }
 
-  <app-data-table
-    [config]="tableConfig()"
-    [data]="filteredTx()"
-    [loading]="loading()"
-    [selectedFilter]="activeFilter()"
-    [customCellTemplate]="typeCellTemplate() ?? null"
-    [customMobileTemplate]="mobileTxTemplate() ?? null"
-    (filterChange)="onFilterChange($event)"
-    (exportClick)="onExportClick()"
-  />
-
-  <!-- Server-side pagination (attached to DataTable card) -->
-  <div class="-mt-px">
-    <div class="bg-white dark:bg-night-surface rounded-b-xl border border-t-0 border-ink-200 dark:border-night-border">
-      <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
+  <section class="flex flex-col gap-1.5 rounded-3xl bg-surface-1 depth-1 p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 pb-2.5">
+      <h2 class="font-display font-medium text-lg text-text">{{ view.SECTION_TITLE }}</h2>
+      <div class="flex flex-wrap items-center gap-2" role="group" [attr.aria-label]="view.FILTERS_LABEL">
+        @for (filter of view.FILTERS; track filter.id) {
+          <button type="button" [attr.aria-pressed]="activeFilter() === filter.id" (click)="activeFilter.set(filter.id)" [class]="chipClass(filter.id)">
+            {{ filter.label }}
+          </button>
+        }
+        <button
+          type="button"
+          (click)="refresh()"
+          [disabled]="loading()"
+          [attr.aria-label]="view.REFRESH_LABEL"
+          class="flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-1 text-text-muted transition-colors hover:border-action hover:text-text disabled:opacity-50"
+        >
+          <app-icon class="h-4 w-4" name="refresh-cw" [class.animate-spin]="loading()" />
+        </button>
+        <button type="button" (click)="onExportClick()" class="min-h-11 px-4 text-sm font-semibold text-live transition-opacity hover:opacity-80">{{ view.EXPORT_LABEL }}</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Custom cell template for transaction type -->
-  <ng-template #typeCell let-row="row" let-column="column">
-    @if (column.key === receiptColumn) {
-      <app-receipt-link [reference]="row.reference" [status]="row.status" />
+    @if (loading()) {
+      @for (placeholder of placeholders; track placeholder) {
+        <div class="h-[66px] border-t border-line skeleton"></div>
+      }
     } @else {
-      <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="tx.typeClass(row.type)">
-          {{ tx.typeIcon(row.type) }}
-        </span>
-        <span class="font-medium text-ink-800 dark:text-ink-100">{{ tx.formatType(row.type) }}</span>
-      </div>
+      @for (day of days(); track day.key) {
+        <h3 class="pt-4 pb-1 text-xs font-bold uppercase tracking-[0.14em] text-text-muted">{{ day.date | date: view.DAY_FORMAT }}</h3>
+        @for (row of day.items; track row.id) {
+          <app-transaction-row [row]="row" [detailed]="true" />
+        }
+      } @empty {
+        <p class="border-t border-line py-6 text-center text-sm text-text-muted">{{ view.EMPTY }}</p>
+      }
     }
-  </ng-template>
 
-  <!-- Custom mobile template -->
-  <ng-template #mobileTx let-row="row">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="tx.typeClass(row.type)">
-          {{ tx.typeIcon(row.type) }}
-        </span>
-        <span class="font-medium text-ink-800 dark:text-ink-100">{{ tx.formatType(row.type) }}</span>
-      </div>
-      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger-deep dark:text-danger-light' : 'text-success-deep dark:text-success-light'">
-        {{ row.amountMinor | currencyFormat: row.currency }}
-      </span>
-    </div>
-    <div class="flex items-center justify-between mt-1">
-      <span class="text-xs text-ink-500 dark:text-night-muted">{{ row.createdAt | relativeTime }}</span>
-      <span class="flex items-center gap-1">
-        <app-receipt-link [reference]="row.reference" [status]="row.status" />
-        <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="tx.statusClass(row.status)">{{ row.status }}</span>
-      </span>
-    </div>
-  </ng-template>
+    @if (totalItems() > 0) {
+      <app-pagination [config]="paginationConfig()" (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)" />
+    }
+  </section>
 </div>

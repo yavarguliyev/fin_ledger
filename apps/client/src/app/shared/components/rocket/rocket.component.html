@@ -1,0 +1,23 @@
+<svg viewBox="0 0 120 120" class="h-full w-full">
+  <defs>
+    <linearGradient [attr.id]="idPrefix() + '-body'" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" class="[stop-color:rgb(255_255_255)]"></stop>
+      <stop offset="1" class="[stop-color:rgb(185_179_255)]"></stop>
+    </linearGradient>
+    <linearGradient [attr.id]="idPrefix() + '-fin'" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" class="[stop-color:rgb(139_108_255)]"></stop>
+      <stop offset="1" class="[stop-color:rgb(79_47_217)]"></stop>
+    </linearGradient>
+    <radialGradient [attr.id]="idPrefix() + '-flame'" cx=".5" cy=".2" r=".8">
+      <stop offset="0" class="[stop-color:rgb(253_230_138)]"></stop>
+      <stop offset=".6" class="[stop-color:rgb(251_146_60)]"></stop>
+      <stop offset="1" class="[stop-color:rgb(255_107_107)] [stop-opacity:0]"></stop>
+    </radialGradient>
+  </defs>
+  <g [attr.transform]="'rotate(' + tilt() + ' 60 60)'">
+    <ellipse cx="60" cy="100" rx="12" ry="22" [attr.fill]="'url(#' + idPrefix() + '-flame)'"></ellipse>
+    <path d="M60 8 C 80 30, 82 62, 76 86 L 44 86 C 38 62, 40 30, 60 8 Z" [attr.fill]="'url(#' + idPrefix() + '-body)'"></path>
+    <path d="M44 66 L 30 90 L 46 86 Z M76 66 L 90 90 L 74 86 Z" [attr.fill]="'url(#' + idPrefix() + '-fin)'"></path>
+    <circle cx="60" cy="44" r="10" class="fill-live stroke-raised-deep" stroke-width="4"></circle>
+  </g>
+</svg>

@@ -16,11 +16,15 @@ export class PageHeaderComponent {
 
   readonly title = input.required<string>();
   readonly subtitle = input<string>();
+  readonly backRoute = input<string>();
+  readonly backLabel = input<string>();
 
   constructor () {
     effect(() => {
       const subtitle = this.subtitle();
-      this.entry = { title: this.title(), ...(subtitle && { subtitle }) };
+      const backRoute = this.backRoute();
+      const backLabel = this.backLabel();
+      this.entry = { title: this.title(), ...(subtitle && { subtitle }), ...(backRoute && { backRoute }), ...(backLabel && { backLabel }) };
       this.pageTitle.set(this.entry);
     });
     inject(DestroyRef).onDestroy(() => {

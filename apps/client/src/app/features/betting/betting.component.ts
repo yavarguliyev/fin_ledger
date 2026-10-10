@@ -10,7 +10,7 @@ import { PaginationComponent } from '../../shared/components/pagination/paginati
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ShowMoreComponent } from '../../shared/components/show-more/show-more.component';
-import { Bet } from '../../core/types/betting/bet.type';
+import { BetOutcomeHelper } from '../../core/helpers/betting/bet-outcome.helper';
 import { GameEvent } from '../../core/interfaces/betting/game-event.interface';
 import { ValidatorsHelper } from '../../core/helpers/forms/validators.helper';
 import { CurrencyHelper } from '../../core/helpers/wallet/currency.helper';
@@ -22,14 +22,19 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { BettingEventsService } from './services/betting-events.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
-import { EVENT_BADGE } from '../../core/constants/betting/event-badge.constant';
 import { BET_HISTORY_TONE } from '../../core/constants/betting/bet-history-tone.constant';
+import { CHIP } from '../../core/constants/ui/chip.constant';
+import { GAMES_LOBBY } from '../../core/constants/betting/games-lobby.constant';
+import { RouterLink } from '@angular/router';
+import { CrashHeroComponent } from './components/crash-hero.component';
+import { GameTilesComponent } from './components/game-tiles.component';
+import { FixtureCardComponent } from './components/fixture-card.component';
 
 @Component({
   selector: 'app-betting',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, IconComponent],
+  imports: [ButtonComponent, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, IconComponent, RouterLink, CrashHeroComponent, GameTilesComponent, FixtureCardComponent],
   providers: [BettingEventsService],
   templateUrl: './templates/betting.component.html'
 })
@@ -40,7 +45,11 @@ export class BettingComponent implements OnInit {
   private readonly bettingService = inject(BettingService);
   private readonly toast = inject(ToastService);
 
-  readonly badge = EVENT_BADGE;
+  readonly lobby = GAMES_LOBBY;
+  readonly activeFilter = signal<string>(GAMES_LOBBY.FILTER.ALL);
+  readonly showOriginals = computed(() => this.activeFilter() !== GAMES_LOBBY.FILTER.LIVE);
+  readonly showLiveSports = computed(() => this.activeFilter() !== GAMES_LOBBY.FILTER.ORIGINALS);
+  readonly chipClass = (id: string): string => (id === this.activeFilter() ? CHIP.ACTIVE : CHIP.IDLE);
   readonly historyTone = BET_HISTORY_TONE;
   readonly selectedEvent = signal<GameEvent | null>(null);
   readonly loading = signal(false);
@@ -52,7 +61,6 @@ export class BettingComponent implements OnInit {
   readonly stakeValue = signal<number | null>(null);
 
   readonly bets = computed(() => this.bettingService.bets());
-  readonly availableBalance = computed(() => this.bettingService.availableBalance());
   readonly currency = computed(() => this.bettingService.currency());
 
   readonly form = this.fb.group({
@@ -123,7 +131,7 @@ export class BettingComponent implements OnInit {
     this.bettingService.placeBet({ event, stakeMinor: stake }).subscribe({
       next: settled => {
         this.loadBets();
-        this.announce(settled);
+        BetOutcomeHelper.announce({ bet: settled, toast: this.toast });
         this.form.controls.stake.reset({ value: null, disabled: true });
         this.selectedEvent.set(null);
         this.loading.set(false);
@@ -137,14 +145,5 @@ export class BettingComponent implements OnInit {
 
   private loadBets (): void {
     this.bettingService.loadBets({ page: this.currentPage(), limit: this.pageSize() }).subscribe();
-  }
-
-  private announce (bet: Bet): void {
-    if (bet.status === 'WON') {
-      return this.toast.success(`Bet won! You collected ${CurrencyHelper.formatCurrency({ amountMinor: bet.payoutMinor ?? 0, currency: bet.currency })}.`);
-    }
-
-    if (bet.status === 'LOST') return this.toast.info('Bet placed — no luck this time.');
-    return this.toast.success('Bet placed!');
   }
 }

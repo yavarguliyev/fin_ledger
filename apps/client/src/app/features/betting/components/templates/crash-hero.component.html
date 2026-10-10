@@ -1,0 +1,26 @@
+<section class="stage-crash flex min-h-[340px] flex-wrap items-center gap-8 rounded-[32px] p-6 sm:p-12">
+  <div class="relative flex flex-[1_1_360px] flex-col gap-4">
+    <span class="inline-flex h-[30px] items-center gap-2 self-start rounded-full bg-live/[0.16] px-3 text-[13px] font-bold uppercase text-raised-live">
+      <span class="live-pulse h-2 w-2" aria-hidden="true"></span>
+      {{ crash.BADGE }}
+    </span>
+    <h2 class="font-display font-bold text-[clamp(40px,5vw,64px)] leading-none">{{ crash.NAME }}</h2>
+    <p class="max-w-[460px] text-[17px] leading-[1.55] text-raised-ice">{{ crash.DESCRIPTION }}</p>
+    <div class="flex flex-wrap items-center gap-3">
+      <a [routerLink]="crash.ROUTE" class="glossy inline-flex min-h-[52px] items-center rounded-2xl px-[30px] text-base font-bold">{{ crash.ACTION }}</a>
+    </div>
+  </div>
+  <div class="relative h-[280px] flex-[1_1_320px]" aria-hidden="true">
+    <svg viewBox="0 0 420 280" class="absolute inset-0 h-full w-full">
+      <defs>
+        <linearGradient id="crash-hero-trail" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" class="[stop-color:rgb(34_211_238)] [stop-opacity:0]"></stop>
+          <stop offset="1" class="[stop-color:rgb(34_211_238)] [stop-opacity:0.9]"></stop>
+        </linearGradient>
+      </defs>
+      <path d="M10 270 C 140 262, 250 220, 330 70" fill="none" stroke="url(#crash-hero-trail)" stroke-width="6" stroke-linecap="round"></path>
+    </svg>
+    <app-rocket class="ld-float absolute right-[12%] top-[6%] h-[120px] w-[120px]" idPrefix="crash-hero" />
+    <p class="glow-live-text absolute bottom-[18px] left-0 font-display font-bold text-[56px] text-white tabular-nums">{{ crash.MULTIPLIER }}</p>
+  </div>
+</section>

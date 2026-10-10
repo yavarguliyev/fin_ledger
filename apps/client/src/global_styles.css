@@ -300,31 +300,39 @@ html.dark .delete-icon:hover {
 
 /* Toast colors match the existing toggle palette. */
 .toast-success-solid {
-  background: linear-gradient(145deg, theme('colors.signal.on-light') 0%, theme('colors.signal.on') 55%, theme('colors.signal.on-dark') 100%);
-  border-left-color: theme('colors.signal.on-dark');
-  color: theme('colors.white');
-  box-shadow: 0 8px 18px rgba(19, 209, 98, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --toast-tone: var(--ld-win);
+  background: rgb(var(--ld-surface-2));
+  border-left-color: rgb(var(--toast-tone));
+  color: rgb(var(--ld-text));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -16px rgb(var(--toast-tone) / 0.45);
 }
 
 .toast-error-solid {
-  background: linear-gradient(145deg, theme('colors.signal.off-light') 0%, theme('colors.signal.off') 55%, theme('colors.signal.off-dark') 100%);
-  border-left-color: theme('colors.signal.off-dark');
-  color: theme('colors.white');
-  box-shadow: 0 8px 18px rgba(209, 54, 19, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --toast-tone: var(--ld-loss);
+  background: rgb(var(--ld-surface-2));
+  border-left-color: rgb(var(--toast-tone));
+  color: rgb(var(--ld-text));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -16px rgb(var(--toast-tone) / 0.45);
 }
 
 .toast-warning-solid {
-  background: linear-gradient(145deg, theme('colors.amber.400') 0%, theme('colors.warning.DEFAULT') 55%, theme('colors.warning.dark') 100%);
-  border-left-color: theme('colors.warning.dark');
-  color: theme('colors.white');
-  box-shadow: 0 8px 18px rgba(245, 158, 11, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --toast-tone: var(--ld-pending);
+  background: rgb(var(--ld-surface-2));
+  border-left-color: rgb(var(--toast-tone));
+  color: rgb(var(--ld-text));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -16px rgb(var(--toast-tone) / 0.45);
 }
 
 .toast-info-solid {
-  background: linear-gradient(145deg, theme('colors.indigo.400') 0%, theme('colors.info.DEFAULT') 55%, theme('colors.info.dark') 100%);
-  border-left-color: theme('colors.info.dark');
-  color: theme('colors.white');
-  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --toast-tone: var(--ld-live);
+  background: rgb(var(--ld-surface-2));
+  border-left-color: rgb(var(--toast-tone));
+  color: rgb(var(--ld-text));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -16px rgb(var(--toast-tone) / 0.45);
+}
+
+.toast-icon {
+  color: rgb(var(--toast-tone));
 }
 
 [data-chat-theme] {

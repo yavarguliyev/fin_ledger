@@ -1,0 +1,32 @@
+<section class="depth-2 flex flex-wrap items-end justify-between gap-6 rounded-[28px] p-6 sm:p-10">
+  <span class="light-sweep" aria-hidden="true"></span>
+  <div class="relative flex flex-col gap-2.5">
+    <span class="text-sm text-raised-muted">Available balance</span>
+    <span class="font-display font-bold text-[clamp(44px,6vw,68px)] leading-none tabular-nums">{{
+      wallet().availableBalanceMinor | currencyFormat: wallet().currency
+    }}</span>
+    <div class="flex w-[min(360px,70vw)] flex-col gap-1.5">
+      <div class="flex h-2 overflow-hidden rounded-full bg-white/[0.14]" aria-hidden="true">
+        <span class="balance-bar h-full" [style.width.%]="split().availablePercent"></span>
+        <span class="h-full bg-raised-pending" [style.width.%]="split().reservedPercent"></span>
+      </div>
+      <span class="text-[13px] text-raised-muted tabular-nums"
+        >Available {{ wallet().availableBalanceMinor | currencyFormat: wallet().currency }} · Reserved
+        {{ wallet().reservedBalanceMinor | currencyFormat: wallet().currency }}</span
+      >
+    </div>
+  </div>
+  <div class="relative flex flex-wrap gap-3">
+    <a [routerLink]="routes.DEPOSIT_ROUTE" class="glossy-raised inline-flex min-h-[50px] items-center rounded-2xl px-7 text-[15px] font-bold">Deposit</a>
+    <a
+      [routerLink]="routes.WITHDRAW_ROUTE"
+      class="inline-flex min-h-[50px] items-center rounded-2xl border border-white/25 bg-white/[0.08] px-6 text-[15px] font-semibold text-white transition-colors hover:bg-white/15"
+      >Withdraw</a
+    >
+    <a
+      [routerLink]="routes.PLAY_ROUTE"
+      class="inline-flex min-h-[50px] items-center rounded-2xl border border-raised-live/45 bg-raised-live/10 px-6 text-[15px] font-semibold text-raised-live transition-colors hover:bg-raised-live/20"
+      >Play now</a
+    >
+  </div>
+</section>

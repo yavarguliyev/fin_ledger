@@ -1,0 +1,30 @@
+export const CRASH_GAME = {
+  TITLE: 'Crash',
+  BACK_ROUTE: '/betting',
+  BACK_LABEL: 'Back to games',
+  IDLE_MULTIPLIER: '1.00×',
+  STAGE_CAPTION: 'Rounds open here once Crash goes live',
+  STAKE_LABEL: 'Stake',
+  DEFAULT_STAKE: 10,
+  MIN_STAKE: 0,
+  TARGET_MULTIPLIER: 2,
+  FALLBACK_CURRENCY: 'USD',
+  POTENTIAL_LABEL: 'Potential win',
+  PLAY_LABEL: 'Play',
+  PLAY_NOTE: 'Crash is not live yet, so no stake is taken.',
+  FAIR_TITLE: 'Provably fair · next round seed hash',
+  FAIR_HASH: 'Published before the first round',
+  FAIR_VERIFY: 'Verify a past round',
+  LIVE_BETS: 'Live bets this round',
+  LIVE_BETS_EMPTY: 'No bets this round yet.',
+  QUICK: [
+    { id: 'half', label: '½' },
+    { id: 'double', label: '2×' },
+    { id: 'ten', label: '$10', amount: 10 },
+    { id: 'fifty', label: '$50', amount: 50 }
+  ],
+  QUICK_ACTION: { HALF: 'half', DOUBLE: 'double' },
+  HALF: 0.5,
+  DOUBLE: 2,
+  CENTS: 100
+} as const;

@@ -1,5 +1,5 @@
-<div class="space-y-6">
-  <app-page-header title="Dashboard" [subtitle]="'Welcome back, ' + userName() + '.'" />
+<div class="space-y-7">
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
 
   @if (failed() && !loading()) {
     <div class="rounded-2xl border border-ink-200 dark:border-night-border bg-white dark:bg-night-surface">
@@ -10,33 +10,7 @@
   @if (loading()) {
     <div class="h-40 rounded-[28px] skeleton"></div>
   } @else if (wallet() && isUser()) {
-    <section class="depth-2 rounded-[28px] p-6 sm:p-10">
-      <span class="light-sweep" aria-hidden="true"></span>
-      <div class="relative flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-        <div class="flex flex-col gap-2.5">
-          <p class="text-sm text-white/80">Available balance</p>
-          <p class="font-display font-bold text-5xl sm:text-6xl leading-none tabular-nums">
-            {{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}
-          </p>
-          <p class="text-[13px] text-white/80 tabular-nums">Reserved {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
-        </div>
-        <div class="flex flex-wrap gap-3">
-          <a routerLink="/wallet/deposit" class="glossy-raised inline-flex items-center min-h-[50px] px-7 rounded-2xl text-[15px] font-bold"
-            >Deposit</a
-          >
-          <a
-            routerLink="/wallet/withdraw"
-            class="inline-flex items-center min-h-[50px] px-6 rounded-2xl border border-white/25 bg-white/[0.08] hover:bg-white/15 text-[15px] font-semibold text-white transition-colors"
-            >Withdraw</a
-          >
-          <a
-            routerLink="/betting"
-            class="inline-flex items-center min-h-[50px] px-6 rounded-2xl border border-raised-live/45 bg-raised-live/10 hover:bg-raised-live/20 text-[15px] font-semibold text-raised-live transition-colors"
-            >Play now</a
-          >
-        </div>
-      </div>
-    </section>
+    <app-balance-hero [wallet]="wallet()!" />
   }
 
   @if (hasMultipleCurrencies()) {
@@ -45,33 +19,48 @@
 
   <app-stats-card [stats]="activeStats()" [columns]="4" />
 
-  <section class="flex flex-col rounded-3xl bg-surface-1 depth-1 p-6">
-    <div class="flex items-center justify-between pb-2.5">
-      <h2 class="font-display font-medium text-lg text-text">Recent activity</h2>
-      <a routerLink="/wallet" class="text-sm font-semibold text-live hover:opacity-80 transition-opacity">View wallet</a>
-    </div>
-    @if (loading()) {
-      @for (placeholder of activityPlaceholders; track placeholder) {
-        <div class="h-[66px] border-t border-line skeleton"></div>
+  <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <section class="lg:col-span-3 flex flex-col gap-1.5 rounded-3xl bg-surface-1 depth-1 p-6">
+      <div class="flex items-center justify-between pb-2.5">
+        <h2 class="font-display font-medium text-lg text-text">Recent activity</h2>
+        <a routerLink="/wallet" class="text-sm font-semibold text-live hover:opacity-80 transition-opacity">View wallet</a>
+      </div>
+      @if (loading()) {
+        @for (placeholder of activityPlaceholders; track placeholder) {
+          <div class="h-[66px] border-t border-line skeleton"></div>
+        }
+      } @else {
+        @for (row of activityRows(); track row.id) {
+          <app-transaction-row [row]="row" />
+        } @empty {
+          <p class="py-6 border-t border-line text-center text-sm text-text-muted">No transactions yet</p>
+        }
       }
-    } @else {
-      @for (row of recentTx(); track row.id) {
-        <div class="flex items-center gap-3.5 py-3 border-t border-line">
-          <span class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[14px]" [class]="typeClass(row.type)">
-            <app-icon class="h-5 w-5" [name]="typeIcon(row.type)" />
+    </section>
+
+    <section class="lg:col-span-2 flex flex-col gap-3.5 rounded-3xl bg-surface-1 depth-1 p-6">
+      <h2 class="flex items-center gap-2.5 font-display font-medium text-lg text-text">
+        <span class="live-pulse h-2.5 w-2.5" aria-hidden="true"></span>
+        Live now
+      </h2>
+      @for (event of liveNow(); track event.id; let index = $index) {
+        <a routerLink="/betting" class="flex min-h-16 items-center gap-3.5 rounded-[18px] bg-surface-2 rim px-3.5 py-2.5 text-text transition-colors hover:bg-surface-2/70">
+          <span
+            class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] font-display font-bold text-[13px] text-on-tint"
+            [class]="liveBadgeTone(index)"
+            >{{ liveNowView.BADGE_TEXT }}</span
+          >
+          <span class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <strong class="truncate text-[15px] font-bold text-text">{{ event.label }}</strong>
+            <span class="text-[13px] text-text-muted">{{
+              event.status === liveNowView.LIVE_STATUS ? liveNowView.LIVE_LABEL : liveNowView.SCHEDULED_LABEL
+            }}</span>
           </span>
-          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span class="text-[15px] font-semibold text-text truncate">{{ formatType(row.type) }}</span>
-            <span class="flex items-center gap-2 text-[13px] text-text-muted">
-              {{ row.createdAt | relativeTime }}
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
-            </span>
-          </div>
-          <span class="font-bold tabular-nums" [class]="amountClass(row.amountMinor)">{{ row.amountMinor | currencyFormat: row.currency }}</span>
-        </div>
+          <span class="font-bold text-live tabular-nums">{{ event.odds.toFixed(2) }}×</span>
+        </a>
       } @empty {
-        <p class="py-6 border-t border-line text-center text-sm text-text-muted">No transactions yet</p>
+        <p class="py-6 text-center text-sm text-text-muted">{{ liveNowView.EMPTY }}</p>
       }
-    }
-  </section>
+    </section>
+  </div>
 </div>

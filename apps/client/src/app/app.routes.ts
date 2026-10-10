@@ -38,6 +38,11 @@ const signedInRoutes: Routes = [
     canActivate: [roleGuard(ROLE_SETS.PLAYER)]
   },
   {
+    path: 'games/crash',
+    loadComponent: () => import('./features/games/crash/crash.component').then(m => m.CrashComponent),
+    canActivate: [roleGuard(ROLE_SETS.PLAYER)]
+  },
+  {
     path: 'notifications',
     loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent)
   },

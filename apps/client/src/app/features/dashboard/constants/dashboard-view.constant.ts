@@ -2,5 +2,7 @@ export const DASHBOARD_VIEW = {
   CURRENCY_TABS_LABEL: 'Wallet currency',
   NO_CURRENCY: '',
   ACTIVITY_PLACEHOLDERS: 3,
-  AMOUNT_CLASS: { NEGATIVE: 'text-loss', POSITIVE: 'text-win' }
+  ACTIVITY_ROWS: 5,
+  HISTORY_PAGE: 1,
+  HISTORY_LIMIT: 100
 } as const;

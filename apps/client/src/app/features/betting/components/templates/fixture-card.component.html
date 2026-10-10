@@ -1,0 +1,33 @@
+<article class="flex flex-col gap-3.5 rounded-[22px] bg-surface-1 depth-1 p-[18px]">
+  <div class="flex items-center justify-between text-[13px]">
+    <span class="text-text-muted">{{ event().label }}</span>
+    @if (live()) {
+      <span class="inline-flex items-center gap-2 font-bold text-live"
+        ><span class="live-pulse h-2 w-2" aria-hidden="true"></span>{{ view.LIVE_LABEL }}</span
+      >
+    } @else {
+      <span class="font-bold capitalize text-pending">{{ event().status.toLowerCase() }}</span>
+    }
+  </div>
+  <div class="flex items-center justify-between gap-2">
+    <span class="flex min-w-0 items-center gap-2.5">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[rgb(139_108_255)] to-action-dark text-[13px] font-bold text-white">{{ view.HOME_BADGE }}</span>
+      <strong class="truncate text-text">{{ view.HOME }}</strong>
+    </span>
+    <span class="font-display font-bold text-lg text-text">{{ view.VERSUS }}</span>
+    <span class="flex min-w-0 items-center gap-2.5">
+      <strong class="truncate text-text">{{ view.AWAY }}</strong>
+      <span class="art-die-live flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-on-tint">{{ view.AWAY_BADGE }}</span>
+    </span>
+  </div>
+  <button
+    type="button"
+    [disabled]="live()"
+    (click)="choose.emit(event())"
+    [attr.aria-pressed]="selected()"
+    class="min-h-12 rounded-[14px] border rim text-[13px] font-semibold text-text tabular-nums transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+    [class]="oddsClass()"
+  >
+    {{ view.SELECT }} · <strong>{{ event().odds.toFixed(2) }}×</strong>
+  </button>
+</article>

@@ -1,41 +1,39 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, TemplateRef, viewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
+import { DatePipe } from '@angular/common';
 
 import { AuthService } from '../../core/services/auth.service';
 import { WalletService } from '../../core/services/wallet.service';
 import { Transaction } from '../../core/types/wallet/transaction.type';
 import { Wallet } from '../../core/types/wallet/wallet.type';
-import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
-import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
-import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
-import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
-import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
 import { PaginationConfig } from '../../core/interfaces/ui/pagination-config.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { WalletSwitcherComponent } from './wallet-switcher.component';
 import { DateHelper } from '../../core/helpers/common/date.helper';
-import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { WalletHelper } from './helpers/wallet.helper';
-import { ReceiptLinkComponent } from '../../shared/components/receipt-link/receipt-link.component';
-import { RECEIPT } from '../../core/constants/payment/receipt.constant';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { BalanceHeroComponent } from '../../shared/components/balance-hero/balance-hero.component';
+import { TransactionRowComponent } from '../../shared/components/transaction-row/transaction-row.component';
+import { WALLET_VIEW } from '../../core/constants/wallet/wallet-view.constant';
+import { CHIP } from '../../core/constants/ui/chip.constant';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent, ErrorStateComponent, IconComponent],
+  imports: [DatePipe, PaginationComponent, WalletSwitcherComponent, ErrorStateComponent, IconComponent, PageHeaderComponent, BalanceHeroComponent, TransactionRowComponent],
   templateUrl: './templates/wallet.component.html'
 })
 export class WalletComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly walletService = inject(WalletService);
-  readonly receiptColumn = RECEIPT.COLUMN_KEY;
 
+  readonly view = WALLET_VIEW;
+  readonly states = LOAD_STATE;
+  readonly placeholders = Array.from({ length: WALLET_VIEW.PLACEHOLDER_ROWS }, (_, index) => index);
   readonly loading = signal(true);
   readonly failed = signal(false);
   readonly wallet = computed(() => this.walletService.wallet());
@@ -44,34 +42,26 @@ export class WalletComponent implements OnInit {
   private readonly isStaff = this.auth.isStaff;
 
   readonly currentPage = signal(1);
-  readonly pageSize = signal(25);
+  readonly pageSize = signal<number>(WALLET_VIEW.DEFAULT_PAGE_SIZE);
   readonly totalItems = signal(0);
-  readonly activeFilter = signal('ALL');
+  readonly activeFilter = signal<string>(WALLET_VIEW.FILTER_ALL);
 
-  readonly filteredTx = computed(() => {
-    const filter = this.activeFilter();
-    const transactions = this.allTx();
-    if (filter === 'ALL') return transactions;
-    return transactions.filter(tx => tx.type === filter);
+  readonly days = computed(() => WalletHelper.groupByDay({ transactions: WalletHelper.filter({ transactions: this.allTx(), filter: this.activeFilter() }) }));
+  readonly chipClass = (id: string): string => (id === this.activeFilter() ? CHIP.ACTIVE : CHIP.IDLE);
+  readonly title = computed(() => (this.isUser() ? WALLET_VIEW.PLAYER_TITLE : WALLET_VIEW.STAFF_TITLE));
+
+  readonly subtitle = computed(() => {
+    const wallet = this.wallet();
+    if (!this.isUser() || !wallet) return WALLET_VIEW.STAFF_SUBTITLE;
+    return `${WALLET_VIEW.UPDATED_PREFIX}${DateHelper.formatRelative(wallet.updatedAt)}`;
   });
-
-  readonly tx = TransactionHelper;
-  readonly states = LOAD_STATE;
-
-  readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
-  readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
-
-  readonly total = computed(() => (this.wallet() ? this.wallet()!.availableBalanceMinor + this.wallet()!.reservedBalanceMinor : 0));
-  readonly lastUpdated = computed(() => (this.wallet() ? DateHelper.formatRelative(this.wallet()!.updatedAt) : '—'));
 
   readonly paginationConfig = computed<PaginationConfig>(() => ({
     currentPage: this.currentPage(),
     pageSize: this.pageSize(),
     totalItems: this.totalItems(),
-    availablePageSizes: [10, 25, 50, 100]
+    availablePageSizes: [...WALLET_VIEW.PAGE_SIZES]
   }));
-
-  readonly tableConfig = computed<DataTableConfig<Transaction>>(() => WalletHelper.transactionTable());
 
   ngOnInit (): void {
     this.refresh();
@@ -79,10 +69,6 @@ export class WalletComponent implements OnInit {
 
   onExportClick (): void {
     WalletHelper.exportTransactionsToCsv(this.allTx());
-  }
-
-  onFilterChange (filterValue: string): void {
-    this.activeFilter.set(filterValue);
   }
 
   onPageChange (page: number): void {

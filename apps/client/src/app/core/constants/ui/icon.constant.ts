@@ -92,6 +92,7 @@ export const ICON_PATHS = {
     'M8 16H3v5'
   ],
   'arrow-left': ['m12 19-7-7 7-7', 'M19 12H5'],
+  'chevron-left': ['M15 18l-6-6 6-6'],
   'arrow-right': ['M5 12h14', 'm12 5 7 7-7 7'],
   'log-out': ['m16 17 5-5-5-5', 'M21 12H9', 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'],
   x: ['M18 6 6 18', 'm6 6 12 12'],

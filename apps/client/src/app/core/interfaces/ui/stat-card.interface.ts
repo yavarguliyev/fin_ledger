@@ -7,5 +7,7 @@ export interface StatCard {
   icon: IconName;
   trend?: string;
   toneClass?: string;
+  spark?: number[];
+  sparkClass?: string;
   choices?: StatChoice[];
 }
