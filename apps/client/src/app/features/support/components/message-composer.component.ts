@@ -16,12 +16,13 @@ import { SupportAttachmentHelper } from '../../../core/helpers/support/support-a
 import { SupportMessage } from '../../../core/types/support/support-message.type';
 import { AddFilesDto } from '../interfaces/add-files.interface';
 import { FileTransferHelper } from '../helpers/file-transfer.helper';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-message-composer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RecorderBarComponent, DraftLinkPreviewComponent],
+  imports: [RecorderBarComponent, DraftLinkPreviewComponent, IconComponent],
   templateUrl: '../templates/message-composer.component.html'
 })
 export class MessageComposerComponent {
@@ -130,7 +131,6 @@ export class MessageComposerComponent {
 
   submit (): void {
     if (!this.canSend) return;
-
     const body = this.draft().trim();
     if (this.editing()) this.saved.emit({ body, file: this.files()[0] ?? null });
     else this.submitted.emit({ body, files: this.files() });
