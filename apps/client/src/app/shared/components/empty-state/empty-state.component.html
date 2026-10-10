@@ -1,6 +1,8 @@
 <div class="flex flex-col items-center gap-2 px-5 py-10 text-center">
-  @if (icon()) {
-    <span class="grid h-12 w-12 place-items-center rounded-full bg-ink-100 dark:bg-night-bg text-xl" aria-hidden="true">{{ icon() }}</span>
+  @if (icon(); as name) {
+    <span class="grid h-12 w-12 place-items-center rounded-full bg-ink-100 dark:bg-night-bg text-ink-500 dark:text-night-muted" aria-hidden="true">
+      <app-icon class="h-6 w-6" [name]="name" />
+    </span>
   }
   <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ title() }}</p>
   @if (message()) {
