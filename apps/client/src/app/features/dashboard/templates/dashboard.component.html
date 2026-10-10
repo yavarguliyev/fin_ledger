@@ -54,7 +54,7 @@
   <ng-template #typeCell let-row="row" let-column="column">
     <div class="flex items-center gap-2">
       <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-        {{ typeIcon(row.type) }}
+        <app-icon class="h-4 w-4" [name]="typeIcon(row.type)" />
       </span>
       <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
     </div>
@@ -65,7 +65,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-          {{ typeIcon(row.type) }}
+          <app-icon class="h-4 w-4" [name]="typeIcon(row.type)" />
         </span>
         <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
       </div>

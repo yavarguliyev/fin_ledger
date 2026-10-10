@@ -23,12 +23,14 @@ import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { TabsComponent } from '../../shared/components/tabs/tabs.component';
 import { TabItemDto } from '../../core/interfaces/ui/tab-item.interface';
 import { DASHBOARD_VIEW } from './constants/dashboard-view.constant';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { IconName } from '../../core/types/ui/icon-name.type';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent, IconComponent],
   templateUrl: './templates/dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -38,7 +40,7 @@ export class DashboardComponent implements OnInit {
   private readonly requestedCurrency = signal<string | null>(null);
   private readonly isStaff = this.auth.isStaff;
 
-  readonly typeIcon = (value: string): string => TransactionHelper.typeIcon(value);
+  readonly typeIcon = (value: string): IconName => TransactionHelper.typeIcon(value);
   readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
   readonly formatType = (value: string): string => TransactionHelper.formatType(value);
   readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);

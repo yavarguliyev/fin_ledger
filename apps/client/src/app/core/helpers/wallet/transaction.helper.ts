@@ -1,3 +1,6 @@
+import { IconName } from '../../types/ui/icon-name.type';
+import { TRANSACTION_ICONS, TRANSACTION_DISPLAY_FALLBACK } from '../../constants/wallet/transaction-display.constant';
+
 export class TransactionHelper {
   static formatType (type: string): string {
     return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -14,18 +17,8 @@ export class TransactionHelper {
     return map[status] ?? 'bg-ink-100 text-ink-500';
   }
 
-  static typeIcon (type: string): string {
-    const map: Record<string, string> = {
-      DEPOSIT: '↓',
-      WITHDRAWAL: '↑',
-      BET_STAKE: '🎯',
-      BET_PAYOUT: '🏆',
-      BET_REFUND: '↩',
-      FEE: '−',
-      ADJUSTMENT: '±'
-    };
-
-    return map[type] ?? '•';
+  static typeIcon (type: string): IconName {
+    return TRANSACTION_ICONS[type] ?? TRANSACTION_DISPLAY_FALLBACK.ICON;
   }
 
   static typeClass (type: string): string {
