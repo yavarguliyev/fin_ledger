@@ -10,7 +10,9 @@ const TOKENS = {
   live: { dark: '34 211 238', light: '8 145 178' },
   win: { dark: '163 230 53', light: '77 124 15' },
   loss: { dark: '255 107 107', light: '192 57 43' },
-  pending: { dark: '251 191 36', light: '180 83 9' }
+  pending: { dark: '251 191 36', light: '180 83 9' },
+  raised: { dark: '58 38 168', light: '58 38 168' },
+  'raised-dark': { dark: '30 20 96', light: '30 20 96' }
 };
 
 const variable = name => `--ld-${name}`;
@@ -34,7 +36,35 @@ const plugin = ({ addBase, addComponents }) => {
       boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.6)'
     },
     '.depth-2': {
-      boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.08), 0 18px 40px -16px rgb(106 72 245 / 0.45)'
+      position: 'relative',
+      overflow: 'hidden',
+      color: 'rgb(255 255 255)',
+      backgroundImage: `linear-gradient(135deg, rgb(var(${variable('raised')})), rgb(var(${variable('raised-dark')})))`,
+      boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.18), 0 18px 40px -16px rgb(106 72 245 / 0.65)'
+    },
+    '.light-sweep': {
+      position: 'absolute',
+      top: '0',
+      bottom: '0',
+      left: '0',
+      width: '22%',
+      pointerEvents: 'none',
+      backgroundImage: 'linear-gradient(90deg, rgb(255 255 255 / 0), rgb(255 255 255 / 0.09), rgb(255 255 255 / 0))',
+      animation: 'ld-sweep 5s ease-in-out infinite'
+    },
+    '.live-pulse': {
+      borderRadius: '9999px',
+      backgroundColor: `rgb(var(${variable('live')}))`,
+      animation: 'ld-pulse 1.8s ease-out infinite'
+    },
+    '@keyframes ld-sweep': {
+      '0%': { transform: 'translateX(-120%) skewX(-18deg)' },
+      '100%': { transform: 'translateX(420%) skewX(-18deg)' }
+    },
+    '@keyframes ld-pulse': {
+      '0%': { boxShadow: `0 0 0 0 rgb(var(${variable('live')}) / 0.55)` },
+      '70%': { boxShadow: `0 0 0 10px rgb(var(${variable('live')}) / 0)` },
+      '100%': { boxShadow: `0 0 0 0 rgb(var(${variable('live')}) / 0)` }
     },
     '.glossy': {
       color: 'rgb(255 255 255)',

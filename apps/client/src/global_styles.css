@@ -9,7 +9,9 @@
 html, body {
   height: 100%;
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: theme('fontFamily.ui');
+  background-color: theme('colors.ground');
+  color: theme('colors.text');
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,15 +37,6 @@ html, body {
 
 html.dark {
   color-scheme: dark;
-}
-
-html.dark body {
-  background-color: theme('colors.night.bg');
-  background-image:
-    radial-gradient(circle at 10% 20%, theme('colors.neon.cyan / 5%') 0%, transparent 40%),
-    radial-gradient(circle at 90% 80%, theme('colors.neon.purple / 5%') 0%, transparent 40%);
-  background-attachment: fixed;
-  color: theme('colors.night.text');
 }
 
 html.dark :focus {
