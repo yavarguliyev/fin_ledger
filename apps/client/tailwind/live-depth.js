@@ -46,6 +46,9 @@ const plugin = ({ addBase, addComponents }) => {
       backgroundImage: `linear-gradient(135deg, rgb(var(${variable('raised')})), rgb(var(${variable('raised-dark')})))`,
       boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.18), 0 18px 40px -16px rgb(106 72 245 / 0.65)'
     },
+    '.rim': {
+      boxShadow: 'inset 0 1px 0 rgb(255 255 255 / 0.06)'
+    },
     '.nav-glow': {
       backgroundColor: `rgb(var(${variable('action')}) / 0.22)`,
       boxShadow: `inset 0 1px 0 rgb(255 255 255 / 0.08), 0 0 24px -6px rgb(var(${variable('action')}) / 0.6)`

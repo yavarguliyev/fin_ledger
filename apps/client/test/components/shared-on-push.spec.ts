@@ -4,6 +4,7 @@ import { App } from '../../src/app/app.component';
 import { CallOverlayComponent } from '../../src/app/layout/call-overlay.component';
 import { ShellComponent } from '../../src/app/layout/shell.component';
 import { ToastHostComponent } from '../../src/app/layout/toast.component';
+import { TopBarComponent } from '../../src/app/layout/top-bar.component';
 import { CountrySelectComponent } from '../../src/app/shared/components/country-select/country-select.component';
 import { DataTableComponent } from '../../src/app/shared/components/data-table/data-table.component';
 import { DatePickerComponent } from '../../src/app/shared/components/date-picker/date-picker.component';
@@ -30,6 +31,7 @@ const SHARED_COMPONENTS: Type<unknown>[] = [
   ShellComponent,
   CallOverlayComponent,
   ToastHostComponent,
+  TopBarComponent,
   CountrySelectComponent,
   DataTableComponent,
   DatePickerComponent,

@@ -74,85 +74,19 @@
         </a>
       }
     </nav>
-    <div class="p-3 border-t border-line">
-      <button
-        (click)="toggleTheme()"
-        class="w-full flex items-center gap-3 min-h-11 px-3.5 rounded-xl text-sm font-medium text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-        [class.justify-center]="sidebar.collapsed()"
-        [attr.aria-label]="isDark() ? 'Light mode' : 'Dark mode'"
-        [title]="sidebar.collapsed() ? (isDark() ? 'Light mode' : 'Dark mode') : ''"
-      >
-        <app-icon class="h-5 w-5" [name]="isDark() ? 'sun' : 'moon'" />
-        @if (!sidebar.collapsed()) {
-          {{ isDark() ? 'Light mode' : 'Dark mode' }}
-        }
-      </button>
-    </div>
   </aside>
 
   <div class="flex-1 flex flex-col min-w-0">
     <header
-      class="sticky top-0 z-30 pt-[env(safe-area-inset-top)] bg-ground/80 backdrop-blur border-b border-line"
+      class="sticky top-0 z-30 pt-[env(safe-area-inset-top)] bg-ground/80 backdrop-blur border-b border-line md:static md:border-0 md:bg-transparent md:backdrop-blur-none"
     >
-      <div class="flex items-center justify-between px-4 sm:px-6 h-16">
-        <div class="flex items-center gap-3">
-          <a routerLink="/dashboard" class="md:hidden font-display font-medium text-text cursor-pointer hover:opacity-80 transition-opacity"
-            >WalletPay</a
-          >
-        </div>
-        <div class="flex items-center gap-3">
-          <a
-            routerLink="/notifications"
-            class="relative grid h-11 w-11 place-items-center rounded-full bg-surface-1 depth-1 text-text hover:bg-surface-2 transition-colors"
-            aria-label="Notifications"
-          >
-            <app-icon class="h-5 w-5" name="bell" />
-            @if (unread() > 0) {
-              <span
-                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-loss text-white text-[10px] font-bold flex items-center justify-center"
-                >{{ unread() }}</span
-              >
-            }
-          </a>
-          <div class="flex items-center gap-2">
-            @if (getProfileImageUrl(); as profileImageUrl) {
-              <img
-                [ngSrc]="profileImageUrl"
-                width="32"
-                height="32"
-                alt="Profile"
-                (click)="openProfileImage()"
-                class="w-8 h-8 rounded-full object-cover border border-action/30 cursor-pointer hover:opacity-80 transition-opacity"
-                title="Open image in new window"
-              />
-            } @else {
-              <div
-                (click)="openProfileImage()"
-                class="w-8 h-8 rounded-full bg-action/15 text-action flex items-center justify-center font-semibold text-sm cursor-pointer hover:opacity-80 transition-opacity"
-              >
-                {{ initial() }}
-              </div>
-            }
-            <div class="hidden sm:block text-sm">
-              <div class="font-medium text-text leading-tight">{{ userName() }}</div>
-              <div class="text-xs text-text-muted">{{ roleLabel() }}</div>
-            </div>
-          </div>
-          <button
-            (click)="logout()"
-            class="grid h-11 w-11 place-items-center rounded-full bg-surface-1 depth-1 text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-            aria-label="Logout"
-          >
-            <app-icon class="h-5 w-5" name="log-out" />
-          </button>
-        </div>
-      </div>
+      <app-top-bar />
     </header>
 
     <main
       [id]="layout.MAIN_ID"
       tabindex="-1"
-      class="flex-1 outline-none p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6"
+      class="flex-1 outline-none p-4 sm:p-6 md:pt-7 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6"
     >
       @if (connectivity.offline()) {
         <p class="mb-4 rounded-xl bg-pending/10 px-4 py-3 text-sm text-pending" role="status" aria-live="polite">

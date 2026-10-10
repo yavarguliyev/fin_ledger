@@ -1,0 +1,68 @@
+<div class="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 md:pb-0 md:pt-7">
+  <div class="flex min-w-0 flex-col gap-1">
+    @if (page(); as page) {
+      <h1 class="truncate font-display font-medium text-xl text-text md:text-[28px]">{{ page.title }}</h1>
+      @if (page.subtitle) {
+        <p class="truncate text-sm text-text-muted md:text-[15px]">{{ page.subtitle }}</p>
+      }
+    } @else {
+      <a [routerLink]="labels.HOME_ROUTE" class="md:hidden font-display font-medium text-text">{{ labels.BRAND }}</a>
+    }
+  </div>
+
+  <div class="flex shrink-0 items-center gap-3">
+    @if (isPlayer() && wallet(); as wallet) {
+      <a
+        [routerLink]="labels.WALLET_ROUTE"
+        class="hidden h-11 items-center gap-2.5 rounded-full bg-surface-1 rim px-4 font-bold text-text tabular-nums hover:bg-surface-2 transition-colors sm:inline-flex"
+        [attr.aria-label]="labels.BALANCE"
+      >
+        <span class="h-2 w-2 rounded-full bg-win" aria-hidden="true"></span>
+        {{ wallet.availableBalanceMinor | currencyFormat: wallet.currency }}
+      </a>
+    }
+    <a
+      [routerLink]="labels.NOTIFICATIONS_ROUTE"
+      class="relative grid h-11 w-11 place-items-center rounded-full bg-surface-1 rim text-text hover:bg-surface-2 transition-colors"
+      [attr.aria-label]="bellLabel()"
+    >
+      <app-icon class="h-5 w-5" name="bell" />
+      @if (unread() > 0) {
+        <span class="absolute right-[9px] top-2 h-[9px] w-[9px] rounded-full border-2 border-surface-1 bg-loss" aria-hidden="true"></span>
+      }
+    </a>
+    <div class="relative">
+      <button
+        type="button"
+        class="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-surface-1 rim text-sm font-semibold text-action hover:bg-surface-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
+        aria-haspopup="menu"
+        [attr.aria-label]="labels.ACCOUNT_MENU"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="toggleMenu()"
+      >
+        @if (imageUrl(); as url) {
+          <img [ngSrc]="url" width="44" height="44" alt="" class="h-full w-full object-cover" />
+        } @else {
+          {{ initial() }}
+        }
+      </button>
+      @if (menuOpen()) {
+        <div role="menu" [attr.aria-label]="labels.ACCOUNT_MENU" class="absolute right-0 top-full z-40 mt-2 w-60 rounded-2xl border border-line bg-surface-2 p-2 depth-1">
+          <div class="px-3 pb-2 pt-1">
+            <p class="truncate text-sm font-semibold text-text">{{ userName() }}</p>
+            <p class="text-xs text-text-muted">{{ roleLabel() }}</p>
+          </div>
+          <a role="menuitem" [routerLink]="labels.PROFILE_ROUTE" [class]="labels.MENU_ITEM" (click)="closeMenu()">
+            <app-icon class="h-5 w-5 text-text-muted" name="user" />{{ labels.PROFILE }}
+          </a>
+          <button type="button" role="menuitem" [class]="labels.MENU_ITEM" (click)="toggleTheme()">
+            <app-icon class="h-5 w-5 text-text-muted" [name]="isDark() ? 'sun' : 'moon'" />{{ isDark() ? labels.LIGHT_MODE : labels.DARK_MODE }}
+          </button>
+          <button type="button" role="menuitem" [class]="labels.MENU_ITEM" (click)="logout()">
+            <app-icon class="h-5 w-5 text-loss" name="log-out" />{{ labels.LOG_OUT }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,11 +1,8 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, inject, computed } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '../core/services/auth.service';
-import { ThemeService } from '../core/services/theme.service';
-import { NotificationService } from '../core/services/notification.service';
-import { ProfileImageService } from '../core/services/profile-image.service';
 import { NavItem } from '../core/interfaces/ui/nav-item.interface';
 import { NavItemsRefDto } from '../core/interfaces/ui/nav-items-ref.interface';
 import { ROLE_SETS } from '../core/constants/auth/role-sets.constant';
@@ -26,19 +23,17 @@ import { ConnectivityService } from '../core/services/connectivity.service';
 import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
 import { SHELL_LAYOUT } from '../core/constants/layout/shell-layout.constant';
 import { IconComponent } from '../shared/components/icon/icon.component';
+import { TopBarComponent } from './top-bar.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, NgOptimizedImage, IconComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, IconComponent, TopBarComponent],
   templateUrl: './templates/shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ShellComponent implements OnInit {
   private readonly auth = inject(AuthService);
-  private readonly theme = inject(ThemeService);
-  private readonly notif = inject(NotificationService);
-  readonly profileImageService = inject(ProfileImageService);
   readonly layout = SHELL_LAYOUT;
   private readonly chat = inject(SupportChatStore);
   private readonly chatStream = inject(SupportStreamService);
@@ -54,11 +49,8 @@ export class ShellComponent implements OnInit {
   private readonly pins = inject(SupportPinsStore);
   readonly sidebar = inject(SidebarStateService);
 
-  readonly isDark = computed(() => this.theme.isDark());
-  readonly unread = computed(() => this.notif.unreadCount());
   readonly chatUnread = computed(() => this.chat.totalUnread());
   readonly supportPath = SUPPORT.ROUTE;
-  readonly roleLabel = this.auth.roleLabel;
   readonly selfExcludedUntil = this.auth.selfExcludedUntil;
 
   readonly navItems = computed(() => this.visible({ items: this.allNavItems }));
@@ -109,31 +101,6 @@ export class ShellComponent implements OnInit {
 
     const heartbeat = setInterval(() => this.presenceStore.heartbeat(), SUPPORT.HEARTBEAT_MS);
     this.destroyRef.onDestroy(() => clearInterval(heartbeat));
-  }
-
-  userName (): string {
-    return this.auth.currentUser()?.displayName ?? 'Guest';
-  }
-
-  initial (): string {
-    return this.userName().charAt(0).toUpperCase();
-  }
-
-  getProfileImageUrl (): string | null {
-    return this.profileImageService.getMainImageUrl();
-  }
-
-  toggleTheme (): void {
-    this.theme.toggle();
-  }
-
-  logout (): void {
-    this.auth.logout();
-  }
-
-  openProfileImage (): void {
-    const url = this.getProfileImageUrl();
-    if (url) window.open(url, '_blank');
   }
 
   private visible ({ items }: NavItemsRefDto): NavItem[] {
