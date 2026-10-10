@@ -1,10 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+const liveDepth = require('./tailwind/live-depth');
+
 module.exports = {
   content: ['./src/**/*.{html,ts}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
+        ...liveDepth.colors,
         primary: { DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)', dark: 'rgb(var(--color-primary-dark) / <alpha-value>)', light: '#93C5FD' },
         success: { DEFAULT: '#10B981', dark: '#059669', deep: '#047857', light: '#6EE7B7' },
         warning: { DEFAULT: '#F59E0B', dark: '#D97706', deep: '#92400E', light: '#FCD34D' },
@@ -49,7 +52,8 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace']
+        mono: ['JetBrains Mono', 'monospace'],
+        ...liveDepth.fontFamily
       },
       boxShadow: {
         soft: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
@@ -93,6 +97,7 @@ module.exports = {
     }
   },
   plugins: [
+    liveDepth.plugin,
     ({ addBase }) =>
       addBase({
         ':root': { '--color-primary': '29 78 216', '--color-primary-dark': '30 64 175' },
