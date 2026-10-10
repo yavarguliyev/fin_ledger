@@ -71,7 +71,7 @@
   @if (history.hasMore()) {
     <div class="flex justify-center" appLoadOnScroll [paused]="history.loading()" (reached)="history.loadOlder()">
       <app-button variant="secondary" [disabled]="history.loading()" (pressed)="history.loadOlder()">
-        <span [class.animate-spin]="history.loading()">↻</span>
+        <app-icon class="h-4 w-4" name="refresh-cw" [class.animate-spin]="history.loading()" />
         {{ pageLabels.LOAD_OLDER }}
       </app-button>
     </div>

@@ -22,12 +22,13 @@ import { ReceiptLinkComponent } from '../../shared/components/receipt-link/recei
 import { RECEIPT } from '../../core/constants/payment/receipt.constant';
 import { ErrorStateComponent } from '../../shared/components/error-state/error-state.component';
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-wallet',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent, ErrorStateComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, PaginationComponent, WalletSwitcherComponent, ReceiptLinkComponent, ErrorStateComponent, IconComponent],
   templateUrl: './templates/wallet.component.html'
 })
 export class WalletComponent implements OnInit {

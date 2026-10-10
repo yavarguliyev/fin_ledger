@@ -6,7 +6,7 @@
       class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
       [disabled]="loading()"
     >
-      <span [class.animate-spin]="loading()">↻</span> Refresh
+      <app-icon class="h-4 w-4" name="refresh-cw" [class.animate-spin]="loading()" /> Refresh
     </button>
   </div>
 
