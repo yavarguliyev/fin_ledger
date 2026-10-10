@@ -9,10 +9,10 @@ import { VolumeChoiceDto } from '../../../core/interfaces/admin/volume-choice.in
 export class StatCardHelper {
   static build ({ stats, currency }: StatCardsInputDto): StatCard[] {
     return [
-      { label: 'Total Users', icon: '👥', value: StatCardHelper.count({ value: stats?.totalUsers }) },
-      { label: 'Active Wallets', icon: '👛', value: StatCardHelper.count({ value: stats?.activeWallets }) },
+      { label: 'Total Users', icon: 'users', value: StatCardHelper.count({ value: stats?.totalUsers }) },
+      { label: 'Active Wallets', icon: 'wallet', value: StatCardHelper.count({ value: stats?.activeWallets }) },
       StatCardHelper.volume({ volumes: stats?.volumes ?? [], currency }),
-      { label: 'Pending', icon: '⏳', value: StatCardHelper.count({ value: stats?.pending }) }
+      { label: 'Pending', icon: 'hourglass', value: StatCardHelper.count({ value: stats?.pending }) }
     ];
   }
 
