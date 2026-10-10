@@ -46,40 +46,40 @@
     </div>
 
     <div class="lg:sticky lg:top-20 h-fit">
-      <form [formGroup]="form" class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5 space-y-4">
-        <h2 class="font-semibold text-ink-900 dark:text-white">Bet Slip</h2>
+      <form [formGroup]="form" class="rounded-[22px] bg-surface-1 depth-1 p-5 space-y-4">
+        <h2 class="font-display font-medium text-xl text-text">Bet slip</h2>
         @if (selectedEvent()) {
-          <div class="rounded-lg bg-primary/5 border border-primary/20 p-3">
-            <p class="text-sm font-medium text-ink-900 dark:text-white">{{ selectedEvent()!.label }}</p>
-            <p class="text-xs text-ink-500 dark:text-night-muted">Odds: {{ selectedEvent()!.odds.toFixed(2) }}x</p>
+          <div class="flex items-center justify-between gap-3 rounded-[14px] border border-action/40 bg-action/10 p-3">
+            <strong class="min-w-0 truncate text-sm text-text">{{ selectedEvent()!.label }}</strong>
+            <span class="font-display font-bold text-text tabular-nums">{{ selectedEvent()!.odds.toFixed(2) }}×</span>
           </div>
         } @else {
-          <p class="text-sm text-ink-500 dark:text-night-muted">Select an event to place a bet.</p>
+          <p class="text-sm text-text-muted">Select an event to place a bet.</p>
         }
 
         <div>
-          <label class="block text-sm font-medium text-ink-700 dark:text-night-text mb-1.5">Stake ({{ currency() }})</label>
+          <label class="block text-sm font-medium text-text-muted mb-1.5">Stake ({{ currency() }})</label>
           <input
             type="number"
             formControlName="stake"
             min="1"
             step="0.01"
-            class="w-full px-4 py-2.5 rounded-lg border border-ink-300 dark:border-night-border bg-white dark:bg-night-bg text-ink-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+            class="w-full min-h-12 px-4 rounded-[14px] border border-line bg-surface-2 text-text tabular-nums focus:outline-none focus:ring-2 focus:ring-action/40"
             placeholder="0.00"
           />
           @if (form.controls.stake.invalid && form.controls.stake.touched) {
-            <p class="text-xs text-danger-deep dark:text-danger-light mt-1">Minimum stake is $1.00</p>
+            <p class="text-xs text-loss mt-1">Minimum stake is $1.00</p>
           }
         </div>
 
-        <div class="rounded-lg bg-ink-50 dark:bg-night-bg p-3 space-y-1.5 text-sm">
+        <div class="rounded-[14px] bg-surface-2 p-3 space-y-1.5 text-sm">
           <div class="flex justify-between">
-            <span class="text-ink-500 dark:text-night-muted">Stake</span
-            ><span class="font-medium text-ink-900 dark:text-white">{{ stakeMinor() | currencyFormat: currency() }}</span>
+            <span class="text-text-muted">Stake</span
+            ><span class="font-medium text-text tabular-nums">{{ stakeMinor() | currencyFormat: currency() }}</span>
           </div>
           <div class="flex justify-between">
-            <span class="text-ink-500 dark:text-night-muted">Potential win</span
-            ><span class="font-semibold text-success-deep dark:text-success-light">{{ potentialWin() | currencyFormat: currency() }}</span>
+            <span class="text-text-muted">Potential win</span
+            ><span class="font-semibold text-win tabular-nums">{{ potentialWin() | currencyFormat: currency() }}</span>
           </div>
         </div>
 
