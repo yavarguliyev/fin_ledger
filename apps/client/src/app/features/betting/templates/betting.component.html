@@ -97,7 +97,9 @@
     <div class="divide-y divide-ink-100 dark:divide-night-border">
       @for (bet of bets(); track bet.id) {
         <div class="flex items-center gap-4 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors">
-          <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg font-semibold shrink-0 bg-primary/10 text-primary">🎯</div>
+          <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 bg-primary/10 text-primary">
+            <app-icon class="h-5 w-5" name="target" />
+          </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-semibold text-ink-900 dark:text-white">{{ bet.selection }}</p>
             <div class="flex items-center gap-2 mt-1">
@@ -132,11 +134,7 @@
           </div>
         </div>
       } @empty {
-        <div class="px-5 py-12 text-center">
-          <div class="w-16 h-16 rounded-full bg-ink-100 dark:bg-night-bg mx-auto mb-3 flex items-center justify-center text-3xl">🎯</div>
-          <p class="text-sm font-medium text-ink-900 dark:text-white">No bets yet</p>
-          <p class="text-xs text-ink-500 dark:text-night-muted mt-1">Place your first bet on an available event</p>
-        </div>
+        <app-empty-state [icon]="states.BETS_ICON" [title]="states.BETS_EMPTY_TITLE" [message]="states.BETS_EMPTY_MESSAGE" />
       }
     </div>
 

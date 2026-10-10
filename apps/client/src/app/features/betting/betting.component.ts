@@ -20,6 +20,7 @@ import { ErrorStateComponent } from '../../shared/components/error-state/error-s
 import { LOAD_STATE } from '../../core/constants/ui/load-state.constant';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { BettingEventsService } from './services/betting-events.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
@@ -29,7 +30,7 @@ import { EVENT_BADGE } from '../../core/constants/betting/event-badge.constant';
   selector: 'app-betting',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, IconComponent],
   providers: [BettingEventsService],
   templateUrl: './templates/betting.component.html'
 })

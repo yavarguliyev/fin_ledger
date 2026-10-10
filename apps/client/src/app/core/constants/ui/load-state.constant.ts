@@ -16,6 +16,9 @@ export const LOAD_STATE = {
   EVENTS_EMPTY_TITLE: 'No events open right now',
   EVENTS_EMPTY_MESSAGE: 'New fixtures appear here as soon as betting opens.',
   EVENTS_ICON: 'trophy',
+  BETS_EMPTY_TITLE: 'No bets yet',
+  BETS_EMPTY_MESSAGE: 'Place your first bet on an available event',
+  BETS_ICON: 'target',
   EVENT_ROWS: 2,
   SECTION_ROWS: 1
 } as const;

@@ -22,7 +22,7 @@ describe('ICON_PATHS', () => {
     expect(ICON_PATHS).toHaveProperty([name]);
   });
 
-  it.each([LOAD_STATE.NOTIFICATIONS_ICON, LOAD_STATE.EVENTS_ICON])('empty state icon %s is in the icon set', name => {
+  it.each([LOAD_STATE.NOTIFICATIONS_ICON, LOAD_STATE.EVENTS_ICON, LOAD_STATE.BETS_ICON])('empty state icon %s is in the icon set', name => {
     expect(ICON_PATHS).toHaveProperty([name]);
   });
 });
