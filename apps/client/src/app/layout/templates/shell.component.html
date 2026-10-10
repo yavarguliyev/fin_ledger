@@ -11,7 +11,11 @@
     [class]="sidebar.collapsed() ? sidebar.labels.COLLAPSED_WIDTH : sidebar.labels.EXPANDED_WIDTH"
   >
     <div class="flex items-center gap-2 py-5" [class]="sidebar.collapsed() ? 'flex-col px-3' : 'px-6'">
-      <a routerLink="/dashboard" class="flex min-w-0 flex-1 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" aria-label="WalletPay">
+      <a
+        routerLink="/dashboard"
+        class="flex min-w-0 flex-1 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+        aria-label="WalletPay"
+      >
         <div class="w-9 h-9 shrink-0 rounded-xl bg-primary flex items-center justify-center text-white font-bold">W</div>
         @if (!sidebar.collapsed()) {
           <span class="font-semibold text-ink-900 dark:text-white">WalletPay</span>
@@ -25,7 +29,14 @@
         [title]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
         (click)="sidebar.toggle()"
       >
-        <svg class="h-4 w-4 transition-transform" [class.rotate-180]="sidebar.collapsed()" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <svg
+          class="h-4 w-4 transition-transform"
+          [class.rotate-180]="sidebar.collapsed()"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
         </svg>
       </button>
@@ -40,7 +51,7 @@
           [attr.aria-label]="sidebar.collapsed() ? item.label : null"
           [title]="sidebar.collapsed() ? item.label : ''"
         >
-          <span class="text-base" [innerHTML]="item.icon"></span>
+          <app-icon class="h-5 w-5" [name]="item.icon" />
           @if (!sidebar.collapsed()) {
             <span class="flex-1">{{ item.label }}</span>
           }
@@ -64,7 +75,7 @@
         [attr.aria-label]="isDark() ? 'Light mode' : 'Dark mode'"
         [title]="sidebar.collapsed() ? (isDark() ? 'Light mode' : 'Dark mode') : ''"
       >
-        <span class="text-base" aria-hidden="true">{{ isDark() ? '☀️' : '🌙' }}</span>
+        <app-icon class="h-5 w-5" [name]="isDark() ? 'sun' : 'moon'" />
         @if (!sidebar.collapsed()) {
           {{ isDark() ? 'Light mode' : 'Dark mode' }}
         }
@@ -88,7 +99,7 @@
             class="relative p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
             aria-label="Notifications"
           >
-            <span class="text-xl">🔔</span>
+            <app-icon class="h-6 w-6" name="bell" />
             @if (unread() > 0) {
               <span
                 class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger-dark text-white text-[10px] font-bold flex items-center justify-center"
@@ -131,7 +142,11 @@
       </div>
     </header>
 
-    <main [id]="layout.MAIN_ID" tabindex="-1" class="flex-1 outline-none p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6">
+    <main
+      [id]="layout.MAIN_ID"
+      tabindex="-1"
+      class="flex-1 outline-none p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6"
+    >
       @if (connectivity.offline()) {
         <p class="mb-4 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning-dark dark:text-warning" role="status" aria-live="polite">
           {{ connectivity.banner }}
@@ -157,7 +172,7 @@
           routerLinkActive="text-primary nav-active-mobile"
           class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-500 dark:text-night-muted text-xs"
         >
-          <span class="text-lg" [innerHTML]="item.icon"></span>
+          <app-icon class="h-6 w-6" [name]="item.icon" />
           {{ item.label }}
         </a>
       }

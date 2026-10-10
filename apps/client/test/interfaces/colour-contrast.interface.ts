@@ -18,6 +18,7 @@ export interface ColourChannelsDto {
 
 export interface TailwindBaseDto {
   addBase: (styles: Record<string, Record<string, string>>) => void;
+  addComponents: (styles: Record<string, unknown>) => void;
 }
 
 export interface TailwindConfigShape {

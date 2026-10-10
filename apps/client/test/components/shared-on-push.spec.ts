@@ -10,6 +10,7 @@ import { DatePickerComponent } from '../../src/app/shared/components/date-picker
 import { EmptyStateComponent } from '../../src/app/shared/components/empty-state/empty-state.component';
 import { ErrorStateComponent } from '../../src/app/shared/components/error-state/error-state.component';
 import { FieldErrorComponent } from '../../src/app/shared/components/field-error/field-error.component';
+import { IconComponent } from '../../src/app/shared/components/icon/icon.component';
 import { ModalComponent } from '../../src/app/shared/components/modal/modal.component';
 import { OtpInputComponent } from '../../src/app/shared/components/otp-input/otp-input.component';
 import { PageHeaderComponent } from '../../src/app/shared/components/page-header/page-header.component';
@@ -35,6 +36,7 @@ const SHARED_COMPONENTS: Type<unknown>[] = [
   EmptyStateComponent,
   ErrorStateComponent,
   FieldErrorComponent,
+  IconComponent,
   ModalComponent,
   OtpInputComponent,
   PageHeaderComponent,

@@ -7,7 +7,7 @@ const config = (): TailwindConfigShape => createRequire(__filename)(T.CONFIG) as
 
 const lightPrimary = (): number[] => {
   const styles: Record<string, Record<string, string>> = {};
-  config().plugins.forEach(plugin => plugin({ addBase: added => Object.assign(styles, added) }));
+  config().plugins.forEach(plugin => plugin({ addBase: added => Object.assign(styles, added), addComponents: () => undefined }));
   return (styles[T.LIGHT_ROOT]?.[T.PRIMARY_VAR] ?? T.EMPTY).split(T.CHANNEL_SPACE).map(Number);
 };
 

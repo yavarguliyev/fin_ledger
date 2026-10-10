@@ -25,11 +25,12 @@ import { CallStateService } from '../core/services/call-state.service';
 import { ConnectivityService } from '../core/services/connectivity.service';
 import { ReceiptViewerComponent } from '../shared/components/receipt-viewer/receipt-viewer.component';
 import { SHELL_LAYOUT } from '../core/constants/layout/shell-layout.constant';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, NgOptimizedImage],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, CallOverlayComponent, ReceiptViewerComponent, NgOptimizedImage, IconComponent],
   templateUrl: './templates/shell.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -64,23 +65,23 @@ export class ShellComponent implements OnInit {
   readonly mobileNav = computed(() => this.visible({ items: this.allMobileNavItems }));
 
   private readonly allNavItems: NavItem[] = [
-    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', roles: ROLE_SETS.ADMIN },
-    { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/wallet', label: 'Wallet', icon: '👛' },
-    { path: '/betting', label: 'Betting', icon: '🎯', roles: ROLE_SETS.PLAYER },
-    { path: '/ledger', label: 'Ledger', icon: '📒' },
-    { path: '/support', label: 'Support', icon: '💬' },
-    { path: '/profile', label: 'Profile', icon: '👤' }
+    { path: '/admin', label: 'Admin', icon: 'shield', roles: ROLE_SETS.ADMIN },
+    { path: '/dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
+    { path: '/wallet', label: 'Wallet', icon: 'wallet' },
+    { path: '/betting', label: 'Betting', icon: 'target', roles: ROLE_SETS.PLAYER },
+    { path: '/ledger', label: 'Ledger', icon: 'book-open' },
+    { path: '/support', label: 'Support', icon: 'message-circle' },
+    { path: '/profile', label: 'Profile', icon: 'user' }
   ];
 
   private readonly allMobileNavItems: NavItem[] = [
-    { path: '/admin', label: 'Admin', icon: '👨🏻‍💻', roles: ROLE_SETS.ADMIN },
-    { path: '/dashboard', label: 'Home', icon: '📊' },
-    { path: '/wallet', label: 'Wallet', icon: '👛' },
-    { path: '/betting', label: 'Bet', icon: '🎯', roles: ROLE_SETS.PLAYER },
-    { path: '/support', label: 'Chat', icon: '💬' },
-    { path: '/notifications', label: 'Alerts', icon: '🔔' },
-    { path: '/profile', label: 'Profile', icon: '👤' }
+    { path: '/admin', label: 'Admin', icon: 'shield', roles: ROLE_SETS.ADMIN },
+    { path: '/dashboard', label: 'Home', icon: 'layout-dashboard' },
+    { path: '/wallet', label: 'Wallet', icon: 'wallet' },
+    { path: '/betting', label: 'Bet', icon: 'target', roles: ROLE_SETS.PLAYER },
+    { path: '/support', label: 'Chat', icon: 'message-circle' },
+    { path: '/notifications', label: 'Alerts', icon: 'bell' },
+    { path: '/profile', label: 'Profile', icon: 'user' }
   ];
 
   ngOnInit (): void {

@@ -1,0 +1,14 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  class="h-full w-full"
+  fill="none"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  [attr.viewBox]="icon.VIEW_BOX"
+  [attr.stroke-width]="icon.STROKE_WIDTH"
+>
+  @for (d of paths(); track d) {
+    <path [attr.d]="d" />
+  }
+</svg>
