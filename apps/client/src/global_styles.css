@@ -63,17 +63,6 @@ html.dark [role='button'].bg-primary:hover {
   background-image: linear-gradient(81deg, theme('colors.neon.violet') 10.86%, theme('colors.neon.mint') 89.96%);
 }
 
-html.dark .nav-active {
-  background-color: theme('colors.neon.magenta / 10%');
-  color: theme('colors.neon.cyan');
-  border-left: 3px solid transparent;
-  border-image: linear-gradient(180deg, theme('colors.neon.blue'), theme('colors.neon.pink')) 1;
-}
-
-html.dark .nav-active-mobile {
-  color: theme('colors.neon.cyan');
-}
-
 html.dark input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
 html.dark select,
 html.dark textarea {

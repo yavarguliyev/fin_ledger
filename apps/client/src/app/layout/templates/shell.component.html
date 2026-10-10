@@ -1,13 +1,13 @@
 <a
   [href]="'#' + layout.MAIN_ID"
-  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-primary focus:shadow-lg dark:focus:bg-night-card"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-surface-1 focus:px-4 focus:py-3 focus:text-sm focus:font-semibold focus:text-action focus:depth-1"
   (click)="skipToContent($event)"
 >
   {{ layout.SKIP_LINK }}
 </a>
 <div class="flex min-h-screen">
   <aside
-    class="hidden md:flex shrink-0 flex-col bg-white dark:bg-night-sidebar border-r border-ink-200 dark:border-night-border transition-[width] duration-200"
+    class="hidden md:flex shrink-0 flex-col bg-surface-1 border-r border-line transition-[width] duration-200"
     [class]="sidebar.collapsed() ? sidebar.labels.COLLAPSED_WIDTH : sidebar.labels.EXPANDED_WIDTH"
   >
     <div class="flex items-center gap-2 py-5" [class]="sidebar.collapsed() ? 'flex-col px-3' : 'px-6'">
@@ -16,14 +16,14 @@
         class="flex min-w-0 flex-1 items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
         aria-label="WalletPay"
       >
-        <div class="w-9 h-9 shrink-0 rounded-xl bg-primary flex items-center justify-center text-white font-bold">W</div>
+        <div class="glossy w-9 h-9 shrink-0 rounded-xl flex items-center justify-center font-display font-bold">W</div>
         @if (!sidebar.collapsed()) {
-          <span class="font-semibold text-ink-900 dark:text-white">WalletPay</span>
+          <span class="font-display font-medium text-text">WalletPay</span>
         }
       </a>
       <button
         type="button"
-        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-500 hover:bg-ink-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:text-ink-300 dark:hover:bg-night-border"
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-text-muted hover:bg-surface-2 hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action"
         [attr.aria-label]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
         [attr.aria-expanded]="!sidebar.collapsed()"
         [title]="sidebar.collapsed() ? sidebar.labels.EXPAND_LABEL : sidebar.labels.COLLAPSE_LABEL"
@@ -45,8 +45,8 @@
       @for (item of navItems(); track item.path) {
         <a
           [routerLink]="item.path"
-          routerLinkActive="bg-primary/10 text-primary dark:text-primary-light nav-active"
-          class="relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+          routerLinkActive="bg-action/20 !text-text font-semibold depth-1"
+          class="relative flex items-center gap-3 min-h-11 px-3.5 rounded-xl text-sm font-medium text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
           [class.justify-center]="sidebar.collapsed()"
           [attr.aria-label]="sidebar.collapsed() ? item.label : null"
           [title]="sidebar.collapsed() ? item.label : ''"
@@ -57,9 +57,9 @@
           }
           @if (item.path === supportPath && chatUnread() > 0) {
             @if (sidebar.collapsed()) {
-              <span class="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-danger-dark" aria-hidden="true"></span>
+              <span class="absolute right-2 top-1.5 h-2.5 w-2.5 rounded-full bg-loss" aria-hidden="true"></span>
             } @else {
-              <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-danger-dark text-white text-[10px] font-bold flex items-center justify-center">
+              <span class="min-w-[18px] h-[18px] px-1 rounded-full bg-loss text-white text-[10px] font-bold flex items-center justify-center">
                 {{ chatUnread() }}
               </span>
             }
@@ -67,10 +67,10 @@
         </a>
       }
     </nav>
-    <div class="p-3 border-t border-ink-200 dark:border-night-border">
+    <div class="p-3 border-t border-line">
       <button
         (click)="toggleTheme()"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+        class="w-full flex items-center gap-3 min-h-11 px-3.5 rounded-xl text-sm font-medium text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
         [class.justify-center]="sidebar.collapsed()"
         [attr.aria-label]="isDark() ? 'Light mode' : 'Dark mode'"
         [title]="sidebar.collapsed() ? (isDark() ? 'Light mode' : 'Dark mode') : ''"
@@ -85,24 +85,24 @@
 
   <div class="flex-1 flex flex-col min-w-0">
     <header
-      class="sticky top-0 z-30 pt-[env(safe-area-inset-top)] bg-white/80 dark:bg-night-surface/80 backdrop-blur border-b border-ink-200 dark:border-night-border"
+      class="sticky top-0 z-30 pt-[env(safe-area-inset-top)] bg-ground/80 backdrop-blur border-b border-line"
     >
       <div class="flex items-center justify-between px-4 sm:px-6 h-16">
         <div class="flex items-center gap-3">
-          <a routerLink="/dashboard" class="md:hidden font-semibold text-ink-900 dark:text-white cursor-pointer hover:opacity-80 transition-opacity"
+          <a routerLink="/dashboard" class="md:hidden font-display font-medium text-text cursor-pointer hover:opacity-80 transition-opacity"
             >WalletPay</a
           >
         </div>
         <div class="flex items-center gap-3">
           <a
             routerLink="/notifications"
-            class="relative p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-night-border transition-colors"
+            class="relative grid h-11 w-11 place-items-center rounded-full bg-surface-1 depth-1 text-text hover:bg-surface-2 transition-colors"
             aria-label="Notifications"
           >
-            <app-icon class="h-6 w-6" name="bell" />
+            <app-icon class="h-5 w-5" name="bell" />
             @if (unread() > 0) {
               <span
-                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger-dark text-white text-[10px] font-bold flex items-center justify-center"
+                class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-loss text-white text-[10px] font-bold flex items-center justify-center"
                 >{{ unread() }}</span
               >
             }
@@ -115,25 +115,25 @@
                 height="32"
                 alt="Profile"
                 (click)="openProfileImage()"
-                class="w-8 h-8 rounded-full object-cover border border-primary/20 cursor-pointer hover:opacity-80 transition-opacity"
+                class="w-8 h-8 rounded-full object-cover border border-action/30 cursor-pointer hover:opacity-80 transition-opacity"
                 title="Open image in new window"
               />
             } @else {
               <div
                 (click)="openProfileImage()"
-                class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-sm cursor-pointer hover:opacity-80 transition-opacity"
+                class="w-8 h-8 rounded-full bg-action/15 text-action flex items-center justify-center font-semibold text-sm cursor-pointer hover:opacity-80 transition-opacity"
               >
                 {{ initial() }}
               </div>
             }
             <div class="hidden sm:block text-sm">
-              <div class="font-medium text-ink-900 dark:text-white leading-tight">{{ userName() }}</div>
-              <div class="text-xs text-ink-500 dark:text-night-muted">{{ roleLabel() }}</div>
+              <div class="font-medium text-text leading-tight">{{ userName() }}</div>
+              <div class="text-xs text-text-muted">{{ roleLabel() }}</div>
             </div>
           </div>
           <button
             (click)="logout()"
-            class="p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-night-border transition-colors text-ink-600 dark:text-ink-300"
+            class="grid h-11 w-11 place-items-center rounded-full bg-surface-1 depth-1 text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
             aria-label="Logout"
           >
             <app-icon class="h-5 w-5" name="log-out" />
@@ -148,13 +148,13 @@
       class="flex-1 outline-none p-4 sm:p-6 max-w-7xl w-full mx-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-6"
     >
       @if (connectivity.offline()) {
-        <p class="mb-4 rounded-lg bg-warning/10 px-4 py-3 text-sm text-warning-dark dark:text-warning" role="status" aria-live="polite">
+        <p class="mb-4 rounded-xl bg-pending/10 px-4 py-3 text-sm text-pending" role="status" aria-live="polite">
           {{ connectivity.banner }}
         </p>
       }
 
       @if (selfExcludedUntil()) {
-        <p class="mb-4 rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger-deep dark:text-danger-light" role="alert">
+        <p class="mb-4 rounded-xl bg-loss/10 px-4 py-3 text-sm text-loss" role="alert">
           You have self-excluded from gambling until {{ selfExcludedUntil() | date: 'medium' }}. Betting and deposits are blocked until then.
           Withdrawals stay available.
         </p>
@@ -164,13 +164,13 @@
     </main>
 
     <nav
-      class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white dark:bg-night-sidebar border-t border-ink-200 dark:border-night-border flex justify-around pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-[env(safe-area-inset-left)]"
+      class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-surface-1 border-t border-line flex justify-around pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] px-[env(safe-area-inset-left)]"
     >
       @for (item of mobileNav(); track item.path) {
         <a
           [routerLink]="item.path"
-          routerLinkActive="text-primary nav-active-mobile"
-          class="flex flex-col items-center gap-0.5 px-3 py-1 text-ink-500 dark:text-night-muted text-xs"
+          routerLinkActive="!text-action font-semibold"
+          class="flex flex-col items-center gap-0.5 px-3 py-1 text-text-muted text-xs"
         >
           <app-icon class="h-6 w-6" [name]="item.icon" />
           {{ item.label }}
