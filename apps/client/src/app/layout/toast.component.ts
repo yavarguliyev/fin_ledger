@@ -1,12 +1,16 @@
 import { Component, ChangeDetectionStrategy, inject, computed } from '@angular/core';
 
 import { ToastService } from '../core/services/toast.service';
+import { TOAST_ICONS } from '../core/constants/ui/toast.constant';
+import { ToastType } from '../core/types/ui/toast-type.type';
+import { IconName } from '../core/types/ui/icon-name.type';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-toast-host',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [],
+  imports: [IconComponent],
   templateUrl: './templates/toast.component.html'
 })
 export class ToastHostComponent {
@@ -18,9 +22,8 @@ export class ToastHostComponent {
     this.toastService.dismiss(id);
   }
 
-  icon (type: string): string {
-    const map: Record<string, string> = { success: '✅', error: '⛔', warning: '⚠️', info: 'ℹ️' };
-    return map[type] ?? 'ℹ️';
+  icon (type: ToastType): IconName {
+    return TOAST_ICONS[type];
   }
 
   handleConfirm (): void {
