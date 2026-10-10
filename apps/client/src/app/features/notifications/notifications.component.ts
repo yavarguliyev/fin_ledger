@@ -17,6 +17,8 @@ import { NotificationHistoryService } from '../../core/services/notification-his
 import { NOTIFICATION_PAGE } from '../../core/constants/notification/notification-page.constant';
 import { NotificationType } from '../../core/types/notification/notification-type.type';
 import { LoadOnScrollDirective } from '../../shared/directives/load-on-scroll.directive';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+import { IconName } from '../../core/types/ui/icon-name.type';
 import {
   NOTIFICATION_CLASSES,
   NOTIFICATION_ICONS,
@@ -27,7 +29,7 @@ import {
   selector: 'app-notifications',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, LoadOnScrollDirective],
+  imports: [ButtonComponent, CommonModule, RelativeTimePipe, PaginationComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, LoadOnScrollDirective, IconComponent],
   templateUrl: './templates/notifications.component.html'
 })
 export class NotificationsComponent implements OnInit {
@@ -101,7 +103,7 @@ export class NotificationsComponent implements OnInit {
     this.currentPage.set(1);
   }
 
-  typeIcon (type: NotificationType): string {
+  typeIcon (type: NotificationType): IconName {
     return NOTIFICATION_ICONS[type] ?? NOTIFICATION_DISPLAY_FALLBACK.ICON;
   }
 

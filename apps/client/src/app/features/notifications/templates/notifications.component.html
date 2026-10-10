@@ -44,8 +44,8 @@
     } @else {
       @for (n of paginatedNotifications(); track n.id) {
         <div class="flex items-start gap-3 px-5 py-4 hover:bg-ink-50 dark:hover:bg-night-bg transition-colors">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm" [class]="typeClass(n.type)">
-            {{ typeIcon(n.type) }}
+          <div class="w-9 h-9 rounded-full flex items-center justify-center" [class]="typeClass(n.type)">
+            <app-icon class="h-4 w-4" [name]="typeIcon(n.type)" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-ink-900 dark:text-white" [class.font-semibold]="n.status !== 'READ'">{{ n.title }}</p>
