@@ -8,32 +8,37 @@
   }
 
   @if (loading()) {
-    <div class="h-40 rounded-2xl skeleton"></div>
+    <div class="h-40 rounded-[28px] skeleton"></div>
   } @else if (wallet() && isUser()) {
-    <div class="rounded-2xl bg-gradient-to-br from-primary to-primary-dark p-6 sm:p-8 text-white shadow-glow">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <p class="text-white/80 text-sm font-medium">Available Balance</p>
-          <p class="text-4xl sm:text-5xl font-bold mt-1">{{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}</p>
-          <p class="text-white/90 text-sm mt-2">Reserved: {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
+    <section class="depth-2 rounded-[28px] p-6 sm:p-10">
+      <span class="light-sweep" aria-hidden="true"></span>
+      <div class="relative flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+        <div class="flex flex-col gap-2.5">
+          <p class="text-sm text-white/80">Available balance</p>
+          <p class="font-display font-bold text-5xl sm:text-6xl leading-none tabular-nums">
+            {{ wallet()!.availableBalanceMinor | currencyFormat: wallet()!.currency }}
+          </p>
+          <p class="text-[13px] text-white/80 tabular-nums">Reserved {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-3">
           <a
             routerLink="/wallet/deposit"
-            class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
+            class="inline-flex items-center min-h-[50px] px-7 rounded-2xl bg-gradient-to-b from-white to-raised-tint text-raised-dark text-[15px] font-bold shadow-[inset_0_1px_0_#fff,0_12px_24px_-10px_rgb(0_0_0/0.6)] transition-transform active:translate-y-px"
             >Deposit</a
           >
           <a
             routerLink="/wallet/withdraw"
-            class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
+            class="inline-flex items-center min-h-[50px] px-6 rounded-2xl border border-white/25 bg-white/[0.08] hover:bg-white/15 text-[15px] font-semibold text-white transition-colors"
             >Withdraw</a
           >
-          <a routerLink="/betting" class="px-4 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm font-semibold transition-colors backdrop-blur"
-            >Bet</a
+          <a
+            routerLink="/betting"
+            class="inline-flex items-center min-h-[50px] px-6 rounded-2xl border border-raised-live/45 bg-raised-live/10 hover:bg-raised-live/20 text-[15px] font-semibold text-raised-live transition-colors"
+            >Play now</a
           >
         </div>
       </div>
-    </div>
+    </section>
   }
 
   @if (hasMultipleCurrencies()) {

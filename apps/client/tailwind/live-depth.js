@@ -12,7 +12,9 @@ const TOKENS = {
   loss: { dark: '255 107 107', light: '192 57 43' },
   pending: { dark: '251 191 36', light: '180 83 9' },
   raised: { dark: '58 38 168', light: '58 38 168' },
-  'raised-dark': { dark: '30 20 96', light: '30 20 96' }
+  'raised-dark': { dark: '30 20 96', light: '30 20 96' },
+  'raised-tint': { dark: '228 222 255', light: '228 222 255' },
+  'raised-live': { dark: '103 232 249', light: '103 232 249' }
 };
 
 const variable = name => `--ld-${name}`;
