@@ -7,27 +7,21 @@
   }"
 >
   @for (stat of stats(); track stat.label) {
-    <div
-      class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-5 hover:shadow-card transition-shadow overflow-hidden"
-    >
-      @if (stat.trend) {
-        <div class="flex items-center justify-between">
-          <span class="flex h-10 w-10 items-center justify-center rounded-lg" [ngClass]="stat.toneClass ?? 'bg-primary/10 text-primary'">
-            <app-icon class="h-5 w-5" [name]="stat.icon" />
-          </span>
+    <div class="flex flex-col gap-3.5 rounded-[22px] bg-surface-1 depth-1 p-5 overflow-hidden">
+      <div class="flex items-center justify-between">
+        <span class="flex h-10 w-10 items-center justify-center rounded-xl" [ngClass]="stat.toneClass ?? 'bg-action/15 text-action'">
+          <app-icon class="h-5 w-5" [name]="stat.icon" />
+        </span>
+        @if (stat.trend) {
           <span class="text-xs font-medium px-2 py-0.5 rounded-full" [ngClass]="stat.toneClass ?? ''">
             {{ stat.trend }}
           </span>
-        </div>
-      } @else {
-        <span class="flex h-10 w-10 items-center justify-center rounded-lg" [ngClass]="stat.toneClass ?? 'bg-primary/10 text-primary'">
-          <app-icon class="h-5 w-5" [name]="stat.icon" />
-        </span>
-      }
-      <p class="text-2xl font-bold text-ink-900 dark:text-white mt-3 truncate">{{ stat.value }}</p>
-      <p class="text-xs text-ink-500 dark:text-night-muted mt-0.5">{{ stat.label }}</p>
+        }
+      </div>
+      <p class="font-display font-bold text-[26px] leading-tight text-text tabular-nums truncate">{{ stat.value }}</p>
+      <p class="text-sm text-text-muted">{{ stat.label }}</p>
       @if (stat.choices) {
-        <div class="mt-3 flex flex-wrap gap-1" role="group" [attr.aria-label]="stat.label + ' currency'">
+        <div class="flex flex-wrap gap-1" role="group" [attr.aria-label]="stat.label + ' currency'">
           @for (choice of stat.choices; track choice.key) {
             <button
               type="button"

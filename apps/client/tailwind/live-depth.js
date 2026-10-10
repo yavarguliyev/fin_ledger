@@ -68,6 +68,13 @@ const plugin = ({ addBase, addComponents }) => {
       '70%': { boxShadow: `0 0 0 10px rgb(var(${variable('live')}) / 0)` },
       '100%': { boxShadow: `0 0 0 0 rgb(var(${variable('live')}) / 0)` }
     },
+    '.glossy-raised': {
+      color: `rgb(var(${variable('raised-dark')}))`,
+      backgroundImage: `linear-gradient(180deg, rgb(255 255 255), rgb(var(${variable('raised-tint')})))`,
+      boxShadow: 'inset 0 1px 0 rgb(255 255 255), 0 12px 24px -10px rgb(0 0 0 / 0.6)',
+      transition: 'transform 120ms ease-out',
+      '&:active': { transform: 'translateY(1px)' }
+    },
     '.glossy': {
       color: 'rgb(255 255 255)',
       backgroundImage: `linear-gradient(180deg, rgb(var(${variable('action')})), rgb(var(${variable('action-dark')})))`,

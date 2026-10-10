@@ -21,9 +21,7 @@
           <p class="text-[13px] text-white/80 tabular-nums">Reserved {{ wallet()!.reservedBalanceMinor | currencyFormat: wallet()!.currency }}</p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <a
-            routerLink="/wallet/deposit"
-            class="inline-flex items-center min-h-[50px] px-7 rounded-2xl bg-gradient-to-b from-white to-raised-tint text-raised-dark text-[15px] font-bold shadow-[inset_0_1px_0_#fff,0_12px_24px_-10px_rgb(0_0_0/0.6)] transition-transform active:translate-y-px"
+          <a routerLink="/wallet/deposit" class="glossy-raised inline-flex items-center min-h-[50px] px-7 rounded-2xl text-[15px] font-bold"
             >Deposit</a
           >
           <a
@@ -47,40 +45,33 @@
 
   <app-stats-card [stats]="activeStats()" [columns]="4" />
 
-  <app-data-table
-    [config]="tableConfig()"
-    [data]="recentTx()"
-    [loading]="loading()"
-    [customCellTemplate]="typeCellTemplate() ?? null"
-    [customMobileTemplate]="mobileTxTemplate() ?? null"
-  />
-
-  <!-- Custom cell template for transaction type -->
-  <ng-template #typeCell let-row="row" let-column="column">
-    <div class="flex items-center gap-2">
-      <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-        <app-icon class="h-4 w-4" [name]="typeIcon(row.type)" />
-      </span>
-      <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
+  <section class="flex flex-col rounded-3xl bg-surface-1 depth-1 p-6">
+    <div class="flex items-center justify-between pb-2.5">
+      <h2 class="font-display font-medium text-lg text-text">Recent activity</h2>
+      <a routerLink="/wallet" class="text-sm font-semibold text-live hover:opacity-80 transition-opacity">View wallet</a>
     </div>
-  </ng-template>
-
-  <!-- Custom mobile template -->
-  <ng-template #mobileTx let-row="row">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold" [class]="typeClass(row.type)">
-          <app-icon class="h-4 w-4" [name]="typeIcon(row.type)" />
-        </span>
-        <span class="font-medium text-ink-800 dark:text-ink-100">{{ formatType(row.type) }}</span>
-      </div>
-      <span class="font-semibold" [class]="row.amountMinor < 0 ? 'text-danger-deep dark:text-danger-light' : 'text-success-deep dark:text-success-light'">
-        {{ row.amountMinor | currencyFormat: row.currency }}
-      </span>
-    </div>
-    <div class="flex items-center justify-between mt-1">
-      <span class="text-xs text-ink-500 dark:text-night-muted">{{ row.createdAt | relativeTime }}</span>
-      <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
-    </div>
-  </ng-template>
+    @if (loading()) {
+      @for (placeholder of activityPlaceholders; track placeholder) {
+        <div class="h-[66px] border-t border-line skeleton"></div>
+      }
+    } @else {
+      @for (row of recentTx(); track row.id) {
+        <div class="flex items-center gap-3.5 py-3 border-t border-line">
+          <span class="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[14px]" [class]="typeClass(row.type)">
+            <app-icon class="h-5 w-5" [name]="typeIcon(row.type)" />
+          </span>
+          <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span class="text-[15px] font-semibold text-text truncate">{{ formatType(row.type) }}</span>
+            <span class="flex items-center gap-2 text-[13px] text-text-muted">
+              {{ row.createdAt | relativeTime }}
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="statusClass(row.status)">{{ row.status }}</span>
+            </span>
+          </div>
+          <span class="font-bold tabular-nums" [class]="amountClass(row.amountMinor)">{{ row.amountMinor | currencyFormat: row.currency }}</span>
+        </div>
+      } @empty {
+        <p class="py-6 border-t border-line text-center text-sm text-text-muted">No transactions yet</p>
+      }
+    }
+  </section>
 </div>

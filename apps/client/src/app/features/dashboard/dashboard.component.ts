@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, TemplateRef, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -8,12 +8,9 @@ import { Transaction } from '../../core/types/wallet/transaction.type';
 import { WalletTransactionSummary } from '../../core/interfaces/wallet/wallet-transaction-summary.interface';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
 import { RelativeTimePipe } from '../../shared/pipes/relative-time.pipe';
-import { DataTableComponent } from '../../shared/components/data-table/data-table.component';
 import { StatsCardComponent } from '../../shared/components/stats-card/stats-card.component';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
-import { DataTableConfig } from '../../core/interfaces/ui/data-table-config.interface';
 import { StatCard } from '../../core/interfaces/ui/stat-card.interface';
-import { TableColumn } from '../../core/interfaces/ui/table-column.interface';
 import { ALL_RECORDS_SCOPE } from '../../core/constants/common/all-records-scope.constant';
 import { TransactionHelper } from '../../core/helpers/wallet/transaction.helper';
 import { DashboardHelper } from './helpers/dashboard.helper';
@@ -30,7 +27,7 @@ import { IconName } from '../../core/types/ui/icon-name.type';
   selector: 'app-dashboard',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, DataTableComponent, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent, IconComponent],
+  imports: [CommonModule, RouterLink, CurrencyFormatPipe, RelativeTimePipe, StatsCardComponent, PageHeaderComponent, ErrorStateComponent, TabsComponent, IconComponent],
   templateUrl: './templates/dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -44,31 +41,23 @@ export class DashboardComponent implements OnInit {
   readonly typeClass = (value: string): string => TransactionHelper.typeClass(value);
   readonly formatType = (value: string): string => TransactionHelper.formatType(value);
   readonly statusClass = (value: string): string => TransactionHelper.statusClass(value);
+  readonly amountClass = (amountMinor: number): string => (amountMinor < 0 ? DASHBOARD_VIEW.AMOUNT_CLASS.NEGATIVE : DASHBOARD_VIEW.AMOUNT_CLASS.POSITIVE);
 
   readonly loading = signal(true);
   readonly failed = signal(false);
   readonly states = LOAD_STATE;
+  readonly activityPlaceholders = Array.from({ length: DASHBOARD_VIEW.ACTIVITY_PLACEHOLDERS }, (_, index) => index);
   readonly wallet = computed(() => this.walletService.wallet());
   readonly summaries = signal<WalletTransactionSummary[]>([]);
   readonly recentTx = signal<Transaction[]>([]);
   readonly userName = computed(() => this.auth.currentUser()?.displayName ?? 'User');
   readonly isUser = this.auth.isPlayer;
 
-  readonly typeCellTemplate = viewChild<TemplateRef<{ row: Transaction; column: TableColumn<Transaction> }>>('typeCell');
-  readonly mobileTxTemplate = viewChild<TemplateRef<{ row: Transaction }>>('mobileTx');
-
   readonly currencies = computed(() => this.summaries().map(summary => summary.currency));
   readonly hasMultipleCurrencies = computed(() => this.currencies().length > 1);
   readonly currencyTabs = computed<TabItemDto[]>(() => this.currencies().map(currency => ({ id: currency, label: currency })));
   readonly currencyTabsLabel = DASHBOARD_VIEW.CURRENCY_TABS_LABEL;
   readonly activeCurrency = computed(() => this.selectedCurrency() ?? DASHBOARD_VIEW.NO_CURRENCY);
-
-  readonly tableConfig = computed<DataTableConfig<Transaction>>(() => ({
-    title: 'Recent Activity',
-    columns: DashboardHelper.getDashboardTableColumns(this.wallet()?.currency ?? 'USD'),
-    emptyMessage: 'No transactions yet',
-    headerAction: { label: 'View all', link: '/wallet' }
-  }));
 
   readonly selectedCurrency = computed(() => {
     const available = this.currencies();
