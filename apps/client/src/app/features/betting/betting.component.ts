@@ -1,9 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-
 import { BettingService } from '../../core/services/betting.service';
 import { ToastService } from '../../core/services/toast.service';
 import { CurrencyFormatPipe } from '../../shared/pipes/currency-format.pipe';
@@ -25,12 +23,13 @@ import { LOAD_STATUS } from '../../core/constants/ui/load-status.constant';
 import { BettingEventsService } from './services/betting-events.service';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { EVENT_BADGE } from '../../core/constants/betting/event-badge.constant';
+import { BET_HISTORY_TONE } from '../../core/constants/betting/bet-history-tone.constant';
 
 @Component({
   selector: 'app-betting',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, IconComponent],
+  imports: [ButtonComponent, ReactiveFormsModule, CurrencyFormatPipe, RelativeTimePipe, PaginationComponent, ShowMoreComponent, PageHeaderComponent, SkeletonComponent, EmptyStateComponent, ErrorStateComponent, IconComponent],
   providers: [BettingEventsService],
   templateUrl: './templates/betting.component.html'
 })
@@ -42,6 +41,7 @@ export class BettingComponent implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly badge = EVENT_BADGE;
+  readonly historyTone = BET_HISTORY_TONE;
   readonly selectedEvent = signal<GameEvent | null>(null);
   readonly loading = signal(false);
   readonly eventsList = inject(BettingEventsService);
