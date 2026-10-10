@@ -7,6 +7,6 @@ export const BETTING_FORM_TEST = {
   BOUND_CONTROL: /<input[^>]*formControlName[^>]*\[disabled\]/,
   DISABLED_AT_START: /control<number \| null>\(\{ value: null, disabled: true \}/,
   LIVE_GUARD: /@if \(event\.status !== badge\.LIVE_STATUS\) \{\s*<button[\s\S]*?Select/,
-  DARK_TEXT: 'dark:text-',
-  DARK_BACKGROUND: 'dark:bg-'
+  LIVE_TOKEN: 'text-live',
+  IDLE_TOKEN: 'text-pending'
 } as const;

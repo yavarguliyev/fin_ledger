@@ -11,11 +11,9 @@ describe('Betting page', () => {
     expect(readFileSync(T.COMPONENT, T.ENCODING)).toMatch(T.DISABLED_AT_START);
   });
 
-  it('gives both event badges their own dark-mode colours so LIVE stays readable', () => {
-    [EVENT_BADGE.LIVE, EVENT_BADGE.IDLE].forEach(classes => {
-      expect(classes).toContain(T.DARK_TEXT);
-      expect(classes).toContain(T.DARK_BACKGROUND);
-    });
+  it('colours event badges with the theme-aware Live Depth status tokens so LIVE stays readable', () => {
+    expect(EVENT_BADGE.LIVE).toContain(T.LIVE_TOKEN);
+    expect(EVENT_BADGE.IDLE).toContain(T.IDLE_TOKEN);
   });
 
   it('offers Select only for fixtures that have not started', () => {

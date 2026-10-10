@@ -3,40 +3,43 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-4">
-      <h2 class="font-semibold text-ink-900 dark:text-white">Available Events</h2>
+      <h2 class="font-display font-medium text-xl text-text">Events</h2>
       @if (eventsList.status() === statuses.LOADING && eventsList.visible().length === 0) {
         <app-skeleton [rows]="states.EVENT_ROWS" />
       } @else if (eventsList.status() === statuses.ERROR && eventsList.visible().length === 0) {
         <app-error-state [message]="states.EVENTS_ERROR" (retry)="eventsList.load()" />
       } @else {
-        @for (event of eventsList.visible(); track event.id) {
-          <div
-            class="bg-white dark:bg-night-surface rounded-xl border border-ink-200 dark:border-night-border p-4 flex items-center justify-between hover:shadow-card transition-shadow"
-          >
-            <div>
-              <p class="font-medium text-ink-900 dark:text-white">{{ event.label }}</p>
-              <span class="text-xs font-medium px-2 py-0.5 rounded-full" [class]="event.status === badge.LIVE_STATUS ? badge.LIVE : badge.IDLE">
-                @if (event.status === badge.LIVE_STATUS) {
-                  <span [class]="badge.LIVE_DOT" aria-hidden="true"></span>
-                }
-                {{ event.status }}</span
-              >
-            </div>
-            <div class="flex items-center gap-3">
-              <span class="text-sm font-semibold text-primary">{{ event.odds.toFixed(2) }}x</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (event of eventsList.visible(); track event.id) {
+            <div class="flex flex-col gap-3.5 rounded-[22px] bg-surface-1 depth-1 p-[18px]">
+              <div class="flex items-center text-[13px]">
+                <span [class]="event.status === badge.LIVE_STATUS ? badge.LIVE : badge.IDLE">
+                  @if (event.status === badge.LIVE_STATUS) {
+                    <span [class]="badge.LIVE_DOT" aria-hidden="true"></span>
+                  }
+                  {{ event.status }}</span
+                >
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <strong class="min-w-0 truncate text-text">{{ event.label }}</strong>
+                <span class="font-display font-bold text-lg text-text tabular-nums">{{ event.odds.toFixed(2) }}×</span>
+              </div>
               @if (event.status !== badge.LIVE_STATUS) {
                 <button
+                  type="button"
                   (click)="selectEvent(event)"
-                  class="px-3 py-1.5 rounded-lg text-sm font-medium border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
+                  class="min-h-12 rounded-[14px] border border-line bg-surface-2 text-[13px] font-semibold text-text hover:border-action transition-colors"
                 >
                   Select
                 </button>
               }
             </div>
-          </div>
-        } @empty {
-          <app-empty-state [icon]="states.EVENTS_ICON" [title]="states.EVENTS_EMPTY_TITLE" [message]="states.EVENTS_EMPTY_MESSAGE" />
-        }
+          } @empty {
+            <div class="sm:col-span-2">
+              <app-empty-state [icon]="states.EVENTS_ICON" [title]="states.EVENTS_EMPTY_TITLE" [message]="states.EVENTS_EMPTY_MESSAGE" />
+            </div>
+          }
+        </div>
       }
 
       <app-show-more [config]="eventsList.showMoreConfig()" (loadMore)="eventsList.loadMore()" />
