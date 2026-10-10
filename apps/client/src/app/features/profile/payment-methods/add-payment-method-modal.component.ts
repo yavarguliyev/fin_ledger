@@ -6,13 +6,14 @@ import { ToastService } from '../../../core/services/toast.service';
 import { PaymentMethod } from '../../../core/types/payment-method/payment-method.type';
 import { ProviderOption } from '../../../core/interfaces/payment-method/provider-option.interface';
 import { FocusTrapDirective } from '../../../shared/directives/focus-trap.directive';
+import { IconComponent } from '../../../shared/components/icon/icon.component';
 import { MODAL } from '../../../core/constants/ui/modal.constant';
 
 @Component({
   selector: 'app-add-payment-method-modal',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FocusTrapDirective],
+  imports: [CommonModule, FocusTrapDirective, IconComponent],
   templateUrl: './templates/add-payment-method-modal.component.html'
 })
 export class AddPaymentMethodModalComponent {

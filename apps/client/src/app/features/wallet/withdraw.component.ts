@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterModule } from '@angular/router';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { IconComponent } from '../../shared/components/icon/icon.component';
 
 import { WalletService } from '../../core/services/wallet.service';
 import { PaymentService } from '../../core/services/payment.service';
@@ -27,7 +28,7 @@ import { ConnectivityService } from '../../core/services/connectivity.service';
   selector: 'app-withdraw',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, FieldErrorComponent, ErrorStateComponent],
+  imports: [ButtonComponent, CommonModule, ReactiveFormsModule, RouterModule, CurrencyFormatPipe, PageHeaderComponent, IconComponent, FieldErrorComponent, ErrorStateComponent],
   providers: [WithdrawMethodsService],
   templateUrl: './templates/withdraw.component.html'
 })
